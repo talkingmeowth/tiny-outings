@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Little Week app icon">
+  <rect width="512" height="512" rx="112" fill="#fffaf0"/>
+  <circle cx="158" cy="154" r="92" fill="#f7c85d"/>
+  <path fill="#1f7a65" d="M92 292c0-60 49-109 109-109h110c60 0 109 49 109 109v88c0 22-18 40-40 40H132c-22 0-40-18-40-40v-88Z"/>
+  <path fill="#e86f51" d="M185 301c0-39 32-71 71-71s71 32 71 71-32 71-71 71-71-32-71-71Z"/>
+  <path fill="#fffaf0" d="M219 296c0-20 16-36 36-36s36 16 36 36v44h-72v-44Z"/>
+  <path fill="#17322f" d="M174 145c0 15-12 27-27 27s-27-12-27-27 12-27 27-27 27 12 27 27Zm218 0c0 15-12 27-27 27s-27-12-27-27 12-27 27-27 27 12 27 27Z"/>
+</svg>

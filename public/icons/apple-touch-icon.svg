@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-label="Little Week Apple touch icon">
+  <rect width="180" height="180" rx="40" fill="#fffaf0"/>
+  <circle cx="56" cy="54" r="31" fill="#f7c85d"/>
+  <rect x="35" y="67" width="110" height="82" rx="32" fill="#1f7a65"/>
+  <circle cx="90" cy="104" r="27" fill="#e86f51"/>
+  <path fill="#fffaf0" d="M75 102c0-9 7-16 16-16s16 7 16 16v20H75v-20Z"/>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Little Week maskable icon">
+  <rect width="512" height="512" fill="#1f7a65"/>
+  <circle cx="120" cy="112" r="94" fill="#f7c85d"/>
+  <circle cx="408" cy="408" r="128" fill="#b7d8dc"/>
+  <rect x="112" y="146" width="288" height="244" rx="88" fill="#fffaf0"/>
+  <circle cx="202" cy="252" r="28" fill="#17322f"/>
+  <circle cx="310" cy="252" r="28" fill="#17322f"/>
+  <path fill="#e86f51" d="M184 328c34 34 110 34 144 0 9-9 24 6 16 16-46 56-130 56-176 0-8-10 7-25 16-16Z"/>
+</svg>
