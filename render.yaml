@@ -1,7 +1,7 @@
 services:
-  - type: static
-    name: little-week
-    env: static
+  - type: web
+    name: tiny-outings
+    runtime: static
     buildCommand: npm install && npm run build
     staticPublishPath: dist
     envVars:
