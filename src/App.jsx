@@ -117,6 +117,7 @@ function normalizeActivity(activity) {
   const appRating = numericOrNull(activity.app_rating);
   const googleRating = numericOrNull(activity.google_rating);
   const reviewCount = Number(activity.number_of_reviews ?? activity.google_user_rating_count ?? 0);
+  const cost = activity.cost || activity.price || activity.price_text || activity.fee || null;
 
   return {
     ...activity,
@@ -146,6 +147,7 @@ function normalizeActivity(activity) {
       ? String(activity.availability_end_date).slice(0, 10)
       : null,
     availability_type: activity.availability_type || 'recurring',
+    cost,
     image_url: activity.image_url || activity.google_photo_url || activity.photo_url || null,
     image_source_url: activity.image_source_url || activity.website || activity.source_url || null,
     public_listing_status: activity.public_listing_status || 'published',
@@ -301,10 +303,7 @@ function activityWebsiteUrl(activity) {
   return activity.website || activity.source_url || activity.google_place_uri || activity.google_link || googleEntryUrl(activity);
 }
 
-function activityPhotoUrl(activity) {
-  if (activity.google_photo_url) return activity.google_photo_url;
-  if (activity.image_url) return activity.image_url;
-
+function websiteThumbnailUrl(activity) {
   const website = activityWebsiteUrl(activity);
   if (!website) return null;
   try {
@@ -317,11 +316,32 @@ function activityPhotoUrl(activity) {
   }
 }
 
+function activityPhotoUrls(activity) {
+  const candidates = [
+    activity.google_photo_url,
+    activity.image_url,
+    activity.photo_url,
+    websiteThumbnailUrl(activity),
+  ].filter(Boolean);
+
+  return [...new Set(candidates)];
+}
+
+function activityPhotoUrl(activity) {
+  return activityPhotoUrls(activity)[0] || null;
+}
+
 function activityPhotoLabel(activity) {
   if (activity.google_photo_url) return 'Google Places photo';
   if (activity.image_url) return 'Website photo';
   if (activityWebsiteUrl(activity)) return 'Website image';
   return 'Photo pending';
+}
+
+function activityCost(activity) {
+  const cost = activity.cost || activity.price || activity.price_text || activity.fee;
+  if (!cost || String(cost).trim().length === 0) return null;
+  return String(cost).trim();
 }
 
 function isActivityAvailableOn(activity, dateISO) {
@@ -432,6 +452,7 @@ export default function App() {
   const [linkForm, setLinkForm] = useState(emptyLinkForm);
   const [reviewForm, setReviewForm] = useState({ rating: 5, comments: '', photo_url: '' });
   const [selectedActivity, setSelectedActivity] = useState(null);
+  const [returnScreen, setReturnScreen] = useState('swipe');
   const [dragState, setDragState] = useState({ activityId: null, startX: null, offsetX: 0 });
 
   const weekDays = Array.from({ length: 7 }, (_, index) => addDaysISO(filters.weekStart, index));
@@ -666,6 +687,24 @@ export default function App() {
     setNotice(`${event.activity.activity_name} removed from your calendar.`);
   }
 
+  function navigate(screen) {
+    if (screen !== 'activity') {
+      setSelectedActivity(null);
+    }
+    setActiveScreen(screen);
+  }
+
+  function openActivity(activity) {
+    setReturnScreen(activeScreen === 'activity' ? returnScreen : activeScreen);
+    setSelectedActivity(activity);
+    setActiveScreen('activity');
+  }
+
+  function closeActivity() {
+    setSelectedActivity(null);
+    setActiveScreen(returnScreen);
+  }
+
   async function submitActivityLink(event) {
     event.preventDefault();
     const link = linkForm.activity_link.trim();
@@ -755,7 +794,7 @@ export default function App() {
   return (
     <div className="phone-app">
       <header className="app-topbar">
-        <button className="brand-lockup" type="button" onClick={() => setActiveScreen('start')}>
+        <button className="brand-lockup" type="button" onClick={() => navigate('start')}>
           <span>Tiny</span>
           <strong>Outings</strong>
         </button>
@@ -784,7 +823,7 @@ export default function App() {
             weekDays={weekDays}
             activityCount={filteredActivities.length}
             onRequestLocation={requestLocation}
-            onStart={() => setActiveScreen('swipe')}
+            onStart={() => navigate('swipe')}
           />
         )}
 
@@ -803,14 +842,13 @@ export default function App() {
             dragState={dragState}
             loading={loading}
             hasActivities={allActivities.length > 0}
-            userLocation={userLocation}
             onSwipe={handleSwipe}
             onStartDrag={startDrag}
             onMoveDrag={moveDrag}
             onEndDrag={endDrag}
             onResetSlot={resetCurrentSlot}
             onChoose={chooseActivity}
-            onOpenActivity={setSelectedActivity}
+            onOpenActivity={openActivity}
           />
         )}
 
@@ -818,7 +856,7 @@ export default function App() {
           <CalendarScreen
             weekDays={weekDays}
             calendarEvents={calendarEvents}
-            onOpenActivity={setSelectedActivity}
+            onOpenActivity={openActivity}
             onUpdateEvent={updateEvent}
             onRemoveEvent={removeEvent}
           />
@@ -832,20 +870,20 @@ export default function App() {
             loading={loading}
           />
         )}
+
+        {activeScreen === 'activity' && selectedActivity && (
+          <ActivityDetail
+            activity={selectedActivity}
+            userLocation={userLocation}
+            reviewForm={reviewForm}
+            setReviewForm={setReviewForm}
+            submitReview={submitReview}
+            onClose={closeActivity}
+          />
+        )}
       </main>
 
-      {selectedActivity && (
-        <ActivityDetail
-          activity={selectedActivity}
-          userLocation={userLocation}
-          reviewForm={reviewForm}
-          setReviewForm={setReviewForm}
-          submitReview={submitReview}
-          onClose={() => setSelectedActivity(null)}
-        />
-      )}
-
-      <BottomNav activeScreen={activeScreen} setActiveScreen={setActiveScreen} />
+      <BottomNav activeScreen={activeScreen} setActiveScreen={navigate} />
     </div>
   );
 }
@@ -1030,7 +1068,6 @@ function SwipeScreen({
   dragState,
   loading,
   hasActivities,
-  userLocation,
   onSwipe,
   onStartDrag,
   onMoveDrag,
@@ -1110,7 +1147,6 @@ function SwipeScreen({
               isTop={isTop}
               decisionClass={decisionClass}
               offset={offset}
-              userLocation={userLocation}
               onSwipe={onSwipe}
               onStartDrag={onStartDrag}
               onMoveDrag={onMoveDrag}
@@ -1176,7 +1212,6 @@ function ActivityCard({
   isTop,
   decisionClass,
   offset,
-  userLocation,
   onStartDrag,
   onMoveDrag,
   onEndDrag,
@@ -1189,16 +1224,28 @@ function ActivityCard({
   const imageStyle = photoUrl
     ? { '--card-photo': `url("${photoUrl}")` }
     : undefined;
-  const googleUrl = googleEntryUrl(activity);
-  const directionsUrl = googleDirectionsUrl(activity, userLocation);
-  const websiteUrl = activityWebsiteUrl(activity);
+  const cost = activityCost(activity);
+  const distance = formatDistance(activity.distance);
+  const walk = formatWalk(activity.distance);
+  const travelText = walk ? `${distance} - ${walk}` : distance;
 
   return (
     <article
       className={classNames('swipe-card', isTop && 'is-top', decisionClass)}
+      role="button"
+      tabIndex={isTop ? 0 : -1}
+      aria-label={`Open ${activity.activity_name}`}
       style={{
         transform: `translateX(${offset}px) translateY(${stackOffset}px) scale(${1 - stackIndex * 0.035}) rotate(${rotate}deg)`,
         zIndex: 10 - stackIndex,
+      }}
+      onClick={() => isTop && Math.abs(offset) < 8 && onOpenActivity(activity)}
+      onKeyDown={(event) => {
+        if (!isTop) return;
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onOpenActivity(activity);
+        }
       }}
       onPointerDown={(event) => isTop && onStartDrag(event, activity)}
       onPointerMove={(event) => isTop && onMoveDrag(event, activity)}
@@ -1221,26 +1268,18 @@ function ActivityCard({
           <StatusPill status={status || 'tentative'} ghost={!status} />
         </div>
         <h2>{activity.activity_name}</h2>
-        <p>{activity.description || activity.address || 'Details are being polished. Tap a link for the latest.'}</p>
+        <p className="card-description">
+          {activity.description || activity.address || 'Tap for the latest details.'}
+        </p>
 
-        <div className="activity-facts">
-          <span>{activity.start_time} to {activity.end_time}</span>
-          <span>{formatAvailability(activity)}</span>
-          <span>{formatDistance(activity.distance)} - {formatWalk(activity.distance)}</span>
-          <span>{activity.age_suitability || 'Age guide soon'}</span>
-          <span>
-            {activity.google_rating || activity.app_rating
-              ? `${activity.google_rating || activity.app_rating}/5 Google`
-              : 'Rating coming soon'}
-          </span>
+        <div className="card-summary">
+          <span><strong>Start</strong>{activity.start_time}</span>
+          <span><strong>End</strong>{activity.end_time}</span>
+          {cost && <span><strong>Price</strong>{cost}</span>}
+          <span><strong>Travel</strong>{travelText}</span>
         </div>
 
-        <div className="card-links" onPointerDown={(event) => event.stopPropagation()}>
-          <a href={websiteUrl} target="_blank" rel="noreferrer">Website</a>
-          <a href={googleUrl} target="_blank" rel="noreferrer">Map</a>
-          <a href={directionsUrl} target="_blank" rel="noreferrer">Route</a>
-          <button type="button" onClick={() => onOpenActivity(activity)}>Review</button>
-        </div>
+        <span className="card-more">Tap for photos, links and full details</span>
       </div>
     </article>
   );
@@ -1411,76 +1450,93 @@ function ActivityDetail({
   const googleUrl = googleEntryUrl(activity);
   const directionsUrl = googleDirectionsUrl(activity, userLocation);
   const websiteUrl = activityWebsiteUrl(activity);
-  const photoUrl = activityPhotoUrl(activity);
+  const photoUrls = activityPhotoUrls(activity);
   const photoLabel = activityPhotoLabel(activity);
-  const photoStyle = photoUrl
-    ? { '--card-photo': `url("${photoUrl}")` }
-    : undefined;
+  const cost = activityCost(activity);
+  const rating = activity.google_rating || activity.app_rating;
 
   return (
-    <div className="detail-backdrop" role="dialog" aria-modal="true">
-      <aside className="detail-sheet">
-        <button className="sheet-close" type="button" onClick={onClose}>Close</button>
-        <div
-          className={classNames('detail-photo', photoUrl && 'has-image')}
-          style={photoStyle}
-        >
-          <span>{photoLabel}</span>
-          <small>{activity.address}</small>
-        </div>
+    <section className="app-screen activity-detail-screen">
+      <button className="sheet-close detail-back-button" type="button" onClick={onClose}>
+        Back
+      </button>
 
+      <div className="detail-hero">
+        <div className="detail-gallery" aria-label={`${activity.activity_name} photos`}>
+          {photoUrls.length > 0 ? (
+            photoUrls.map((url, index) => (
+              <div
+                key={url}
+                className={classNames('detail-photo', 'has-image', index === 0 && 'is-main')}
+                style={{ '--card-photo': `url("${url}")` }}
+              >
+                <span>{index === 0 ? photoLabel : 'More photos'}</span>
+              </div>
+            ))
+          ) : (
+            <div className="detail-photo is-main">
+              <span>Photo pending</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="detail-content-card">
         <p className="eyebrow">{activity.category}</p>
-        <h2>{activity.activity_name}</h2>
-        <p>{activity.description || 'Description coming soon. Check the links for the latest details.'}</p>
+        <h1>{activity.activity_name}</h1>
+        <p className="detail-description">
+          {activity.description || 'Description coming soon. Check the links for the latest details.'}
+        </p>
 
         <div className="detail-grid">
-          <span><strong>Time</strong>{activity.start_time} to {activity.end_time}</span>
+          <span><strong>Start</strong>{activity.start_time}</span>
+          <span><strong>End</strong>{activity.end_time}</span>
+          <span><strong>Price</strong>{cost || 'Check with venue'}</span>
           <span><strong>Available</strong>{formatAvailability(activity)}</span>
-          <span><strong>Address</strong>{activity.address}</span>
-          <span><strong>Age</strong>{activity.age_suitability || 'Guide coming soon'}</span>
-          <span><strong>Child friendly</strong>{activity.child_friendly_score || 'Not rated'}</span>
-          <span><strong>Google rating</strong>{activity.google_rating || activity.app_rating || 'Not rated'}</span>
+          <span><strong>Google rating</strong>{rating ? `${rating}/5` : 'Not rated yet'}</span>
           <span><strong>Reviews</strong>{activity.google_user_rating_count || activity.number_of_reviews || 0}</span>
+          <span><strong>Age</strong>{activity.age_suitability || 'Guide coming soon'}</span>
+          <span><strong>Address</strong>{activity.address}</span>
         </div>
 
-        <div className="external-links">
+        <div className="external-links detail-links">
           <a href={websiteUrl} target="_blank" rel="noreferrer">Website</a>
-          <a href={googleUrl} target="_blank" rel="noreferrer">Map</a>
-          <a href={directionsUrl} target="_blank" rel="noreferrer">Route</a>
+          <a href={googleUrl} target="_blank" rel="noreferrer">Google Places</a>
+          <a href={directionsUrl} target="_blank" rel="noreferrer">Google Maps</a>
         </div>
+      </div>
 
-        <form className="review-card" onSubmit={submitReview}>
-          <h3>Add a quick review</h3>
-          <label>
-            <span>Rating</span>
-            <input
-              type="number"
-              min="1"
-              max="5"
-              value={reviewForm.rating}
-              onChange={(event) => setReviewForm((current) => ({ ...current, rating: event.target.value }))}
-            />
-          </label>
-          <label>
-            <span>Comment</span>
-            <textarea
-              value={reviewForm.comments}
-              onChange={(event) => setReviewForm((current) => ({ ...current, comments: event.target.value }))}
-              placeholder="Buggy access, baby change, feeding space, vibe..."
-            />
-          </label>
-          <label>
-            <span>Photo URL</span>
-            <input
-              value={reviewForm.photo_url}
-              onChange={(event) => setReviewForm((current) => ({ ...current, photo_url: event.target.value }))}
-              placeholder="https://..."
-            />
-          </label>
-          <button className="primary-action" type="submit">Save review</button>
-        </form>
-      </aside>
-    </div>
+      <form className="review-card" onSubmit={submitReview}>
+        <h3>Add a quick review</h3>
+        <label>
+          <span>Rating</span>
+          <input
+            type="number"
+            min="1"
+            max="5"
+            value={reviewForm.rating}
+            onChange={(event) => setReviewForm((current) => ({ ...current, rating: event.target.value }))}
+          />
+        </label>
+        <label>
+          <span>Comment</span>
+          <textarea
+            value={reviewForm.comments}
+            onChange={(event) => setReviewForm((current) => ({ ...current, comments: event.target.value }))}
+            placeholder="Buggy access, baby change, feeding space, vibe..."
+          />
+        </label>
+        <label>
+          <span>Photo URL</span>
+          <input
+            value={reviewForm.photo_url}
+            onChange={(event) => setReviewForm((current) => ({ ...current, photo_url: event.target.value }))}
+            placeholder="https://..."
+          />
+        </label>
+        <button className="primary-action" type="submit">Save review</button>
+      </form>
+    </section>
   );
 }
 
