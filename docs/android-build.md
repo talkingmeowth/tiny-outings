@@ -26,6 +26,12 @@ android/app/build/outputs/apk/debug/app-debug.apk
 
 This file can be installed directly on an Android phone for testing. Because it is a debug build, Android may ask you to allow installs from unknown apps.
 
+For the current pushed test build, download it on Android from:
+
+```text
+https://github.com/talkingmeowth/tiny-outings/raw/main/release/tiny-outings-debug.apk
+```
+
 ## Build For Google Play
 
 For Play Store submission, build an Android App Bundle instead:
