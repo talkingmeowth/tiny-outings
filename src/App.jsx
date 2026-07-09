@@ -3,7 +3,7 @@ import { supabase } from './supabaseClient';
 
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
-const planningStorageVersion = '2026-07-09-accountless-reset';
+const planningStorageVersion = '2026-07-09-activity-visibility-reset';
 const visibilityOptions = ['private', 'public'];
 const statusOptions = ['booked', 'tentative'];
 const statusLabels = {
@@ -27,6 +27,16 @@ const activityInterestOptions = [
   'soft play',
   'family hub',
 ];
+
+function defaultFilters() {
+  return {
+    distanceMode: 'radius',
+    radiusMiles: 3,
+    walkMinutes: 35,
+    weekStart: startOfWeekISO(todayISO()),
+    interests: [],
+  };
+}
 
 function loadStored(key, fallback) {
   try {
@@ -463,11 +473,12 @@ export default function App() {
   const [filters, setFilters] = useState(() => {
     const stored = loadStored('filters', {});
     const storedInterests = Array.isArray(stored.interests) ? stored.interests : [];
+    const defaults = defaultFilters();
     return {
       distanceMode: stored.distanceMode === 'walk' ? 'walk' : 'radius',
-      radiusMiles: Number(stored.radiusMiles) || 3,
-      walkMinutes: Number(stored.walkMinutes) || 35,
-      weekStart: stored.weekStart || startOfWeekISO(todayISO()),
+      radiusMiles: Number(stored.radiusMiles) || defaults.radiusMiles,
+      walkMinutes: Number(stored.walkMinutes) || defaults.walkMinutes,
+      weekStart: stored.weekStart || defaults.weekStart,
       interests: storedInterests.filter((interest) => activityInterestOptions.includes(interest)),
     };
   });
@@ -491,18 +502,27 @@ export default function App() {
     ? Number(filters.walkMinutes) / 20
     : Number(filters.radiusMiles);
 
-  const filteredActivities = allActivities
-    .map((activity) => ({
-      ...activity,
-      distance: milesBetween(userLocation, { lat: activity.lat, long: activity.long }),
-    }))
-    .filter((activity) => {
-      const dayMatch = isActivityAvailableOn(activity, selectedDate);
-      const interestMatch = activityMatchesInterests(activity, filters.interests);
-      const distanceMatch =
-        !userLocation || activity.distance == null || activity.distance <= distanceLimit;
-      return activity.public_listing_status === 'published' && dayMatch && interestMatch && distanceMatch;
-    });
+  const activitiesWithDistance = allActivities.map((activity) => ({
+    ...activity,
+    distance: milesBetween(userLocation, { lat: activity.lat, long: activity.long }),
+  }));
+
+  function matchesSharedFilters(activity) {
+    const interestMatch = activityMatchesInterests(activity, filters.interests);
+    const distanceMatch =
+      !userLocation || activity.distance == null || activity.distance <= distanceLimit;
+    return activity.public_listing_status === 'published' && interestMatch && distanceMatch;
+  }
+
+  const publishedActivityCount = allActivities.filter(
+    (activity) => activity.public_listing_status === 'published',
+  ).length;
+  const weekMatchedActivities = activitiesWithDistance.filter(
+    (activity) => matchesSharedFilters(activity) && weekDays.some((day) => isActivityAvailableOn(activity, day)),
+  );
+  const filteredActivities = activitiesWithDistance.filter(
+    (activity) => matchesSharedFilters(activity) && isActivityAvailableOn(activity, selectedDate),
+  );
 
   const slotActivities = filteredActivities.filter(
     (activity) => isFlexibleActivity(activity) || activity.time_window === selectedWindow,
@@ -532,10 +552,6 @@ export default function App() {
       setSelectedDate(filters.weekStart);
     }
   }, [filters.weekStart, selectedDate]);
-
-  useEffect(() => {
-    requestLocation();
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -580,7 +596,7 @@ export default function App() {
           long: position.coords.longitude,
         });
         setLocationStatus('ready');
-        setNotice('Nearby picks are on.');
+        setNotice('Nearby picks are on. Tap Show all if you want the full London list.');
       },
       () => {
         setLocationStatus('blocked');
@@ -592,6 +608,26 @@ export default function App() {
         timeout: 12000,
       },
     );
+  }
+
+  function showAllActivities() {
+    setFilters((current) => ({
+      ...defaultFilters(),
+      weekStart: current.weekStart,
+    }));
+    setUserLocation(null);
+    setLocationStatus('idle');
+    setSwipes({});
+    setShortlists({});
+    setStatuses({});
+    setNotice('Showing the full London list. Your calendar plans are still saved.');
+  }
+
+  function resetBrowsingState() {
+    setSwipes({});
+    setShortlists({});
+    setStatuses({});
+    setNotice('Your swipe deck is fresh again. Calendar plans stayed put.');
   }
 
   function setLocalStatus(activity, status) {
@@ -845,8 +881,13 @@ export default function App() {
             locationStatus={locationStatus}
             userLocation={userLocation}
             weekDays={weekDays}
-            activityCount={filteredActivities.length}
+            totalActivityCount={publishedActivityCount}
+            weekActivityCount={weekMatchedActivities.length}
+            dayActivityCount={filteredActivities.length}
+            slotActivityCount={slotActivities.length}
             onRequestLocation={requestLocation}
+            onShowAll={showAllActivities}
+            onResetBrowsing={resetBrowsingState}
             onStart={() => navigate('swipe')}
           />
         )}
@@ -859,6 +900,7 @@ export default function App() {
             selectedWindow={selectedWindow}
             setSelectedWindow={setSelectedWindow}
             deckActivities={deckActivities}
+            slotActivityCount={slotActivities.length}
             shortlist={currentShortlist}
             chosenForSlot={chosenForSlot}
             statuses={statuses}
@@ -918,8 +960,13 @@ function StartScreen({
   locationStatus,
   userLocation,
   weekDays,
-  activityCount,
+  totalActivityCount,
+  weekActivityCount,
+  dayActivityCount,
+  slotActivityCount,
   onRequestLocation,
+  onShowAll,
+  onResetBrowsing,
   onStart,
 }) {
   const isWalkMode = filters.distanceMode === 'walk';
@@ -1005,9 +1052,16 @@ function StartScreen({
               ? 'Your deck is centred around where you are now.'
               : 'Turn this on for closest picks, or browse the full list.'}
           </p>
-          <button className="secondary-button" type="button" onClick={onRequestLocation}>
-            Use my location
-          </button>
+          <div className="filter-actions">
+            <button className="secondary-button" type="button" onClick={onRequestLocation}>
+              Use my location
+            </button>
+            {userLocation && (
+              <button className="secondary-button warm" type="button" onClick={onShowAll}>
+                Show all London
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="field-group">
@@ -1066,13 +1120,18 @@ function StartScreen({
 
       <div className="start-summary">
         <div>
-          <span>Outings in your deck</span>
-          <strong>{activityCount}</strong>
-          <small>Matched to your week and range.</small>
+          <span>Loaded from Supabase</span>
+          <strong>{totalActivityCount}</strong>
+          <small>{weekActivityCount} match this week. {dayActivityCount} fit today. {slotActivityCount} fit the current slot.</small>
         </div>
-        <button className="primary-action" type="button" onClick={onStart}>
-          Build my week
-        </button>
+        <div className="start-actions">
+          <button className="primary-action" type="button" onClick={onStart}>
+            Build my week
+          </button>
+          <button className="secondary-button" type="button" onClick={onResetBrowsing}>
+            Reset swipes
+          </button>
+        </div>
       </div>
     </section>
   );
@@ -1085,6 +1144,7 @@ function SwipeScreen({
   selectedWindow,
   setSelectedWindow,
   deckActivities,
+  slotActivityCount,
   shortlist,
   chosenForSlot,
   statuses,
@@ -1136,7 +1196,7 @@ function SwipeScreen({
       <div className="swipe-status-bar">
         <div>
           <span>{formatDay(selectedDate, 'long')} - {selectedWindow}</span>
-          <strong>{shortlist.length} saved for later</strong>
+          <strong>{deckActivities.length} of {slotActivityCount} left - {shortlist.length} saved</strong>
         </div>
         <button type="button" onClick={onResetSlot}>Start over</button>
       </div>
@@ -1152,7 +1212,7 @@ function SwipeScreen({
         {!loading && hasActivities && deckActivities.length === 0 && (
           <EmptyDeck
             title="All caught up"
-            message="You have swiped through this slot. Pick from your saved ideas or start over."
+            message="You have swiped through this day and time. Pick from your saved ideas, tap Start over, or change the day/time above."
           />
         )}
         {!loading && deckActivities.slice(0, 3).reverse().map((activity, reverseIndex, visibleDeck) => {

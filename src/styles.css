@@ -1474,6 +1474,26 @@ input[type='range'] {
   background: linear-gradient(135deg, var(--green), var(--green-dark));
 }
 
+.filter-actions,
+.start-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.filter-actions {
+  grid-template-columns: 1fr;
+}
+
+.secondary-button.warm {
+  border-color: rgba(255, 138, 101, 0.26);
+  color: var(--coral-dark);
+  background: rgba(255, 220, 183, 0.5);
+}
+
+.start-actions .secondary-button {
+  min-height: 46px;
+}
+
 .tinder-stage {
   height: clamp(640px, calc(100dvh - 230px), 780px);
   min-height: 0;
@@ -1589,5 +1609,9 @@ input[type='range'] {
 
   .card-links {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .start-summary {
+    gap: 12px;
   }
 }
