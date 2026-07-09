@@ -4,7 +4,7 @@ This app uses Supabase Auth for sign-in and `public.user_table` for user profile
 
 ## Core Tables
 
-- `activities`: Source activity listings, including venue, times, category, age suitability, and location.
+- `activities`: Source activity listings, including venue, times, category, age suitability, location, and optional Google Places metadata.
 - `user_table`: App profile for each authenticated user. Stores `user_name`, profile fields, and follower/following counts.
 - `user_follows`: Normalized follow graph. This keeps follower data queryable and updates `user_table.followers` and `user_table.following`.
 - `comments_table`: Comments left by users on activities.
@@ -36,3 +36,9 @@ Calendar events and activity statuses can be:
 ## Friend Signals
 
 When swiping, the app can query `activity_user_statuses` or the `followed_activity_statuses` view to show whether followed users have selected the same activity.
+
+## Google Places Autofill
+
+The add tab sends a pasted link to the `activity-link-autofill` Supabase Edge Function. The function calls Google Places server-side, then returns normalized values for the `activities` table, including Google entry URL, photo URL, rating, review count, primary type, opening hours, and summary when available.
+
+The Google API key must be set as a Supabase Edge Function secret named `GOOGLE_MAPS_API_KEY`. The mobile frontend should only use the Supabase publishable key.

@@ -7,6 +7,8 @@ MVP database start for a parent/baby activity planning app covering Waltham Fore
 - `supabase/migrations/20260708210000_create_activities.sql` creates the Supabase `public.activities` table.
 - `supabase/migrations/20260708213000_create_core_app_tables.sql` creates users, follows, comments, swipes, shortlist, calendar, reviews, and photos.
 - `supabase/migrations/20260708220000_allow_activity_submissions.sql` lets signed-in users submit draft activities from the frontend.
+- `supabase/migrations/20260709162000_google_places_activity_enrichment.sql` adds Google Places metadata fields and removes any demo/sample draft rows.
+- `supabase/functions/activity-link-autofill` enriches a pasted link with Google Places data server-side.
 - `supabase/seed/activities_waltham_forest.sql` inserts the first Waltham Forest activity data.
 - `data/waltham_forest_activities_seed.csv` is a review-friendly copy of the seed.
 - `docs/activity-data-sources.md` records the source URLs and geocoding notes.
@@ -37,6 +39,20 @@ If you are using the Supabase SQL editor instead of the CLI, run files in this o
 2. `supabase/seed/activities_waltham_forest.sql`
 3. `supabase/migrations/20260708213000_create_core_app_tables.sql`
 4. `supabase/migrations/20260708220000_allow_activity_submissions.sql`
+5. `supabase/migrations/20260709162000_google_places_activity_enrichment.sql`
+
+## Google Sign-In And Places Setup
+
+The mobile app now uses Google email sign-in through Supabase Auth. In Supabase, enable the Google provider under Authentication, then add your Google OAuth client ID and secret.
+
+The add-activity screen accepts only one link. To make that work, deploy the Edge Function and store your Google Maps key as a Supabase secret:
+
+```bash
+supabase secrets set GOOGLE_MAPS_API_KEY=your_google_maps_key
+supabase functions deploy activity-link-autofill
+```
+
+In Google Cloud, enable Places API (New). The function uses server-side Place Details, Text Search, and Place Photos calls so the API key is not exposed in the mobile app.
 
 ## Activity Table Notes
 
@@ -58,6 +74,8 @@ The table includes the requested core fields:
 - `age_suitability`
 
 It also includes MVP-supporting fields for filtering and provenance: `borough`, `postcode`, `days_of_week`, `recurrence_rule`, `time_window`, `location`, `source_url`, and search indexes.
+
+Google-enriched activities can also store `google_place_id`, `google_place_uri`, `google_photo_url`, `google_rating`, `google_user_rating_count`, `google_primary_type`, `google_opening_hours`, and `google_summary`.
 
 ## Core App Table Notes
 

@@ -1201,3 +1201,192 @@ input[type='range'] {
     font-size: 0.68rem;
   }
 }
+
+/* Mobile-app simplification overrides */
+#root {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.phone-app {
+  max-width: 560px;
+}
+
+.hero-title {
+  min-height: min(46vh, 430px);
+  align-content: end;
+}
+
+.location-card .field-group > strong {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.6rem;
+  letter-spacing: -0.04em;
+}
+
+.distance-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 253, 246, 0.66);
+}
+
+.distance-toggle button,
+.card-links a,
+.card-links button,
+.google-auth-button {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink);
+  background: rgba(255, 253, 246, 0.76);
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.distance-toggle button.is-on,
+.google-auth-button {
+  border-color: transparent;
+  color: #fffdf6;
+  background: var(--green);
+}
+
+.tinder-stage {
+  height: clamp(520px, calc(100dvh - 285px), 730px);
+  min-height: 0;
+}
+
+.empty-deck {
+  min-height: 100%;
+}
+
+.swipe-card {
+  grid-template-rows: 44% 56%;
+  border-radius: 38px;
+}
+
+.card-photo.has-image,
+.detail-photo.has-image {
+  background-image:
+    linear-gradient(180deg, rgba(23, 50, 47, 0.1), rgba(23, 50, 47, 0.62)),
+    var(--card-photo);
+  background-position: center;
+  background-size: cover;
+}
+
+.card-content {
+  align-content: end;
+}
+
+.card-content p {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.card-links {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 8px;
+}
+
+.card-links a,
+.card-links button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 12px;
+}
+
+.card-links button {
+  cursor: pointer;
+}
+
+.link-only-form {
+  grid-template-columns: 1fr;
+}
+
+.google-auth-card {
+  text-align: center;
+}
+
+.google-auth-button {
+  width: 100%;
+  justify-content: center;
+}
+
+.detail-photo {
+  background-position: center;
+  background-size: cover;
+}
+
+@media (min-width: 760px) {
+  .phone-app {
+    max-width: 560px;
+  }
+
+  .app-main {
+    justify-items: stretch;
+  }
+
+  .app-screen {
+    width: 100%;
+  }
+
+  .start-screen,
+  .swipe-screen,
+  .form-screen,
+  .profile-screen,
+  .search-screen {
+    grid-template-columns: 1fr;
+  }
+
+  .start-screen .screen-title {
+    min-height: min(46vh, 430px);
+  }
+
+  .planner-strip,
+  .swipe-status-bar,
+  .tinder-stage,
+  .swipe-controls,
+  .shortlist-panel,
+  .form-screen .soft-note,
+  .form-screen .app-form,
+  .profile-screen .soft-note,
+  .profile-screen .auth-card,
+  .profile-screen .account-card,
+  .search-screen .search-box,
+  .search-screen .result-list {
+    grid-column: auto;
+  }
+
+  .shortlist-panel,
+  .form-screen .screen-title,
+  .profile-screen .screen-title,
+  .search-screen .screen-title {
+    position: static;
+    top: auto;
+    grid-row: auto;
+  }
+
+  .calendar-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 420px) {
+  .tinder-stage {
+    height: clamp(500px, calc(100dvh - 270px), 680px);
+  }
+
+  .card-links {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .card-links button {
+    grid-column: 1 / -1;
+  }
+}
