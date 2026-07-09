@@ -175,7 +175,7 @@ function milesBetween(a, b) {
 }
 
 function formatDistance(miles) {
-  if (miles == null || Number.isNaN(miles)) return 'Distance TBC';
+  if (miles == null || Number.isNaN(miles)) return 'Distance soon';
   if (miles < 0.1) return 'Very nearby';
   return `${miles.toFixed(1)} mi`;
 }
@@ -187,7 +187,7 @@ function estimateWalkMinutes(miles) {
 
 function formatWalk(miles) {
   const minutes = estimateWalkMinutes(miles);
-  return minutes ? `${minutes} min walk` : 'Walk TBC';
+  return minutes ? `${minutes} min walk` : 'Walk soon';
 }
 
 function formatAvailability(activity) {
@@ -501,7 +501,7 @@ export default function App() {
       if (cancelled) return;
 
       if (error) {
-        setNotice(`Supabase is connected, but activities could not load: ${error.message}`);
+        setNotice(`We could not refresh outings just now: ${error.message}`);
       } else {
         setActivities((data || []).map(normalizeActivity));
       }
@@ -529,11 +529,11 @@ export default function App() {
           long: position.coords.longitude,
         });
         setLocationStatus('ready');
-        setNotice('Location updated. Your activity deck is centred on you.');
+        setNotice('Nearby picks are on.');
       },
       () => {
         setLocationStatus('blocked');
-        setNotice('Location access was not granted. You can still browse all activities.');
+        setNotice('No worries. You can still browse the full list.');
       },
       {
         enableHighAccuracy: true,
@@ -581,9 +581,9 @@ export default function App() {
           [activeSlot]: [...slotShortlist, activityId],
         };
       });
-      setNotice(`${activity.activity_name} was added to this ${selectedWindow} shortlist.`);
+      setNotice(`${activity.activity_name} added to your ${selectedWindow} maybe-list.`);
     } else {
-      setNotice(`${activity.activity_name} marked as not selected for this slot.`);
+      setNotice(`${activity.activity_name} skipped for this ${selectedWindow}.`);
     }
 
     setLocalStatus(activity, nextStatus);
@@ -625,7 +625,7 @@ export default function App() {
     setStatuses((current) =>
       Object.fromEntries(Object.entries(current).filter(([key]) => !key.startsWith(`${activeSlot}:`))),
     );
-    setNotice(`Reset ${selectedWindow} on ${formatDay(selectedDate)}.`);
+    setNotice(`Cleared ${selectedWindow} on ${formatDay(selectedDate)}.`);
   }
 
   function chooseActivity(activity, status = 'booked') {
@@ -651,7 +651,7 @@ export default function App() {
     ]);
 
     setLocalStatus(activity, status);
-    setNotice(`${activity.activity_name} is now ${statusLabels[status].toLowerCase()} in your calendar.`);
+    setNotice(`${activity.activity_name} added to your week as ${statusLabels[status].toLowerCase()}.`);
   }
 
   function updateEvent(event, changes) {
@@ -676,7 +676,7 @@ export default function App() {
     }
 
     if (!supabase) {
-      setNotice('Add your Supabase URL and publishable key before submitting an activity link.');
+      setNotice('Link adding is not ready in this build yet.');
       return;
     }
 
@@ -686,14 +686,14 @@ export default function App() {
     });
 
     if (error) {
-      setNotice(`Google autofill could not run yet: ${error.message}`);
+      setNotice(`That link could not be read yet: ${error.message}`);
       setLoading(false);
       return;
     }
 
     const enriched = data?.activity || data;
     if (!enriched?.activity_name || !enriched?.address) {
-      setNotice('Google Places did not return enough detail for that link. Try the Google Maps place link.');
+      setNotice('That link did not include enough detail. Try the Google Maps place link.');
       setLoading(false);
       return;
     }
@@ -703,19 +703,19 @@ export default function App() {
 
     setLoading(false);
     if (insertError) {
-      setNotice(`The activity was enriched, but could not be saved: ${insertError.message}`);
+      setNotice(`The activity details were found, but could not be saved: ${insertError.message}`);
       return;
     }
 
     setLinkForm(emptyLinkForm);
-    setNotice(`${payload.activity_name} was saved as a real draft activity for review.`);
+    setNotice(`${payload.activity_name} was added for review.`);
   }
 
   async function submitReview(event) {
     event.preventDefault();
     if (!selectedActivity) return;
     if (!supabase) {
-      setNotice('Add your Supabase URL and publishable key before saving reviews or photos.');
+      setNotice('Reviews are not ready in this build yet.');
       return;
     }
 
@@ -760,9 +760,9 @@ export default function App() {
           <strong>Outings</strong>
         </button>
         <div className="topbar-actions">
-          <span className="sync-dot">{hasSupabaseConfig ? 'Supabase' : 'Set env'}</span>
+          {hasSupabaseConfig && <span className="sync-dot">Fresh picks</span>}
           <button className="icon-button" type="button" onClick={requestLocation}>
-            {locationStatus === 'ready' ? 'Location on' : 'Use location'}
+            {locationStatus === 'ready' ? 'Nearby on' : 'Use location'}
           </button>
         </div>
       </header>
@@ -878,19 +878,24 @@ function StartScreen({
   return (
     <section className="app-screen start-screen">
       <div className="screen-title hero-title">
-        <span className="eyebrow">Maternity and paternity leave planner</span>
-        <h1>Plan your week by swiping.</h1>
+        <span className="eyebrow">Family day planner</span>
+        <h1>Little plans, sorted.</h1>
         <p>
-          Tiny Outings uses your current location, planning week, and interests to help you pick a
-          morning, afternoon, and evening plan with your baby.
+          Pick a week, set your range, then swipe through baby-friendly cafes, parks and
+          activities nearby. Morning, afternoon and evening plans, made lighter.
         </p>
+        <div className="hero-badges" aria-label="Planning windows">
+          <span>Morning</span>
+          <span>Afternoon</span>
+          <span>Evening</span>
+        </div>
       </div>
 
       <div className="filter-card location-card">
         <div className="field-group">
-          <span>Planning week</span>
+          <span>Choose a week</span>
           <strong>{formatWeekRange(filters.weekStart)}</strong>
-          <p>Choose the week you want to plan, then swipe through each day.</p>
+          <p>Build a gentle rhythm for the days ahead.</p>
           <input
             type="date"
             value={filters.weekStart}
@@ -909,8 +914,8 @@ function StartScreen({
         </div>
 
         <div className="field-group">
-          <span>Activity interests</span>
-          <p>Pick what you are interested in booking. Leave everything off to see all activities.</p>
+          <span>What sounds good?</span>
+          <p>Tap a few moods, or leave blank for everything.</p>
           <div className="chip-grid interest-grid">
             {activityInterestOptions.map((interest) => (
               <button
@@ -926,25 +931,25 @@ function StartScreen({
         </div>
 
         <div className="field-group">
-          <span>Current location</span>
+          <span>Where are you starting?</span>
           <strong>
-            {locationStatus === 'ready' && 'Location active'}
-            {locationStatus === 'requesting' && 'Asking permission...'}
-            {locationStatus === 'blocked' && 'Location not active'}
-            {locationStatus === 'idle' && 'Location not requested'}
+            {locationStatus === 'ready' && 'Nearby mode on'}
+            {locationStatus === 'requesting' && 'Opening location prompt...'}
+            {locationStatus === 'blocked' && 'Location off'}
+            {locationStatus === 'idle' && 'Location off'}
           </strong>
           <p>
             {userLocation
-              ? 'Activities are filtered around where you are now.'
-              : 'Allow location to filter nearby activities. If you skip it, the app shows all real listings.'}
+              ? 'Your deck is centred around where you are now.'
+              : 'Turn this on for closest picks, or browse the full list.'}
           </p>
           <button className="secondary-button" type="button" onClick={onRequestLocation}>
-            Use current location
+            Use my location
           </button>
         </div>
 
         <div className="field-group">
-          <span>Distance filter</span>
+          <span>How far today?</span>
           <div className="distance-toggle" role="group" aria-label="Distance filter mode">
             <button
               type="button"
@@ -964,10 +969,10 @@ function StartScreen({
         </div>
 
         <div className="range-card">
-          <span>{isWalkMode ? `${filters.walkMinutes} minute walk` : `${filters.radiusMiles} mile radius`}</span>
+          <span>{isWalkMode ? `Within ${filters.walkMinutes} minutes on foot` : `Within ${filters.radiusMiles} miles`}</span>
           {isWalkMode ? (
             <label>
-              <span>Maximum walking time</span>
+              <span>Walking time</span>
               <input
                 type="range"
                 min="5"
@@ -981,7 +986,7 @@ function StartScreen({
             </label>
           ) : (
             <label>
-              <span>Maximum radius</span>
+              <span>Radius</span>
               <input
                 type="range"
                 min="1"
@@ -999,12 +1004,12 @@ function StartScreen({
 
       <div className="start-summary">
         <div>
-          <span>Real listings ready</span>
+          <span>Outings in your deck</span>
           <strong>{activityCount}</strong>
-          <small>No fake activities are shown.</small>
+          <small>Matched to your week and range.</small>
         </div>
         <button className="primary-action" type="button" onClick={onStart}>
-          Start swiping
+          Build my week
         </button>
       </div>
     </section>
@@ -1070,23 +1075,23 @@ function SwipeScreen({
       <div className="swipe-status-bar">
         <div>
           <span>{formatDay(selectedDate, 'long')} - {selectedWindow}</span>
-          <strong>{shortlist.length} shortlisted</strong>
+          <strong>{shortlist.length} saved for later</strong>
         </div>
-        <button type="button" onClick={onResetSlot}>Reset</button>
+        <button type="button" onClick={onResetSlot}>Start over</button>
       </div>
 
       <div className="tinder-stage" aria-live="polite">
-        {loading && <EmptyDeck title="Loading" message="Pulling real activities from Supabase." />}
+        {loading && <EmptyDeck title="Finding outings" message="Checking what fits your day." />}
         {!loading && !hasActivities && (
           <EmptyDeck
-            title="No real activities yet"
-            message="Your Supabase activities table is empty. Add or seed real listings to start swiping."
+            title="Nothing to show yet"
+            message="The outing list has not loaded. Check your connection, then try again."
           />
         )}
         {!loading && hasActivities && deckActivities.length === 0 && (
           <EmptyDeck
-            title="Deck complete"
-            message="You have swiped through the real activities for this slot. Reset the slot or pick from your shortlist."
+            title="All caught up"
+            message="You have swiped through this slot. Pick from your saved ideas or start over."
           />
         )}
         {!loading && deckActivities.slice(0, 3).reverse().map((activity, reverseIndex, visibleDeck) => {
@@ -1123,7 +1128,7 @@ function SwipeScreen({
           disabled={!topActivity}
           onClick={() => onSwipe(topActivity, 'no')}
         >
-          Nope
+          Skip
         </button>
         <button
           className="swipe-button info"
@@ -1131,7 +1136,7 @@ function SwipeScreen({
           disabled={!topActivity}
           onClick={() => onOpenActivity(topActivity)}
         >
-          Review
+          Details
         </button>
         <button
           className="swipe-button yes"
@@ -1139,7 +1144,7 @@ function SwipeScreen({
           disabled={!topActivity}
           onClick={() => onSwipe(topActivity, 'yes')}
         >
-          Yes
+          Save
         </button>
       </div>
 
@@ -1200,8 +1205,8 @@ function ActivityCard({
       onPointerUp={() => isTop && onEndDrag(activity)}
       onPointerCancel={() => isTop && onEndDrag(activity)}
     >
-      <span className="decision-stamp yes">Yes</span>
-      <span className="decision-stamp no">No</span>
+      <span className="decision-stamp yes">Save</span>
+      <span className="decision-stamp no">Skip</span>
 
       <div
         className={classNames('card-photo', photoUrl && 'has-image')}
@@ -1216,24 +1221,24 @@ function ActivityCard({
           <StatusPill status={status || 'tentative'} ghost={!status} />
         </div>
         <h2>{activity.activity_name}</h2>
-        <p>{activity.description || activity.address || 'Google Places details will appear here when available.'}</p>
+        <p>{activity.description || activity.address || 'Details are being polished. Tap a link for the latest.'}</p>
 
         <div className="activity-facts">
           <span>{activity.start_time} to {activity.end_time}</span>
           <span>{formatAvailability(activity)}</span>
           <span>{formatDistance(activity.distance)} - {formatWalk(activity.distance)}</span>
-          <span>{activity.age_suitability || 'Age TBC'}</span>
+          <span>{activity.age_suitability || 'Age guide soon'}</span>
           <span>
             {activity.google_rating || activity.app_rating
               ? `${activity.google_rating || activity.app_rating}/5 Google`
-              : 'Google rating TBC'}
+              : 'Rating coming soon'}
           </span>
         </div>
 
         <div className="card-links" onPointerDown={(event) => event.stopPropagation()}>
           <a href={websiteUrl} target="_blank" rel="noreferrer">Website</a>
-          <a href={googleUrl} target="_blank" rel="noreferrer">Google entry</a>
-          <a href={directionsUrl} target="_blank" rel="noreferrer">Walk route</a>
+          <a href={googleUrl} target="_blank" rel="noreferrer">Map</a>
+          <a href={directionsUrl} target="_blank" rel="noreferrer">Route</a>
           <button type="button" onClick={() => onOpenActivity(activity)}>Review</button>
         </div>
       </div>
@@ -1252,13 +1257,13 @@ function ShortlistPanel({
   return (
     <section className="shortlist-panel">
       <div className="section-heading">
-        <span>Shortlist</span>
+        <span>Saved ideas</span>
         <h2>{selectedWindow} on {formatDay(selectedDate)}</h2>
       </div>
 
       {chosenForSlot && (
         <div className="chosen-slot-card">
-          <span>Calendar pick</span>
+          <span>In your week</span>
           <strong>{chosenForSlot.activity.activity_name}</strong>
           <small>{statusLabels[chosenForSlot.status]} - {chosenForSlot.visibility}</small>
         </div>
@@ -1266,7 +1271,7 @@ function ShortlistPanel({
 
       {shortlist.length === 0 ? (
         <div className="empty-list">
-          Swipe right to build a shortlist for this exact day and time window.
+          Swipe right to save ideas for this day and time.
         </div>
       ) : (
         <div className="shortlist-list">
@@ -1281,7 +1286,7 @@ function ShortlistPanel({
                   Tentative
                 </button>
                 <button type="button" onClick={() => onChoose(activity, 'booked')}>
-                  Book
+                  Booked
                 </button>
               </div>
             </article>
@@ -1296,9 +1301,9 @@ function CalendarScreen({ weekDays, calendarEvents, onOpenActivity, onUpdateEven
   return (
     <section className="app-screen calendar-screen">
       <div className="screen-title compact">
-        <span className="eyebrow">In-app calendar</span>
+        <span className="eyebrow">Your week</span>
         <h1>Your week</h1>
-        <p>Chosen activities appear here. Set visibility and export to Google Calendar or ICS.</p>
+        <p>Booked and maybe plans live here. Export anything when you are ready.</p>
       </div>
 
       <div className="calendar-list">
@@ -1353,7 +1358,7 @@ function CalendarScreen({ weekDays, calendarEvents, onOpenActivity, onUpdateEven
                       </div>
                     </article>
                   ) : (
-                    <span className="open-slot">Open</span>
+                    <span className="open-slot">Free</span>
                   )}
                 </div>
               );
@@ -1369,10 +1374,10 @@ function AddActivityScreen({ form, setForm, onSubmit, loading }) {
   return (
     <section className="app-screen form-screen">
       <div className="screen-title compact">
-        <span className="eyebrow">Add an activity</span>
-        <h1>Paste one link.</h1>
+        <span className="eyebrow">Grow the list</span>
+        <h1>Add a spot.</h1>
         <p>
-          The backend reads the Google/activity link, fills the activity table fields, and saves it as a real draft.
+          Paste a Google Maps or venue link. Tiny Outings fills in the details behind the scenes.
         </p>
       </div>
 
@@ -1388,7 +1393,7 @@ function AddActivityScreen({ form, setForm, onSubmit, loading }) {
         </label>
 
         <button className="primary-action wide" type="submit" disabled={loading}>
-          {loading ? 'Autofilling...' : 'Autofill and save draft'}
+          {loading ? 'Reading link...' : 'Add for review'}
         </button>
       </form>
     </section>
@@ -1426,13 +1431,13 @@ function ActivityDetail({
 
         <p className="eyebrow">{activity.category}</p>
         <h2>{activity.activity_name}</h2>
-        <p>{activity.description || 'No description yet.'}</p>
+        <p>{activity.description || 'Description coming soon. Check the links for the latest details.'}</p>
 
         <div className="detail-grid">
           <span><strong>Time</strong>{activity.start_time} to {activity.end_time}</span>
           <span><strong>Available</strong>{formatAvailability(activity)}</span>
           <span><strong>Address</strong>{activity.address}</span>
-          <span><strong>Age</strong>{activity.age_suitability || 'TBC'}</span>
+          <span><strong>Age</strong>{activity.age_suitability || 'Guide coming soon'}</span>
           <span><strong>Child friendly</strong>{activity.child_friendly_score || 'Not rated'}</span>
           <span><strong>Google rating</strong>{activity.google_rating || activity.app_rating || 'Not rated'}</span>
           <span><strong>Reviews</strong>{activity.google_user_rating_count || activity.number_of_reviews || 0}</span>
@@ -1440,12 +1445,12 @@ function ActivityDetail({
 
         <div className="external-links">
           <a href={websiteUrl} target="_blank" rel="noreferrer">Website</a>
-          <a href={googleUrl} target="_blank" rel="noreferrer">Google entry</a>
-          <a href={directionsUrl} target="_blank" rel="noreferrer">Walk route</a>
+          <a href={googleUrl} target="_blank" rel="noreferrer">Map</a>
+          <a href={directionsUrl} target="_blank" rel="noreferrer">Route</a>
         </div>
 
         <form className="review-card" onSubmit={submitReview}>
-          <h3>Add review or photo</h3>
+          <h3>Add a quick review</h3>
           <label>
             <span>Rating</span>
             <input
@@ -1461,7 +1466,7 @@ function ActivityDetail({
             <textarea
               value={reviewForm.comments}
               onChange={(event) => setReviewForm((current) => ({ ...current, comments: event.target.value }))}
-              placeholder="Buggy access, toilets, feeding space, vibe..."
+              placeholder="Buggy access, baby change, feeding space, vibe..."
             />
           </label>
           <label>
@@ -1472,7 +1477,7 @@ function ActivityDetail({
               placeholder="https://..."
             />
           </label>
-          <button className="primary-action" type="submit">Save review/photo</button>
+          <button className="primary-action" type="submit">Save review</button>
         </form>
       </aside>
     </div>
@@ -1482,16 +1487,16 @@ function ActivityDetail({
 function StatusPill({ status, ghost = false }) {
   return (
     <span className={classNames('status-pill', `status-${status}`, ghost && 'is-ghost')}>
-      {ghost ? 'Unseen' : statusLabels[status]}
+      {ghost ? 'New' : statusLabels[status]}
     </span>
   );
 }
 
 function BottomNav({ activeScreen, setActiveScreen }) {
   const items = [
-    ['start', 'Start'],
+    ['start', 'Plan'],
     ['swipe', 'Swipe'],
-    ['calendar', 'Calendar'],
+    ['calendar', 'Week'],
     ['add', 'Add'],
   ];
 
