@@ -1223,6 +1223,39 @@ input[type='range'] {
   letter-spacing: -0.04em;
 }
 
+.filter-card input[type='date'] {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 12px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.76);
+  outline: none;
+}
+
+.week-preview {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.week-preview span {
+  display: grid;
+  min-height: 32px;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--green-dark);
+  background: rgba(22, 115, 95, 0.1);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.interest-grid .filter-chip {
+  text-transform: none;
+}
+
 .distance-toggle {
   display: grid;
   grid-template-columns: 1fr 1fr;

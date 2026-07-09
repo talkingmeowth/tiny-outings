@@ -1,12 +1,13 @@
 # Activity Data Sources
 
-Initial scope: Waltham Forest, London.
+Initial scope: Waltham Forest, Hackney, and Newham, London.
 
 ## Source Strategy
 
 - Council activity details come from London Borough of Waltham Forest event pages.
-- Latitude and longitude values are postcode centroids from Postcodes.io, suitable for MVP radius filtering but not exact venue entrances.
-- Google ratings, review counts, and photo references are intentionally left blank until a Google Places enrichment step is added.
+- Additional family venue details come from official venue, council, park, and family-information pages.
+- Latitude and longitude values are approximate venue coordinates, suitable for MVP radius filtering but not exact entrances.
+- Google ratings, review counts, and photo references are intentionally left blank until the Google Places enrichment function is run with a `GOOGLE_MAPS_API_KEY`.
 - `source_url` is unique in the database so seed imports can be safely re-run.
 
 ## Waltham Forest Sources Used
@@ -26,6 +27,41 @@ Initial scope: Waltham Forest, London.
 - https://www.walthamforest.gov.uk/events/stay-and-play-lea-bridge-library-wednesday
 - https://www.walthamforest.gov.uk/events/stay-and-play-wood-street-library
 - https://www.walthamforest.gov.uk/events/stay-and-play-chingford-library-tuesday
+- https://www.ittakesavillageplaycafe.com/
+- https://www.ittakesavillageplaycafe.com/faqs
+- https://www.ledelicee17.co.uk/about-us
+- https://www.walthamforest.gov.uk/families-young-people-and-children/parenting-and-family-support/best-start-family-hubs-directory/homemade-community-cafe
+- https://www.walthamforest.gov.uk/libraries-arts-parks-and-leisure/parks-and-open-spaces/lloyd-park
+- https://www.wildlondon.org.uk/nature-reserves/walthamstow-wetlands
+- https://www.wmgallery.org.uk/
+- https://www.wmgallery.org.uk/learn/families/
+- https://www.walthamforest.gov.uk/events/william-morris-gallery-family-day-park-morriss-magical-menagerie
+- https://highamspark.london/highams-park/the-highams-park/
+
+## Hackney Sources Used
+
+- https://www.dreami.uk/
+- https://hackneycityfarm.co.uk/visit/
+- https://www.hackney.gov.uk/libraries-parks-and-leisure/parks-and-green-spaces/parks-list/clissold-park-and-house
+- https://news.hackney.gov.uk/news/clissold-park-splash-pad-returns-this-month
+- https://hackney-museum.hackney.gov.uk/visit/
+- https://education.hackney.gov.uk/content/museums
+- https://museumofthehome.org.uk/plan-your-visit/
+- https://www.woodberrydowncfhub.hackney.gov.uk/
+- https://education.hackney.gov.uk/school/woodberry-down-children-and-family-hub
+- https://www.hackney.gov.uk/libraries-parks-and-leisure/parks-and-green-spaces/playgrounds
+
+## Newham Sources Used
+
+- https://discover.org.uk/
+- https://discover.org.uk/your-visit/
+- https://www.queenelizabetholympicpark.co.uk/explore-park/parklands-and-playgrounds/playgrounds
+- https://www.queenelizabetholympicpark.co.uk/explore-park/parklands-and-playgrounds/tumbling-bay-playground
+- https://www.queenelizabetholympicpark.co.uk/eat-drink/timber-lodge-cafe-your-parkside-dining-destination
+- https://www.cityoflondon.gov.uk/things-to-do/green-spaces/west-ham-park/visit-west-ham-park
+- https://families.newham.gov.uk/kb5/newham/directory/familyhub.page?familyhubchannel=5-1
+- https://families.newham.gov.uk/kb5/newham/directory/service.page?familychannel=1-1&id=9Hk1rjt-v9E
+- https://www.royaldocks.london/whats-on/summer-family-fun-at-kids-summer-splash
 
 ## Postcode Centroids Used
 
@@ -44,5 +80,5 @@ Initial scope: Waltham Forest, London.
 
 - Pull exact place coordinates, photos, ratings, and review counts from Google Places.
 - Add venue-level deduplication so several weekly activities can share the same venue record later.
-- Expand the seed set across Hackney, Islington, and Newham.
+- Expand the seed set across Islington.
 - Add a moderation workflow for user-submitted activity links.

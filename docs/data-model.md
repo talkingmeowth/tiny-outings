@@ -16,6 +16,19 @@ This app uses Supabase Auth for sign-in and `public.user_table` for user profile
 - `activity_reviews`: User ratings and review text.
 - `activity_photos`: User-uploaded or external-source activity photos.
 
+## Activity Availability
+
+The `activities` table now supports several date patterns:
+
+- `activity_date`: one exact date, useful for one-off events.
+- `available_dates`: explicit dates when an activity is available.
+- `availability_start_date` and `availability_end_date`: date ranges, including seasonal listings.
+- `available_days_of_week`: recurring weekly availability for venues and sessions.
+- `availability_type`: `daily`, `weekly`, `date_range`, `specific_dates`, `seasonal`, `one_off`, `recurring`, or `unknown`.
+- `availability_notes`: human-readable context such as "check venue before travelling" or seasonal closure notes.
+
+The mobile app filters the swipe deck by the selected planning week/day and only shows activities available on that selected date.
+
 ## Visibility
 
 Calendar events and activity statuses can be:

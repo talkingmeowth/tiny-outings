@@ -15,6 +15,18 @@ const emptyLinkForm = {
   activity_link: '',
 };
 
+const activityInterestOptions = [
+  'child friendly cafe',
+  'park',
+  'child friendly museum',
+  'family activity',
+  'baby stay and play',
+  'story time',
+  'sensory play',
+  'soft play',
+  'family hub',
+];
+
 function loadStored(key, fallback) {
   try {
     const raw = window.localStorage.getItem(`${storagePrefix}:${key}`);
@@ -44,6 +56,14 @@ function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function startOfWeekISO(dateISO = todayISO()) {
+  const date = new Date(`${dateISO}T12:00:00`);
+  const day = date.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  date.setDate(date.getDate() + diff);
+  return date.toISOString().slice(0, 10);
+}
+
 function addDaysISO(dateISO, days) {
   const date = new Date(`${dateISO}T12:00:00`);
   date.setDate(date.getDate() + days);
@@ -60,6 +80,10 @@ function formatDay(dateISO, style = 'short') {
 
 function weekdayName(dateISO) {
   return new Intl.DateTimeFormat('en-GB', { weekday: 'long' }).format(new Date(`${dateISO}T12:00:00`));
+}
+
+function formatWeekRange(weekStart) {
+  return `${formatDay(weekStart)} to ${formatDay(addDaysISO(weekStart, 6))}`;
 }
 
 function toWindow(startTime) {
@@ -94,6 +118,20 @@ function normalizeActivity(activity) {
     number_of_reviews: Number.isFinite(reviewCount) ? reviewCount : 0,
     google_user_rating_count: Number(activity.google_user_rating_count ?? reviewCount ?? 0),
     days_of_week: Array.isArray(activity.days_of_week) ? activity.days_of_week : [],
+    available_days_of_week: Array.isArray(activity.available_days_of_week)
+      ? activity.available_days_of_week
+      : [],
+    available_dates: Array.isArray(activity.available_dates)
+      ? activity.available_dates.map((date) => String(date).slice(0, 10))
+      : [],
+    activity_date: activity.activity_date ? String(activity.activity_date).slice(0, 10) : null,
+    availability_start_date: activity.availability_start_date
+      ? String(activity.availability_start_date).slice(0, 10)
+      : null,
+    availability_end_date: activity.availability_end_date
+      ? String(activity.availability_end_date).slice(0, 10)
+      : null,
+    availability_type: activity.availability_type || 'recurring',
     public_listing_status: activity.public_listing_status || 'published',
   };
 }
@@ -134,6 +172,19 @@ function estimateWalkMinutes(miles) {
 function formatWalk(miles) {
   const minutes = estimateWalkMinutes(miles);
   return minutes ? `${minutes} min walk` : 'Walk TBC';
+}
+
+function formatAvailability(activity) {
+  if (activity.activity_date) return formatDay(activity.activity_date);
+  if (activity.availability_start_date && activity.availability_end_date) {
+    return `${formatDay(activity.availability_start_date)} to ${formatDay(activity.availability_end_date)}`;
+  }
+  const days = activity.available_days_of_week?.length
+    ? activity.available_days_of_week
+    : activity.days_of_week;
+  if (days?.length === 7) return 'Every day';
+  if (days?.length) return days.join(', ');
+  return activity.availability_type === 'unknown' ? 'Check dates' : 'Open dates vary';
 }
 
 function dateStampForCalendar(dateISO, time) {
@@ -234,6 +285,36 @@ function isPersistableActivity(activity) {
   return activity?.activity_id && !String(activity.activity_id).startsWith('sample');
 }
 
+function isActivityAvailableOn(activity, dateISO) {
+  const weekday = weekdayName(dateISO);
+  const explicitDates = activity.available_dates || [];
+
+  if (activity.activity_date === dateISO || explicitDates.includes(dateISO)) return true;
+
+  if (
+    ['one_off', 'specific_dates'].includes(activity.availability_type) &&
+    (activity.activity_date || explicitDates.length)
+  ) {
+    return false;
+  }
+
+  if (activity.availability_start_date && dateISO < activity.availability_start_date) return false;
+  if (activity.availability_end_date && dateISO > activity.availability_end_date) return false;
+
+  const availableDays = activity.available_days_of_week?.length
+    ? activity.available_days_of_week
+    : activity.days_of_week;
+
+  if (availableDays?.length) return availableDays.includes(weekday);
+  return true;
+}
+
+function activityMatchesInterests(activity, interests) {
+  if (!interests?.length) return true;
+  const haystack = `${activity.category} ${activity.activity_name} ${activity.description || ''}`.toLowerCase();
+  return interests.some((interest) => haystack.includes(interest.toLowerCase()));
+}
+
 function buildSubmittedPayload(enriched, link, userId) {
   const appRating = numericOrNull(enriched.app_rating ?? enriched.google_rating);
   const reviewCount = Number(enriched.number_of_reviews ?? enriched.google_user_rating_count ?? 0);
@@ -265,6 +346,13 @@ function buildSubmittedPayload(enriched, link, userId) {
     google_primary_type: enriched.google_primary_type || null,
     google_opening_hours: enriched.google_opening_hours || null,
     google_summary: enriched.google_summary || null,
+    activity_date: enriched.activity_date || null,
+    available_dates: enriched.available_dates || [],
+    availability_start_date: enriched.availability_start_date || null,
+    availability_end_date: enriched.availability_end_date || null,
+    available_days_of_week: enriched.available_days_of_week || [],
+    availability_type: enriched.availability_type || 'unknown',
+    availability_notes: enriched.availability_notes || null,
   };
 
   if (enriched.postcode) payload.postcode = enriched.postcode;
@@ -281,10 +369,13 @@ export default function App() {
   const [selectedWindow, setSelectedWindow] = useState('morning');
   const [filters, setFilters] = useState(() => {
     const stored = loadStored('filters', {});
+    const storedInterests = Array.isArray(stored.interests) ? stored.interests : [];
     return {
       distanceMode: stored.distanceMode === 'walk' ? 'walk' : 'radius',
       radiusMiles: Number(stored.radiusMiles) || 3,
       walkMinutes: Number(stored.walkMinutes) || 35,
+      weekStart: stored.weekStart || startOfWeekISO(todayISO()),
+      interests: storedInterests.filter((interest) => activityInterestOptions.includes(interest)),
     };
   });
   const [userLocation, setUserLocation] = useState(null);
@@ -303,11 +394,10 @@ export default function App() {
 
   const currentUser = session?.user;
   const currentUserId = currentUser?.id;
-  const weekDays = Array.from({ length: 7 }, (_, index) => addDaysISO(todayISO(), index));
+  const weekDays = Array.from({ length: 7 }, (_, index) => addDaysISO(filters.weekStart, index));
   const activeSlot = slotKey(selectedDate, selectedWindow);
   const allActivities = activities.map(normalizeActivity);
   const activityById = new Map(allActivities.map((activity) => [String(activity.activity_id), activity]));
-  const selectedWeekday = weekdayName(selectedDate);
   const distanceLimit = filters.distanceMode === 'walk'
     ? Number(filters.walkMinutes) / 20
     : Number(filters.radiusMiles);
@@ -318,11 +408,11 @@ export default function App() {
       distance: milesBetween(userLocation, { lat: activity.lat, long: activity.long }),
     }))
     .filter((activity) => {
-      const dayMatch =
-        !activity.days_of_week?.length || activity.days_of_week.includes(selectedWeekday);
+      const dayMatch = isActivityAvailableOn(activity, selectedDate);
+      const interestMatch = activityMatchesInterests(activity, filters.interests);
       const distanceMatch =
         !userLocation || activity.distance == null || activity.distance <= distanceLimit;
-      return activity.public_listing_status === 'published' && dayMatch && distanceMatch;
+      return activity.public_listing_status === 'published' && dayMatch && interestMatch && distanceMatch;
     });
 
   const slotActivities = filteredActivities.filter((activity) => activity.time_window === selectedWindow);
@@ -345,6 +435,13 @@ export default function App() {
     removeStored('activity-drafts');
     removeStored('followed-parents');
   }, []);
+
+  useEffect(() => {
+    const weekEnd = addDaysISO(filters.weekStart, 6);
+    if (selectedDate < filters.weekStart || selectedDate > weekEnd) {
+      setSelectedDate(filters.weekStart);
+    }
+  }, [filters.weekStart, selectedDate]);
 
   useEffect(() => {
     requestLocation();
@@ -823,6 +920,8 @@ export default function App() {
             setFilters={setFilters}
             locationStatus={locationStatus}
             userLocation={userLocation}
+            currentUser={currentUser}
+            weekDays={weekDays}
             activityCount={filteredActivities.length}
             onRequestLocation={requestLocation}
             onStart={() => setActiveScreen('swipe')}
@@ -913,24 +1012,81 @@ function StartScreen({
   setFilters,
   locationStatus,
   userLocation,
+  currentUser,
+  weekDays,
   activityCount,
   onRequestLocation,
   onStart,
 }) {
   const isWalkMode = filters.distanceMode === 'walk';
+  const chosenInterests = filters.interests || [];
+
+  function toggleInterest(interest) {
+    setFilters((current) => {
+      const exists = current.interests.includes(interest);
+      return {
+        ...current,
+        interests: exists
+          ? current.interests.filter((item) => item !== interest)
+          : [...current.interests, interest],
+      };
+    });
+  }
 
   return (
     <section className="app-screen start-screen">
       <div className="screen-title hero-title">
         <span className="eyebrow">Maternity and paternity leave planner</span>
-        <h1>Plan today by swiping.</h1>
+        <h1>Plan your week by swiping.</h1>
         <p>
-          Tiny Outings uses your current location and real activity listings to help you pick a
+          Tiny Outings uses your current location, planning week, and interests to help you pick a
           morning, afternoon, and evening plan with your baby.
         </p>
       </div>
 
       <div className="filter-card location-card">
+        <div className="field-group">
+          <span>Planning week</span>
+          <strong>{formatWeekRange(filters.weekStart)}</strong>
+          <p>
+            {currentUser
+              ? 'Choose the week you want to plan, then swipe through each day.'
+              : 'You can choose a week now; sign in with Google to save plans across devices.'}
+          </p>
+          <input
+            type="date"
+            value={filters.weekStart}
+            onChange={(event) =>
+              setFilters((current) => ({
+                ...current,
+                weekStart: startOfWeekISO(event.target.value || todayISO()),
+              }))
+            }
+          />
+          <div className="week-preview">
+            {weekDays.map((day) => (
+              <span key={day}>{formatDay(day).split(' ')[0]}</span>
+            ))}
+          </div>
+        </div>
+
+        <div className="field-group">
+          <span>Activity interests</span>
+          <p>Pick what you are interested in booking. Leave everything off to see all activities.</p>
+          <div className="chip-grid interest-grid">
+            {activityInterestOptions.map((interest) => (
+              <button
+                key={interest}
+                type="button"
+                className={classNames('filter-chip', chosenInterests.includes(interest) && 'is-on')}
+                onClick={() => toggleInterest(interest)}
+              >
+                {interest}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="field-group">
           <span>Current location</span>
           <strong>
@@ -1233,6 +1389,7 @@ function ActivityCard({
 
         <div className="activity-facts">
           <span>{activity.start_time} to {activity.end_time}</span>
+          <span>{formatAvailability(activity)}</span>
           <span>{formatDistance(activity.distance)} - {formatWalk(activity.distance)}</span>
           <span>{activity.age_suitability || 'Age TBC'}</span>
           <span>
@@ -1539,6 +1696,7 @@ function ActivityDetail({
 
         <div className="detail-grid">
           <span><strong>Time</strong>{activity.start_time} to {activity.end_time}</span>
+          <span><strong>Available</strong>{formatAvailability(activity)}</span>
           <span><strong>Address</strong>{activity.address}</span>
           <span><strong>Age</strong>{activity.age_suitability || 'TBC'}</span>
           <span><strong>Child friendly</strong>{activity.child_friendly_score || 'Not rated'}</span>
