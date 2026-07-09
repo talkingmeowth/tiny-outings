@@ -698,9 +698,9 @@ input[type='range'] {
 .card-content {
   display: grid;
   align-content: start;
-  gap: 9px;
+  gap: 12px;
   min-height: 0;
-  padding: 18px;
+  padding: 20px;
   overflow: hidden;
 }
 
@@ -723,7 +723,7 @@ input[type='range'] {
   display: -webkit-box;
   overflow: hidden;
   font-size: clamp(1.45rem, 6.4vw, 2.15rem);
-  line-height: 0.98;
+  line-height: 1.06;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
@@ -733,7 +733,7 @@ input[type='range'] {
 .detail-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  gap: 10px;
 }
 
 .activity-facts span,
@@ -753,13 +753,18 @@ input[type='range'] {
 
 .card-summary span {
   display: grid;
-  gap: 2px;
-  height: 50px;
+  gap: 5px;
+  min-height: 64px;
   min-width: 0;
-  padding: 7px 9px;
-  overflow: hidden;
-  font-size: 0.78rem;
-  line-height: 1.18;
+  align-content: center;
+  padding: 10px 12px;
+  overflow: visible;
+  font-size: 0.88rem;
+  line-height: 1.25;
+}
+
+.card-summary span:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
 }
 
 .card-summary strong {
@@ -1504,7 +1509,7 @@ input[type='range'] {
 }
 
 .swipe-card {
-  grid-template-rows: 36% minmax(0, 64%);
+  grid-template-rows: 32% minmax(0, 68%);
   border-radius: 38px;
 }
 
@@ -1519,13 +1524,18 @@ input[type='range'] {
 
 .card-content {
   align-content: start;
+  gap: 14px;
+  padding: 22px;
 }
 
 .card-content p {
   display: -webkit-box;
   overflow: hidden;
+  color: rgba(36, 52, 47, 0.72);
+  font-size: clamp(1rem, 4.7vw, 1.25rem);
+  line-height: 1.38;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
 }
 
 .card-links {
@@ -1605,6 +1615,20 @@ input[type='range'] {
 @media (max-width: 420px) {
   .tinder-stage {
     height: clamp(620px, calc(100dvh - 220px), 760px);
+  }
+
+  .swipe-card {
+    grid-template-rows: 30% minmax(0, 70%);
+  }
+
+  .card-content {
+    gap: 13px;
+    padding: 20px;
+  }
+
+  .card-summary span {
+    min-height: 70px;
+    padding: 11px 12px;
   }
 
   .card-links {

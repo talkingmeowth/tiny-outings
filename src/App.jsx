@@ -335,22 +335,10 @@ function isUsablePhotoUrl(url) {
   const value = String(url);
   return ![
     'image.thum.io',
+    's.wordpress.com/mshots',
     'maps.googleapis.com/maps/api/place/photo',
     'places.googleapis.com/v1/',
   ].some((blocked) => value.includes(blocked));
-}
-
-function websiteThumbnailUrl(activity) {
-  const website = activityWebsiteUrl(activity);
-  if (!website) return null;
-  try {
-    const parsed = new URL(website);
-    parsed.search = '';
-    parsed.hash = '';
-    return `https://s.wordpress.com/mshots/v1/${encodeURIComponent(parsed.toString())}?w=1200`;
-  } catch {
-    return null;
-  }
 }
 
 function activityPhotoUrls(activity) {
@@ -358,7 +346,6 @@ function activityPhotoUrls(activity) {
     activity.google_photo_url,
     activity.image_url,
     activity.photo_url,
-    websiteThumbnailUrl(activity),
   ].filter(isUsablePhotoUrl);
 
   return [...new Set(candidates)];
