@@ -3,6 +3,7 @@ import { hasSupabaseConfig, supabase } from './supabaseClient';
 
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
+const planningStorageVersion = '2026-07-09-accountless-reset';
 const visibilityOptions = ['private', 'public'];
 const statusOptions = ['booked', 'tentative'];
 const statusLabels = {
@@ -49,6 +50,19 @@ function removeStored(key) {
     window.localStorage.removeItem(`${storagePrefix}:${key}`);
   } catch {
     // Ignore blocked local storage.
+  }
+}
+
+function clearOldPlanningCache() {
+  const versionKey = `${storagePrefix}:planning-storage-version`;
+  try {
+    if (window.localStorage.getItem(versionKey) === planningStorageVersion) return;
+    for (const key of ['swipes', 'shortlists', 'statuses', 'calendar-events']) {
+      window.localStorage.removeItem(`${storagePrefix}:${key}`);
+    }
+    window.localStorage.setItem(versionKey, planningStorageVersion);
+  } catch {
+    // If storage is blocked, the app simply starts with in-memory state.
   }
 }
 
@@ -388,6 +402,10 @@ function buildSubmittedPayload(enriched, link) {
 }
 
 export default function App() {
+  useState(() => {
+    clearOldPlanningCache();
+    return true;
+  });
   const [activeScreen, setActiveScreen] = useState('start');
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(false);
