@@ -11,9 +11,9 @@ MVP database start for a parent/baby activity planning app covering Waltham Fore
 - `data/waltham_forest_activities_seed.csv` is a review-friendly copy of the seed.
 - `docs/activity-data-sources.md` records the source URLs and geocoding notes.
 - `docs/data-model.md` explains how the core app tables fit together.
-- `render.yaml` configures a Render Static Site deploy.
+- `render.yaml` configures Render to publish the Android APK download only.
 - `src/` contains the React frontend.
-- `public/manifest.webmanifest` and `public/service-worker.js` make the frontend installable as a mobile web app.
+- `public/manifest.webmanifest` and `public/service-worker.js` are used only when running the frontend locally as a web preview.
 - `capacitor.config.json` and `android/` package the frontend as a downloadable Android app.
 - `docs/android-build.md` explains how to build a test APK.
 
@@ -78,21 +78,15 @@ It also adds row-level security policies so users can manage their own swipes, s
 
 ## Render Hosting
 
-Render can host this frontend as a Static Site.
+Render is used only as a static download host for the Android APK. It does not publish the React app as a webpage.
 
 Use these Render settings:
 
-- Build command: `npm install && npm run build`
-- Publish directory: `dist`
+- Build command: `npm install && npm run render:download`
+- Publish directory: `render-mobile`
 - Node version: Render can auto-detect Node from the project; Node 20+ is suitable.
-- Rewrite rule: `/*` to `/index.html`
 
-Set these environment variables in Render:
-
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
-
-Do not put the Supabase service-role key in this frontend. The anon key is expected for browser apps.
+The published APK path is `/downloads/tiny-outings-debug.apk`. The root URL can return a 404 because there is intentionally no app webpage.
 
 ## Local Frontend
 
@@ -110,12 +104,11 @@ npm.cmd run dev
 
 ## Mobile Support
 
-The frontend is designed as a responsive progressive web app for Android and iOS browsers.
+The frontend is designed to be bundled into the native mobile app with Capacitor.
 
-- Android users can install it from Chrome using Add to Home screen or Install app.
-- iPhone users can install it from Safari using Share > Add to Home Screen.
-- Render serves the site over HTTPS, which is required for service workers and installable PWA behavior.
-- The app includes mobile-safe viewport settings, iOS safe-area spacing, touch swipe gestures, and a bottom thumb navigation on small screens.
+- Android users can install the APK directly for testing.
+- iPhone distribution requires an iOS Capacitor build on a Mac plus TestFlight or the App Store.
+- The app includes mobile-safe viewport settings, touch swipe gestures, and bottom navigation.
 
 ## Downloadable Android App
 
@@ -134,7 +127,7 @@ android/app/build/outputs/apk/debug/app-debug.apk
 The current Render-hosted test APK is available at:
 
 ```text
-https://tiny-outings.onrender.com/downloads/tiny-outings-debug.apk
+https://tiny-outings-cpjh.onrender.com/downloads/tiny-outings-debug.apk
 ```
 
 See `docs/android-build.md` for Android APK, Play Store bundle, and iPhone distribution notes.

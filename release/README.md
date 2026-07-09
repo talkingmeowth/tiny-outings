@@ -11,7 +11,7 @@ https://github.com/talkingmeowth/tiny-outings/raw/main/release/tiny-outings-debu
 Render URL after the static site redeploys:
 
 ```text
-https://tiny-outings.onrender.com/downloads/tiny-outings-debug.apk
+https://tiny-outings-cpjh.onrender.com/downloads/tiny-outings-debug.apk
 ```
 
 This is a debug build for testing. A Play Store release should use a signed release bundle instead.

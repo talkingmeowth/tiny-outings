@@ -1,6 +1,6 @@
 # Android App Build
 
-The Render deployment is the hosted web app. For a downloadable Android app, this project uses Capacitor to wrap the React app in a native Android project.
+This project uses Capacitor to wrap the React frontend in a native Android project. Render hosts the APK download only; it does not publish the app as a webpage.
 
 ## Build A Test APK
 
@@ -11,7 +11,7 @@ npm install
 npm run android:apk
 ```
 
-The Android sync script temporarily excludes `public/downloads` so the APK does not package a copy of the downloadable APK inside itself.
+The Android sync script keeps generated download files out of the native app assets so the APK does not package a copy of itself.
 
 On Windows PowerShell, use `npm.cmd` if `npm` is blocked:
 
@@ -37,10 +37,8 @@ https://github.com/talkingmeowth/tiny-outings/raw/main/release/tiny-outings-debu
 Render also serves the APK from the static app build:
 
 ```text
-https://tiny-outings.onrender.com/downloads/tiny-outings-debug.apk
+https://tiny-outings-cpjh.onrender.com/downloads/tiny-outings-debug.apk
 ```
-
-The in-app hero download button uses the same Render path: `/downloads/tiny-outings-debug.apk`.
 
 ## Build For Google Play
 
