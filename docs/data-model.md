@@ -1,17 +1,17 @@
 # Data Model
 
-This app uses Supabase Auth for sign-in and `public.user_table` for user profile data.
+The current mobile app is account-free. It reads published activities from Supabase, stores planning choices on the device, and allows anonymous draft activity submissions, reviews, and photos.
 
 ## Core Tables
 
 - `activities`: Source activity listings, including venue, times, category, age suitability, location, optional Google Places metadata, and card image fields.
-- `user_table`: App profile for each authenticated user. Stores `user_name`, `username_completed`, profile fields, and follower/following counts.
-- `user_follows`: Normalized follow graph. This keeps follower data queryable and updates `user_table.followers` and `user_table.following`.
+- `user_table`: Legacy profile table retained for compatibility with earlier builds.
+- `user_follows`: Legacy follow graph retained in the database but not used by the current app.
 - `comments_table`: Comments left by users on activities.
-- `activity_swipes`: One swipe decision per user, activity, date, and day window.
-- `activity_shortlist`: Activities a user swiped yes to for a particular date and morning/afternoon/evening slot.
-- `activity_user_statuses`: Per-user status for an activity: `booked`, `tentative`, or `not_selected`.
-- `calendar_events`: The single chosen calendar event for a user's date and time window.
+- `activity_swipes`: Legacy server-side swipe table. The current app stores swipes locally.
+- `activity_shortlist`: Legacy server-side shortlist table. The current app stores shortlist choices locally.
+- `activity_user_statuses`: Legacy per-user activity status table. The current app stores statuses locally.
+- `calendar_events`: Legacy server-side calendar table. The current app stores calendar choices locally.
 - `calendar_event_exports`: External calendar export records, including Google Calendar event IDs later.
 - `activity_reviews`: User ratings and review text.
 - `activity_photos`: User-uploaded or external-source activity photos.
@@ -39,28 +39,30 @@ Activity cards use the first available image source in this order:
 
 ## Visibility
 
-Calendar events and activity statuses can be:
+Calendar events in the current app can be:
 
 - `private`: only the owner can see them.
-- `followers`: visible to users following the owner.
-- `public`: visible to anyone.
+- `public`: visible when exported/shared outside the app.
 
 ## Swipe Flow
 
-1. User signs in with Google and creates a username.
-2. User filters activities.
-3. App records each left/right swipe in `activity_swipes`.
-4. Right swipes can be copied into `activity_shortlist`.
-5. User selects one shortlist item for the slot.
-6. App writes `activity_user_statuses` and `calendar_events`.
-7. If the user exports, the app writes `calendar_event_exports`.
-
-## Friend Signals
-
-When swiping, the app can query `activity_user_statuses` or the `followed_activity_statuses` view to show whether followed users have selected the same activity.
+1. User filters activities.
+2. App records each left/right swipe in local storage.
+3. Right swipes are copied into a local shortlist for the selected date and time window.
+4. User selects one shortlist item for the slot.
+5. App writes the chosen activity into the local in-app calendar.
+6. If the user exports, the app generates a Google Calendar URL or ICS file.
 
 ## Google Places Autofill
 
 The add tab sends a pasted link to the `activity-link-autofill` Supabase Edge Function. The function calls Google Places server-side, then returns normalized values for the `activities` table, including Google entry URL, photo URL, rating, review count, primary type, opening hours, and summary when available. If Google has no photo, the function attempts to pull an Open Graph/Twitter image from the activity website.
 
 The Google API key must be set as a Supabase Edge Function secret named `GOOGLE_MAPS_API_KEY`. The mobile frontend should only use the Supabase publishable key.
+
+## Anonymous Contributions
+
+`20260709203000_allow_anonymous_submissions_and_reviews.sql` allows the account-free app to insert:
+
+- Draft activities with `submitted_by_user_id` set to `null`.
+- Activity reviews with `user_id` set to `null`.
+- Activity photos with `user_id` set to `null`.

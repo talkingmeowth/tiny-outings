@@ -10,3 +10,4 @@ yarn-error.log*
 android/.gradle/
 android/**/build/
 render-mobile/
+supabase/.temp/

@@ -3,7 +3,7 @@ import { hasSupabaseConfig, supabase } from './supabaseClient';
 
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
-const visibilityOptions = ['private', 'followers', 'public'];
+const visibilityOptions = ['private', 'public'];
 const statusOptions = ['booked', 'tentative'];
 const statusLabels = {
   booked: 'Booked',
@@ -26,8 +26,6 @@ const activityInterestOptions = [
   'soft play',
   'family hub',
 ];
-
-const usernamePattern = /^[A-Za-z0-9_.]{3,30}$/;
 
 function loadStored(key, fallback) {
   try {
@@ -312,37 +310,6 @@ function activityPhotoLabel(activity) {
   return 'Photo pending';
 }
 
-function isPersistableActivity(activity) {
-  return activity?.activity_id && !String(activity.activity_id).startsWith('sample');
-}
-
-function generatedUsernameSuffix(userId) {
-  return userId ? `_${String(userId).slice(0, 8).toLowerCase()}` : '';
-}
-
-function isGeneratedUsername(profile, userId) {
-  const suffix = generatedUsernameSuffix(userId);
-  return Boolean(profile?.user_name && suffix && profile.user_name.toLowerCase().endsWith(suffix));
-}
-
-function needsUsernameSetup(profile, userId) {
-  if (!userId) return false;
-  if (!profile?.user_name) return true;
-  if (profile.username_completed === true) return false;
-  if (profile.username_completed === false) return true;
-  return isGeneratedUsername(profile, userId);
-}
-
-function suggestedUsername(user) {
-  const raw =
-    user?.user_metadata?.user_name ||
-    user?.user_metadata?.preferred_username ||
-    user?.email?.split('@')[0] ||
-    'parent';
-  const cleaned = raw.replace(/[^A-Za-z0-9_.]/g, '_').replace(/_+/g, '_').slice(0, 30);
-  return usernamePattern.test(cleaned) ? cleaned : 'parent_planner';
-}
-
 function isActivityAvailableOn(activity, dateISO) {
   const weekday = weekdayName(dateISO);
   const explicitDates = activity.available_dates || [];
@@ -373,7 +340,7 @@ function activityMatchesInterests(activity, interests) {
   return interests.some((interest) => haystack.includes(interest.toLowerCase()));
 }
 
-function buildSubmittedPayload(enriched, link, userId) {
+function buildSubmittedPayload(enriched, link) {
   const appRating = numericOrNull(enriched.app_rating ?? enriched.google_rating);
   const reviewCount = Number(enriched.number_of_reviews ?? enriched.google_user_rating_count ?? 0);
   const payload = {
@@ -395,7 +362,7 @@ function buildSubmittedPayload(enriched, link, userId) {
     source_name: 'Google Places link submission',
     source_url: link,
     public_listing_status: 'draft',
-    submitted_by_user_id: userId,
+    submitted_by_user_id: null,
     google_place_id: enriched.google_place_id || null,
     google_place_uri: enriched.google_place_uri || enriched.google_link || null,
     google_photo_url: enriched.google_photo_url || null,
@@ -444,21 +411,11 @@ export default function App() {
   const [shortlists, setShortlists] = useState(() => loadStored('shortlists', {}));
   const [statuses, setStatuses] = useState(() => loadStored('statuses', {}));
   const [calendarEvents, setCalendarEvents] = useState(() => loadStored('calendar-events', []));
-  const [followedSignals, setFollowedSignals] = useState({});
-  const [session, setSession] = useState(null);
-  const [authReady, setAuthReady] = useState(!hasSupabaseConfig);
-  const [profile, setProfile] = useState(null);
-  const [profileLoading, setProfileLoading] = useState(false);
-  const [usernameForm, setUsernameForm] = useState('');
   const [linkForm, setLinkForm] = useState(emptyLinkForm);
   const [reviewForm, setReviewForm] = useState({ rating: 5, comments: '', photo_url: '' });
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [dragState, setDragState] = useState({ activityId: null, startX: null, offsetX: 0 });
 
-  const currentUser = session?.user;
-  const currentUserId = currentUser?.id;
-  const userNeedsUsername = currentUser ? needsUsernameSetup(profile, currentUserId) : false;
-  const appUnlocked = hasSupabaseConfig && authReady && Boolean(currentUser) && !profileLoading && !userNeedsUsername;
   const weekDays = Array.from({ length: 7 }, (_, index) => addDaysISO(filters.weekStart, index));
   const activeSlot = slotKey(selectedDate, selectedWindow);
   const allActivities = activities.map(normalizeActivity);
@@ -498,7 +455,6 @@ export default function App() {
 
   useEffect(() => {
     removeStored('activity-drafts');
-    removeStored('followed-parents');
   }, []);
 
   useEffect(() => {
@@ -509,8 +465,8 @@ export default function App() {
   }, [filters.weekStart, selectedDate]);
 
   useEffect(() => {
-    if (appUnlocked) requestLocation();
-  }, [appUnlocked]);
+    requestLocation();
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -540,106 +496,6 @@ export default function App() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!supabase) return undefined;
-
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setAuthReady(true);
-    });
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
-      setAuthReady(true);
-      if (!nextSession?.user) setProfile(null);
-    });
-
-    return () => listener.subscription.unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    if (!supabase || !currentUserId) {
-      setProfile(null);
-      setProfileLoading(false);
-      return;
-    }
-
-    let cancelled = false;
-    setProfileLoading(true);
-    supabase
-      .from('user_table')
-      .select('*')
-      .eq('user_id', currentUserId)
-      .maybeSingle()
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (error) {
-          setNotice(`Profile could not load: ${error.message}`);
-          setProfile(null);
-        } else {
-          setProfile(data || null);
-        }
-        setProfileLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [currentUserId]);
-
-  useEffect(() => {
-    if (!currentUser) {
-      setUsernameForm('');
-      return;
-    }
-
-    if (profile?.user_name && !isGeneratedUsername(profile, currentUserId)) {
-      setUsernameForm(profile.user_name);
-      return;
-    }
-
-    setUsernameForm(suggestedUsername(currentUser));
-  }, [currentUser, currentUserId, profile]);
-
-  useEffect(() => {
-    if (!supabase || !currentUserId) {
-      setFollowedSignals({});
-      return;
-    }
-
-    let cancelled = false;
-    supabase
-      .from('followed_activity_statuses')
-      .select('activity_id, followed_display_name, followed_user_name, status')
-      .eq('viewer_user_id', currentUserId)
-      .eq('planned_date', selectedDate)
-      .eq('day_window', selectedWindow)
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (error) {
-          setFollowedSignals({});
-          return;
-        }
-
-        const next = {};
-        for (const item of data || []) {
-          const key = String(item.activity_id);
-          next[key] = [
-            ...(next[key] || []),
-            {
-              name: item.followed_display_name || item.followed_user_name || 'A parent you follow',
-              status: item.status,
-            },
-          ];
-        }
-        setFollowedSignals(next);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [currentUserId, selectedDate, selectedWindow]);
-
   function requestLocation() {
     if (!navigator.geolocation) {
       setLocationStatus('blocked');
@@ -666,68 +522,6 @@ export default function App() {
         maximumAge: 60000,
         timeout: 12000,
       },
-    );
-  }
-
-  async function persistSwipe(activity, decision) {
-    if (!supabase || !currentUserId || !isPersistableActivity(activity)) return;
-    await supabase.from('activity_swipes').upsert(
-      {
-        user_id: currentUserId,
-        activity_id: activity.activity_id,
-        planned_date: selectedDate,
-        day_window: selectedWindow,
-        decision,
-      },
-      { onConflict: 'user_id,activity_id,planned_date,day_window' },
-    );
-  }
-
-  async function persistShortlist(activity) {
-    if (!supabase || !currentUserId || !isPersistableActivity(activity)) return;
-    await supabase.from('activity_shortlist').upsert(
-      {
-        user_id: currentUserId,
-        activity_id: activity.activity_id,
-        planned_date: selectedDate,
-        day_window: selectedWindow,
-        position: currentShortlist.length,
-      },
-      { onConflict: 'user_id,activity_id,planned_date,day_window' },
-    );
-  }
-
-  async function persistStatus(activity, status, visibility = profile?.default_calendar_visibility || 'private') {
-    if (!supabase || !currentUserId || !isPersistableActivity(activity)) return;
-    await supabase.from('activity_user_statuses').upsert(
-      {
-        user_id: currentUserId,
-        activity_id: activity.activity_id,
-        planned_date: selectedDate,
-        day_window: selectedWindow,
-        status,
-        visibility,
-        source: 'swipe',
-        selected_at: new Date().toISOString(),
-      },
-      { onConflict: 'user_id,activity_id,planned_date,day_window' },
-    );
-  }
-
-  async function persistCalendarEvent(event) {
-    if (!supabase || !currentUserId || !isPersistableActivity(event.activity)) return;
-    await supabase.from('calendar_events').upsert(
-      {
-        user_id: currentUserId,
-        activity_id: event.activity.activity_id,
-        planned_date: event.planned_date,
-        day_window: event.day_window,
-        start_time: event.start_time,
-        end_time: event.end_time,
-        status: event.status,
-        visibility: event.visibility,
-      },
-      { onConflict: 'user_id,planned_date,day_window' },
     );
   }
 
@@ -769,15 +563,12 @@ export default function App() {
           [activeSlot]: [...slotShortlist, activityId],
         };
       });
-      persistShortlist(activity);
       setNotice(`${activity.activity_name} was added to this ${selectedWindow} shortlist.`);
     } else {
       setNotice(`${activity.activity_name} marked as not selected for this slot.`);
     }
 
     setLocalStatus(activity, nextStatus);
-    persistSwipe(activity, decision);
-    persistStatus(activity, nextStatus);
     setDragState({ activityId: null, startX: null, offsetX: 0 });
   }
 
@@ -822,7 +613,7 @@ export default function App() {
   function chooseActivity(activity, status = 'booked') {
     const event = {
       local_id: `${selectedDate}-${selectedWindow}-${activity.activity_id}`,
-      user_id: currentUserId || null,
+      user_id: null,
       activity_id: activity.activity_id,
       activity,
       planned_date: selectedDate,
@@ -830,7 +621,7 @@ export default function App() {
       start_time: activity.start_time,
       end_time: activity.end_time,
       status,
-      visibility: profile?.default_calendar_visibility || 'private',
+      visibility: 'private',
       created_at: new Date().toISOString(),
     };
 
@@ -842,8 +633,6 @@ export default function App() {
     ]);
 
     setLocalStatus(activity, status);
-    persistStatus(activity, status, event.visibility);
-    persistCalendarEvent(event);
     setNotice(`${activity.activity_name} is now ${statusLabels[status].toLowerCase()} in your calendar.`);
   }
 
@@ -852,7 +641,6 @@ export default function App() {
     setCalendarEvents((current) =>
       current.map((item) => (item.local_id === event.local_id ? nextEvent : item)),
     );
-    persistCalendarEvent(nextEvent);
   }
 
   function removeEvent(event) {
@@ -869,9 +657,8 @@ export default function App() {
       return;
     }
 
-    if (!supabase || !currentUserId) {
-      setNotice('Sign in with Google before submitting an activity link.');
-      setActiveScreen('profile');
+    if (!supabase) {
+      setNotice('Add your Supabase URL and publishable key before submitting an activity link.');
       return;
     }
 
@@ -893,7 +680,7 @@ export default function App() {
       return;
     }
 
-    const payload = buildSubmittedPayload(enriched, link, currentUserId);
+    const payload = buildSubmittedPayload(enriched, link);
     const { error: insertError } = await supabase.from('activities').insert(payload);
 
     setLoading(false);
@@ -909,39 +696,27 @@ export default function App() {
   async function submitReview(event) {
     event.preventDefault();
     if (!selectedActivity) return;
-    if (!supabase || !currentUserId) {
-      setNotice('Sign in with Google to add reviews or photos.');
+    if (!supabase) {
+      setNotice('Add your Supabase URL and publishable key before saving reviews or photos.');
       return;
     }
 
     const tasks = [];
-    if (reviewForm.comments.trim()) {
-      tasks.push(
-        supabase.from('comments_table').insert({
-          activity_id: selectedActivity.activity_id,
-          user_id: currentUserId,
-          comments: reviewForm.comments.trim(),
-        }),
-      );
-    }
     if (reviewForm.rating) {
       tasks.push(
-        supabase.from('activity_reviews').upsert(
-          {
-            activity_id: selectedActivity.activity_id,
-            user_id: currentUserId,
-            rating: Number(reviewForm.rating),
-            review_text: reviewForm.comments.trim() || null,
-          },
-          { onConflict: 'activity_id,user_id' },
-        ),
+        supabase.from('activity_reviews').insert({
+          activity_id: selectedActivity.activity_id,
+          user_id: null,
+          rating: Number(reviewForm.rating),
+          review_text: reviewForm.comments.trim() || null,
+        }),
       );
     }
     if (reviewForm.photo_url.trim()) {
       tasks.push(
         supabase.from('activity_photos').insert({
           activity_id: selectedActivity.activity_id,
-          user_id: currentUserId,
+          user_id: null,
           photo_url: reviewForm.photo_url.trim(),
           source_provider: 'user_upload',
         }),
@@ -957,108 +732,6 @@ export default function App() {
 
     setReviewForm({ rating: 5, comments: '', photo_url: '' });
     setNotice('Review saved.');
-  }
-
-  async function signInWithGoogle() {
-    if (!supabase) {
-      setNotice('Add your Supabase URL and publishable key before signing in.');
-      return;
-    }
-
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin,
-      },
-    });
-
-    if (error) setNotice(`Google sign-in failed: ${error.message}`);
-  }
-
-  async function signOut() {
-    if (!supabase) return;
-    await supabase.auth.signOut();
-    setActiveScreen('start');
-    setNotice('Signed out.');
-  }
-
-  async function saveUsername(event) {
-    event.preventDefault();
-    const username = usernameForm.trim();
-
-    if (!supabase || !currentUserId) {
-      setNotice('Sign in with Google before creating a username.');
-      return;
-    }
-
-    if (!usernamePattern.test(username)) {
-      setNotice('Choose a username 3-30 characters long using letters, numbers, underscores, or dots.');
-      return;
-    }
-
-    const basePayload = {
-      user_id: currentUserId,
-      user_name: username,
-      display_name: profile?.display_name || currentUser?.user_metadata?.full_name || username,
-      avatar_url: profile?.avatar_url || currentUser?.user_metadata?.avatar_url || currentUser?.user_metadata?.picture || null,
-    };
-
-    let { data, error } = await supabase
-      .from('user_table')
-      .upsert({ ...basePayload, username_completed: true }, { onConflict: 'user_id' })
-      .select('*')
-      .single();
-
-    if (error && error.message?.toLowerCase().includes('username_completed')) {
-      const retry = await supabase
-        .from('user_table')
-        .upsert(basePayload, { onConflict: 'user_id' })
-        .select('*')
-        .single();
-      data = retry.data ? { ...retry.data, username_completed: true } : null;
-      error = retry.error;
-    }
-
-    if (error) {
-      const duplicate = error.message?.toLowerCase().includes('duplicate');
-      setNotice(duplicate ? 'That username is already taken. Try a small variation.' : `Username could not be saved: ${error.message}`);
-      return;
-    }
-
-    setProfile(data || { ...basePayload, username_completed: true });
-    setNotice(`Welcome, @${username}.`);
-  }
-
-  if (!appUnlocked) {
-    return (
-      <div className="phone-app auth-only-app">
-        {notice && (
-          <div className="toast" role="status">
-            <span>{notice}</span>
-            <button type="button" onClick={() => setNotice('')}>OK</button>
-          </div>
-        )}
-
-        <main className="app-main auth-main">
-          {!currentUser ? (
-            <AuthGate
-              authReady={authReady}
-              hasSupabaseConfig={hasSupabaseConfig}
-              signInWithGoogle={signInWithGoogle}
-            />
-          ) : (
-            <UsernameGate
-              currentUser={currentUser}
-              profileLoading={profileLoading}
-              usernameForm={usernameForm}
-              setUsernameForm={setUsernameForm}
-              saveUsername={saveUsername}
-              signOut={signOut}
-            />
-          )}
-        </main>
-      </div>
-    );
   }
 
   return (
@@ -1108,7 +781,6 @@ export default function App() {
             shortlist={currentShortlist}
             chosenForSlot={chosenForSlot}
             statuses={statuses}
-            followedSignals={followedSignals}
             selectedDateKey={selectedDate}
             dragState={dragState}
             loading={loading}
@@ -1140,17 +812,6 @@ export default function App() {
             setForm={setLinkForm}
             onSubmit={submitActivityLink}
             loading={loading}
-            currentUser={currentUser}
-          />
-        )}
-
-        {activeScreen === 'profile' && (
-          <ProfileScreen
-            session={session}
-            profile={profile}
-            signInWithGoogle={signInWithGoogle}
-            signOut={signOut}
-            hasSupabaseConfig={hasSupabaseConfig}
           />
         )}
       </main>
@@ -1159,7 +820,6 @@ export default function App() {
         <ActivityDetail
           activity={selectedActivity}
           userLocation={userLocation}
-          signals={followedSignals[String(selectedActivity.activity_id)] || []}
           reviewForm={reviewForm}
           setReviewForm={setReviewForm}
           submitReview={submitReview}
@@ -1169,83 +829,6 @@ export default function App() {
 
       <BottomNav activeScreen={activeScreen} setActiveScreen={setActiveScreen} />
     </div>
-  );
-}
-
-function AuthGate({ authReady, hasSupabaseConfig: isConfigured, signInWithGoogle }) {
-  return (
-    <section className="app-screen auth-gate-screen">
-      <div className="screen-title hero-title auth-hero">
-        <span className="eyebrow">Tiny Outings</span>
-        <h1>Sign in before planning.</h1>
-        <p>
-          Use your Google email to keep plans, reviews, shortlists, and calendar picks attached to
-          your real parent profile.
-        </p>
-      </div>
-
-      {!isConfigured && (
-        <div className="soft-note">Supabase env vars are not active yet, so Google sign-in is disabled.</div>
-      )}
-
-      <div className="auth-card google-auth-card">
-        <p>No browsing mode, no fake users. The app opens after Google sign-in and username setup.</p>
-        <button
-          type="button"
-          className="google-auth-button"
-          onClick={signInWithGoogle}
-          disabled={!isConfigured || !authReady}
-        >
-          {authReady ? 'Continue with Google' : 'Checking session...'}
-        </button>
-      </div>
-    </section>
-  );
-}
-
-function UsernameGate({
-  currentUser,
-  profileLoading,
-  usernameForm,
-  setUsernameForm,
-  saveUsername,
-  signOut,
-}) {
-  return (
-    <section className="app-screen auth-gate-screen">
-      <div className="screen-title hero-title auth-hero">
-        <span className="eyebrow">Create your profile</span>
-        <h1>Choose a username.</h1>
-        <p>
-          This is what other parents will see when they follow you or spot that you selected an
-          activity.
-        </p>
-      </div>
-
-      <form className="auth-card username-card" onSubmit={saveUsername}>
-        <span>{currentUser.email}</span>
-        <label>
-          <span>Username</span>
-          <input
-            required
-            minLength="3"
-            maxLength="30"
-            pattern="[A-Za-z0-9_.]+"
-            value={usernameForm}
-            onChange={(event) => setUsernameForm(event.target.value)}
-            placeholder="e.g. forest_parent"
-            disabled={profileLoading}
-          />
-        </label>
-        <p>Use 3-30 characters: letters, numbers, underscores, or dots.</p>
-        <button className="primary-action wide" type="submit" disabled={profileLoading}>
-          {profileLoading ? 'Loading profile...' : 'Save username and enter app'}
-        </button>
-        <button type="button" className="secondary-button" onClick={signOut}>
-          Sign out
-        </button>
-      </form>
-    </section>
   );
 }
 
@@ -1420,7 +1003,6 @@ function SwipeScreen({
   shortlist,
   chosenForSlot,
   statuses,
-  followedSignals,
   selectedDateKey,
   dragState,
   loading,
@@ -1495,14 +1077,12 @@ function SwipeScreen({
           const offset = isTop && dragState.activityId === activity.activity_id ? dragState.offsetX : 0;
           const decisionClass = offset > 40 ? 'is-yes' : offset < -40 ? 'is-no' : '';
           const status = statuses[statusKey(selectedDateKey, selectedWindow, activity.activity_id)];
-          const signals = followedSignals[String(activity.activity_id)] || [];
 
           return (
             <ActivityCard
               key={activity.activity_id}
               activity={activity}
               status={status}
-              signals={signals}
               stackIndex={stackIndex}
               isTop={isTop}
               decisionClass={decisionClass}
@@ -1569,7 +1149,6 @@ function EmptyDeck({ title, message }) {
 function ActivityCard({
   activity,
   status,
-  signals,
   stackIndex,
   isTop,
   decisionClass,
@@ -1620,12 +1199,6 @@ function ActivityCard({
         </div>
         <h2>{activity.activity_name}</h2>
         <p>{activity.description || activity.address || 'Google Places details will appear here when available.'}</p>
-
-        {signals.length > 0 && (
-          <div className="friend-signal">
-            {signals.map((signal) => signal.name).join(', ')} selected this
-          </div>
-        )}
 
         <div className="activity-facts">
           <span>{activity.start_time} to {activity.end_time}</span>
@@ -1774,7 +1347,7 @@ function CalendarScreen({ weekDays, calendarEvents, onOpenActivity, onUpdateEven
   );
 }
 
-function AddActivityScreen({ form, setForm, onSubmit, loading, currentUser }) {
+function AddActivityScreen({ form, setForm, onSubmit, loading }) {
   return (
     <section className="app-screen form-screen">
       <div className="screen-title compact">
@@ -1784,10 +1357,6 @@ function AddActivityScreen({ form, setForm, onSubmit, loading, currentUser }) {
           The backend reads the Google/activity link, fills the activity table fields, and saves it as a real draft.
         </p>
       </div>
-
-      {!currentUser && (
-        <div className="soft-note">Sign in with Google before submitting new activities.</div>
-      )}
 
       <form className="app-form link-only-form" onSubmit={onSubmit}>
         <label className="wide">
@@ -1808,59 +1377,9 @@ function AddActivityScreen({ form, setForm, onSubmit, loading, currentUser }) {
   );
 }
 
-function ProfileScreen({
-  session,
-  profile,
-  signInWithGoogle,
-  signOut,
-  hasSupabaseConfig: isConfigured,
-}) {
-  return (
-    <section className="app-screen profile-screen">
-      <div className="screen-title compact">
-        <span className="eyebrow">User account</span>
-        <h1>{session ? profile?.display_name || session.user.email : 'Sign in'}</h1>
-        <p>Use Google email sign-in. Follower counts come from real Supabase profiles only.</p>
-      </div>
-
-      {!isConfigured && (
-        <div className="soft-note">Supabase env vars are not active here, so sign-in is disabled.</div>
-      )}
-
-      {session ? (
-        <div className="account-card">
-          <span>{session.user.email}</span>
-          <div className="stat-row">
-            <strong>{profile?.followers ?? 0}</strong>
-            <span>followers</span>
-            <strong>{profile?.following ?? 0}</strong>
-            <span>following</span>
-          </div>
-          <button type="button" className="secondary-button" onClick={signOut}>
-            Sign out
-          </button>
-        </div>
-      ) : (
-        <div className="auth-card google-auth-card">
-          <p>No fake users are shown. Sign in with a real Google account to create your profile.</p>
-          <button
-            type="button"
-            className="google-auth-button"
-            onClick={signInWithGoogle}
-            disabled={!isConfigured}
-          >
-            Continue with Google
-          </button>
-        </div>
-      )}
-    </section>
-  );
-}
-
 function ActivityDetail({
   activity,
   userLocation,
-  signals,
   reviewForm,
   setReviewForm,
   submitReview,
@@ -1890,12 +1409,6 @@ function ActivityDetail({
         <p className="eyebrow">{activity.category}</p>
         <h2>{activity.activity_name}</h2>
         <p>{activity.description || 'No description yet.'}</p>
-
-        {signals.length > 0 && (
-          <div className="friend-signal wide">
-            {signals.map((signal) => signal.name).join(', ')} selected this activity
-          </div>
-        )}
 
         <div className="detail-grid">
           <span><strong>Time</strong>{activity.start_time} to {activity.end_time}</span>
@@ -1962,7 +1475,6 @@ function BottomNav({ activeScreen, setActiveScreen }) {
     ['swipe', 'Swipe'],
     ['calendar', 'Calendar'],
     ['add', 'Add'],
-    ['profile', 'Me'],
   ];
 
   return (

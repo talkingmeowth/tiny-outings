@@ -13,7 +13,8 @@ Run these SQL files in Supabase:
 5. `supabase/migrations/20260709162000_google_places_activity_enrichment.sql`
 6. `supabase/migrations/20260709173000_add_activity_availability.sql`
 7. `supabase/migrations/20260709190000_require_username_and_activity_images.sql`
-8. `supabase/seed/activities_east_london_family_places.sql`
+8. `supabase/migrations/20260709203000_allow_anonymous_submissions_and_reviews.sql`
+9. `supabase/seed/activities_east_london_family_places.sql`
 
 ## Render Settings
 

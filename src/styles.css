@@ -106,7 +106,6 @@ a {
 .export-actions button,
 .external-links a,
 .shortlist-actions button,
-.auth-tabs button,
 .sheet-close,
 .toast button {
   border: 1px solid var(--line);
@@ -162,7 +161,6 @@ a {
 .export-actions a,
 .export-actions button,
 .external-links a,
-.auth-tabs button,
 .sheet-close,
 .toast button {
   display: inline-flex;
@@ -187,7 +185,6 @@ a {
 .segment.is-on,
 .date-pill.is-on,
 .window-pill.is-on,
-.auth-tabs .is-on,
 .bottom-nav .is-on {
   border-color: transparent;
   color: #fffdf6;
@@ -308,9 +305,6 @@ p {
 .calendar-day,
 .soft-note,
 .app-form,
-.auth-card,
-.account-card,
-.people-list,
 .detail-sheet,
 .review-card {
   border: 1px solid var(--line);
@@ -322,9 +316,6 @@ p {
 
 .filter-card,
 .app-form,
-.auth-card,
-.account-card,
-.people-list,
 .review-card {
   display: grid;
   gap: 16px;
@@ -339,7 +330,6 @@ p {
 .field-group > label,
 .range-card span,
 .app-form label span,
-.auth-card label span,
 .review-card label span {
   color: var(--muted);
   font-size: 0.85rem;
@@ -389,8 +379,7 @@ input[type='range'] {
 .export-actions,
 .external-links,
 .shortlist-actions,
-.calendar-controls,
-.auth-tabs {
+.calendar-controls {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -628,19 +617,6 @@ input[type='range'] {
   font-size: clamp(2rem, 9vw, 3.3rem);
 }
 
-.friend-signal {
-  padding: 12px;
-  border: 1px solid rgba(239, 118, 88, 0.32);
-  border-radius: 18px;
-  color: var(--coral-dark);
-  background: rgba(239, 118, 88, 0.12);
-  font-weight: 900;
-}
-
-.friend-signal.wide {
-  margin: 6px 0;
-}
-
 .activity-facts,
 .detail-grid {
   display: grid;
@@ -744,14 +720,12 @@ input[type='range'] {
   font-weight: 800;
 }
 
-.shortlist-list,
-.people-list {
+.shortlist-list {
   display: grid;
   gap: 10px;
 }
 
-.shortlist-card,
-.person-card {
+.shortlist-card {
   display: grid;
   gap: 10px;
   padding: 12px;
@@ -769,15 +743,13 @@ input[type='range'] {
 }
 
 .shortlist-card > button,
-.calendar-event > button,
-.person-card div {
+.calendar-event > button {
   display: grid;
   gap: 4px;
 }
 
 .shortlist-card span,
-.calendar-event span,
-.person-card span {
+.calendar-event span {
   color: var(--muted);
   font-size: 0.9rem;
 }
@@ -856,7 +828,6 @@ input[type='range'] {
 .app-form input,
 .app-form select,
 .app-form textarea,
-.auth-card input,
 .review-card input,
 .review-card textarea {
   width: 100%;
@@ -886,7 +857,6 @@ input[type='range'] {
 }
 
 .app-form label,
-.auth-card label,
 .review-card label {
   display: grid;
   gap: 7px;
@@ -920,15 +890,6 @@ input[type='range'] {
   font-weight: 900;
 }
 
-.auth-tabs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-}
-
-.auth-tabs button {
-  width: 100%;
-}
-
 .stat-row {
   display: grid;
   grid-template-columns: auto 1fr auto 1fr;
@@ -939,15 +900,6 @@ input[type='range'] {
 .stat-row strong {
   font-family: 'Fraunces', Georgia, serif;
   font-size: 2rem;
-}
-
-.people-list h2 {
-  font-size: 1.7rem;
-}
-
-.person-card {
-  grid-template-columns: 1fr auto;
-  align-items: center;
 }
 
 .detail-backdrop {
@@ -1018,7 +970,7 @@ input[type='range'] {
   left: 12px;
   z-index: 50;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 5px;
   max-width: 496px;
   margin: 0 auto;
@@ -1110,24 +1062,18 @@ input[type='range'] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .form-screen,
-  .profile-screen {
+  .form-screen {
     grid-template-columns: minmax(0, 0.85fr) minmax(360px, 1.15fr);
   }
 
-  .form-screen .screen-title,
-  .profile-screen .screen-title {
+  .form-screen .screen-title {
     position: sticky;
     top: 84px;
     align-self: start;
   }
 
   .form-screen .soft-note,
-  .form-screen .app-form,
-  .profile-screen .soft-note,
-  .profile-screen .auth-card,
-  .profile-screen .account-card,
-  .profile-screen .people-list {
+  .form-screen .app-form {
     grid-column: 2;
   }
 
@@ -1191,31 +1137,6 @@ input[type='range'] {
   max-width: 560px;
 }
 
-.auth-only-app {
-  display: grid;
-  align-content: center;
-  padding-bottom: max(24px, env(safe-area-inset-bottom));
-}
-
-.auth-main {
-  min-height: calc(100vh - 48px);
-  min-height: calc(100dvh - 48px);
-  align-content: center;
-}
-
-.auth-gate-screen {
-  align-content: center;
-}
-
-.auth-hero {
-  min-height: min(44vh, 390px);
-}
-
-.username-card > span {
-  color: var(--muted);
-  font-weight: 900;
-}
-
 .hero-title {
   min-height: min(46vh, 430px);
   align-content: end;
@@ -1272,8 +1193,7 @@ input[type='range'] {
 
 .distance-toggle button,
 .card-links a,
-.card-links button,
-.google-auth-button {
+.card-links button {
   min-height: 44px;
   border: 1px solid var(--line);
   border-radius: 999px;
@@ -1283,8 +1203,7 @@ input[type='range'] {
   text-decoration: none;
 }
 
-.distance-toggle button.is-on,
-.google-auth-button {
+.distance-toggle button.is-on {
   border-color: transparent;
   color: #fffdf6;
   background: var(--green);
@@ -1348,15 +1267,6 @@ input[type='range'] {
   grid-template-columns: 1fr;
 }
 
-.google-auth-card {
-  text-align: center;
-}
-
-.google-auth-button {
-  width: 100%;
-  justify-content: center;
-}
-
 .detail-photo {
   background-position: center;
   background-size: cover;
@@ -1377,9 +1287,7 @@ input[type='range'] {
 
   .start-screen,
   .swipe-screen,
-  .form-screen,
-  .profile-screen,
-  .auth-gate-screen {
+  .form-screen {
     grid-template-columns: 1fr;
   }
 
@@ -1393,16 +1301,12 @@ input[type='range'] {
   .swipe-controls,
   .shortlist-panel,
   .form-screen .soft-note,
-  .form-screen .app-form,
-  .profile-screen .soft-note,
-  .profile-screen .auth-card,
-  .profile-screen .account-card {
+  .form-screen .app-form {
     grid-column: auto;
   }
 
   .shortlist-panel,
-  .form-screen .screen-title,
-  .profile-screen .screen-title {
+  .form-screen .screen-title {
     position: static;
     top: auto;
     grid-row: auto;

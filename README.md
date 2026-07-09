@@ -5,11 +5,12 @@ MVP database start for a parent/baby activity planning app covering Waltham Fore
 ## What Is Here
 
 - `supabase/migrations/20260708210000_create_activities.sql` creates the Supabase `public.activities` table.
-- `supabase/migrations/20260708213000_create_core_app_tables.sql` creates users, follows, comments, swipes, shortlist, calendar, reviews, and photos.
-- `supabase/migrations/20260708220000_allow_activity_submissions.sql` lets signed-in users submit draft activities from the frontend.
+- `supabase/migrations/20260708213000_create_core_app_tables.sql` creates the original planning, review, and social support tables.
+- `supabase/migrations/20260708220000_allow_activity_submissions.sql` lets authenticated users submit draft activities in older builds.
 - `supabase/migrations/20260709162000_google_places_activity_enrichment.sql` adds Google Places metadata fields and removes any demo/sample draft rows.
 - `supabase/migrations/20260709173000_add_activity_availability.sql` adds date and availability fields for daily, weekly, seasonal, and one-off activities.
-- `supabase/migrations/20260709190000_require_username_and_activity_images.sql` requires completed usernames and adds preferred activity card image fields.
+- `supabase/migrations/20260709190000_require_username_and_activity_images.sql` adds preferred activity card image fields.
+- `supabase/migrations/20260709203000_allow_anonymous_submissions_and_reviews.sql` lets the account-free mobile app submit draft activities, reviews, and photos without Google login.
 - `supabase/functions/activity-link-autofill` enriches a pasted link with Google Places data server-side.
 - `supabase/seed/activities_waltham_forest.sql` inserts the first Waltham Forest activity data.
 - `supabase/seed/activities_east_london_family_places.sql` adds Waltham Forest, Hackney, and Newham family venues, parks, cafes, museums, hubs, and seasonal activities.
@@ -45,11 +46,12 @@ If you are using the Supabase SQL editor instead of the CLI, run files in this o
 5. `supabase/migrations/20260709162000_google_places_activity_enrichment.sql`
 6. `supabase/migrations/20260709173000_add_activity_availability.sql`
 7. `supabase/migrations/20260709190000_require_username_and_activity_images.sql`
-8. `supabase/seed/activities_east_london_family_places.sql`
+8. `supabase/migrations/20260709203000_allow_anonymous_submissions_and_reviews.sql`
+9. `supabase/seed/activities_east_london_family_places.sql`
 
-## Google Sign-In And Places Setup
+## Google Places Setup
 
-The mobile app now uses Google email sign-in through Supabase Auth. In Supabase, enable the Google provider under Authentication, then add your Google OAuth client ID and secret.
+The mobile app is account-free. It does not use Google login, usernames, followers, or followed-user signals.
 
 The add-activity screen accepts only one link. To make that work, deploy the Edge Function and store your Google Maps key as a Supabase secret:
 
@@ -93,7 +95,7 @@ Availability is stored with:
 
 ## Core App Table Notes
 
-The second migration adds the social and planning model:
+The second migration still contains the original social and planning tables:
 
 - `user_table`
 - `user_follows`
@@ -106,7 +108,7 @@ The second migration adds the social and planning model:
 - `activity_reviews`
 - `activity_photos`
 
-It also adds row-level security policies so users can manage their own swipes, shortlist, calendar, statuses, reviews, photos, and comments. Public/followers/private visibility is built into activity statuses and calendar events.
+The current mobile app no longer uses accounts, follows, or user-specific Supabase planning writes. Swipes, shortlist, statuses, and calendar choices are stored on the device. Anonymous draft activity submissions, reviews, and photos are enabled by the latest migration.
 
 ## Render Hosting
 
