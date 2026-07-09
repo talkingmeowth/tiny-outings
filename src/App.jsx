@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { hasSupabaseConfig, supabase } from './supabaseClient';
+import { supabase } from './supabaseClient';
 
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
@@ -192,7 +192,24 @@ function formatWalk(miles) {
   return minutes ? `${minutes} min walk` : 'Walk soon';
 }
 
+function isFlexibleActivity(activity) {
+  const category = String(activity.category || '').toLowerCase();
+  const name = String(activity.activity_name || '').toLowerCase();
+  const dailyDays = activity.available_days_of_week?.length === 7 || activity.days_of_week?.length === 7;
+  return (
+    category.includes('park') ||
+    name.includes('park') ||
+    activity.availability_type === 'daily' ||
+    (dailyDays && !activity.schedule_notes)
+  );
+}
+
+function shouldShowAvailability(activity) {
+  return !isFlexibleActivity(activity) && formatAvailability(activity) !== 'Open dates vary';
+}
+
 function formatAvailability(activity) {
+  if (isFlexibleActivity(activity)) return 'Anytime';
   if (activity.activity_date) return formatDay(activity.activity_date);
   if (activity.availability_start_date && activity.availability_end_date) {
     return `${formatDay(activity.availability_start_date)} to ${formatDay(activity.availability_end_date)}`;
@@ -303,6 +320,16 @@ function activityWebsiteUrl(activity) {
   return activity.website || activity.source_url || activity.google_place_uri || activity.google_link || googleEntryUrl(activity);
 }
 
+function isUsablePhotoUrl(url) {
+  if (!url) return false;
+  const value = String(url);
+  return ![
+    'image.thum.io',
+    'maps.googleapis.com/maps/api/place/photo',
+    'places.googleapis.com/v1/',
+  ].some((blocked) => value.includes(blocked));
+}
+
 function websiteThumbnailUrl(activity) {
   const website = activityWebsiteUrl(activity);
   if (!website) return null;
@@ -310,7 +337,7 @@ function websiteThumbnailUrl(activity) {
     const parsed = new URL(website);
     parsed.search = '';
     parsed.hash = '';
-    return `https://image.thum.io/get/width/1200/crop/900/${parsed.toString()}`;
+    return `https://s.wordpress.com/mshots/v1/${encodeURIComponent(parsed.toString())}?w=1200`;
   } catch {
     return null;
   }
@@ -322,7 +349,7 @@ function activityPhotoUrls(activity) {
     activity.image_url,
     activity.photo_url,
     websiteThumbnailUrl(activity),
-  ].filter(Boolean);
+  ].filter(isUsablePhotoUrl);
 
   return [...new Set(candidates)];
 }
@@ -332,9 +359,10 @@ function activityPhotoUrl(activity) {
 }
 
 function activityPhotoLabel(activity) {
-  if (activity.google_photo_url) return 'Google Places photo';
-  if (activity.image_url) return 'Website photo';
-  if (activityWebsiteUrl(activity)) return 'Website image';
+  const photoUrl = activityPhotoUrl(activity);
+  if (photoUrl && photoUrl === activity.google_photo_url) return 'Google Places photo';
+  if (photoUrl && (photoUrl === activity.image_url || photoUrl === activity.photo_url)) return 'Activity photo';
+  if (photoUrl) return 'Website preview';
   return 'Photo pending';
 }
 
@@ -476,7 +504,9 @@ export default function App() {
       return activity.public_listing_status === 'published' && dayMatch && interestMatch && distanceMatch;
     });
 
-  const slotActivities = filteredActivities.filter((activity) => activity.time_window === selectedWindow);
+  const slotActivities = filteredActivities.filter(
+    (activity) => isFlexibleActivity(activity) || activity.time_window === selectedWindow,
+  );
   const swipedIds = new Set((swipes[activeSlot] || []).map((item) => String(item.activity_id)));
   const deckActivities = slotActivities.filter((activity) => !swipedIds.has(String(activity.activity_id)));
   const currentShortlist = (shortlists[activeSlot] || [])
@@ -604,7 +634,7 @@ export default function App() {
       });
       setNotice(`${activity.activity_name} added to your ${selectedWindow} maybe-list.`);
     } else {
-      setNotice(`${activity.activity_name} skipped for this ${selectedWindow}.`);
+      setNotice('');
     }
 
     setLocalStatus(activity, nextStatus);
@@ -798,12 +828,6 @@ export default function App() {
           <span>Tiny</span>
           <strong>Outings</strong>
         </button>
-        <div className="topbar-actions">
-          {hasSupabaseConfig && <span className="sync-dot">Fresh picks</span>}
-          <button className="icon-button" type="button" onClick={requestLocation}>
-            {locationStatus === 'ready' ? 'Nearby on' : 'Use location'}
-          </button>
-        </div>
       </header>
 
       {notice && (
@@ -1228,6 +1252,7 @@ function ActivityCard({
   const distance = formatDistance(activity.distance);
   const walk = formatWalk(activity.distance);
   const travelText = walk ? `${distance} - ${walk}` : distance;
+  const flexible = isFlexibleActivity(activity);
 
   return (
     <article
@@ -1273,13 +1298,17 @@ function ActivityCard({
         </p>
 
         <div className="card-summary">
-          <span><strong>Start</strong>{activity.start_time}</span>
-          <span><strong>End</strong>{activity.end_time}</span>
+          {flexible ? (
+            <span><strong>Time</strong>Anytime</span>
+          ) : (
+            <>
+              <span><strong>Start</strong>{activity.start_time}</span>
+              <span><strong>End</strong>{activity.end_time}</span>
+            </>
+          )}
           {cost && <span><strong>Price</strong>{cost}</span>}
           <span><strong>Travel</strong>{travelText}</span>
         </div>
-
-        <span className="card-more">Tap for photos, links and full details</span>
       </div>
     </article>
   );
@@ -1318,7 +1347,7 @@ function ShortlistPanel({
             <article key={activity.activity_id} className="shortlist-card">
               <button type="button" onClick={() => onOpenActivity(activity)}>
                 <strong>{activity.activity_name}</strong>
-                <span>{activity.start_time} to {activity.end_time} - {activity.category}</span>
+                <span>{isFlexibleActivity(activity) ? 'Anytime' : `${activity.start_time} to ${activity.end_time}`} - {activity.category}</span>
               </button>
               <div className="shortlist-actions">
                 <button type="button" onClick={() => onChoose(activity, 'tentative')}>
@@ -1360,7 +1389,7 @@ function CalendarScreen({ weekDays, calendarEvents, onOpenActivity, onUpdateEven
                     <article className="calendar-event">
                       <button type="button" onClick={() => onOpenActivity(event.activity)}>
                         <strong>{event.activity.activity_name}</strong>
-                        <span>{event.start_time} to {event.end_time}</span>
+                        <span>{isFlexibleActivity(event.activity) ? 'Anytime' : `${event.start_time} to ${event.end_time}`}</span>
                       </button>
                       <div className="calendar-controls">
                         <select
@@ -1453,7 +1482,7 @@ function ActivityDetail({
   const photoUrls = activityPhotoUrls(activity);
   const photoLabel = activityPhotoLabel(activity);
   const cost = activityCost(activity);
-  const rating = activity.google_rating || activity.app_rating;
+  const flexible = isFlexibleActivity(activity);
 
   return (
     <section className="app-screen activity-detail-screen">
@@ -1489,14 +1518,18 @@ function ActivityDetail({
         </p>
 
         <div className="detail-grid">
-          <span><strong>Start</strong>{activity.start_time}</span>
-          <span><strong>End</strong>{activity.end_time}</span>
+          {flexible ? (
+            <span><strong>Time</strong>Anytime</span>
+          ) : (
+            <>
+              <span><strong>Start</strong>{activity.start_time}</span>
+              <span><strong>End</strong>{activity.end_time}</span>
+            </>
+          )}
           <span><strong>Price</strong>{cost || 'Check with venue'}</span>
-          <span><strong>Available</strong>{formatAvailability(activity)}</span>
-          <span><strong>Google rating</strong>{rating ? `${rating}/5` : 'Not rated yet'}</span>
+          {shouldShowAvailability(activity) && <span><strong>Available</strong>{formatAvailability(activity)}</span>}
           <span><strong>Reviews</strong>{activity.google_user_rating_count || activity.number_of_reviews || 0}</span>
           <span><strong>Age</strong>{activity.age_suitability || 'Guide coming soon'}</span>
-          <span><strong>Address</strong>{activity.address}</span>
         </div>
 
         <div className="external-links detail-links">
