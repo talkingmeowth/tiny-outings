@@ -311,8 +311,6 @@ p {
 .auth-card,
 .account-card,
 .people-list,
-.search-box,
-.result-list button,
 .detail-sheet,
 .review-card {
   border: 1px solid var(--line);
@@ -342,7 +340,6 @@ p {
 .range-card span,
 .app-form label span,
 .auth-card label span,
-.search-box span,
 .review-card label span {
   color: var(--muted);
   font-size: 0.85rem;
@@ -748,7 +745,6 @@ input[type='range'] {
 }
 
 .shortlist-list,
-.result-list,
 .people-list {
   display: grid;
   gap: 10px;
@@ -765,8 +761,7 @@ input[type='range'] {
 }
 
 .shortlist-card > button,
-.calendar-event > button,
-.result-list button {
+.calendar-event > button {
   border: 0;
   color: inherit;
   background: transparent;
@@ -775,7 +770,6 @@ input[type='range'] {
 
 .shortlist-card > button,
 .calendar-event > button,
-.result-list button,
 .person-card div {
   display: grid;
   gap: 4px;
@@ -783,7 +777,6 @@ input[type='range'] {
 
 .shortlist-card span,
 .calendar-event span,
-.result-list span,
 .person-card span {
   color: var(--muted);
   font-size: 0.9rem;
@@ -864,7 +857,6 @@ input[type='range'] {
 .app-form select,
 .app-form textarea,
 .auth-card input,
-.search-box input,
 .review-card input,
 .review-card textarea {
   width: 100%;
@@ -895,7 +887,6 @@ input[type='range'] {
 
 .app-form label,
 .auth-card label,
-.search-box,
 .review-card label {
   display: grid;
   gap: 7px;
@@ -927,14 +918,6 @@ input[type='range'] {
   color: #fffdf6;
   background: var(--green);
   font-weight: 900;
-}
-
-.search-box {
-  padding: 14px;
-}
-
-.result-list button {
-  padding: 14px;
 }
 
 .auth-tabs {
@@ -1035,7 +1018,7 @@ input[type='range'] {
   left: 12px;
   z-index: 50;
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 5px;
   max-width: 496px;
   margin: 0 auto;
@@ -1128,14 +1111,12 @@ input[type='range'] {
   }
 
   .form-screen,
-  .profile-screen,
-  .search-screen {
+  .profile-screen {
     grid-template-columns: minmax(0, 0.85fr) minmax(360px, 1.15fr);
   }
 
   .form-screen .screen-title,
-  .profile-screen .screen-title,
-  .search-screen .screen-title {
+  .profile-screen .screen-title {
     position: sticky;
     top: 84px;
     align-self: start;
@@ -1146,9 +1127,7 @@ input[type='range'] {
   .profile-screen .soft-note,
   .profile-screen .auth-card,
   .profile-screen .account-card,
-  .profile-screen .people-list,
-  .search-screen .search-box,
-  .search-screen .result-list {
+  .profile-screen .people-list {
     grid-column: 2;
   }
 
@@ -1210,6 +1189,31 @@ input[type='range'] {
 
 .phone-app {
   max-width: 560px;
+}
+
+.auth-only-app {
+  display: grid;
+  align-content: center;
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+}
+
+.auth-main {
+  min-height: calc(100vh - 48px);
+  min-height: calc(100dvh - 48px);
+  align-content: center;
+}
+
+.auth-gate-screen {
+  align-content: center;
+}
+
+.auth-hero {
+  min-height: min(44vh, 390px);
+}
+
+.username-card > span {
+  color: var(--muted);
+  font-weight: 900;
 }
 
 .hero-title {
@@ -1322,7 +1326,7 @@ input[type='range'] {
 
 .card-links {
   display: grid;
-  grid-template-columns: 1fr 1fr auto;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -1332,6 +1336,8 @@ input[type='range'] {
   align-items: center;
   justify-content: center;
   padding: 10px 12px;
+  font-size: 0.78rem;
+  text-align: center;
 }
 
 .card-links button {
@@ -1373,7 +1379,7 @@ input[type='range'] {
   .swipe-screen,
   .form-screen,
   .profile-screen,
-  .search-screen {
+  .auth-gate-screen {
     grid-template-columns: 1fr;
   }
 
@@ -1390,16 +1396,13 @@ input[type='range'] {
   .form-screen .app-form,
   .profile-screen .soft-note,
   .profile-screen .auth-card,
-  .profile-screen .account-card,
-  .search-screen .search-box,
-  .search-screen .result-list {
+  .profile-screen .account-card {
     grid-column: auto;
   }
 
   .shortlist-panel,
   .form-screen .screen-title,
-  .profile-screen .screen-title,
-  .search-screen .screen-title {
+  .profile-screen .screen-title {
     position: static;
     top: auto;
     grid-row: auto;
@@ -1417,9 +1420,5 @@ input[type='range'] {
 
   .card-links {
     grid-template-columns: 1fr 1fr;
-  }
-
-  .card-links button {
-    grid-column: 1 / -1;
   }
 }

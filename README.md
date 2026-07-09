@@ -9,6 +9,7 @@ MVP database start for a parent/baby activity planning app covering Waltham Fore
 - `supabase/migrations/20260708220000_allow_activity_submissions.sql` lets signed-in users submit draft activities from the frontend.
 - `supabase/migrations/20260709162000_google_places_activity_enrichment.sql` adds Google Places metadata fields and removes any demo/sample draft rows.
 - `supabase/migrations/20260709173000_add_activity_availability.sql` adds date and availability fields for daily, weekly, seasonal, and one-off activities.
+- `supabase/migrations/20260709190000_require_username_and_activity_images.sql` requires completed usernames and adds preferred activity card image fields.
 - `supabase/functions/activity-link-autofill` enriches a pasted link with Google Places data server-side.
 - `supabase/seed/activities_waltham_forest.sql` inserts the first Waltham Forest activity data.
 - `supabase/seed/activities_east_london_family_places.sql` adds Waltham Forest, Hackney, and Newham family venues, parks, cafes, museums, hubs, and seasonal activities.
@@ -43,7 +44,8 @@ If you are using the Supabase SQL editor instead of the CLI, run files in this o
 4. `supabase/migrations/20260708220000_allow_activity_submissions.sql`
 5. `supabase/migrations/20260709162000_google_places_activity_enrichment.sql`
 6. `supabase/migrations/20260709173000_add_activity_availability.sql`
-7. `supabase/seed/activities_east_london_family_places.sql`
+7. `supabase/migrations/20260709190000_require_username_and_activity_images.sql`
+8. `supabase/seed/activities_east_london_family_places.sql`
 
 ## Google Sign-In And Places Setup
 
@@ -56,7 +58,7 @@ supabase secrets set GOOGLE_MAPS_API_KEY=your_google_maps_key
 supabase functions deploy activity-link-autofill
 ```
 
-In Google Cloud, enable Places API (New). The function uses server-side Place Details, Text Search, and Place Photos calls so the API key is not exposed in the mobile app.
+In Google Cloud, enable Places API (New). The function uses server-side Place Details, Text Search, and Place Photos calls so the API key is not exposed in the mobile app. If Google does not return a photo, the function tries the activity website's Open Graph/Twitter image and stores it for activity cards.
 
 ## Activity Table Notes
 
@@ -79,7 +81,7 @@ The table includes the requested core fields:
 
 It also includes MVP-supporting fields for filtering and provenance: `borough`, `postcode`, `days_of_week`, `recurrence_rule`, `time_window`, `location`, `source_url`, and search indexes.
 
-Google-enriched activities can also store `google_place_id`, `google_place_uri`, `google_photo_url`, `google_rating`, `google_user_rating_count`, `google_primary_type`, `google_opening_hours`, and `google_summary`.
+Google-enriched activities can also store `google_place_id`, `google_place_uri`, `google_photo_url`, `google_rating`, `google_user_rating_count`, `google_primary_type`, `google_opening_hours`, and `google_summary`. Cards prefer `google_photo_url`, then `image_url`, then a website-derived preview.
 
 Availability is stored with:
 

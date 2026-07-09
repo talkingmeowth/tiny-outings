@@ -169,7 +169,70 @@ async function fetchPhotoUri(photoName: string | undefined, apiKey: string) {
   return body.photoUri || null;
 }
 
-function normalizePlace(place: Record<string, unknown>, sourceLink: string, photoUrl: string | null) {
+function decodeHtml(value: string) {
+  return value
+    .replaceAll('&amp;', '&')
+    .replaceAll('&quot;', '"')
+    .replaceAll('&#39;', "'")
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>');
+}
+
+function absoluteUrl(value: string, baseUrl: string) {
+  try {
+    return new URL(decodeHtml(value), baseUrl).toString();
+  } catch {
+    return null;
+  }
+}
+
+async function fetchWebsiteImage(link: string | undefined) {
+  if (!link) return null;
+
+  try {
+    const parsed = new URL(link);
+    if (!['http:', 'https:'].includes(parsed.protocol)) return null;
+
+    const response = await fetch(parsed.toString(), {
+      redirect: 'follow',
+      headers: {
+        'User-Agent': 'Tiny Outings activity preview bot',
+        Accept: 'text/html,application/xhtml+xml',
+      },
+    });
+
+    if (!response.ok) return null;
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.includes('text/html')) return null;
+
+    const html = await response.text();
+    const metaTags = html.match(/<meta\s+[^>]*>/gi) || [];
+    const imageMetaNames = ['og:image', 'og:image:url', 'twitter:image', 'twitter:image:src'];
+
+    for (const tag of metaTags) {
+      const nameMatch = tag.match(/\b(?:property|name)=["']([^"']+)["']/i);
+      const contentMatch = tag.match(/\bcontent=["']([^"']+)["']/i);
+      if (nameMatch && contentMatch && imageMetaNames.includes(nameMatch[1].toLowerCase())) {
+        const imageUrl = absoluteUrl(contentMatch[1], response.url || parsed.toString());
+        if (imageUrl) return imageUrl;
+      }
+    }
+
+    const imageSrcLink = html.match(/<link\s+[^>]*rel=["'][^"']*image_src[^"']*["'][^>]*>/i);
+    const hrefMatch = imageSrcLink?.[0]?.match(/\bhref=["']([^"']+)["']/i);
+    return hrefMatch ? absoluteUrl(hrefMatch[1], response.url || parsed.toString()) : null;
+  } catch {
+    return null;
+  }
+}
+
+function normalizePlace(
+  place: Record<string, unknown>,
+  sourceLink: string,
+  photoUrl: string | null,
+  imageUrl: string | null,
+  imageSourceUrl: string | null,
+) {
   const displayName = place.displayName as { text?: string } | undefined;
   const location = place.location as { latitude?: number; longitude?: number } | undefined;
   const openingHours = place.regularOpeningHours;
@@ -204,6 +267,8 @@ function normalizePlace(place: Record<string, unknown>, sourceLink: string, phot
     google_primary_type: primaryType || null,
     google_opening_hours: openingHours || null,
     google_summary: editorialSummary?.text || null,
+    image_url: imageUrl,
+    image_source_url: imageSourceUrl,
   };
 }
 
@@ -248,9 +313,15 @@ Deno.serve(async (request) => {
       : place;
     const photos = placeForDetails.photos as Array<{ name?: string }> | undefined;
     const photoUrl = await fetchPhotoUri(photos?.[0]?.name, apiKey);
+    const websiteUri = placeForDetails.websiteUri as string | undefined;
+    const websiteImageUrl = photoUrl ? null : await fetchWebsiteImage(websiteUri || resolvedLink);
+    const imageUrl = photoUrl || websiteImageUrl;
+    const imageSourceUrl = photoUrl
+      ? ((placeForDetails.googleMapsUri as string | undefined) || resolvedLink)
+      : websiteUri || resolvedLink;
 
     return jsonResponse({
-      activity: normalizePlace(placeForDetails, resolvedLink, photoUrl),
+      activity: normalizePlace(placeForDetails, resolvedLink, photoUrl, imageUrl, imageSourceUrl),
     });
   } catch (error) {
     return jsonResponse(

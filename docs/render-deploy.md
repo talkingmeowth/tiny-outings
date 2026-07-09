@@ -10,6 +10,10 @@ Run these SQL files in Supabase:
 2. `supabase/seed/activities_waltham_forest.sql`
 3. `supabase/migrations/20260708213000_create_core_app_tables.sql`
 4. `supabase/migrations/20260708220000_allow_activity_submissions.sql`
+5. `supabase/migrations/20260709162000_google_places_activity_enrichment.sql`
+6. `supabase/migrations/20260709173000_add_activity_availability.sql`
+7. `supabase/migrations/20260709190000_require_username_and_activity_images.sql`
+8. `supabase/seed/activities_east_london_family_places.sql`
 
 ## Render Settings
 

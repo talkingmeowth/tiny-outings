@@ -4,8 +4,8 @@ This app uses Supabase Auth for sign-in and `public.user_table` for user profile
 
 ## Core Tables
 
-- `activities`: Source activity listings, including venue, times, category, age suitability, location, and optional Google Places metadata.
-- `user_table`: App profile for each authenticated user. Stores `user_name`, profile fields, and follower/following counts.
+- `activities`: Source activity listings, including venue, times, category, age suitability, location, optional Google Places metadata, and card image fields.
+- `user_table`: App profile for each authenticated user. Stores `user_name`, `username_completed`, profile fields, and follower/following counts.
 - `user_follows`: Normalized follow graph. This keeps follower data queryable and updates `user_table.followers` and `user_table.following`.
 - `comments_table`: Comments left by users on activities.
 - `activity_swipes`: One swipe decision per user, activity, date, and day window.
@@ -29,6 +29,14 @@ The `activities` table now supports several date patterns:
 
 The mobile app filters the swipe deck by the selected planning week/day and only shows activities available on that selected date.
 
+## Activity Images
+
+Activity cards use the first available image source in this order:
+
+- `google_photo_url` from Google Places.
+- `image_url`, usually an activity website Open Graph/Twitter image found by the Edge Function.
+- A website-derived preview generated from the activity website/source URL.
+
 ## Visibility
 
 Calendar events and activity statuses can be:
@@ -39,12 +47,13 @@ Calendar events and activity statuses can be:
 
 ## Swipe Flow
 
-1. User filters activities.
-2. App records each left/right swipe in `activity_swipes`.
-3. Right swipes can be copied into `activity_shortlist`.
-4. User selects one shortlist item for the slot.
-5. App writes `activity_user_statuses` and `calendar_events`.
-6. If the user exports, the app writes `calendar_event_exports`.
+1. User signs in with Google and creates a username.
+2. User filters activities.
+3. App records each left/right swipe in `activity_swipes`.
+4. Right swipes can be copied into `activity_shortlist`.
+5. User selects one shortlist item for the slot.
+6. App writes `activity_user_statuses` and `calendar_events`.
+7. If the user exports, the app writes `calendar_event_exports`.
 
 ## Friend Signals
 
@@ -52,6 +61,6 @@ When swiping, the app can query `activity_user_statuses` or the `followed_activi
 
 ## Google Places Autofill
 
-The add tab sends a pasted link to the `activity-link-autofill` Supabase Edge Function. The function calls Google Places server-side, then returns normalized values for the `activities` table, including Google entry URL, photo URL, rating, review count, primary type, opening hours, and summary when available.
+The add tab sends a pasted link to the `activity-link-autofill` Supabase Edge Function. The function calls Google Places server-side, then returns normalized values for the `activities` table, including Google entry URL, photo URL, rating, review count, primary type, opening hours, and summary when available. If Google has no photo, the function attempts to pull an Open Graph/Twitter image from the activity website.
 
 The Google API key must be set as a Supabase Edge Function secret named `GOOGLE_MAPS_API_KEY`. The mobile frontend should only use the Supabase publishable key.

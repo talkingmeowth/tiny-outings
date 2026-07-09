@@ -27,6 +27,8 @@ const activityInterestOptions = [
   'family hub',
 ];
 
+const usernamePattern = /^[A-Za-z0-9_.]{3,30}$/;
+
 function loadStored(key, fallback) {
   try {
     const raw = window.localStorage.getItem(`${storagePrefix}:${key}`);
@@ -132,6 +134,8 @@ function normalizeActivity(activity) {
       ? String(activity.availability_end_date).slice(0, 10)
       : null,
     availability_type: activity.availability_type || 'recurring',
+    image_url: activity.image_url || activity.google_photo_url || activity.photo_url || null,
+    image_source_url: activity.image_source_url || activity.website || activity.source_url || null,
     public_listing_status: activity.public_listing_status || 'published',
   };
 }
@@ -281,8 +285,62 @@ function googleDirectionsUrl(activity, userLocation) {
   return `https://www.google.com/maps/dir/?${params.toString()}`;
 }
 
+function activityWebsiteUrl(activity) {
+  return activity.website || activity.source_url || activity.google_place_uri || activity.google_link || googleEntryUrl(activity);
+}
+
+function activityPhotoUrl(activity) {
+  if (activity.google_photo_url) return activity.google_photo_url;
+  if (activity.image_url) return activity.image_url;
+
+  const website = activityWebsiteUrl(activity);
+  if (!website) return null;
+  try {
+    const parsed = new URL(website);
+    parsed.search = '';
+    parsed.hash = '';
+    return `https://image.thum.io/get/width/1200/crop/900/${parsed.toString()}`;
+  } catch {
+    return null;
+  }
+}
+
+function activityPhotoLabel(activity) {
+  if (activity.google_photo_url) return 'Google Places photo';
+  if (activity.image_url) return 'Website photo';
+  if (activityWebsiteUrl(activity)) return 'Website image';
+  return 'Photo pending';
+}
+
 function isPersistableActivity(activity) {
   return activity?.activity_id && !String(activity.activity_id).startsWith('sample');
+}
+
+function generatedUsernameSuffix(userId) {
+  return userId ? `_${String(userId).slice(0, 8).toLowerCase()}` : '';
+}
+
+function isGeneratedUsername(profile, userId) {
+  const suffix = generatedUsernameSuffix(userId);
+  return Boolean(profile?.user_name && suffix && profile.user_name.toLowerCase().endsWith(suffix));
+}
+
+function needsUsernameSetup(profile, userId) {
+  if (!userId) return false;
+  if (!profile?.user_name) return true;
+  if (profile.username_completed === true) return false;
+  if (profile.username_completed === false) return true;
+  return isGeneratedUsername(profile, userId);
+}
+
+function suggestedUsername(user) {
+  const raw =
+    user?.user_metadata?.user_name ||
+    user?.user_metadata?.preferred_username ||
+    user?.email?.split('@')[0] ||
+    'parent';
+  const cleaned = raw.replace(/[^A-Za-z0-9_.]/g, '_').replace(/_+/g, '_').slice(0, 30);
+  return usernamePattern.test(cleaned) ? cleaned : 'parent_planner';
 }
 
 function isActivityAvailableOn(activity, dateISO) {
@@ -346,6 +404,8 @@ function buildSubmittedPayload(enriched, link, userId) {
     google_primary_type: enriched.google_primary_type || null,
     google_opening_hours: enriched.google_opening_hours || null,
     google_summary: enriched.google_summary || null,
+    image_url: enriched.image_url || enriched.google_photo_url || null,
+    image_source_url: enriched.image_source_url || enriched.website || enriched.google_place_uri || link,
     activity_date: enriched.activity_date || null,
     available_dates: enriched.available_dates || [],
     availability_start_date: enriched.availability_start_date || null,
@@ -386,7 +446,10 @@ export default function App() {
   const [calendarEvents, setCalendarEvents] = useState(() => loadStored('calendar-events', []));
   const [followedSignals, setFollowedSignals] = useState({});
   const [session, setSession] = useState(null);
+  const [authReady, setAuthReady] = useState(!hasSupabaseConfig);
   const [profile, setProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [usernameForm, setUsernameForm] = useState('');
   const [linkForm, setLinkForm] = useState(emptyLinkForm);
   const [reviewForm, setReviewForm] = useState({ rating: 5, comments: '', photo_url: '' });
   const [selectedActivity, setSelectedActivity] = useState(null);
@@ -394,6 +457,8 @@ export default function App() {
 
   const currentUser = session?.user;
   const currentUserId = currentUser?.id;
+  const userNeedsUsername = currentUser ? needsUsernameSetup(profile, currentUserId) : false;
+  const appUnlocked = hasSupabaseConfig && authReady && Boolean(currentUser) && !profileLoading && !userNeedsUsername;
   const weekDays = Array.from({ length: 7 }, (_, index) => addDaysISO(filters.weekStart, index));
   const activeSlot = slotKey(selectedDate, selectedWindow);
   const allActivities = activities.map(normalizeActivity);
@@ -444,8 +509,8 @@ export default function App() {
   }, [filters.weekStart, selectedDate]);
 
   useEffect(() => {
-    requestLocation();
-  }, []);
+    if (appUnlocked) requestLocation();
+  }, [appUnlocked]);
 
   useEffect(() => {
     let cancelled = false;
@@ -480,10 +545,12 @@ export default function App() {
 
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
+      setAuthReady(true);
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
+      setAuthReady(true);
       if (!nextSession?.user) setProfile(null);
     });
 
@@ -493,23 +560,46 @@ export default function App() {
   useEffect(() => {
     if (!supabase || !currentUserId) {
       setProfile(null);
+      setProfileLoading(false);
       return;
     }
 
     let cancelled = false;
+    setProfileLoading(true);
     supabase
       .from('user_table')
       .select('*')
       .eq('user_id', currentUserId)
       .maybeSingle()
-      .then(({ data }) => {
-        if (!cancelled) setProfile(data || null);
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          setNotice(`Profile could not load: ${error.message}`);
+          setProfile(null);
+        } else {
+          setProfile(data || null);
+        }
+        setProfileLoading(false);
       });
 
     return () => {
       cancelled = true;
     };
   }, [currentUserId]);
+
+  useEffect(() => {
+    if (!currentUser) {
+      setUsernameForm('');
+      return;
+    }
+
+    if (profile?.user_name && !isGeneratedUsername(profile, currentUserId)) {
+      setUsernameForm(profile.user_name);
+      return;
+    }
+
+    setUsernameForm(suggestedUsername(currentUser));
+  }, [currentUser, currentUserId, profile]);
 
   useEffect(() => {
     if (!supabase || !currentUserId) {
@@ -888,7 +978,87 @@ export default function App() {
   async function signOut() {
     if (!supabase) return;
     await supabase.auth.signOut();
+    setActiveScreen('start');
     setNotice('Signed out.');
+  }
+
+  async function saveUsername(event) {
+    event.preventDefault();
+    const username = usernameForm.trim();
+
+    if (!supabase || !currentUserId) {
+      setNotice('Sign in with Google before creating a username.');
+      return;
+    }
+
+    if (!usernamePattern.test(username)) {
+      setNotice('Choose a username 3-30 characters long using letters, numbers, underscores, or dots.');
+      return;
+    }
+
+    const basePayload = {
+      user_id: currentUserId,
+      user_name: username,
+      display_name: profile?.display_name || currentUser?.user_metadata?.full_name || username,
+      avatar_url: profile?.avatar_url || currentUser?.user_metadata?.avatar_url || currentUser?.user_metadata?.picture || null,
+    };
+
+    let { data, error } = await supabase
+      .from('user_table')
+      .upsert({ ...basePayload, username_completed: true }, { onConflict: 'user_id' })
+      .select('*')
+      .single();
+
+    if (error && error.message?.toLowerCase().includes('username_completed')) {
+      const retry = await supabase
+        .from('user_table')
+        .upsert(basePayload, { onConflict: 'user_id' })
+        .select('*')
+        .single();
+      data = retry.data ? { ...retry.data, username_completed: true } : null;
+      error = retry.error;
+    }
+
+    if (error) {
+      const duplicate = error.message?.toLowerCase().includes('duplicate');
+      setNotice(duplicate ? 'That username is already taken. Try a small variation.' : `Username could not be saved: ${error.message}`);
+      return;
+    }
+
+    setProfile(data || { ...basePayload, username_completed: true });
+    setNotice(`Welcome, @${username}.`);
+  }
+
+  if (!appUnlocked) {
+    return (
+      <div className="phone-app auth-only-app">
+        {notice && (
+          <div className="toast" role="status">
+            <span>{notice}</span>
+            <button type="button" onClick={() => setNotice('')}>OK</button>
+          </div>
+        )}
+
+        <main className="app-main auth-main">
+          {!currentUser ? (
+            <AuthGate
+              authReady={authReady}
+              hasSupabaseConfig={hasSupabaseConfig}
+              signInWithGoogle={signInWithGoogle}
+            />
+          ) : (
+            <UsernameGate
+              currentUser={currentUser}
+              profileLoading={profileLoading}
+              usernameForm={usernameForm}
+              setUsernameForm={setUsernameForm}
+              saveUsername={saveUsername}
+              signOut={signOut}
+            />
+          )}
+        </main>
+      </div>
+    );
   }
 
   return (
@@ -920,7 +1090,6 @@ export default function App() {
             setFilters={setFilters}
             locationStatus={locationStatus}
             userLocation={userLocation}
-            currentUser={currentUser}
             weekDays={weekDays}
             activityCount={filteredActivities.length}
             onRequestLocation={requestLocation}
@@ -975,10 +1144,6 @@ export default function App() {
           />
         )}
 
-        {activeScreen === 'search' && (
-          <SearchScreen activities={filteredActivities} onOpenActivity={setSelectedActivity} />
-        )}
-
         {activeScreen === 'profile' && (
           <ProfileScreen
             session={session}
@@ -1007,12 +1172,88 @@ export default function App() {
   );
 }
 
+function AuthGate({ authReady, hasSupabaseConfig: isConfigured, signInWithGoogle }) {
+  return (
+    <section className="app-screen auth-gate-screen">
+      <div className="screen-title hero-title auth-hero">
+        <span className="eyebrow">Tiny Outings</span>
+        <h1>Sign in before planning.</h1>
+        <p>
+          Use your Google email to keep plans, reviews, shortlists, and calendar picks attached to
+          your real parent profile.
+        </p>
+      </div>
+
+      {!isConfigured && (
+        <div className="soft-note">Supabase env vars are not active yet, so Google sign-in is disabled.</div>
+      )}
+
+      <div className="auth-card google-auth-card">
+        <p>No browsing mode, no fake users. The app opens after Google sign-in and username setup.</p>
+        <button
+          type="button"
+          className="google-auth-button"
+          onClick={signInWithGoogle}
+          disabled={!isConfigured || !authReady}
+        >
+          {authReady ? 'Continue with Google' : 'Checking session...'}
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function UsernameGate({
+  currentUser,
+  profileLoading,
+  usernameForm,
+  setUsernameForm,
+  saveUsername,
+  signOut,
+}) {
+  return (
+    <section className="app-screen auth-gate-screen">
+      <div className="screen-title hero-title auth-hero">
+        <span className="eyebrow">Create your profile</span>
+        <h1>Choose a username.</h1>
+        <p>
+          This is what other parents will see when they follow you or spot that you selected an
+          activity.
+        </p>
+      </div>
+
+      <form className="auth-card username-card" onSubmit={saveUsername}>
+        <span>{currentUser.email}</span>
+        <label>
+          <span>Username</span>
+          <input
+            required
+            minLength="3"
+            maxLength="30"
+            pattern="[A-Za-z0-9_.]+"
+            value={usernameForm}
+            onChange={(event) => setUsernameForm(event.target.value)}
+            placeholder="e.g. forest_parent"
+            disabled={profileLoading}
+          />
+        </label>
+        <p>Use 3-30 characters: letters, numbers, underscores, or dots.</p>
+        <button className="primary-action wide" type="submit" disabled={profileLoading}>
+          {profileLoading ? 'Loading profile...' : 'Save username and enter app'}
+        </button>
+        <button type="button" className="secondary-button" onClick={signOut}>
+          Sign out
+        </button>
+      </form>
+    </section>
+  );
+}
+
 function StartScreen({
   filters,
   setFilters,
   locationStatus,
   userLocation,
-  currentUser,
   weekDays,
   activityCount,
   onRequestLocation,
@@ -1048,11 +1289,7 @@ function StartScreen({
         <div className="field-group">
           <span>Planning week</span>
           <strong>{formatWeekRange(filters.weekStart)}</strong>
-          <p>
-            {currentUser
-              ? 'Choose the week you want to plan, then swipe through each day.'
-              : 'You can choose a week now; sign in with Google to save plans across devices.'}
-          </p>
+          <p>Choose the week you want to plan, then swipe through each day.</p>
           <input
             type="date"
             value={filters.weekStart}
@@ -1296,7 +1533,7 @@ function SwipeScreen({
           disabled={!topActivity}
           onClick={() => onOpenActivity(topActivity)}
         >
-          Details
+          Review
         </button>
         <button
           className="swipe-button yes"
@@ -1345,11 +1582,14 @@ function ActivityCard({
 }) {
   const rotate = offset / 22;
   const stackOffset = stackIndex * 12;
-  const imageStyle = activity.google_photo_url
-    ? { '--card-photo': `url("${activity.google_photo_url}")` }
+  const photoUrl = activityPhotoUrl(activity);
+  const photoLabel = activityPhotoLabel(activity);
+  const imageStyle = photoUrl
+    ? { '--card-photo': `url("${photoUrl}")` }
     : undefined;
   const googleUrl = googleEntryUrl(activity);
   const directionsUrl = googleDirectionsUrl(activity, userLocation);
+  const websiteUrl = activityWebsiteUrl(activity);
 
   return (
     <article
@@ -1367,10 +1607,10 @@ function ActivityCard({
       <span className="decision-stamp no">No</span>
 
       <div
-        className={classNames('card-photo', activity.google_photo_url && 'has-image')}
+        className={classNames('card-photo', photoUrl && 'has-image')}
         style={imageStyle}
       >
-        <span>{activity.google_photo_url ? 'Google Places photo' : 'Google photo pending'}</span>
+        <span>{photoLabel}</span>
       </div>
 
       <div className="card-content">
@@ -1400,9 +1640,10 @@ function ActivityCard({
         </div>
 
         <div className="card-links" onPointerDown={(event) => event.stopPropagation()}>
+          <a href={websiteUrl} target="_blank" rel="noreferrer">Website</a>
           <a href={googleUrl} target="_blank" rel="noreferrer">Google entry</a>
           <a href={directionsUrl} target="_blank" rel="noreferrer">Walk route</a>
-          <button type="button" onClick={() => onOpenActivity(activity)}>Open</button>
+          <button type="button" onClick={() => onOpenActivity(activity)}>Review</button>
         </div>
       </div>
     </article>
@@ -1567,47 +1808,6 @@ function AddActivityScreen({ form, setForm, onSubmit, loading, currentUser }) {
   );
 }
 
-function SearchScreen({ activities, onOpenActivity }) {
-  const [query, setQuery] = useState('');
-  const results = activities.filter((activity) =>
-    `${activity.activity_name} ${activity.category} ${activity.address}`
-      .toLowerCase()
-      .includes(query.toLowerCase()),
-  );
-
-  return (
-    <section className="app-screen search-screen">
-      <div className="screen-title compact">
-        <span className="eyebrow">Search</span>
-        <h1>Find and review</h1>
-        <p>Search an activity by name, then open it to add photos, reviews, or comments.</p>
-      </div>
-
-      <label className="search-box">
-        <span>Activity name</span>
-        <input
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Walthamstow library, baby yoga..."
-        />
-      </label>
-
-      <div className="result-list">
-        {results.length === 0 ? (
-          <div className="empty-list">No real activities match that search yet.</div>
-        ) : (
-          results.map((activity) => (
-            <button key={activity.activity_id} type="button" onClick={() => onOpenActivity(activity)}>
-              <strong>{activity.activity_name}</strong>
-              <span>{activity.category} - {activity.address}</span>
-            </button>
-          ))
-        )}
-      </div>
-    </section>
-  );
-}
-
 function ProfileScreen({
   session,
   profile,
@@ -1668,8 +1868,11 @@ function ActivityDetail({
 }) {
   const googleUrl = googleEntryUrl(activity);
   const directionsUrl = googleDirectionsUrl(activity, userLocation);
-  const photoStyle = activity.google_photo_url
-    ? { '--card-photo': `url("${activity.google_photo_url}")` }
+  const websiteUrl = activityWebsiteUrl(activity);
+  const photoUrl = activityPhotoUrl(activity);
+  const photoLabel = activityPhotoLabel(activity);
+  const photoStyle = photoUrl
+    ? { '--card-photo': `url("${photoUrl}")` }
     : undefined;
 
   return (
@@ -1677,10 +1880,10 @@ function ActivityDetail({
       <aside className="detail-sheet">
         <button className="sheet-close" type="button" onClick={onClose}>Close</button>
         <div
-          className={classNames('detail-photo', activity.google_photo_url && 'has-image')}
+          className={classNames('detail-photo', photoUrl && 'has-image')}
           style={photoStyle}
         >
-          <span>{activity.google_photo_url ? 'Google Places photo' : 'Google photo pending'}</span>
+          <span>{photoLabel}</span>
           <small>{activity.address}</small>
         </div>
 
@@ -1705,9 +1908,9 @@ function ActivityDetail({
         </div>
 
         <div className="external-links">
+          <a href={websiteUrl} target="_blank" rel="noreferrer">Website</a>
           <a href={googleUrl} target="_blank" rel="noreferrer">Google entry</a>
           <a href={directionsUrl} target="_blank" rel="noreferrer">Walk route</a>
-          {activity.website && <a href={activity.website} target="_blank" rel="noreferrer">Website</a>}
         </div>
 
         <form className="review-card" onSubmit={submitReview}>
@@ -1759,7 +1962,6 @@ function BottomNav({ activeScreen, setActiveScreen }) {
     ['swipe', 'Swipe'],
     ['calendar', 'Calendar'],
     ['add', 'Add'],
-    ['search', 'Search'],
     ['profile', 'Me'],
   ];
 
