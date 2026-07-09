@@ -7,14 +7,23 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "cap:sync": "npm run build && npx cap sync",
+    "android:add": "npx cap add android",
+    "android:sync": "npm run build && npx cap sync android",
+    "android:open": "npx cap open android",
+    "android:apk": "npm run android:sync && cd android && gradlew.bat assembleDebug",
+    "android:bundle": "npm run android:sync && cd android && gradlew.bat bundleRelease"
   },
   "dependencies": {
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/cli": "^6.2.1",
+    "@capacitor/core": "^6.2.1",
     "@supabase/supabase-js": "^2.53.0",
     "@vitejs/plugin-react": "^4.3.4",
-    "vite": "^6.0.11",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "vite": "^6.0.11"
   },
   "devDependencies": {
     "eslint": "^9.18.0",

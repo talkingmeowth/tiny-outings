@@ -14,6 +14,8 @@ MVP database start for a parent/baby activity planning app covering Waltham Fore
 - `render.yaml` configures a Render Static Site deploy.
 - `src/` contains the React frontend.
 - `public/manifest.webmanifest` and `public/service-worker.js` make the frontend installable as a mobile web app.
+- `capacitor.config.json` and `android/` package the frontend as a downloadable Android app.
+- `docs/android-build.md` explains how to build a test APK.
 
 ## Supabase Setup
 
@@ -114,3 +116,19 @@ The frontend is designed as a responsive progressive web app for Android and iOS
 - iPhone users can install it from Safari using Share > Add to Home Screen.
 - Render serves the site over HTTPS, which is required for service workers and installable PWA behavior.
 - The app includes mobile-safe viewport settings, iOS safe-area spacing, touch swipe gestures, and a bottom thumb navigation on small screens.
+
+## Downloadable Android App
+
+Build a test APK with:
+
+```bash
+npm run android:apk
+```
+
+The APK will be created at:
+
+```text
+android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+See `docs/android-build.md` for Android APK, Play Store bundle, and iPhone distribution notes.
