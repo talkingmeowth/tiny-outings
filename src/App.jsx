@@ -4,6 +4,7 @@ import { boroughs, categories, sampleActivities, sampleParents } from './sampleD
 
 const windows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'little-week';
+const androidApkPath = '/downloads/tiny-outings-debug.apk';
 
 const emptyActivityForm = {
   activity_name: '',
@@ -624,6 +625,9 @@ export default function App() {
               <button type="button" className="primary-button" onClick={() => setActiveTab('plan')}>
                 Start swiping
               </button>
+              <a className="download-button" href={androidApkPath} download>
+                Download Android app
+              </a>
               <button type="button" className="ghost-button" onClick={() => setActiveTab('calendar')}>
                 View calendar
               </button>

@@ -130,6 +130,7 @@ a {
 .filter-chip,
 .small-button,
 .ghost-button,
+.download-button,
 .primary-button,
 .yes-button,
 .no-button {
@@ -160,6 +161,7 @@ a {
 .filter-chip:hover,
 .small-button:hover,
 .ghost-button:hover,
+.download-button:hover,
 .primary-button:hover,
 .yes-button:hover,
 .no-button:hover {
@@ -230,6 +232,7 @@ h3 {
 
 .primary-button,
 .ghost-button,
+.download-button,
 .yes-button,
 .no-button,
 .small-button {
@@ -243,10 +246,15 @@ h3 {
 }
 
 .primary-button,
+.download-button,
 .yes-button {
   border-color: transparent;
   color: #fffaf0;
   background: var(--green);
+}
+
+.download-button {
+  background: var(--coral-deep);
 }
 
 .yes-button {
@@ -981,8 +989,10 @@ input[type='range'] {
 
   .card-footer button,
   .hero-actions button,
+  .hero-actions a,
   .primary-button,
   .ghost-button,
+  .download-button,
   .yes-button,
   .no-button,
   .small-button {

@@ -32,6 +32,14 @@ For the current pushed test build, download it on Android from:
 https://github.com/talkingmeowth/tiny-outings/raw/main/release/tiny-outings-debug.apk
 ```
 
+Render also serves the APK from the static app build:
+
+```text
+https://tiny-outings.onrender.com/downloads/tiny-outings-debug.apk
+```
+
+The in-app hero download button uses the same Render path: `/downloads/tiny-outings-debug.apk`.
+
 ## Build For Google Play
 
 For Play Store submission, build an Android App Bundle instead:

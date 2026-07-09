@@ -131,4 +131,10 @@ The APK will be created at:
 android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
+The current Render-hosted test APK is available at:
+
+```text
+https://tiny-outings.onrender.com/downloads/tiny-outings-debug.apk
+```
+
 See `docs/android-build.md` for Android APK, Play Store bundle, and iPhone distribution notes.

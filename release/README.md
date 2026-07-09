@@ -8,4 +8,10 @@ Download URL:
 https://github.com/talkingmeowth/tiny-outings/raw/main/release/tiny-outings-debug.apk
 ```
 
+Render URL after the static site redeploys:
+
+```text
+https://tiny-outings.onrender.com/downloads/tiny-outings-debug.apk
+```
+
 This is a debug build for testing. A Play Store release should use a signed release bundle instead.
