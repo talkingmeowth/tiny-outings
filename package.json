@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "cap:sync": "npm run build && npx cap sync",
     "android:add": "npx cap add android",
-    "android:sync": "npm run build && npx cap sync android",
+    "android:sync": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/sync-android.ps1",
     "android:open": "npx cap open android",
     "android:apk": "npm run android:sync && cd android && gradlew.bat assembleDebug",
     "android:bundle": "npm run android:sync && cd android && gradlew.bat bundleRelease"

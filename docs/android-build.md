@@ -11,6 +11,8 @@ npm install
 npm run android:apk
 ```
 
+The Android sync script temporarily excludes `public/downloads` so the APK does not package a copy of the downloadable APK inside itself.
+
 On Windows PowerShell, use `npm.cmd` if `npm` is blocked:
 
 ```powershell

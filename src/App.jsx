@@ -2,9 +2,15 @@ import { useEffect, useState } from 'react';
 import { hasSupabaseConfig, supabase } from './supabaseClient';
 import { boroughs, categories, sampleActivities, sampleParents } from './sampleData';
 
-const windows = ['morning', 'afternoon', 'evening'];
-const storagePrefix = 'little-week';
-const androidApkPath = '/downloads/tiny-outings-debug.apk';
+const dayWindows = ['morning', 'afternoon', 'evening'];
+const storagePrefix = 'tiny-outings';
+const visibilityOptions = ['private', 'followers', 'public'];
+const statusOptions = ['booked', 'tentative'];
+const statusLabels = {
+  booked: 'Booked',
+  tentative: 'Tentative',
+  not_selected: 'Not selected',
+};
 
 const emptyActivityForm = {
   activity_name: '',
@@ -16,15 +22,18 @@ const emptyActivityForm = {
   category: 'baby stay and play',
   start_time: '10:00',
   end_time: '11:00',
-  website: '',
   google_link: '',
+  website: '',
+  child_friendly_score: '',
+  app_rating: '',
+  number_of_reviews: '0',
   age_suitability: 'Under 5s',
   borough: 'Waltham Forest',
   description: '',
   cost: 'Free',
 };
 
-function loadStorage(key, fallback) {
+function loadStored(key, fallback) {
   try {
     const raw = window.localStorage.getItem(`${storagePrefix}:${key}`);
     return raw ? JSON.parse(raw) : fallback;
@@ -33,11 +42,11 @@ function loadStorage(key, fallback) {
   }
 }
 
-function saveStorage(key, value) {
+function saveStored(key, value) {
   try {
     window.localStorage.setItem(`${storagePrefix}:${key}`, JSON.stringify(value));
   } catch {
-    // Local storage is nice-to-have; the app still works without it.
+    // Local storage is a convenience layer. The app can still run without it.
   }
 }
 
@@ -51,12 +60,16 @@ function addDaysISO(dateISO, days) {
   return date.toISOString().slice(0, 10);
 }
 
-function formatDay(dateISO) {
+function formatDay(dateISO, style = 'short') {
   return new Intl.DateTimeFormat('en-GB', {
-    weekday: 'short',
+    weekday: style,
     day: 'numeric',
     month: 'short',
   }).format(new Date(`${dateISO}T12:00:00`));
+}
+
+function weekdayName(dateISO) {
+  return new Intl.DateTimeFormat('en-GB', { weekday: 'long' }).format(new Date(`${dateISO}T12:00:00`));
 }
 
 function toWindow(startTime) {
@@ -69,9 +82,13 @@ function toWindow(startTime) {
 function normalizeActivity(activity) {
   return {
     ...activity,
+    activity_id: String(activity.activity_id),
     start_time: String(activity.start_time || '09:00').slice(0, 5),
     end_time: String(activity.end_time || '10:00').slice(0, 5),
     time_window: activity.time_window || toWindow(activity.start_time),
+    category: activity.category || 'baby stay and play',
+    borough: activity.borough || 'Waltham Forest',
+    days_of_week: activity.days_of_week || [],
     followerNames: activity.followerNames || [],
   };
 }
@@ -80,14 +97,18 @@ function slotKey(date, windowName) {
   return `${date}:${windowName}`;
 }
 
+function statusKey(date, windowName, activityId) {
+  return `${slotKey(date, windowName)}:${activityId}`;
+}
+
 function milesBetween(a, b) {
   if (!a || !b || a.lat == null || a.long == null || b.lat == null || b.long == null) return null;
   const radiusMiles = 3958.8;
   const toRad = (degrees) => (degrees * Math.PI) / 180;
-  const dLat = toRad(b.lat - a.lat);
-  const dLon = toRad(b.long - a.long);
-  const lat1 = toRad(a.lat);
-  const lat2 = toRad(b.lat);
+  const dLat = toRad(Number(b.lat) - Number(a.lat));
+  const dLon = toRad(Number(b.long) - Number(a.long));
+  const lat1 = toRad(Number(a.lat));
+  const lat2 = toRad(Number(b.lat));
   const x =
     Math.sin(dLat / 2) ** 2 +
     Math.sin(dLon / 2) ** 2 * Math.cos(lat1) * Math.cos(lat2);
@@ -95,7 +116,7 @@ function milesBetween(a, b) {
 }
 
 function formatDistance(miles) {
-  if (miles == null) return 'Distance unknown';
+  if (miles == null || Number.isNaN(miles)) return 'Distance TBC';
   if (miles < 0.1) return 'Very nearby';
   return `${miles.toFixed(1)} mi`;
 }
@@ -106,39 +127,43 @@ function dateStampForCalendar(dateISO, time) {
 
 function buildGoogleCalendarUrl(event) {
   const activity = event.activity;
-  const dates = `${dateStampForCalendar(event.planned_date, event.start_time)}/${dateStampForCalendar(
-    event.planned_date,
-    event.end_time,
-  )}`;
   const params = new URLSearchParams({
     action: 'TEMPLATE',
     text: event.title_override || activity.activity_name,
-    details: `${activity.description || ''}\n\nPlanned in Little Week. Status: ${event.status}.`,
+    details: `${activity.description || ''}\n\nTiny Outings status: ${statusLabels[event.status]}.`,
     location: activity.address,
-    dates,
+    dates: `${dateStampForCalendar(event.planned_date, event.start_time)}/${dateStampForCalendar(
+      event.planned_date,
+      event.end_time,
+    )}`,
   });
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+function cleanICS(value) {
+  return String(value || '')
+    .replaceAll('\\', '\\\\')
+    .replaceAll('\n', '\\n')
+    .replaceAll(',', '\\,')
+    .replaceAll(';', '\\;');
 }
 
 function buildICS(event) {
   const activity = event.activity;
   const created = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-  const start = dateStampForCalendar(event.planned_date, event.start_time);
-  const end = dateStampForCalendar(event.planned_date, event.end_time);
-  const title = event.title_override || activity.activity_name;
   return [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Little Week//Parent Planner//EN',
+    'PRODID:-//Tiny Outings//Parent Planner//EN',
     'CALSCALE:GREGORIAN',
     'BEGIN:VEVENT',
-    `UID:${event.calendar_event_id || event.local_id}@little-week`,
+    `UID:${event.local_id}@tiny-outings`,
     `DTSTAMP:${created}`,
-    `DTSTART;TZID=Europe/London:${start}`,
-    `DTEND;TZID=Europe/London:${end}`,
-    `SUMMARY:${title}`,
-    `DESCRIPTION:${activity.description || 'Planned in Little Week'}`,
-    `LOCATION:${activity.address}`,
+    `DTSTART;TZID=Europe/London:${dateStampForCalendar(event.planned_date, event.start_time)}`,
+    `DTEND;TZID=Europe/London:${dateStampForCalendar(event.planned_date, event.end_time)}`,
+    `SUMMARY:${cleanICS(event.title_override || activity.activity_name)}`,
+    `DESCRIPTION:${cleanICS(activity.description || 'Planned in Tiny Outings')}`,
+    `LOCATION:${cleanICS(activity.address)}`,
     'END:VEVENT',
     'END:VCALENDAR',
   ].join('\r\n');
@@ -149,7 +174,7 @@ function downloadICS(event) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `${event.planned_date}-${event.day_window}-little-week.ics`;
+  link.download = `${event.planned_date}-${event.day_window}-tiny-outings.ics`;
   link.click();
   URL.revokeObjectURL(url);
 }
@@ -158,55 +183,88 @@ function classNames(...names) {
   return names.filter(Boolean).join(' ');
 }
 
+function isPersistableActivity(activity) {
+  return activity && !String(activity.activity_id).startsWith('sample') && !String(activity.activity_id).startsWith('local');
+}
+
 export default function App() {
-  const [activeTab, setActiveTab] = useState('plan');
+  const [activeScreen, setActiveScreen] = useState('start');
   const [activities, setActivities] = useState(sampleActivities.map(normalizeActivity));
+  const [localDrafts, setLocalDrafts] = useState(() => loadStored('activity-drafts', []));
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState('');
+  const [selectedDate, setSelectedDate] = useState(todayISO());
+  const [selectedWindow, setSelectedWindow] = useState('morning');
+  const [filters, setFilters] = useState(() =>
+    loadStored('filters', {
+      categories: ['baby stay and play', 'coffee', 'museum', 'sensory play'],
+      borough: 'Waltham Forest',
+      radiusMiles: 3,
+      walkMinutes: 35,
+      useLocation: true,
+    }),
+  );
+  const [userLocation, setUserLocation] = useState({ lat: 51.5845, long: -0.021 });
+  const [swipes, setSwipes] = useState(() => loadStored('swipes', {}));
+  const [shortlists, setShortlists] = useState(() => loadStored('shortlists', {}));
+  const [statuses, setStatuses] = useState(() => loadStored('statuses', {}));
+  const [calendarEvents, setCalendarEvents] = useState(() => loadStored('calendar-events', []));
+  const [followedParentIds, setFollowedParentIds] = useState(() => loadStored('followed-parents', ['maya', 'noor']));
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
   const [authMode, setAuthMode] = useState('sign-in');
   const [authForm, setAuthForm] = useState({ email: '', password: '', user_name: '' });
-  const [selectedActivity, setSelectedActivity] = useState(null);
   const [activityForm, setActivityForm] = useState(emptyActivityForm);
-  const [reviewForm, setReviewForm] = useState({ rating: 5, text: '', photo_url: '' });
-  const [filters, setFilters] = useState({
-    categories: ['baby stay and play', 'sensory play', 'coffee', 'museum'],
-    borough: 'Waltham Forest',
-    radiusMiles: 3,
-    walkMinutes: 35,
-    query: '',
-    useLocation: true,
-  });
-  const [userLocation, setUserLocation] = useState({ lat: 51.5845, long: -0.021 });
-  const [selectedDate, setSelectedDate] = useState(todayISO());
-  const [selectedWindow, setSelectedWindow] = useState('morning');
-  const [deckIndexes, setDeckIndexes] = useState({});
-  const [swipes, setSwipes] = useState(() => loadStorage('swipes', {}));
-  const [shortlist, setShortlist] = useState(() => loadStorage('shortlist', {}));
-  const [calendarEvents, setCalendarEvents] = useState(() => loadStorage('calendar-events', []));
-  const [localDrafts, setLocalDrafts] = useState(() => loadStorage('activity-drafts', []));
-  const [parents, setParents] = useState(sampleParents);
+  const [reviewForm, setReviewForm] = useState({ rating: 5, comments: '', photo_url: '' });
+  const [selectedActivity, setSelectedActivity] = useState(null);
+  const [dragState, setDragState] = useState({ activityId: null, startX: null, offsetX: 0 });
 
-  const weekDays = Array.from({ length: 7 }, (_, index) => addDaysISO(todayISO(), index));
   const currentUser = session?.user;
-  const visibleActivities = [...activities, ...localDrafts.map(normalizeActivity)];
+  const weekDays = Array.from({ length: 7 }, (_, index) => addDaysISO(todayISO(), index));
+  const activeSlot = slotKey(selectedDate, selectedWindow);
+  const allActivities = [...localDrafts, ...activities].map(normalizeActivity);
+  const activityById = new Map(allActivities.map((activity) => [String(activity.activity_id), activity]));
+  const followedNames = sampleParents
+    .filter((parent) => followedParentIds.includes(parent.user_id))
+    .map((parent) => parent.display_name);
+  const selectedWeekday = weekdayName(selectedDate);
 
-  useEffect(() => {
-    saveStorage('swipes', swipes);
-  }, [swipes]);
+  const filteredActivities = allActivities
+    .map((activity) => ({
+      ...activity,
+      distance: filters.useLocation
+        ? milesBetween(userLocation, { lat: activity.lat, long: activity.long })
+        : null,
+    }))
+    .filter((activity) => {
+      const categoryMatch =
+        filters.categories.length === 0 || filters.categories.includes(activity.category);
+      const boroughMatch = filters.borough === 'All' || activity.borough === filters.borough;
+      const distanceLimit = Math.min(Number(filters.radiusMiles), Number(filters.walkMinutes) / 20);
+      const distanceMatch =
+        !filters.useLocation || activity.distance == null || activity.distance <= distanceLimit;
+      const dayMatch =
+        !activity.days_of_week?.length || activity.days_of_week.includes(selectedWeekday);
+      return categoryMatch && boroughMatch && distanceMatch && dayMatch;
+    });
 
-  useEffect(() => {
-    saveStorage('shortlist', shortlist);
-  }, [shortlist]);
+  const slotActivities = filteredActivities.filter((activity) => activity.time_window === selectedWindow);
+  const swipedIds = new Set((swipes[activeSlot] || []).map((item) => String(item.activity_id)));
+  const deckActivities = slotActivities.filter((activity) => !swipedIds.has(String(activity.activity_id)));
+  const currentShortlist = (shortlists[activeSlot] || [])
+    .map((activityId) => activityById.get(String(activityId)))
+    .filter(Boolean);
+  const chosenForSlot = calendarEvents.find(
+    (event) => event.planned_date === selectedDate && event.day_window === selectedWindow,
+  );
 
-  useEffect(() => {
-    saveStorage('calendar-events', calendarEvents);
-  }, [calendarEvents]);
-
-  useEffect(() => {
-    saveStorage('activity-drafts', localDrafts);
-  }, [localDrafts]);
+  useEffect(() => saveStored('filters', filters), [filters]);
+  useEffect(() => saveStored('activity-drafts', localDrafts), [localDrafts]);
+  useEffect(() => saveStored('swipes', swipes), [swipes]);
+  useEffect(() => saveStored('shortlists', shortlists), [shortlists]);
+  useEffect(() => saveStored('statuses', statuses), [statuses]);
+  useEffect(() => saveStored('calendar-events', calendarEvents), [calendarEvents]);
+  useEffect(() => saveStored('followed-parents', followedParentIds), [followedParentIds]);
 
   useEffect(() => {
     let cancelled = false;
@@ -223,7 +281,7 @@ export default function App() {
       if (cancelled) return;
 
       if (error) {
-        setNotice(`Supabase is configured, but activities could not load: ${error.message}`);
+        setNotice(`Supabase is connected, but activities could not load: ${error.message}`);
       } else if (data?.length) {
         setActivities(data.map(normalizeActivity));
       }
@@ -231,7 +289,6 @@ export default function App() {
     }
 
     loadActivities();
-
     return () => {
       cancelled = true;
     };
@@ -267,39 +324,7 @@ export default function App() {
     setProfile(data || null);
   }
 
-  const filteredActivities = visibleActivities
-    .map((activity) => {
-      const distance = filters.useLocation
-        ? milesBetween(userLocation, { lat: Number(activity.lat), long: Number(activity.long) })
-        : null;
-      return { ...activity, distance };
-    })
-    .filter((activity) => {
-      const categoryMatch =
-        filters.categories.length === 0 || filters.categories.includes(activity.category);
-      const boroughMatch = filters.borough === 'All' || activity.borough === filters.borough;
-      const query = filters.query.trim().toLowerCase();
-      const queryMatch =
-        !query ||
-        `${activity.activity_name} ${activity.address} ${activity.category} ${activity.description}`
-          .toLowerCase()
-          .includes(query);
-      const distanceLimit = Math.min(Number(filters.radiusMiles), Number(filters.walkMinutes) / 20);
-      const distanceMatch =
-        !filters.useLocation || activity.distance == null || activity.distance <= distanceLimit;
-      return categoryMatch && boroughMatch && queryMatch && distanceMatch;
-    });
-
-  const slotActivities = filteredActivities.filter((activity) => activity.time_window === selectedWindow);
-  const currentSlotKey = slotKey(selectedDate, selectedWindow);
-  const currentIndex = deckIndexes[currentSlotKey] || 0;
-  const currentActivity = slotActivities.length ? slotActivities[currentIndex % slotActivities.length] : null;
-  const currentShortlist = shortlist[currentSlotKey] || [];
-  const chosenForSlot = calendarEvents.find(
-    (event) => event.planned_date === selectedDate && event.day_window === selectedWindow,
-  );
-
-  function updateFilterCategory(category) {
+  function updateCategory(category) {
     setFilters((current) => {
       const exists = current.categories.includes(category);
       return {
@@ -313,25 +338,25 @@ export default function App() {
 
   function useBrowserLocation() {
     if (!navigator.geolocation) {
-      setNotice('Location is not available in this browser, so Walthamstow remains the planning centre.');
+      setNotice('Location is not available, so Walthamstow remains the centre point.');
       return;
     }
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setUserLocation({
           lat: position.coords.latitude,
           long: position.coords.longitude,
         });
-        setNotice('Location updated. Your filters are now centred on your current position.');
+        setFilters((current) => ({ ...current, useLocation: true }));
+        setNotice('Location updated. Your activity deck is now centred on you.');
       },
-      () => {
-        setNotice('I could not access location, so Walthamstow remains the planning centre.');
-      },
+      () => setNotice('I could not access location, so Walthamstow remains the centre point.'),
     );
   }
 
   async function persistSwipe(activity, decision) {
-    if (!supabase || !currentUser || String(activity.activity_id).startsWith('sample')) return;
+    if (!supabase || !currentUser || !isPersistableActivity(activity)) return;
     await supabase.from('activity_swipes').upsert(
       {
         user_id: currentUser.id,
@@ -344,52 +369,143 @@ export default function App() {
     );
   }
 
-  async function persistShortlist(activity, swipeId = null) {
-    if (!supabase || !currentUser || String(activity.activity_id).startsWith('sample')) return;
+  async function persistShortlist(activity) {
+    if (!supabase || !currentUser || !isPersistableActivity(activity)) return;
     await supabase.from('activity_shortlist').upsert(
       {
         user_id: currentUser.id,
         activity_id: activity.activity_id,
         planned_date: selectedDate,
         day_window: selectedWindow,
-        added_from_swipe_id: swipeId,
+        position: currentShortlist.length,
       },
       { onConflict: 'user_id,activity_id,planned_date,day_window' },
     );
   }
 
-  function handleSwipe(decision) {
-    if (!currentActivity) return;
-    const activity = currentActivity;
-    const key = currentSlotKey;
-    const swipeRecord = {
-      activity_id: activity.activity_id,
-      decision,
-      created_at: new Date().toISOString(),
-    };
+  async function persistStatus(activity, status, visibility = profile?.default_calendar_visibility || 'private') {
+    if (!supabase || !currentUser || !isPersistableActivity(activity)) return;
+    await supabase.from('activity_user_statuses').upsert(
+      {
+        user_id: currentUser.id,
+        activity_id: activity.activity_id,
+        planned_date: selectedDate,
+        day_window: selectedWindow,
+        status,
+        visibility,
+        source: status === 'not_selected' ? 'swipe_no' : 'swipe_yes',
+        selected_at: new Date().toISOString(),
+      },
+      { onConflict: 'user_id,activity_id,planned_date,day_window' },
+    );
+  }
 
-    setSwipes((current) => ({
+  async function persistCalendarEvent(event) {
+    if (!supabase || !currentUser || !isPersistableActivity(event.activity)) return;
+    await supabase.from('calendar_events').upsert(
+      {
+        user_id: currentUser.id,
+        activity_id: event.activity.activity_id,
+        planned_date: event.planned_date,
+        day_window: event.day_window,
+        start_time: event.start_time,
+        end_time: event.end_time,
+        status: event.status,
+        visibility: event.visibility,
+      },
+      { onConflict: 'user_id,planned_date,day_window' },
+    );
+  }
+
+  function setLocalStatus(activity, status) {
+    setStatuses((current) => ({
       ...current,
-      [key]: [...(current[key] || []), swipeRecord],
+      [statusKey(selectedDate, selectedWindow, activity.activity_id)]: status,
     }));
+  }
+
+  function handleSwipe(activity, decision) {
+    if (!activity) return;
+    const activityId = String(activity.activity_id);
+    const nextStatus = decision === 'yes' ? 'tentative' : 'not_selected';
+
+    setSwipes((current) => {
+      const slotSwipes = current[activeSlot] || [];
+      if (slotSwipes.some((item) => String(item.activity_id) === activityId)) return current;
+      return {
+        ...current,
+        [activeSlot]: [
+          ...slotSwipes,
+          {
+            activity_id: activityId,
+            decision,
+            status: nextStatus,
+            created_at: new Date().toISOString(),
+          },
+        ],
+      };
+    });
 
     if (decision === 'yes') {
-      setShortlist((current) => {
-        const existing = current[key] || [];
-        if (existing.some((item) => item.activity_id === activity.activity_id)) return current;
+      setShortlists((current) => {
+        const slotShortlist = current[activeSlot] || [];
+        if (slotShortlist.includes(activityId)) return current;
         return {
           ...current,
-          [key]: [...existing, activity],
+          [activeSlot]: [...slotShortlist, activityId],
         };
       });
       persistShortlist(activity);
+      setNotice(`${activity.activity_name} was added to this ${selectedWindow} shortlist.`);
+    } else {
+      setNotice(`${activity.activity_name} marked as not selected for this slot.`);
     }
 
+    setLocalStatus(activity, nextStatus);
     persistSwipe(activity, decision);
-    setDeckIndexes((current) => ({ ...current, [key]: currentIndex + 1 }));
+    persistStatus(activity, nextStatus);
+    setDragState({ activityId: null, startX: null, offsetX: 0 });
   }
 
-  async function chooseActivity(activity) {
+  function startDrag(event, activity) {
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    setDragState({ activityId: activity.activity_id, startX: event.clientX, offsetX: 0 });
+  }
+
+  function moveDrag(event, activity) {
+    if (dragState.activityId !== activity.activity_id || dragState.startX == null) return;
+    setDragState((current) => ({ ...current, offsetX: event.clientX - current.startX }));
+  }
+
+  function endDrag(activity) {
+    if (dragState.activityId !== activity.activity_id) return;
+    if (dragState.offsetX > 96) {
+      handleSwipe(activity, 'yes');
+    } else if (dragState.offsetX < -96) {
+      handleSwipe(activity, 'no');
+    } else {
+      setDragState({ activityId: null, startX: null, offsetX: 0 });
+    }
+  }
+
+  function resetCurrentSlot() {
+    setSwipes((current) => {
+      const next = { ...current };
+      delete next[activeSlot];
+      return next;
+    });
+    setShortlists((current) => {
+      const next = { ...current };
+      delete next[activeSlot];
+      return next;
+    });
+    setStatuses((current) =>
+      Object.fromEntries(Object.entries(current).filter(([key]) => !key.startsWith(`${activeSlot}:`))),
+    );
+    setNotice(`Reset ${selectedWindow} on ${formatDay(selectedDate)}.`);
+  }
+
+  function chooseActivity(activity, status = 'booked') {
     const event = {
       local_id: `${selectedDate}-${selectedWindow}-${activity.activity_id}`,
       user_id: currentUser?.id || 'demo-user',
@@ -399,7 +515,7 @@ export default function App() {
       day_window: selectedWindow,
       start_time: activity.start_time,
       end_time: activity.end_time,
-      status: 'booked',
+      status,
       visibility: profile?.default_calendar_visibility || 'private',
       created_at: new Date().toISOString(),
     };
@@ -411,87 +527,34 @@ export default function App() {
       event,
     ]);
 
-    if (supabase && currentUser && !String(activity.activity_id).startsWith('sample')) {
-      await supabase.from('activity_user_statuses').upsert(
-        {
-          user_id: currentUser.id,
-          activity_id: activity.activity_id,
-          planned_date: selectedDate,
-          day_window: selectedWindow,
-          status: 'booked',
-          visibility: event.visibility,
-          source: 'shortlist',
-          selected_at: new Date().toISOString(),
-        },
-        { onConflict: 'user_id,activity_id,planned_date,day_window' },
-      );
-
-      await supabase.from('calendar_events').upsert(
-        {
-          user_id: currentUser.id,
-          activity_id: activity.activity_id,
-          planned_date: selectedDate,
-          day_window: selectedWindow,
-          start_time: activity.start_time,
-          end_time: activity.end_time,
-          status: 'booked',
-          visibility: event.visibility,
-        },
-        { onConflict: 'user_id,planned_date,day_window' },
-      );
-    }
-
-    setNotice(`${activity.activity_name} is now in your ${selectedWindow} calendar slot.`);
+    setLocalStatus(activity, status);
+    persistStatus(activity, status, event.visibility);
+    persistCalendarEvent(event);
+    setNotice(`${activity.activity_name} is now ${statusLabels[status].toLowerCase()} in your calendar.`);
   }
 
-  function updateEventVisibility(event, visibility) {
+  function updateEvent(event, changes) {
+    const nextEvent = { ...event, ...changes };
     setCalendarEvents((current) =>
-      current.map((item) =>
-        item.local_id === event.local_id ? { ...item, visibility } : item,
-      ),
+      current.map((item) => (item.local_id === event.local_id ? nextEvent : item)),
     );
+    persistCalendarEvent(nextEvent);
   }
 
-  async function handleAuth(event) {
-    event.preventDefault();
-    if (!supabase) {
-      setNotice('Add your Supabase URL and anon key before using real accounts.');
-      return;
-    }
-
-    const credentials = {
-      email: authForm.email,
-      password: authForm.password,
-      options: authMode === 'sign-up' ? { data: { user_name: authForm.user_name } } : undefined,
-    };
-
-    const { error } =
-      authMode === 'sign-up'
-        ? await supabase.auth.signUp(credentials)
-        : await supabase.auth.signInWithPassword(credentials);
-
-    if (error) {
-      setNotice(error.message);
-    } else {
-      setNotice(authMode === 'sign-up' ? 'Check your email to confirm your account.' : 'Signed in.');
-    }
-  }
-
-  async function signOut() {
-    if (!supabase) return;
-    await supabase.auth.signOut();
-    setNotice('Signed out.');
+  function removeEvent(event) {
+    setCalendarEvents((current) => current.filter((item) => item.local_id !== event.local_id));
+    setNotice(`${event.activity.activity_name} removed from your calendar.`);
   }
 
   function applyLinkAutofill() {
-    if (!activityForm.activity_link) {
-      setNotice('Paste a source link first and I will use it as the website/source.');
+    if (!activityForm.activity_link.trim()) {
+      setNotice('Paste an activity link first.');
       return;
     }
-    const url = activityForm.activity_link;
+
     let guessedName = activityForm.activity_name;
     try {
-      const parsed = new URL(url);
+      const parsed = new URL(activityForm.activity_link);
       guessedName =
         guessedName ||
         parsed.pathname
@@ -500,16 +563,20 @@ export default function App() {
           .pop()
           ?.replaceAll('-', ' ')
           ?.replace(/\b\w/g, (letter) => letter.toUpperCase()) ||
-        '';
+        parsed.hostname.replace(/^www\./, '');
     } catch {
-      // Leave the form unchanged if the pasted value is not a URL.
+      guessedName = guessedName || activityForm.activity_link;
     }
+
     setActivityForm((current) => ({
       ...current,
-      website: current.website || url,
       activity_name: guessedName,
+      website: current.website || current.activity_link,
+      google_link:
+        current.google_link ||
+        `https://www.google.com/search?q=${encodeURIComponent(`${guessedName} ${current.borough}`)}`,
     }));
-    setNotice('I filled what I can from the link. Full scraping can be added with a server function later.');
+    setNotice('I filled what can be safely inferred from the link. A server scraper can enrich this later.');
   }
 
   async function submitActivity(event) {
@@ -523,11 +590,14 @@ export default function App() {
       category: activityForm.category,
       start_time: activityForm.start_time,
       end_time: activityForm.end_time,
+      time_window: toWindow(activityForm.start_time),
       google_link: activityForm.google_link || null,
       website: activityForm.website || activityForm.activity_link || null,
-      child_friendly_score: null,
-      app_rating: null,
-      number_of_reviews: 0,
+      child_friendly_score: activityForm.child_friendly_score
+        ? Number(activityForm.child_friendly_score)
+        : null,
+      app_rating: activityForm.app_rating ? Number(activityForm.app_rating) : null,
+      number_of_reviews: Number(activityForm.number_of_reviews || 0),
       age_suitability: activityForm.age_suitability,
       borough: activityForm.borough,
       days_of_week: [],
@@ -554,7 +624,7 @@ export default function App() {
         followerNames: [],
       });
       setLocalDrafts((current) => [localActivity, ...current]);
-      setNotice('Activity saved locally. Connect Supabase and sign in to submit it for real.');
+      setNotice('Activity saved locally. Sign in with Supabase to submit it for real.');
     }
 
     setActivityForm(emptyActivityForm);
@@ -562,20 +632,30 @@ export default function App() {
 
   async function submitReview(event) {
     event.preventDefault();
-    if (!selectedActivity) return;
+    if (!selectedActivity) {
+      setNotice('Open an activity first, then add a review or photo.');
+      return;
+    }
 
-    if (supabase && currentUser && !String(selectedActivity.activity_id).startsWith('sample')) {
-      if (reviewForm.text.trim()) {
+    if (supabase && currentUser && isPersistableActivity(selectedActivity)) {
+      if (reviewForm.comments.trim()) {
+        await supabase.from('comments_table').insert({
+          activity_id: selectedActivity.activity_id,
+          user_id: currentUser.id,
+          comments: reviewForm.comments,
+        });
+
         await supabase.from('activity_reviews').upsert(
           {
             activity_id: selectedActivity.activity_id,
             user_id: currentUser.id,
             rating: Number(reviewForm.rating),
-            review_text: reviewForm.text,
+            review_text: reviewForm.comments,
           },
           { onConflict: 'activity_id,user_id' },
         );
       }
+
       if (reviewForm.photo_url.trim()) {
         await supabase.from('activity_photos').insert({
           activity_id: selectedActivity.activity_id,
@@ -584,139 +664,137 @@ export default function App() {
           source_provider: 'user_upload',
         });
       }
-      setNotice('Review/photo saved.');
-    } else {
-      setNotice('Review saved for this demo session. Connect Supabase and sign in to save real reviews.');
     }
-    setReviewForm({ rating: 5, text: '', photo_url: '' });
+
+    setNotice('Review/photo saved for this activity.');
+    setReviewForm({ rating: 5, comments: '', photo_url: '' });
+  }
+
+  async function handleAuth(event) {
+    event.preventDefault();
+    if (!supabase) {
+      setNotice('Add the Supabase URL and anon key before live accounts can sign in.');
+      return;
+    }
+
+    const credentials = {
+      email: authForm.email,
+      password: authForm.password,
+      options: authMode === 'sign-up' ? { data: { user_name: authForm.user_name } } : undefined,
+    };
+
+    const { error } =
+      authMode === 'sign-up'
+        ? await supabase.auth.signUp(credentials)
+        : await supabase.auth.signInWithPassword(credentials);
+
+    setNotice(error ? error.message : authMode === 'sign-up' ? 'Check your email to confirm your account.' : 'Signed in.');
+  }
+
+  async function signOut() {
+    if (!supabase) return;
+    await supabase.auth.signOut();
+    setNotice('Signed out.');
+  }
+
+  function toggleFollow(parentId) {
+    setFollowedParentIds((current) =>
+      current.includes(parentId) ? current.filter((id) => id !== parentId) : [...current, parentId],
+    );
   }
 
   return (
-    <div className="app-shell">
-      <header className="hero">
-        <nav className="top-nav" aria-label="Primary navigation">
-          <button className="brand-mark" type="button" onClick={() => setActiveTab('plan')}>
-            <span>Little</span>
-            <strong>Week</strong>
+    <div className="phone-app">
+      <header className="app-topbar">
+        <button className="brand-lockup" type="button" onClick={() => setActiveScreen('start')}>
+          <span>Tiny</span>
+          <strong>Outings</strong>
+        </button>
+        <div className="topbar-actions">
+          <span className="sync-dot">{hasSupabaseConfig ? 'Live' : 'Demo'}</span>
+          <button className="icon-button" type="button" onClick={() => setActiveScreen('profile')}>
+            Me
           </button>
-          <div className="nav-pills">
-            {['plan', 'add', 'search', 'calendar', 'profile'].map((tab) => (
-              <button
-                key={tab}
-                className={classNames('nav-pill', activeTab === tab && 'is-active')}
-                type="button"
-                onClick={() => setActiveTab(tab)}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-        </nav>
-
-        <section className="hero-grid">
-          <div>
-            <p className="eyebrow">Maternity and paternity leave, with a little less guesswork</p>
-            <h1>Plan a week that has rhythm, wiggle room, and somewhere to get a coffee.</h1>
-            <p className="hero-copy">
-              Filter baby-friendly activities, swipe for each morning, afternoon, and evening,
-              then turn your shortlist into a calendar you can export.
-            </p>
-            <div className="hero-actions">
-              <button type="button" className="primary-button" onClick={() => setActiveTab('plan')}>
-                Start swiping
-              </button>
-              <a className="download-button" href={androidApkPath} download>
-                Download Android app
-              </a>
-              <button type="button" className="ghost-button" onClick={() => setActiveTab('calendar')}>
-                View calendar
-              </button>
-            </div>
-          </div>
-          <div className="hero-card" aria-label="Planner summary">
-            <span className="mini-label">This week</span>
-            <strong>{calendarEvents.length}</strong>
-            <p>activities planned across morning, afternoon, and evening windows.</p>
-            <div className="sync-chip">
-              {hasSupabaseConfig ? 'Supabase connected' : 'Demo mode until env vars are added'}
-            </div>
-          </div>
-        </section>
+        </div>
       </header>
 
       {notice && (
-        <div className="notice" role="status">
+        <div className="toast" role="status">
           <span>{notice}</span>
           <button type="button" onClick={() => setNotice('')}>
-            Dismiss
+            Close
           </button>
         </div>
       )}
 
-      <main>
-        {activeTab === 'plan' && (
-          <PlanScreen
-            activities={slotActivities}
-            allFilteredActivities={filteredActivities}
-            categories={categories}
-            boroughs={boroughs}
+      <main className="app-main">
+        {activeScreen === 'start' && (
+          <StartScreen
             filters={filters}
             setFilters={setFilters}
-            updateFilterCategory={updateFilterCategory}
+            updateCategory={updateCategory}
             useBrowserLocation={useBrowserLocation}
-            selectedDate={selectedDate}
-            setSelectedDate={setSelectedDate}
-            weekDays={weekDays}
-            selectedWindow={selectedWindow}
-            setSelectedWindow={setSelectedWindow}
-            currentActivity={currentActivity}
-            currentIndex={currentIndex}
-            handleSwipe={handleSwipe}
-            currentShortlist={currentShortlist}
-            chooseActivity={chooseActivity}
-            chosenForSlot={chosenForSlot}
+            activityCount={filteredActivities.length}
             loading={loading}
-            setSelectedActivity={setSelectedActivity}
+            onStart={() => setActiveScreen('swipe')}
           />
         )}
 
-        {activeTab === 'add' && (
+        {activeScreen === 'swipe' && (
+          <SwipeScreen
+            weekDays={weekDays}
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+            selectedWindow={selectedWindow}
+            setSelectedWindow={setSelectedWindow}
+            deckActivities={deckActivities}
+            slotActivities={slotActivities}
+            currentShortlist={currentShortlist}
+            chosenForSlot={chosenForSlot}
+            statuses={statuses}
+            dragState={dragState}
+            followedNames={followedNames}
+            onStartDrag={startDrag}
+            onMoveDrag={moveDrag}
+            onEndDrag={endDrag}
+            onSwipe={handleSwipe}
+            onChoose={chooseActivity}
+            onOpenActivity={setSelectedActivity}
+            onReset={resetCurrentSlot}
+          />
+        )}
+
+        {activeScreen === 'calendar' && (
+          <CalendarScreen
+            weekDays={weekDays}
+            calendarEvents={calendarEvents}
+            onOpenActivity={setSelectedActivity}
+            onUpdateEvent={updateEvent}
+            onRemoveEvent={removeEvent}
+          />
+        )}
+
+        {activeScreen === 'add' && (
           <AddActivityScreen
             form={activityForm}
             setForm={setActivityForm}
-            categories={categories}
-            boroughs={boroughs}
             onAutofill={applyLinkAutofill}
             onSubmit={submitActivity}
             currentUser={currentUser}
           />
         )}
 
-        {activeTab === 'search' && (
-          <SearchScreen
-            activities={visibleActivities}
-            setSelectedActivity={setSelectedActivity}
-            reviewForm={reviewForm}
-            setReviewForm={setReviewForm}
-            submitReview={submitReview}
-          />
+        {activeScreen === 'search' && (
+          <SearchScreen activities={allActivities} onOpenActivity={setSelectedActivity} />
         )}
 
-        {activeTab === 'calendar' && (
-          <CalendarScreen
-            weekDays={weekDays}
-            calendarEvents={calendarEvents}
-            setSelectedActivity={setSelectedActivity}
-            updateEventVisibility={updateEventVisibility}
-          />
-        )}
-
-        {activeTab === 'profile' && (
+        {activeScreen === 'profile' && (
           <ProfileScreen
             session={session}
             profile={profile}
-            parents={parents}
-            setParents={setParents}
+            parents={sampleParents}
+            followedParentIds={followedParentIds}
+            toggleFollow={toggleFollow}
             authMode={authMode}
             setAuthMode={setAuthMode}
             authForm={authForm}
@@ -728,115 +806,78 @@ export default function App() {
         )}
       </main>
 
+      <BottomNav activeScreen={activeScreen} setActiveScreen={setActiveScreen} />
+
       {selectedActivity && (
-        <ActivityDrawer
+        <ActivityDetail
           activity={selectedActivity}
-          onClose={() => setSelectedActivity(null)}
+          followedNames={followedNames}
           reviewForm={reviewForm}
           setReviewForm={setReviewForm}
           submitReview={submitReview}
+          onClose={() => setSelectedActivity(null)}
         />
       )}
     </div>
   );
 }
 
-function PlanScreen({
-  activities,
-  allFilteredActivities,
-  categories: categoryOptions,
-  boroughs: boroughOptions,
+function StartScreen({
   filters,
   setFilters,
-  updateFilterCategory,
+  updateCategory,
   useBrowserLocation,
-  selectedDate,
-  setSelectedDate,
-  weekDays,
-  selectedWindow,
-  setSelectedWindow,
-  currentActivity,
-  currentIndex,
-  handleSwipe,
-  currentShortlist,
-  chooseActivity,
-  chosenForSlot,
+  activityCount,
   loading,
-  setSelectedActivity,
+  onStart,
 }) {
-  const [dragState, setDragState] = useState({ startX: null, offsetX: 0 });
-  const swipeIntent =
-    dragState.offsetX > 64 ? 'yes' : dragState.offsetX < -64 ? 'no' : null;
-
-  function beginDrag(event) {
-    if (event.target.closest('button, a, input, select, textarea')) return;
-    event.currentTarget.setPointerCapture?.(event.pointerId);
-    setDragState({ startX: event.clientX, offsetX: 0 });
-  }
-
-  function moveDrag(event) {
-    if (dragState.startX == null) return;
-    setDragState((current) => ({
-      ...current,
-      offsetX: Math.max(Math.min(event.clientX - current.startX, 160), -160),
-    }));
-  }
-
-  function endDrag() {
-    if (dragState.offsetX > 90) {
-      handleSwipe('yes');
-    } else if (dragState.offsetX < -90) {
-      handleSwipe('no');
-    }
-    setDragState({ startX: null, offsetX: 0 });
-  }
-
   return (
-    <section className="screen-grid plan-grid">
-      <aside className="panel filter-panel">
-        <div className="section-heading">
-          <span className="mini-label">Start screen</span>
-          <h2>Set your day shape</h2>
-        </div>
+    <section className="app-screen start-screen">
+      <div className="screen-title">
+        <span className="eyebrow">Plan maternity and paternity days</span>
+        <h1>Pick a day shape before the chaos wakes up.</h1>
+        <p>
+          Set your borough, activity types, radius, and walking limit. Then swipe through activities
+          for morning, afternoon, and evening.
+        </p>
+      </div>
 
-        <label className="field">
-          <span>Search</span>
-          <input
-            value={filters.query}
-            onChange={(event) => setFilters((current) => ({ ...current, query: event.target.value }))}
-            placeholder="Try stay and play, coffee, museum"
-          />
-        </label>
-
-        <label className="field">
-          <span>Borough</span>
-          <select
-            value={filters.borough}
-            onChange={(event) => setFilters((current) => ({ ...current, borough: event.target.value }))}
-          >
-            <option>All</option>
-            {boroughOptions.map((borough) => (
-              <option key={borough}>{borough}</option>
+      <div className="filter-card">
+        <div className="field-group">
+          <label>Activity types</label>
+          <div className="chip-grid">
+            {categories.map((category) => (
+              <button
+                key={category}
+                type="button"
+                className={classNames('filter-chip', filters.categories.includes(category) && 'is-on')}
+                onClick={() => updateCategory(category)}
+              >
+                {category}
+              </button>
             ))}
-          </select>
-        </label>
-
-        <div className="toggle-cloud">
-          {categoryOptions.map((category) => (
-            <button
-              key={category}
-              className={classNames('filter-chip', filters.categories.includes(category) && 'is-selected')}
-              type="button"
-              onClick={() => updateFilterCategory(category)}
-            >
-              {category}
-            </button>
-          ))}
+          </div>
         </div>
 
-        <div className="range-stack">
+        <div className="field-group">
+          <label>Borough</label>
+          <div className="segmented-grid">
+            {['All', ...boroughs].map((borough) => (
+              <button
+                key={borough}
+                type="button"
+                className={classNames('segment', filters.borough === borough && 'is-on')}
+                onClick={() => setFilters((current) => ({ ...current, borough }))}
+              >
+                {borough}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="range-card">
           <label>
-            <span>Within {filters.radiusMiles} miles</span>
+            <span>{filters.radiusMiles} mile radius</span>
             <input
               type="range"
               min="1"
@@ -848,7 +889,7 @@ function PlanScreen({
             />
           </label>
           <label>
-            <span>Within {filters.walkMinutes} minutes walking</span>
+            <span>{filters.walkMinutes} minute walk</span>
             <input
               type="range"
               min="10"
@@ -863,461 +904,572 @@ function PlanScreen({
         </div>
 
         <div className="location-row">
-          <label className="switch-row">
-            <input
-              type="checkbox"
-              checked={filters.useLocation}
-              onChange={(event) =>
-                setFilters((current) => ({ ...current, useLocation: event.target.checked }))
-              }
-            />
-            <span>Use location filter</span>
-          </label>
-          <button type="button" className="small-button" onClick={useBrowserLocation}>
-            Use my location
+          <button type="button" className="secondary-button" onClick={useBrowserLocation}>
+            Use current location
+          </button>
+          <button
+            type="button"
+            className={classNames('secondary-button', filters.useLocation && 'is-on')}
+            onClick={() => setFilters((current) => ({ ...current, useLocation: !current.useLocation }))}
+          >
+            {filters.useLocation ? 'Location filter on' : 'Location filter off'}
           </button>
         </div>
+      </div>
 
-        <div className="stat-strip">
-          <strong>{allFilteredActivities.length}</strong>
-          <span>matching activities</span>
+      <div className="start-summary">
+        <div>
+          <span>Deck ready</span>
+          <strong>{loading ? '...' : activityCount}</strong>
+          <small>matching activities</small>
         </div>
-      </aside>
+        <button className="primary-action" type="button" onClick={onStart}>
+          Start swiping
+        </button>
+      </div>
+    </section>
+  );
+}
 
-      <section className="panel swipe-panel">
-        <div className="date-tabs">
+function SwipeScreen({
+  weekDays,
+  selectedDate,
+  setSelectedDate,
+  selectedWindow,
+  setSelectedWindow,
+  deckActivities,
+  slotActivities,
+  currentShortlist,
+  chosenForSlot,
+  statuses,
+  dragState,
+  followedNames,
+  onStartDrag,
+  onMoveDrag,
+  onEndDrag,
+  onSwipe,
+  onChoose,
+  onOpenActivity,
+  onReset,
+}) {
+  const topActivity = deckActivities[0];
+
+  return (
+    <section className="app-screen swipe-screen">
+      <div className="planner-strip">
+        <div className="date-strip">
           {weekDays.map((day) => (
             <button
               key={day}
               type="button"
-              className={classNames('date-tab', selectedDate === day && 'is-active')}
+              className={classNames('date-pill', day === selectedDate && 'is-on')}
               onClick={() => setSelectedDate(day)}
             >
-              {formatDay(day)}
+              <span>{formatDay(day).split(' ')[0]}</span>
+              <strong>{formatDay(day).replace(/^\S+\s/, '')}</strong>
             </button>
           ))}
         </div>
 
-        <div className="window-tabs">
-          {windows.map((windowName) => (
+        <div className="window-switcher">
+          {dayWindows.map((windowName) => (
             <button
               key={windowName}
               type="button"
-              className={classNames('window-tab', selectedWindow === windowName && 'is-active')}
+              className={classNames('window-pill', windowName === selectedWindow && 'is-on')}
               onClick={() => setSelectedWindow(windowName)}
             >
               {windowName}
             </button>
           ))}
         </div>
+      </div>
 
-        <div className="swipe-stage">
-          {loading && <div className="empty-card">Loading activities from Supabase...</div>}
-          {!loading && !currentActivity && (
-            <div className="empty-card">
-              <h3>No activities for this slot yet</h3>
-              <p>Loosen a filter or add a new activity. The baby planning goblin demands options.</p>
-            </div>
-          )}
-          {!loading && currentActivity && (
-            <article
-              className={classNames(
-                'activity-card',
-                dragState.startX != null && 'is-dragging',
-                swipeIntent && `swipe-${swipeIntent}`,
-              )}
-              onPointerDown={beginDrag}
-              onPointerMove={moveDrag}
-              onPointerUp={endDrag}
-              onPointerCancel={endDrag}
-              style={{
-                transform:
-                  dragState.offsetX === 0
-                    ? undefined
-                    : `translateX(${dragState.offsetX}px) rotate(${dragState.offsetX / 18}deg)`,
-              }}
-            >
-              <div className="swipe-intent" aria-hidden="true">
-                {swipeIntent === 'yes' && 'Yes'}
-                {swipeIntent === 'no' && 'No'}
-              </div>
-              <div className="card-map-strip">
-                <span>{currentActivity.borough}</span>
-                <strong>{formatDistance(currentActivity.distance)}</strong>
-              </div>
-              <div className="card-body">
-                <p className="eyebrow">{currentActivity.category}</p>
-                <h2>{currentActivity.activity_name}</h2>
-                <p>{currentActivity.description}</p>
-                <div className="meta-grid">
-                  <span>{currentActivity.start_time} to {currentActivity.end_time}</span>
-                  <span>{currentActivity.age_suitability || 'Age TBC'}</span>
-                  <span>{currentActivity.cost || 'Cost TBC'}</span>
-                  <span>{currentActivity.app_rating || 'New'} rating</span>
-                </div>
-                {currentActivity.followerNames?.length > 0 && (
-                  <div className="friend-signal">
-                    {currentActivity.followerNames.join(', ')} selected this
-                  </div>
-                )}
-                <p className="swipe-hint">Drag the card right for yes or left for no.</p>
-              </div>
-              <div className="card-footer">
-                <button type="button" className="no-button" onClick={() => handleSwipe('no')}>
-                  Swipe left: no
-                </button>
-                <button type="button" className="ghost-button" onClick={() => setSelectedActivity(currentActivity)}>
-                  Details
-                </button>
-                <button type="button" className="yes-button" onClick={() => handleSwipe('yes')}>
-                  Swipe right: yes
-                </button>
-              </div>
-              <span className="deck-count">
-                Card {(currentIndex % Math.max(activities.length, 1)) + 1} of {activities.length}
-              </span>
-            </article>
-          )}
+      <div className="swipe-status-bar">
+        <div>
+          <span>{formatDay(selectedDate, 'long')}</span>
+          <strong>{selectedWindow} deck</strong>
         </div>
-      </section>
+        <button type="button" onClick={onReset}>
+          Reset slot
+        </button>
+      </div>
 
-      <aside className="panel shortlist-panel">
-        <div className="section-heading">
-          <span className="mini-label">Shortlist</span>
-          <h2>{selectedWindow} on {formatDay(selectedDate)}</h2>
-        </div>
-
-        {chosenForSlot && (
-          <div className="chosen-banner">
-            <span>Chosen</span>
-            <strong>{chosenForSlot.activity.activity_name}</strong>
+      <div className="tinder-stage">
+        {deckActivities.length === 0 ? (
+          <div className="empty-deck">
+            <span>No cards left</span>
+            <h2>{slotActivities.length ? 'You swiped through this slot.' : 'No matching activities yet.'}</h2>
+            <p>Change filters, pick another time window, or reset this slot to swipe again.</p>
           </div>
-        )}
-
-        {currentShortlist.length === 0 ? (
-          <p className="muted">Swipe right on activities to build a shortlist for this slot.</p>
         ) : (
-          <div className="shortlist-stack">
-            {currentShortlist.map((activity) => (
-              <article key={activity.activity_id} className="shortlist-card">
-                <button type="button" onClick={() => setSelectedActivity(activity)}>
-                  <strong>{activity.activity_name}</strong>
-                  <span>{activity.start_time} to {activity.end_time}</span>
-                </button>
-                <button type="button" className="small-button" onClick={() => chooseActivity(activity)}>
-                  Choose
-                </button>
-              </article>
-            ))}
+          deckActivities.slice(0, 3).map((activity, index) => (
+            <SwipeCard
+              key={activity.activity_id}
+              activity={activity}
+              index={index}
+              isTop={index === 0}
+              dragState={dragState}
+              followedNames={followedNames}
+              status={statuses[statusKey(selectedDate, selectedWindow, activity.activity_id)]}
+              onStartDrag={onStartDrag}
+              onMoveDrag={onMoveDrag}
+              onEndDrag={onEndDrag}
+              onOpenActivity={onOpenActivity}
+            />
+          ))
+        )}
+      </div>
+
+      <div className="swipe-controls">
+        <button
+          type="button"
+          className="swipe-button no"
+          disabled={!topActivity}
+          onClick={() => onSwipe(topActivity, 'no')}
+        >
+          No
+        </button>
+        <button
+          type="button"
+          className="swipe-button info"
+          disabled={!topActivity}
+          onClick={() => onOpenActivity(topActivity)}
+        >
+          Details
+        </button>
+        <button
+          type="button"
+          className="swipe-button yes"
+          disabled={!topActivity}
+          onClick={() => onSwipe(topActivity, 'yes')}
+        >
+          Yes
+        </button>
+      </div>
+
+      <ShortlistPanel
+        selectedDate={selectedDate}
+        selectedWindow={selectedWindow}
+        shortlist={currentShortlist}
+        chosenForSlot={chosenForSlot}
+        onChoose={onChoose}
+        onOpenActivity={onOpenActivity}
+      />
+    </section>
+  );
+}
+
+function SwipeCard({
+  activity,
+  index,
+  isTop,
+  dragState,
+  followedNames,
+  status,
+  onStartDrag,
+  onMoveDrag,
+  onEndDrag,
+  onOpenActivity,
+}) {
+  const isDragging = dragState.activityId === activity.activity_id;
+  const offset = isDragging ? dragState.offsetX : 0;
+  const tilt = Math.max(-18, Math.min(18, offset / 14));
+  const signalNames = activity.followerNames.filter((name) => followedNames.includes(name));
+  const cardStyle = {
+    zIndex: 10 - index,
+    transform: isTop
+      ? `translate3d(${offset}px, 0, 0) rotate(${tilt}deg)`
+      : `translate3d(0, ${index * 14}px, 0) scale(${1 - index * 0.045})`,
+  };
+
+  return (
+    <article
+      className={classNames(
+        'swipe-card',
+        isTop && 'is-top',
+        offset > 36 && 'is-yes',
+        offset < -36 && 'is-no',
+      )}
+      style={cardStyle}
+      onPointerDown={isTop ? (event) => onStartDrag(event, activity) : undefined}
+      onPointerMove={isTop ? (event) => onMoveDrag(event, activity) : undefined}
+      onPointerUp={isTop ? () => onEndDrag(activity) : undefined}
+      onPointerCancel={isTop ? () => onEndDrag(activity) : undefined}
+    >
+      <div className="decision-stamp yes">Yes</div>
+      <div className="decision-stamp no">No</div>
+
+      <div className="card-photo">
+        <span>Google photos</span>
+        <strong>{activity.borough}</strong>
+      </div>
+
+      <div className="card-content">
+        <div className="card-kicker">
+          <span>{activity.category}</span>
+          <StatusPill status={status || 'tentative'} ghost={!status} />
+        </div>
+        <h2>{activity.activity_name}</h2>
+        <p>{activity.description || 'Parent-friendly activity details will appear here.'}</p>
+
+        {signalNames.length > 0 && (
+          <div className="friend-signal">
+            {signalNames.join(', ')} {signalNames.length === 1 ? 'has' : 'have'} selected this
           </div>
         )}
-      </aside>
-    </section>
+
+        <div className="activity-facts">
+          <span>{activity.start_time} to {activity.end_time}</span>
+          <span>{formatDistance(activity.distance)}</span>
+          <span>{activity.age_suitability || 'Age TBC'}</span>
+          <span>{activity.app_rating ? `${activity.app_rating}/5` : 'No rating yet'}</span>
+        </div>
+
+        <button type="button" className="link-button" onClick={() => onOpenActivity(activity)}>
+          Open activity
+        </button>
+      </div>
+    </article>
   );
 }
 
-function AddActivityScreen({ form, setForm, categories: categoryOptions, boroughs: boroughOptions, onAutofill, onSubmit, currentUser }) {
+function ShortlistPanel({
+  selectedDate,
+  selectedWindow,
+  shortlist,
+  chosenForSlot,
+  onChoose,
+  onOpenActivity,
+}) {
   return (
-    <section className="screen-grid two-column">
-      <div className="panel">
-        <div className="section-heading">
-          <span className="mini-label">Submit an activity</span>
-          <h2>Add the thing you wish everyone knew about</h2>
-        </div>
-        <p className="muted">
-          Signed-in users submit activities as drafts. Unsigned users can still save local ideas while we are in MVP mode.
-        </p>
-        {!currentUser && <div className="soft-warning">Sign in to submit this to Supabase for review.</div>}
-
-        <form className="activity-form" onSubmit={onSubmit}>
-          <label className="field wide-field">
-            <span>Activity link</span>
-            <div className="inline-field">
-              <input
-                value={form.activity_link}
-                onChange={(event) => setForm((current) => ({ ...current, activity_link: event.target.value }))}
-                placeholder="https://..."
-              />
-              <button type="button" className="small-button" onClick={onAutofill}>
-                Autofill
-              </button>
-            </div>
-          </label>
-
-          <label className="field">
-            <span>Name</span>
-            <input
-              required
-              value={form.activity_name}
-              onChange={(event) => setForm((current) => ({ ...current, activity_name: event.target.value }))}
-            />
-          </label>
-
-          <label className="field">
-            <span>Category</span>
-            <select
-              value={form.category}
-              onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))}
-            >
-              {categoryOptions.map((category) => (
-                <option key={category}>{category}</option>
-              ))}
-            </select>
-          </label>
-
-          <label className="field wide-field">
-            <span>Address</span>
-            <input
-              required
-              value={form.address}
-              onChange={(event) => setForm((current) => ({ ...current, address: event.target.value }))}
-            />
-          </label>
-
-          <label className="field">
-            <span>Postcode</span>
-            <input
-              value={form.postcode}
-              onChange={(event) => setForm((current) => ({ ...current, postcode: event.target.value }))}
-            />
-          </label>
-
-          <label className="field">
-            <span>Borough</span>
-            <select
-              value={form.borough}
-              onChange={(event) => setForm((current) => ({ ...current, borough: event.target.value }))}
-            >
-              {boroughOptions.map((borough) => (
-                <option key={borough}>{borough}</option>
-              ))}
-            </select>
-          </label>
-
-          <label className="field">
-            <span>Latitude</span>
-            <input
-              value={form.lat}
-              onChange={(event) => setForm((current) => ({ ...current, lat: event.target.value }))}
-              placeholder="51.584"
-            />
-          </label>
-
-          <label className="field">
-            <span>Longitude</span>
-            <input
-              value={form.long}
-              onChange={(event) => setForm((current) => ({ ...current, long: event.target.value }))}
-              placeholder="-0.021"
-            />
-          </label>
-
-          <label className="field">
-            <span>Start</span>
-            <input
-              type="time"
-              required
-              value={form.start_time}
-              onChange={(event) => setForm((current) => ({ ...current, start_time: event.target.value }))}
-            />
-          </label>
-
-          <label className="field">
-            <span>End</span>
-            <input
-              type="time"
-              required
-              value={form.end_time}
-              onChange={(event) => setForm((current) => ({ ...current, end_time: event.target.value }))}
-            />
-          </label>
-
-          <label className="field">
-            <span>Age suitability</span>
-            <input
-              value={form.age_suitability}
-              onChange={(event) => setForm((current) => ({ ...current, age_suitability: event.target.value }))}
-            />
-          </label>
-
-          <label className="field">
-            <span>Cost</span>
-            <input
-              value={form.cost}
-              onChange={(event) => setForm((current) => ({ ...current, cost: event.target.value }))}
-            />
-          </label>
-
-          <label className="field wide-field">
-            <span>Description</span>
-            <textarea
-              value={form.description}
-              onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
-            />
-          </label>
-
-          <button className="primary-button wide-field" type="submit">
-            Save activity
-          </button>
-        </form>
+    <section className="shortlist-panel">
+      <div className="section-heading">
+        <span>Shortlist</span>
+        <h2>{selectedWindow} on {formatDay(selectedDate)}</h2>
       </div>
 
-      <div className="panel preview-panel">
-        <span className="mini-label">Preview</span>
-        <h2>{form.activity_name || 'A new parent-friendly activity'}</h2>
-        <p>{form.description || 'Add a short description and it will appear here.'}</p>
-        <div className="meta-grid">
-          <span>{form.category}</span>
-          <span>{form.start_time} to {form.end_time}</span>
-          <span>{form.borough}</span>
-          <span>{form.age_suitability}</span>
+      {chosenForSlot && (
+        <div className="chosen-slot-card">
+          <span>Calendar pick</span>
+          <strong>{chosenForSlot.activity.activity_name}</strong>
+          <small>{statusLabels[chosenForSlot.status]} - {chosenForSlot.visibility}</small>
         </div>
+      )}
+
+      {shortlist.length === 0 ? (
+        <div className="empty-list">
+          Swipe right to build a shortlist for this exact day and time window.
+        </div>
+      ) : (
+        <div className="shortlist-list">
+          {shortlist.map((activity) => (
+            <article key={activity.activity_id} className="shortlist-card">
+              <button type="button" onClick={() => onOpenActivity(activity)}>
+                <strong>{activity.activity_name}</strong>
+                <span>{activity.start_time} to {activity.end_time} - {activity.category}</span>
+              </button>
+              <div className="shortlist-actions">
+                <button type="button" onClick={() => onChoose(activity, 'tentative')}>
+                  Tentative
+                </button>
+                <button type="button" onClick={() => onChoose(activity, 'booked')}>
+                  Book
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function CalendarScreen({ weekDays, calendarEvents, onOpenActivity, onUpdateEvent, onRemoveEvent }) {
+  return (
+    <section className="app-screen calendar-screen">
+      <div className="screen-title compact">
+        <span className="eyebrow">In-app calendar</span>
+        <h1>Your week</h1>
+        <p>Chosen activities appear here. Set visibility and export to Google Calendar or ICS.</p>
+      </div>
+
+      <div className="calendar-list">
+        {weekDays.map((day) => (
+          <section key={day} className="calendar-day">
+            <h2>{formatDay(day, 'long')}</h2>
+            {dayWindows.map((windowName) => {
+              const event = calendarEvents.find(
+                (item) => item.planned_date === day && item.day_window === windowName,
+              );
+              return (
+                <div key={`${day}-${windowName}`} className="calendar-slot">
+                  <span className="slot-name">{windowName}</span>
+                  {event ? (
+                    <article className="calendar-event">
+                      <button type="button" onClick={() => onOpenActivity(event.activity)}>
+                        <strong>{event.activity.activity_name}</strong>
+                        <span>{event.start_time} to {event.end_time}</span>
+                      </button>
+                      <div className="calendar-controls">
+                        <select
+                          value={event.status}
+                          onChange={(changeEvent) =>
+                            onUpdateEvent(event, { status: changeEvent.target.value })
+                          }
+                        >
+                          {statusOptions.map((status) => (
+                            <option key={status} value={status}>{statusLabels[status]}</option>
+                          ))}
+                        </select>
+                        <select
+                          value={event.visibility}
+                          onChange={(changeEvent) =>
+                            onUpdateEvent(event, { visibility: changeEvent.target.value })
+                          }
+                        >
+                          {visibilityOptions.map((visibility) => (
+                            <option key={visibility} value={visibility}>{visibility}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="export-actions">
+                        <a href={buildGoogleCalendarUrl(event)} target="_blank" rel="noreferrer">
+                          Google
+                        </a>
+                        <button type="button" onClick={() => downloadICS(event)}>
+                          ICS
+                        </button>
+                        <button type="button" onClick={() => onRemoveEvent(event)}>
+                          Remove
+                        </button>
+                      </div>
+                    </article>
+                  ) : (
+                    <span className="open-slot">Open</span>
+                  )}
+                </div>
+              );
+            })}
+          </section>
+        ))}
       </div>
     </section>
   );
 }
 
-function SearchScreen({ activities, setSelectedActivity, reviewForm, setReviewForm, submitReview }) {
+function AddActivityScreen({ form, setForm, onAutofill, onSubmit, currentUser }) {
+  return (
+    <section className="app-screen form-screen">
+      <div className="screen-title compact">
+        <span className="eyebrow">Add an activity</span>
+        <h1>Submit a local find</h1>
+        <p>Paste a link, fill the core activity table fields, and save it for review.</p>
+      </div>
+
+      {!currentUser && (
+        <div className="soft-note">You are in demo mode. Sign in to submit activities to Supabase.</div>
+      )}
+
+      <form className="app-form" onSubmit={onSubmit}>
+        <label className="wide">
+          <span>Activity link</span>
+          <div className="inline-control">
+            <input
+              value={form.activity_link}
+              onChange={(event) => setForm((current) => ({ ...current, activity_link: event.target.value }))}
+              placeholder="https://..."
+            />
+            <button type="button" onClick={onAutofill}>Autofill</button>
+          </div>
+        </label>
+
+        <label className="wide">
+          <span>Activity name</span>
+          <input
+            required
+            value={form.activity_name}
+            onChange={(event) => setForm((current) => ({ ...current, activity_name: event.target.value }))}
+          />
+        </label>
+
+        <label>
+          <span>Category</span>
+          <select
+            value={form.category}
+            onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))}
+          >
+            {categories.map((category) => (
+              <option key={category} value={category}>{category}</option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          <span>Borough</span>
+          <select
+            value={form.borough}
+            onChange={(event) => setForm((current) => ({ ...current, borough: event.target.value }))}
+          >
+            {boroughs.map((borough) => (
+              <option key={borough} value={borough}>{borough}</option>
+            ))}
+          </select>
+        </label>
+
+        <label className="wide">
+          <span>Address</span>
+          <input
+            required
+            value={form.address}
+            onChange={(event) => setForm((current) => ({ ...current, address: event.target.value }))}
+          />
+        </label>
+
+        <label>
+          <span>Latitude</span>
+          <input
+            value={form.lat}
+            onChange={(event) => setForm((current) => ({ ...current, lat: event.target.value }))}
+            placeholder="51.584"
+          />
+        </label>
+
+        <label>
+          <span>Longitude</span>
+          <input
+            value={form.long}
+            onChange={(event) => setForm((current) => ({ ...current, long: event.target.value }))}
+            placeholder="-0.021"
+          />
+        </label>
+
+        <label>
+          <span>Start time</span>
+          <input
+            type="time"
+            required
+            value={form.start_time}
+            onChange={(event) => setForm((current) => ({ ...current, start_time: event.target.value }))}
+          />
+        </label>
+
+        <label>
+          <span>End time</span>
+          <input
+            type="time"
+            required
+            value={form.end_time}
+            onChange={(event) => setForm((current) => ({ ...current, end_time: event.target.value }))}
+          />
+        </label>
+
+        <label>
+          <span>Child friendly score</span>
+          <input
+            type="number"
+            min="1"
+            max="5"
+            step="0.1"
+            value={form.child_friendly_score}
+            onChange={(event) => setForm((current) => ({ ...current, child_friendly_score: event.target.value }))}
+          />
+        </label>
+
+        <label>
+          <span>App rating</span>
+          <input
+            type="number"
+            min="1"
+            max="5"
+            step="0.1"
+            value={form.app_rating}
+            onChange={(event) => setForm((current) => ({ ...current, app_rating: event.target.value }))}
+          />
+        </label>
+
+        <label>
+          <span>Reviews</span>
+          <input
+            type="number"
+            min="0"
+            value={form.number_of_reviews}
+            onChange={(event) => setForm((current) => ({ ...current, number_of_reviews: event.target.value }))}
+          />
+        </label>
+
+        <label>
+          <span>Age suitability</span>
+          <input
+            value={form.age_suitability}
+            onChange={(event) => setForm((current) => ({ ...current, age_suitability: event.target.value }))}
+          />
+        </label>
+
+        <label className="wide">
+          <span>Website</span>
+          <input
+            value={form.website}
+            onChange={(event) => setForm((current) => ({ ...current, website: event.target.value }))}
+          />
+        </label>
+
+        <label className="wide">
+          <span>Google link</span>
+          <input
+            value={form.google_link}
+            onChange={(event) => setForm((current) => ({ ...current, google_link: event.target.value }))}
+          />
+        </label>
+
+        <label className="wide">
+          <span>Description</span>
+          <textarea
+            value={form.description}
+            onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
+          />
+        </label>
+
+        <button className="primary-action wide" type="submit">Save activity</button>
+      </form>
+    </section>
+  );
+}
+
+function SearchScreen({ activities, onOpenActivity }) {
   const [query, setQuery] = useState('');
   const results = activities.filter((activity) =>
-    `${activity.activity_name} ${activity.category} ${activity.address}`
+    `${activity.activity_name} ${activity.category} ${activity.address} ${activity.borough}`
       .toLowerCase()
       .includes(query.toLowerCase()),
   );
 
   return (
-    <section className="screen-grid two-column">
-      <div className="panel">
-        <div className="section-heading">
-          <span className="mini-label">Search</span>
-          <h2>Find an activity by name</h2>
-        </div>
-        <label className="field wide-field">
-          <span>Activity name</span>
-          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Walthamstow library" />
-        </label>
-
-        <div className="result-list">
-          {results.map((activity) => (
-            <button key={activity.activity_id} type="button" onClick={() => setSelectedActivity(activity)}>
-              <strong>{activity.activity_name}</strong>
-              <span>{activity.category} - {activity.address}</span>
-            </button>
-          ))}
-        </div>
+    <section className="app-screen search-screen">
+      <div className="screen-title compact">
+        <span className="eyebrow">Search</span>
+        <h1>Find and review</h1>
+        <p>Search an activity by name, then open it to add photos, reviews, or comments.</p>
       </div>
 
-      <div className="panel">
-        <div className="section-heading">
-          <span className="mini-label">Reviews and photos</span>
-          <h2>Add community texture</h2>
-        </div>
-        <p className="muted">Open an activity first, then add a quick review or photo URL from the detail drawer.</p>
-        <form className="review-form" onSubmit={submitReview}>
-          <label className="field">
-            <span>Rating</span>
-            <input
-              type="number"
-              min="1"
-              max="5"
-              value={reviewForm.rating}
-              onChange={(event) => setReviewForm((current) => ({ ...current, rating: event.target.value }))}
-            />
-          </label>
-          <label className="field wide-field">
-            <span>Review</span>
-            <textarea
-              value={reviewForm.text}
-              onChange={(event) => setReviewForm((current) => ({ ...current, text: event.target.value }))}
-              placeholder="Good buggy space, tiny lift, excellent biscuits..."
-            />
-          </label>
-          <label className="field wide-field">
-            <span>Photo URL</span>
-            <input
-              value={reviewForm.photo_url}
-              onChange={(event) => setReviewForm((current) => ({ ...current, photo_url: event.target.value }))}
-              placeholder="https://..."
-            />
-          </label>
-          <button className="primary-button wide-field" type="submit">
-            Save review/photo
+      <label className="search-box">
+        <span>Activity name</span>
+        <input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Walthamstow library, baby yoga..."
+        />
+      </label>
+
+      <div className="result-list">
+        {results.map((activity) => (
+          <button key={activity.activity_id} type="button" onClick={() => onOpenActivity(activity)}>
+            <strong>{activity.activity_name}</strong>
+            <span>{activity.category} - {activity.borough}</span>
           </button>
-        </form>
-      </div>
-    </section>
-  );
-}
-
-function CalendarScreen({ weekDays, calendarEvents, setSelectedActivity, updateEventVisibility }) {
-  return (
-    <section className="panel calendar-panel">
-      <div className="section-heading">
-        <span className="mini-label">In-app calendar</span>
-        <h2>Your week, lightly held</h2>
-      </div>
-      <div className="calendar-grid">
-        <div className="calendar-corner">Slot</div>
-        {weekDays.map((day) => (
-          <div key={day} className="calendar-day-heading">
-            {formatDay(day)}
-          </div>
-        ))}
-        {windows.map((windowName) => (
-          <CalendarRow
-            key={windowName}
-            windowName={windowName}
-            weekDays={weekDays}
-            calendarEvents={calendarEvents}
-            setSelectedActivity={setSelectedActivity}
-            updateEventVisibility={updateEventVisibility}
-          />
         ))}
       </div>
     </section>
-  );
-}
-
-function CalendarRow({ windowName, weekDays, calendarEvents, setSelectedActivity, updateEventVisibility }) {
-  return (
-    <>
-      <div className="calendar-window-heading">{windowName}</div>
-      {weekDays.map((day) => {
-        const event = calendarEvents.find(
-          (item) => item.planned_date === day && item.day_window === windowName,
-        );
-        return (
-          <div key={`${day}-${windowName}`} className={classNames('calendar-cell', event && 'has-event')}>
-            {event ? (
-              <article>
-                <button type="button" onClick={() => setSelectedActivity(event.activity)}>
-                  <strong>{event.activity.activity_name}</strong>
-                  <span>{event.start_time} to {event.end_time}</span>
-                </button>
-                <select
-                  value={event.visibility}
-                  onChange={(changeEvent) => updateEventVisibility(event, changeEvent.target.value)}
-                >
-                  <option value="private">private</option>
-                  <option value="followers">followers</option>
-                  <option value="public">public</option>
-                </select>
-                <div className="export-row">
-                  <a href={buildGoogleCalendarUrl(event)} target="_blank" rel="noreferrer">
-                    Google
-                  </a>
-                  <button type="button" onClick={() => downloadICS(event)}>
-                    ICS
-                  </button>
-                </div>
-              </article>
-            ) : (
-              <span className="empty-slot">Open</span>
-            )}
-          </div>
-        );
-      })}
-    </>
   );
 }
 
@@ -1325,7 +1477,8 @@ function ProfileScreen({
   session,
   profile,
   parents,
-  setParents,
+  followedParentIds,
+  toggleFollow,
   authMode,
   setAuthMode,
   authForm,
@@ -1334,150 +1487,152 @@ function ProfileScreen({
   signOut,
   hasSupabaseConfig: isConfigured,
 }) {
-  function toggleFollow(parent) {
-    setParents((current) =>
-      current.map((item) =>
-        item.user_id === parent.user_id ? { ...item, following: item.following + 1 } : item,
-      ),
-    );
-  }
-
   return (
-    <section className="screen-grid two-column">
-      <div className="panel">
-        <div className="section-heading">
-          <span className="mini-label">User account</span>
-          <h2>{session ? profile?.display_name || profile?.user_name || 'Signed in parent' : 'Sign in or make an account'}</h2>
-        </div>
-
-        {!isConfigured && (
-          <div className="soft-warning">
-            Add Supabase environment variables before live auth works. The rest of the app runs in demo mode.
-          </div>
-        )}
-
-        {session ? (
-          <div className="profile-card">
-            <p>{session.user.email}</p>
-            <div className="stat-pair">
-              <span>{profile?.followers ?? 0} followers</span>
-              <span>{profile?.following ?? 0} following</span>
-            </div>
-            <button className="ghost-button" type="button" onClick={signOut}>
-              Sign out
-            </button>
-          </div>
-        ) : (
-          <form className="auth-form" onSubmit={handleAuth}>
-            <div className="window-tabs compact">
-              <button
-                type="button"
-                className={classNames('window-tab', authMode === 'sign-in' && 'is-active')}
-                onClick={() => setAuthMode('sign-in')}
-              >
-                Sign in
-              </button>
-              <button
-                type="button"
-                className={classNames('window-tab', authMode === 'sign-up' && 'is-active')}
-                onClick={() => setAuthMode('sign-up')}
-              >
-                Sign up
-              </button>
-            </div>
-            {authMode === 'sign-up' && (
-              <label className="field">
-                <span>Username</span>
-                <input
-                  value={authForm.user_name}
-                  onChange={(event) => setAuthForm((current) => ({ ...current, user_name: event.target.value }))}
-                  placeholder="walthamstow_parent"
-                />
-              </label>
-            )}
-            <label className="field">
-              <span>Email</span>
-              <input
-                type="email"
-                value={authForm.email}
-                onChange={(event) => setAuthForm((current) => ({ ...current, email: event.target.value }))}
-              />
-            </label>
-            <label className="field">
-              <span>Password</span>
-              <input
-                type="password"
-                value={authForm.password}
-                onChange={(event) => setAuthForm((current) => ({ ...current, password: event.target.value }))}
-              />
-            </label>
-            <button className="primary-button" type="submit">
-              {authMode === 'sign-in' ? 'Sign in' : 'Create account'}
-            </button>
-          </form>
-        )}
+    <section className="app-screen profile-screen">
+      <div className="screen-title compact">
+        <span className="eyebrow">User account</span>
+        <h1>{session ? profile?.display_name || profile?.user_name || 'Your account' : 'Sign in'}</h1>
+        <p>Follow other parents and see their activity signals while swiping.</p>
       </div>
 
-      <div className="panel">
-        <div className="section-heading">
-          <span className="mini-label">Follow people</span>
-          <h2>Parent signals while swiping</h2>
+      {!isConfigured && (
+        <div className="soft-note">Supabase env vars are not active here, so accounts are in demo mode.</div>
+      )}
+
+      {session ? (
+        <div className="account-card">
+          <span>{session.user.email}</span>
+          <div className="stat-row">
+            <strong>{profile?.followers ?? 0}</strong>
+            <span>followers</span>
+            <strong>{profile?.following ?? followedParentIds.length}</strong>
+            <span>following</span>
+          </div>
+          <button type="button" className="secondary-button" onClick={signOut}>
+            Sign out
+          </button>
         </div>
-        <div className="parent-list">
-          {parents.map((parent) => (
-            <article key={parent.user_id} className="parent-card">
+      ) : (
+        <form className="auth-card" onSubmit={handleAuth}>
+          <div className="auth-tabs">
+            <button
+              type="button"
+              className={classNames(authMode === 'sign-in' && 'is-on')}
+              onClick={() => setAuthMode('sign-in')}
+            >
+              Sign in
+            </button>
+            <button
+              type="button"
+              className={classNames(authMode === 'sign-up' && 'is-on')}
+              onClick={() => setAuthMode('sign-up')}
+            >
+              Sign up
+            </button>
+          </div>
+          {authMode === 'sign-up' && (
+            <label>
+              <span>Username</span>
+              <input
+                value={authForm.user_name}
+                onChange={(event) => setAuthForm((current) => ({ ...current, user_name: event.target.value }))}
+                placeholder="walthamstow_parent"
+              />
+            </label>
+          )}
+          <label>
+            <span>Email</span>
+            <input
+              type="email"
+              value={authForm.email}
+              onChange={(event) => setAuthForm((current) => ({ ...current, email: event.target.value }))}
+            />
+          </label>
+          <label>
+            <span>Password</span>
+            <input
+              type="password"
+              value={authForm.password}
+              onChange={(event) => setAuthForm((current) => ({ ...current, password: event.target.value }))}
+            />
+          </label>
+          <button className="primary-action" type="submit">
+            {authMode === 'sign-in' ? 'Sign in' : 'Create account'}
+          </button>
+        </form>
+      )}
+
+      <div className="people-list">
+        <h2>Parents to follow</h2>
+        {parents.map((parent) => {
+          const isFollowing = followedParentIds.includes(parent.user_id);
+          return (
+            <article key={parent.user_id} className="person-card">
               <div>
                 <strong>{parent.display_name}</strong>
                 <span>@{parent.user_name}</span>
               </div>
-              <button className="small-button" type="button" onClick={() => toggleFollow(parent)}>
-                Follow
+              <button
+                type="button"
+                className={classNames('secondary-button', isFollowing && 'is-on')}
+                onClick={() => toggleFollow(parent.user_id)}
+              >
+                {isFollowing ? 'Following' : 'Follow'}
               </button>
             </article>
-          ))}
-        </div>
+          );
+        })}
       </div>
     </section>
   );
 }
 
-function ActivityDrawer({ activity, onClose, reviewForm, setReviewForm, submitReview }) {
+function ActivityDetail({
+  activity,
+  followedNames,
+  reviewForm,
+  setReviewForm,
+  submitReview,
+  onClose,
+}) {
+  const signalNames = activity.followerNames.filter((name) => followedNames.includes(name));
+
   return (
-    <div className="drawer-backdrop" role="dialog" aria-modal="true">
-      <aside className="activity-drawer">
-        <button className="drawer-close" type="button" onClick={onClose}>
-          Close
-        </button>
-        <div className="photo-placeholder">
-          <span>Google photos later</span>
-        </div>
-        <p className="eyebrow">{activity.category}</p>
-        <h2>{activity.activity_name}</h2>
-        <p>{activity.description}</p>
-        <div className="detail-list">
-          <span><strong>Address</strong>{activity.address}</span>
-          <span><strong>Time</strong>{activity.start_time} to {activity.end_time}</span>
-          <span><strong>Age</strong>{activity.age_suitability || 'TBC'}</span>
-          <span><strong>Child friendly</strong>{activity.child_friendly_score || 'Not rated yet'}</span>
-          <span><strong>App rating</strong>{activity.app_rating || 'Not rated yet'}</span>
-          <span><strong>Reviews</strong>{activity.number_of_reviews || 0}</span>
-        </div>
-        <div className="drawer-actions">
-          {activity.website && (
-            <a className="small-button" href={activity.website} target="_blank" rel="noreferrer">
-              Website
-            </a>
-          )}
-          {activity.google_link && (
-            <a className="small-button" href={activity.google_link} target="_blank" rel="noreferrer">
-              Google Maps
-            </a>
-          )}
+    <div className="detail-backdrop" role="dialog" aria-modal="true">
+      <aside className="detail-sheet">
+        <button className="sheet-close" type="button" onClick={onClose}>Close</button>
+        <div className="detail-photo">
+          <span>Google photos</span>
+          <small>Connect Google Places Photos API for live images</small>
         </div>
 
-        <form className="review-form drawer-review" onSubmit={submitReview}>
-          <h3>Add a quick review or photo</h3>
-          <label className="field">
+        <p className="eyebrow">{activity.category}</p>
+        <h2>{activity.activity_name}</h2>
+        <p>{activity.description || 'No description yet.'}</p>
+
+        {signalNames.length > 0 && (
+          <div className="friend-signal wide">
+            {signalNames.join(', ')} selected this activity
+          </div>
+        )}
+
+        <div className="detail-grid">
+          <span><strong>Time</strong>{activity.start_time} to {activity.end_time}</span>
+          <span><strong>Address</strong>{activity.address}</span>
+          <span><strong>Age</strong>{activity.age_suitability || 'TBC'}</span>
+          <span><strong>Child friendly</strong>{activity.child_friendly_score || 'Not rated'}</span>
+          <span><strong>App rating</strong>{activity.app_rating || 'Not rated'}</span>
+          <span><strong>Reviews</strong>{activity.number_of_reviews || 0}</span>
+        </div>
+
+        <div className="external-links">
+          {activity.website && <a href={activity.website} target="_blank" rel="noreferrer">Website</a>}
+          {activity.google_link && <a href={activity.google_link} target="_blank" rel="noreferrer">Google</a>}
+        </div>
+
+        <form className="review-card" onSubmit={submitReview}>
+          <h3>Add review or photo</h3>
+          <label>
             <span>Rating</span>
             <input
               type="number"
@@ -1487,25 +1642,59 @@ function ActivityDrawer({ activity, onClose, reviewForm, setReviewForm, submitRe
               onChange={(event) => setReviewForm((current) => ({ ...current, rating: event.target.value }))}
             />
           </label>
-          <label className="field">
-            <span>Review</span>
+          <label>
+            <span>Comment</span>
             <textarea
-              value={reviewForm.text}
-              onChange={(event) => setReviewForm((current) => ({ ...current, text: event.target.value }))}
+              value={reviewForm.comments}
+              onChange={(event) => setReviewForm((current) => ({ ...current, comments: event.target.value }))}
+              placeholder="Buggy access, toilets, feeding space, vibe..."
             />
           </label>
-          <label className="field">
+          <label>
             <span>Photo URL</span>
             <input
               value={reviewForm.photo_url}
               onChange={(event) => setReviewForm((current) => ({ ...current, photo_url: event.target.value }))}
+              placeholder="https://..."
             />
           </label>
-          <button className="primary-button" type="submit">
-            Save
-          </button>
+          <button className="primary-action" type="submit">Save review/photo</button>
         </form>
       </aside>
     </div>
+  );
+}
+
+function StatusPill({ status, ghost = false }) {
+  return (
+    <span className={classNames('status-pill', `status-${status}`, ghost && 'is-ghost')}>
+      {ghost ? 'Unseen' : statusLabels[status]}
+    </span>
+  );
+}
+
+function BottomNav({ activeScreen, setActiveScreen }) {
+  const items = [
+    ['start', 'Filters'],
+    ['swipe', 'Swipe'],
+    ['calendar', 'Calendar'],
+    ['add', 'Add'],
+    ['search', 'Search'],
+    ['profile', 'Me'],
+  ];
+
+  return (
+    <nav className="bottom-nav" aria-label="App navigation">
+      {items.map(([screen, label]) => (
+        <button
+          key={screen}
+          type="button"
+          className={classNames(activeScreen === screen && 'is-on')}
+          onClick={() => setActiveScreen(screen)}
+        >
+          {label}
+        </button>
+      ))}
+    </nav>
   );
 }
