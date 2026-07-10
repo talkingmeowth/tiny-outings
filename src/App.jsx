@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './supabaseClient';
 
 const dayWindows = ['morning', 'afternoon', 'evening'];
@@ -7,6 +7,49 @@ const planningStorageVersion = '2026-07-09-activity-visibility-reset';
 const visibilityOptions = ['private', 'public'];
 const statusOptions = ['booked', 'tentative'];
 const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+const activitySelectColumns = [
+  'activity_id',
+  'activity_name',
+  'address',
+  'lat',
+  'long',
+  'category',
+  'start_time',
+  'end_time',
+  'google_link',
+  'website',
+  'child_friendly_score',
+  'app_rating',
+  'number_of_reviews',
+  'age_suitability',
+  'borough',
+  'days_of_week',
+  'available_days_of_week',
+  'available_dates',
+  'activity_date',
+  'availability_start_date',
+  'availability_end_date',
+  'availability_type',
+  'availability_notes',
+  'schedule_notes',
+  'time_window',
+  'description',
+  'cost',
+  'price',
+  'price_text',
+  'fee',
+  'image_url',
+  'google_photo_url',
+  'photo_url',
+  'image_source_url',
+  'source_url',
+  'google_primary_type',
+  'google_place_id',
+  'google_place_uri',
+  'google_rating',
+  'google_user_rating_count',
+  'public_listing_status',
+].join(',');
 const statusLabels = {
   booked: 'Booked',
   tentative: 'Tentative',
@@ -245,11 +288,6 @@ function formatDistance(miles) {
   if (miles == null || Number.isNaN(miles)) return null;
   if (miles < 0.1) return 'Very nearby';
   return `${miles.toFixed(1)} mi`;
-}
-
-function estimateWalkMinutes(miles) {
-  if (miles == null || Number.isNaN(miles)) return null;
-  return Math.max(1, Math.round(miles * 20));
 }
 
 function formatWalk(minutes) {
@@ -515,54 +553,88 @@ export default function App() {
   const [dragState, setDragState] = useState({ activityId: null, startX: null, offsetX: 0 });
   const [walkingRoutes, setWalkingRoutes] = useState({});
 
-  const weekDays = Array.from({ length: 7 }, (_, index) => addDaysISO(filters.weekStart, index));
+  const weekDays = useMemo(
+    () => Array.from({ length: 7 }, (_, index) => addDaysISO(filters.weekStart, index)),
+    [filters.weekStart],
+  );
   const activeSlot = slotKey(selectedDate, selectedWindow);
-  const allActivities = activities.map(normalizeActivity);
-  const activityById = new Map(allActivities.map((activity) => [String(activity.activity_id), activity]));
+  const allActivities = useMemo(() => activities.map(normalizeActivity), [activities]);
+  const activityById = useMemo(
+    () => new Map(allActivities.map((activity) => [String(activity.activity_id), activity])),
+    [allActivities],
+  );
   const distanceLimit = filters.distanceMode === 'walk'
     ? Number(filters.walkMinutes) / 20
     : Number(filters.radiusMiles);
 
-  const activitiesWithDistance = allActivities.map((activity) => ({
-    ...activity,
-    distance: walkingRoutes[activity.activity_id]?.distance ?? (
-      googleMapsApiKey ? null : milesBetween(userLocation, { lat: activity.lat, long: activity.long })
+  const activitiesWithDistance = useMemo(
+    () => allActivities.map((activity) => ({
+      ...activity,
+      distance: walkingRoutes[activity.activity_id]?.distance ?? (
+        googleMapsApiKey ? null : milesBetween(userLocation, { lat: activity.lat, long: activity.long })
+      ),
+      walkMinutes: walkingRoutes[activity.activity_id]?.walkMinutes ?? null,
+    })),
+    [allActivities, userLocation, walkingRoutes],
+  );
+
+  const publishedActivityCount = useMemo(
+    () => allActivities.filter((activity) => activity.public_listing_status === 'published').length,
+    [allActivities],
+  );
+  const sharedFilteredActivities = useMemo(
+    () => activitiesWithDistance.filter((activity) => {
+      const interestMatch = activityMatchesInterests(activity, filters.interests);
+      const distanceMatch =
+        !userLocation || activity.distance == null || activity.distance <= distanceLimit;
+      return activity.public_listing_status === 'published' && interestMatch && distanceMatch;
+    }),
+    [activitiesWithDistance, filters.interests, distanceLimit, userLocation],
+  );
+  const weekMatchedActivities = useMemo(
+    () => sharedFilteredActivities.filter(
+      (activity) => weekDays.some((day) => isActivityAvailableOn(activity, day)),
     ),
-    walkMinutes: walkingRoutes[activity.activity_id]?.walkMinutes ?? null,
-  }));
-
-  function matchesSharedFilters(activity) {
-    const interestMatch = activityMatchesInterests(activity, filters.interests);
-    const distanceMatch =
-      !userLocation || activity.distance == null || activity.distance <= distanceLimit;
-    return activity.public_listing_status === 'published' && interestMatch && distanceMatch;
-  }
-
-  const publishedActivityCount = allActivities.filter(
-    (activity) => activity.public_listing_status === 'published',
-  ).length;
-  const weekMatchedActivities = activitiesWithDistance.filter(
-    (activity) => matchesSharedFilters(activity) && weekDays.some((day) => isActivityAvailableOn(activity, day)),
+    [sharedFilteredActivities, weekDays],
   );
-  const filteredActivities = activitiesWithDistance.filter(
-    (activity) => matchesSharedFilters(activity) && isActivityAvailableOn(activity, selectedDate),
+  const filteredActivities = useMemo(
+    () => sharedFilteredActivities.filter(
+      (activity) => isActivityAvailableOn(activity, selectedDate),
+    ),
+    [sharedFilteredActivities, selectedDate],
   );
-
-  const slotActivities = filteredActivities.filter(
-    (activity) => isFlexibleActivity(activity) || activity.time_window === selectedWindow,
+  const slotActivities = useMemo(
+    () => filteredActivities.filter(
+      (activity) => isFlexibleActivity(activity) || activity.time_window === selectedWindow,
+    ),
+    [filteredActivities, selectedWindow],
   );
-  const swipedIds = new Set((swipes[activeSlot] || []).map((item) => String(item.activity_id)));
-  const deckActivities = slotActivities.filter((activity) => !swipedIds.has(String(activity.activity_id)));
-  const currentShortlist = (shortlists[activeSlot] || [])
-    .map((activityId) => activityById.get(String(activityId)))
-    .filter(Boolean);
-  const chosenForSlot = calendarEvents.find(
-    (event) => event.planned_date === selectedDate && event.day_window === selectedWindow,
+  const swipedIds = useMemo(
+    () => new Set((swipes[activeSlot] || []).map((item) => String(item.activity_id))),
+    [activeSlot, swipes],
   );
-  const routeCandidates = [...deckActivities.slice(0, 3), selectedActivity]
-    .filter((activity) => activity?.lat != null && activity?.long != null)
-    .filter((activity, index, items) => items.findIndex((item) => item.activity_id === activity.activity_id) === index);
-  const routeCandidateIds = routeCandidates.map((activity) => activity.activity_id).join(',');
+  const deckActivities = useMemo(
+    () => slotActivities.filter((activity) => !swipedIds.has(String(activity.activity_id))),
+    [slotActivities, swipedIds],
+  );
+  const currentShortlist = useMemo(
+    () => (shortlists[activeSlot] || [])
+      .map((activityId) => activityById.get(String(activityId)))
+      .filter(Boolean),
+    [activeSlot, activityById, shortlists],
+  );
+  const chosenForSlot = useMemo(
+    () => calendarEvents.find(
+      (event) => event.planned_date === selectedDate && event.day_window === selectedWindow,
+    ),
+    [calendarEvents, selectedDate, selectedWindow],
+  );
+  const routeCandidates = useMemo(
+    () => [...deckActivities.slice(0, 3), selectedActivity]
+      .filter((activity) => activity?.lat != null && activity?.long != null)
+      .filter((activity, index, items) => items.findIndex((item) => item.activity_id === activity.activity_id) === index),
+    [deckActivities, selectedActivity],
+  );
 
   useEffect(() => saveStored('filters', filters), [filters]);
   useEffect(() => saveStored('swipes', swipes), [swipes]);
@@ -623,7 +695,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [routeCandidateIds, userLocation, walkingRoutes]);
+  }, [routeCandidates, userLocation, walkingRoutes]);
 
   useEffect(() => {
     let cancelled = false;
@@ -638,7 +710,7 @@ export default function App() {
       for (let from = 0; ; from += pageSize) {
         const response = await supabase
           .from('activities')
-          .select('*')
+          .select(activitySelectColumns)
           .eq('public_listing_status', 'published')
           .order('start_time', { ascending: true })
           .order('activity_id', { ascending: true })
@@ -657,7 +729,7 @@ export default function App() {
       if (error) {
         setNotice(`We could not refresh outings just now: ${error.message}`);
       } else {
-        setActivities(data.map(normalizeActivity));
+        setActivities(data);
       }
       setLoading(false);
     }
