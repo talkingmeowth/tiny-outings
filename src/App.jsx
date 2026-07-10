@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { supabase } from './supabaseClient';
 
 const dayWindows = ['morning', 'afternoon', 'evening'];
@@ -463,10 +463,9 @@ function isActivityAvailableOn(activity, dateISO) {
   return true;
 }
 
-function activityMatchesInterests(activity, interests) {
-  if (!interests?.length) return true;
-  const haystack = `${activity.category} ${activity.activity_name} ${activity.description || ''}`.toLowerCase();
-  return interests.some((interest) => haystack.includes(interest.toLowerCase()));
+function activityMatchesInterests(activity, selectedCategories, allCategoriesSelected) {
+  if (allCategoriesSelected) return true;
+  return selectedCategories.has(String(activity.category || '').toLowerCase());
 }
 
 function buildSubmittedPayload(enriched, link) {
@@ -529,16 +528,14 @@ export default function App() {
   const [selectedWindow, setSelectedWindow] = useState('morning');
   const [filters, setFilters] = useState(() => {
     const stored = loadStored('filters', {});
-    const storedInterests = Array.isArray(stored.interests) ? stored.interests : [];
     const defaults = defaultFilters();
     return {
       distanceMode: stored.distanceMode === 'walk' ? 'walk' : 'radius',
       radiusMiles: Number(stored.radiusMiles) || defaults.radiusMiles,
       walkMinutes: Number(stored.walkMinutes) || defaults.walkMinutes,
       weekStart: stored.weekStart || defaults.weekStart,
-      interests: storedInterests.length
-        ? storedInterests.filter((interest) => activityInterestOptions.includes(interest))
-        : defaults.interests,
+      // Categories always begin broad. Parents can narrow them for the current session.
+      interests: defaults.interests,
     };
   });
   const [userLocation, setUserLocation] = useState(null);
@@ -553,6 +550,12 @@ export default function App() {
   const [returnScreen, setReturnScreen] = useState('swipe');
   const [dragState, setDragState] = useState({ activityId: null, startX: null, offsetX: 0 });
   const [walkingRoutes, setWalkingRoutes] = useState({});
+  const deferredInterests = useDeferredValue(filters.interests);
+  const selectedCategorySet = useMemo(
+    () => new Set(deferredInterests.map((interest) => interest.toLowerCase())),
+    [deferredInterests],
+  );
+  const allCategoriesSelected = selectedCategorySet.size === activityInterestOptions.length;
 
   const weekDays = useMemo(
     () => Array.from({ length: 7 }, (_, index) => addDaysISO(filters.weekStart, index)),
@@ -585,12 +588,12 @@ export default function App() {
   );
   const sharedFilteredActivities = useMemo(
     () => activitiesWithDistance.filter((activity) => {
-      const interestMatch = activityMatchesInterests(activity, filters.interests);
+      const interestMatch = activityMatchesInterests(activity, selectedCategorySet, allCategoriesSelected);
       const distanceMatch =
         !userLocation || activity.distance == null || activity.distance <= distanceLimit;
       return activity.public_listing_status === 'published' && interestMatch && distanceMatch;
     }),
-    [activitiesWithDistance, filters.interests, distanceLimit, userLocation],
+    [activitiesWithDistance, selectedCategorySet, allCategoriesSelected, distanceLimit, userLocation],
   );
   const weekMatchedActivities = useMemo(
     () => sharedFilteredActivities.filter(
@@ -1181,7 +1184,7 @@ function StartScreen({
 
         <div className="field-group">
           <span>Mood</span>
-          <p>Pick a few, or leave blank.</p>
+          <p>All selected. Tap to narrow.</p>
           <div className="chip-grid interest-grid">
             {activityInterestOptions.map((interest) => (
               <button
