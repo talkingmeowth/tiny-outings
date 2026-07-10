@@ -4,8 +4,6 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repoRoot = dirname(dirname(fileURLToPath(import.meta.url)));
-const outputSqlPath = join(repoRoot, 'supabase', 'seed', 'activity_location_updates.generated.sql');
-const outputAuditPath = join(repoRoot, 'data', 'activity_location_updates.generated.json');
 const fieldMask = [
   'places.id',
   'places.displayName',
@@ -37,6 +35,18 @@ const supabaseUrl = process.env.VITE_SUPABASE_URL || localEnv.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || localEnv.VITE_SUPABASE_ANON_KEY;
 const googleApiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_PLACES_API_KEY;
 const requestedLimit = Number(process.argv.find((argument) => argument.startsWith('--limit='))?.split('=')[1] || 0);
+const verifyAll = process.argv.includes('--verify-all');
+const outputSqlPath = join(
+  repoRoot,
+  'supabase',
+  'seed',
+  verifyAll ? 'activity_google_places_venue_verification.generated.sql' : 'activity_location_updates.generated.sql',
+);
+const outputAuditPath = join(
+  repoRoot,
+  'data',
+  verifyAll ? 'activity_google_places_venue_verification.generated.json' : 'activity_location_updates.generated.json',
+);
 
 function sqlString(value) {
   if (value === null || value === undefined || value === '') return 'null';
@@ -51,6 +61,16 @@ function normalizedAddress(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 }
 
+function venueNameForActivities(activities) {
+  const names = activities
+    .map((activity) => String(activity.activity_name || '').match(/\bat\s+(.+)$/i)?.[1]?.trim())
+    .filter(Boolean);
+  if (!names.length) return null;
+  const counts = new Map();
+  for (const name of names) counts.set(name, (counts.get(name) || 0) + 1);
+  return [...counts.entries()].sort((left, right) => right[1] - left[1])[0][0];
+}
+
 function isPlausiblePlace(group, place) {
   if (!place?.location || !Number.isFinite(place.location.latitude) || !Number.isFinite(place.location.longitude)) {
     return false;
@@ -60,11 +80,18 @@ function isPlausiblePlace(group, place) {
   const returnedDistrict = postcodeDistrict(place.formattedAddress);
   if (requestedDistrict && returnedDistrict && requestedDistrict !== returnedDistrict) return false;
 
-  const tokens = normalizedAddress(group.address)
+  const tokens = normalizedAddress(group.venue || group.address)
     .split(' ')
-    .filter((token) => token.length > 3 && !['london', 'road', 'street', 'centre', 'center'].includes(token));
+    .filter((token) => token.length > 3 && !['london', 'road', 'street', 'centre', 'center', 'library'].includes(token));
   const returned = normalizedAddress(`${place.displayName?.text || ''} ${place.formattedAddress || ''}`);
   return tokens.length === 0 || tokens.some((token) => returned.includes(token));
+}
+
+function shouldApplyPlaceUpdate(group, activity, place) {
+  if (!verifyAll) return true;
+  // Address-only matches can resolve to a nearby business on the same road. Only replace
+  // an existing Google Place when the activity itself names the matching venue.
+  return Boolean(group.venue) && activity.google_place_id !== place.id;
 }
 
 async function fetchPublishedActivities() {
@@ -72,8 +99,9 @@ async function fetchPublishedActivities() {
   const activities = [];
   const pageSize = 1000;
   for (let offset = 0; ; offset += pageSize) {
+    const missingLocationFilter = verifyAll ? '' : '&or=(lat.is.null,long.is.null)';
     const response = await fetch(
-      `${supabaseUrl}/rest/v1/activities?select=activity_id,activity_name,address,borough,lat,long&public_listing_status=eq.published&or=(lat.is.null,long.is.null)&order=activity_name.asc&limit=${pageSize}&offset=${offset}`,
+      `${supabaseUrl}/rest/v1/activities?select=activity_id,activity_name,address,borough,lat,long,google_place_id,google_place_uri&public_listing_status=eq.published${missingLocationFilter}&order=activity_name.asc&limit=${pageSize}&offset=${offset}`,
       { headers: { apikey: supabaseAnonKey, Authorization: `Bearer ${supabaseAnonKey}` } },
     );
     if (!response.ok) throw new Error(`Could not read activities: ${response.status} ${await response.text()}`);
@@ -92,7 +120,7 @@ async function searchPlace(group) {
       'X-Goog-FieldMask': fieldMask,
     },
     body: JSON.stringify({
-      textQuery: `${group.address}, London`,
+      textQuery: `${group.venue || group.address}, ${group.address}, London`,
       languageCode: 'en-GB',
       regionCode: 'GB',
       locationBias: {
@@ -162,10 +190,11 @@ async function main() {
     if (!key) continue;
     const group = grouped.get(key) || { address: activity.address, activities: [] };
     group.activities.push(activity);
+    group.venue = venueNameForActivities(group.activities);
     grouped.set(key, group);
   }
   const groups = [...grouped.values()].slice(0, requestedLimit || undefined);
-  console.log(`Resolving ${groups.length} unique venues for ${activities.length} activities.`);
+  console.log(`${verifyAll ? 'Verifying' : 'Resolving'} ${groups.length} unique venues for ${activities.length} activities.`);
 
   const results = await mapWithConcurrency(groups, 4, async (group, index) => {
     try {
@@ -179,7 +208,9 @@ async function main() {
   });
 
   const updates = results.flatMap(({ group, place }) => place
-    ? group.activities.map((activity) => ({
+    ? group.activities
+      .filter((activity) => shouldApplyPlaceUpdate(group, activity, place))
+      .map((activity) => ({
       activityId: activity.activity_id,
       address: place.formattedAddress || activity.address,
       lat: place.location.latitude,
@@ -187,16 +218,20 @@ async function main() {
       placeId: place.id,
       placeUri: place.googleMapsUri,
       rating: place.rating ?? null,
-      reviewCount: place.userRatingCount ?? null,
-    }))
+        reviewCount: place.userRatingCount ?? null,
+      }))
     : []);
   const audit = results.map(({ group, place, error }) => ({
     address: group.address,
+    venue: group.venue,
     activity_count: group.activities.length,
     status: place ? 'matched' : error ? 'error' : 'unmatched',
     place_id: place?.id || null,
     place_name: place?.displayName?.text || null,
     formatted_address: place?.formattedAddress || null,
+    changed_activity_count: place
+      ? group.activities.filter((activity) => shouldApplyPlaceUpdate(group, activity, place)).length
+      : 0,
     error,
   }));
 

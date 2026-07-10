@@ -65,8 +65,10 @@ const activityInterestOptions = [
   'Baby swimming',
   'Postnatal fitness',
   'Baby dance & movement',
+  'Developmental play',
   'Stay & play',
   'Story & rhyme time',
+  'Arts & crafts',
   'Feeding & postnatal support',
   'Soft play',
   'Child-friendly cafes',
@@ -74,6 +76,7 @@ const activityInterestOptions = [
   'Museums & culture',
   'Baby & toddler cinema',
   'Family hubs',
+  'Parent meet-ups',
   'Family activities',
 ];
 
@@ -128,7 +131,7 @@ function defaultFilters() {
     radiusMiles: 3,
     walkMinutes: 35,
     weekStart: startOfWeekISO(todayISO()),
-    interests: [],
+    interests: [...activityInterestOptions],
   };
 }
 
@@ -533,7 +536,9 @@ export default function App() {
       radiusMiles: Number(stored.radiusMiles) || defaults.radiusMiles,
       walkMinutes: Number(stored.walkMinutes) || defaults.walkMinutes,
       weekStart: stored.weekStart || defaults.weekStart,
-      interests: storedInterests.filter((interest) => activityInterestOptions.includes(interest)),
+      interests: storedInterests.length
+        ? storedInterests.filter((interest) => activityInterestOptions.includes(interest))
+        : defaults.interests,
     };
   });
   const [userLocation, setUserLocation] = useState(null);
