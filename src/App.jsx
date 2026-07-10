@@ -6,6 +6,7 @@ const storagePrefix = 'tiny-outings';
 const planningStorageVersion = '2026-07-09-activity-visibility-reset';
 const visibilityOptions = ['private', 'public'];
 const statusOptions = ['booked', 'tentative'];
+const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const statusLabels = {
   booked: 'Booked',
   tentative: 'Tentative',
@@ -17,16 +18,70 @@ const emptyLinkForm = {
 };
 
 const activityInterestOptions = [
-  'child friendly cafe',
-  'park',
-  'child friendly museum',
-  'family activity',
-  'baby stay and play',
-  'story time',
-  'sensory play',
-  'soft play',
-  'family hub',
+  'Baby yoga',
+  'Baby massage',
+  'Baby sensory',
+  'Music & singing',
+  'Baby signing',
+  'Baby swimming',
+  'Postnatal fitness',
+  'Baby dance & movement',
+  'Stay & play',
+  'Story & rhyme time',
+  'Feeding & postnatal support',
+  'Soft play',
+  'Child-friendly cafes',
+  'Parks & outdoor play',
+  'Museums & culture',
+  'Baby & toddler cinema',
+  'Family hubs',
+  'Family activities',
 ];
+
+let routesLibraryPromise;
+
+function loadRoutesLibrary() {
+  if (!googleMapsApiKey || typeof window === 'undefined') return null;
+  if (window.google?.maps?.importLibrary) return window.google.maps.importLibrary('routes');
+  if (routesLibraryPromise) return routesLibraryPromise;
+
+  routesLibraryPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(googleMapsApiKey)}&v=weekly`;
+    script.async = true;
+    script.onload = async () => {
+      try {
+        resolve(await window.google.maps.importLibrary('routes'));
+      } catch (error) {
+        reject(error);
+      }
+    };
+    script.onerror = () => reject(new Error('Google Maps could not load.'));
+    document.head.append(script);
+  });
+
+  return routesLibraryPromise;
+}
+
+async function fetchWalkingRoute(origin, activity) {
+  const routesLibrary = await loadRoutesLibrary();
+  if (!routesLibrary || activity.lat == null || activity.long == null) return null;
+
+  const { Route } = routesLibrary;
+  const { routes } = await Route.computeRoutes({
+    origin: { lat: origin.lat, lng: origin.long },
+    destination: { lat: activity.lat, lng: activity.long },
+    travelMode: 'WALKING',
+    fields: ['distanceMeters', 'durationMillis'],
+  });
+  const route = routes?.[0];
+  if (!route?.distanceMeters || !route?.durationMillis) return null;
+
+  return {
+    distance: Number(route.distanceMeters) / 1609.344,
+    walkMinutes: Math.max(1, Math.round(Number(route.durationMillis) / 60000)),
+  };
+}
 
 function defaultFilters() {
   return {
@@ -187,7 +242,7 @@ function milesBetween(a, b) {
 }
 
 function formatDistance(miles) {
-  if (miles == null || Number.isNaN(miles)) return 'Distance soon';
+  if (miles == null || Number.isNaN(miles)) return null;
   if (miles < 0.1) return 'Very nearby';
   return `${miles.toFixed(1)} mi`;
 }
@@ -197,9 +252,8 @@ function estimateWalkMinutes(miles) {
   return Math.max(1, Math.round(miles * 20));
 }
 
-function formatWalk(miles) {
-  const minutes = estimateWalkMinutes(miles);
-  return minutes ? `${minutes} min walk` : 'Walk soon';
+function formatWalk(minutes) {
+  return Number.isFinite(minutes) ? `${minutes} min walk` : null;
 }
 
 function isFlexibleActivity(activity) {
@@ -459,6 +513,7 @@ export default function App() {
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [returnScreen, setReturnScreen] = useState('swipe');
   const [dragState, setDragState] = useState({ activityId: null, startX: null, offsetX: 0 });
+  const [walkingRoutes, setWalkingRoutes] = useState({});
 
   const weekDays = Array.from({ length: 7 }, (_, index) => addDaysISO(filters.weekStart, index));
   const activeSlot = slotKey(selectedDate, selectedWindow);
@@ -470,7 +525,10 @@ export default function App() {
 
   const activitiesWithDistance = allActivities.map((activity) => ({
     ...activity,
-    distance: milesBetween(userLocation, { lat: activity.lat, long: activity.long }),
+    distance: walkingRoutes[activity.activity_id]?.distance ?? (
+      googleMapsApiKey ? null : milesBetween(userLocation, { lat: activity.lat, long: activity.long })
+    ),
+    walkMinutes: walkingRoutes[activity.activity_id]?.walkMinutes ?? null,
   }));
 
   function matchesSharedFilters(activity) {
@@ -501,6 +559,10 @@ export default function App() {
   const chosenForSlot = calendarEvents.find(
     (event) => event.planned_date === selectedDate && event.day_window === selectedWindow,
   );
+  const routeCandidates = [...deckActivities.slice(0, 3), selectedActivity]
+    .filter((activity) => activity?.lat != null && activity?.long != null)
+    .filter((activity, index, items) => items.findIndex((item) => item.activity_id === activity.activity_id) === index);
+  const routeCandidateIds = routeCandidates.map((activity) => activity.activity_id).join(',');
 
   useEffect(() => saveStored('filters', filters), [filters]);
   useEffect(() => saveStored('swipes', swipes), [swipes]);
@@ -520,23 +582,82 @@ export default function App() {
   }, [filters.weekStart, selectedDate]);
 
   useEffect(() => {
+    if (activeScreen !== 'swipe') return;
+    window.requestAnimationFrame(() => {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    });
+  }, [activeScreen]);
+
+  useEffect(() => {
+    setWalkingRoutes({});
+  }, [userLocation?.lat, userLocation?.long]);
+
+  useEffect(() => {
+    if (!googleMapsApiKey || !userLocation || !routeCandidates.length) return undefined;
+    let cancelled = false;
+    const missingRoutes = routeCandidates.filter((activity) => !walkingRoutes[activity.activity_id]);
+    if (!missingRoutes.length) return undefined;
+
+    Promise.all(
+      missingRoutes.map(async (activity) => ({
+        activityId: activity.activity_id,
+        route: await fetchWalkingRoute(userLocation, activity),
+      })),
+    )
+      .then((results) => {
+        if (cancelled) return;
+        setWalkingRoutes((current) => {
+          const next = { ...current };
+          for (const result of results) {
+            if (result.route) next[result.activityId] = result.route;
+          }
+          return next;
+        });
+      })
+      .catch(() => {
+        // A card without a route simply omits travel until the next attempt.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [routeCandidateIds, userLocation, walkingRoutes]);
+
+  useEffect(() => {
     let cancelled = false;
 
     async function loadActivities() {
       if (!supabase) return;
       setLoading(true);
-      const { data, error } = await supabase
-        .from('activities')
-        .select('*')
-        .eq('public_listing_status', 'published')
-        .order('start_time', { ascending: true });
+      const pageSize = 1000;
+      const data = [];
+      let error = null;
+
+      for (let from = 0; ; from += pageSize) {
+        const response = await supabase
+          .from('activities')
+          .select('*')
+          .eq('public_listing_status', 'published')
+          .order('start_time', { ascending: true })
+          .order('activity_id', { ascending: true })
+          .range(from, from + pageSize - 1);
+
+        if (response.error) {
+          error = response.error;
+          break;
+        }
+        data.push(...(response.data || []));
+        if ((response.data || []).length < pageSize) break;
+      }
 
       if (cancelled) return;
 
       if (error) {
         setNotice(`We could not refresh outings just now: ${error.message}`);
       } else {
-        setActivities((data || []).map(normalizeActivity));
+        setActivities(data.map(normalizeActivity));
       }
       setLoading(false);
     }
@@ -1272,8 +1393,8 @@ function ActivityCard({
     : undefined;
   const cost = activityCost(activity);
   const distance = formatDistance(activity.distance);
-  const walk = formatWalk(activity.distance);
-  const travelText = walk ? `${distance} - ${walk}` : distance;
+  const walk = formatWalk(activity.walkMinutes);
+  const travelText = distance && walk ? `${distance} - ${walk}` : distance;
   const flexible = isFlexibleActivity(activity);
 
   return (
@@ -1316,8 +1437,9 @@ function ActivityCard({
         </div>
         <h2>{activity.activity_name}</h2>
         <p className="card-description">
-          {activity.description || activity.address || 'Tap for the latest details.'}
+          {activity.description || 'Tap for the latest details.'}
         </p>
+        {activity.address && <p className="card-address">{activity.address}</p>}
 
         <div className="card-summary">
           {flexible ? (
@@ -1334,7 +1456,7 @@ function ActivityCard({
               <small>{cost}</small>
             </span>
           )}
-          <span><strong>Travel</strong><small>{travelText}</small></span>
+          {travelText && <span><strong>Travel</strong><small>{travelText}</small></span>}
         </div>
       </div>
     </article>

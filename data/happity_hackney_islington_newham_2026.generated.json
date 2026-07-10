@@ -19050,7 +19050,7 @@
       "area": "Newham",
       "name": "Stratford Library Rhyme and Story Time - Tuesday",
       "address": "Stratford Library, 3 The Grove, Stratford, London E15 1EL",
-      "category": "rhyme time at the library",
+      "category": "Story & rhyme time",
       "start": "10:00",
       "end": "11:00",
       "days": [
@@ -19067,7 +19067,7 @@
       "area": "Newham",
       "name": "Stratford Library Rhyme and Story Time - Friday",
       "address": "Stratford Library, 3 The Grove, Stratford, London E15 1EL",
-      "category": "rhyme time at the library",
+      "category": "Story & rhyme time",
       "start": "10:00",
       "end": "10:30",
       "days": [
@@ -19084,7 +19084,7 @@
       "area": "Hackney",
       "name": "Mapledene Music and Movement - 0 to 2 years",
       "address": "Mapledene and Queensbridge Children’s Centre, 54 Mapledene Road, Hackney, London E8 3LE",
-      "category": "baby music classes",
+      "category": "Music & singing",
       "start": "09:00",
       "end": "09:45",
       "days": [
@@ -19101,7 +19101,7 @@
       "area": "Hackney",
       "name": "Mapledene Music and Movement - 2 to 5 years",
       "address": "Mapledene and Queensbridge Children’s Centre, 54 Mapledene Road, Hackney, London E8 3LE",
-      "category": "baby dance or movement classes",
+      "category": "Baby dance & movement",
       "start": "09:45",
       "end": "10:30",
       "days": [
@@ -19118,7 +19118,7 @@
       "area": "Hackney",
       "name": "Mapledene Sing and Sign Drop-in",
       "address": "Mapledene and Queensbridge Children’s Centre, 54 Mapledene Road, Hackney, London E8 3LE",
-      "category": "baby signing classes",
+      "category": "Baby signing",
       "start": "10:00",
       "end": "11:30",
       "days": [
@@ -19135,7 +19135,7 @@
       "area": "Hackney",
       "name": "Mapledene Stay and Play with Soft Play",
       "address": "Mapledene and Queensbridge Children’s Centre, 54 Mapledene Road, Hackney, London E8 3LE",
-      "category": "parent-and-baby playgroups",
+      "category": "Stay & play",
       "start": "09:00",
       "end": "11:30",
       "days": [
@@ -19152,7 +19152,7 @@
       "area": "Hackney",
       "name": "Mapledene Baby Massage Course",
       "address": "Mapledene and Queensbridge Children’s Centre, 54 Mapledene Road, Hackney, London E8 3LE",
-      "category": "baby massage classes",
+      "category": "Baby massage",
       "start": "13:30",
       "end": "15:00",
       "days": [
@@ -19169,7 +19169,7 @@
       "area": "Hackney",
       "name": "Mapledene Messy Play with Physical Literacy",
       "address": "Mapledene and Queensbridge Children’s Centre, 54 Mapledene Road, Hackney, London E8 3LE",
-      "category": "developmental play sessions",
+      "category": "Developmental play",
       "start": "09:00",
       "end": "11:30",
       "days": [
@@ -19186,7 +19186,7 @@
       "area": "Islington",
       "name": "Lewis Carroll Library Baby Bounce",
       "address": "Lewis Carroll Library, 166 Copenhagen Street, London N1 0ST",
-      "category": "rhyme time at the library",
+      "category": "Story & rhyme time",
       "start": "11:00",
       "end": "11:30",
       "days": [
@@ -19203,7 +19203,7 @@
       "area": "Islington",
       "name": "Lewis Carroll Library Under 5s Story and Rhyme",
       "address": "Lewis Carroll Library, 166 Copenhagen Street, London N1 0ST",
-      "category": "baby story time at the library",
+      "category": "Story & rhyme time",
       "start": "11:00",
       "end": "11:30",
       "days": [
@@ -19220,7 +19220,7 @@
       "area": "Islington",
       "name": "Lewis Carroll Library Saturday Story Time",
       "address": "Lewis Carroll Library, 166 Copenhagen Street, London N1 0ST",
-      "category": "baby story time at the library",
+      "category": "Story & rhyme time",
       "start": "11:30",
       "end": "12:00",
       "days": [
@@ -19237,7 +19237,7 @@
       "area": "Waltham Forest",
       "name": "Mama Swim Sessions at Feel Good Centre",
       "address": "Waltham Forest Feel Good Centre, Chingford Road, London E17",
-      "category": "baby swimming lessons",
+      "category": "Baby swimming",
       "start": "10:00",
       "end": "12:00",
       "days": [

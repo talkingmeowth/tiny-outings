@@ -1,0 +1,4403 @@
+[
+  {
+    "address": "Freedom Fighters Arts, N1, London",
+    "activity_count": 60,
+    "status": "matched",
+    "place_id": "ChIJJ0w5-3cddkgRcMfpc5RVqXI",
+    "place_name": "Freedom Fighters Arts",
+    "formatted_address": "Freedom Fighters Arts, Redvers St, London N1 6NE",
+    "error": null
+  },
+  {
+    "address": "The Ciderhouse E7, E7, London",
+    "activity_count": 6,
+    "status": "matched",
+    "place_id": "ChIJi0TfdFyn2EcRF9Ku4uBBdyM",
+    "place_name": "The Ciderhouse E7",
+    "formatted_address": "Archway 435, Avenue Rd, London E7 0JN",
+    "error": null
+  },
+  {
+    "address": "215 Queens Road, Walthamstow, London E17 8PJ",
+    "activity_count": 14,
+    "status": "matched",
+    "place_id": "ChIJMfD_Fb8ddkgRf2BUEkcjD9A",
+    "place_name": "215 Queens Rd",
+    "formatted_address": "215 Queens Rd, London E17 8PJ",
+    "error": null
+  },
+  {
+    "address": "St Mary's Church, N1, London",
+    "activity_count": 31,
+    "status": "matched",
+    "place_id": "ChIJoVc842YbdkgRT7yE9PtntUY",
+    "place_name": "St Mary's Church, Islington",
+    "formatted_address": "Upper St, London N1 2TX",
+    "error": null
+  },
+  {
+    "address": "Redbridge Drama Centre, E18, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJK34I2zSn2EcRP6SyxDcBJsI",
+    "place_name": "Redbridge Drama Centre",
+    "formatted_address": "Churchfields, London E18 2RB",
+    "error": null
+  },
+  {
+    "address": "East Ham Leisure Centre, E6, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJmSouKzim2EcR_QbaLiR2MRI",
+    "place_name": "East Ham Leisure Centre",
+    "formatted_address": "East Ham Leisure Centre, 324 Barking Rd, London E6 2RT",
+    "error": null
+  },
+  {
+    "address": "ACS Dance Centre, RM1, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJeVRlljS72EcRRmebMWUyP30",
+    "place_name": "ACS Dance Centre",
+    "formatted_address": "66 Albert Rd, Romford RM1 2PP",
+    "error": null
+  },
+  {
+    "address": "Round Chapel Old School Rooms, E5, London",
+    "activity_count": 5,
+    "status": "matched",
+    "place_id": "ChIJcRijlP4cdkgR6WJ3vLJ48xE",
+    "place_name": "Round Chapel Families",
+    "formatted_address": "The Old School, 2 Powerscroft Rd, Lower Clapton, London E5 0PU",
+    "error": null
+  },
+  {
+    "address": "Hackney Bridge, E15, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJd54HB6IddkgRoe6mnIAS614",
+    "place_name": "Hackney Bridge",
+    "formatted_address": "Units 1-28, Echo Building, E Bay Ln, London E15 2SJ",
+    "error": null
+  },
+  {
+    "address": "Prideaux House Community Centre, E9, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJH1Jacx4ddkgRRCMWkLhbQ5w",
+    "place_name": "Prideaux House Community Centre",
+    "formatted_address": "Prideaux House, 10 Church Cres, London E9 7DL",
+    "error": null
+  },
+  {
+    "address": "South Chingford Congregational Church, E4, London",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJc8wh3BMedkgRXCHtbOm7tUk",
+    "place_name": "South Chingford Congregational Church",
+    "formatted_address": "161 Chingford Mount Rd, London E4 8LT",
+    "error": null
+  },
+  {
+    "address": "The Castle Play Space, E11, London",
+    "activity_count": 13,
+    "status": "matched",
+    "place_id": "ChIJPz80ZgCn2EcRm37QclmMPkM",
+    "place_name": "The Castle Play Space",
+    "formatted_address": "370 Grove Green Rd, London E11 4AJ",
+    "error": null
+  },
+  {
+    "address": "Trinity URC, E17, London",
+    "activity_count": 12,
+    "status": "matched",
+    "place_id": "ChIJyymgS-wddkgRUdnqF5N8gx4",
+    "place_name": "Trinity Walthamstow United Reformed Church",
+    "formatted_address": "58 Orford Rd, London E17 9QU",
+    "error": null
+  },
+  {
+    "address": "After Noah, N1, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJS81X-GYbdkgRW2SN_wuLkWU",
+    "place_name": "After Noah",
+    "formatted_address": "121-122 Upper St, London N1 1QP",
+    "error": null
+  },
+  {
+    "address": "Woodford County High School for Girls, IG8, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJYyfeI7ig2EcRehYT7i6p_PI",
+    "place_name": "Woodford County High School for Girls'",
+    "formatted_address": "High Rd, Woodford, Woodford Green IG8 9LA",
+    "error": null
+  },
+  {
+    "address": "48b Bouverie Rd, N16, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJHSPE9WQcdkgRBrWlg7ODQHw",
+    "place_name": "48b Bouverie Rd",
+    "formatted_address": "48b Bouverie Rd, London N16 0AJ",
+    "error": null
+  },
+  {
+    "address": "Hanover Primary School, N1, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJa8M4j14bdkgR6YqxfOGPavo",
+    "place_name": "Hanover Primary School",
+    "formatted_address": "Noel Rd, London N1 8BD",
+    "error": null
+  },
+  {
+    "address": "Ánimo London, E3, London",
+    "activity_count": 7,
+    "status": "matched",
+    "place_id": "ChIJvRUws-cddkgRMMt5bFJoUWU",
+    "place_name": "Ánimo E3, Victoria Park",
+    "formatted_address": "475 Roman Rd, Bow, London E3 5LX",
+    "error": null
+  },
+  {
+    "address": "Lea Bridge Road, Leyton, London E10 7HU",
+    "activity_count": 13,
+    "status": "matched",
+    "place_id": "ChIJ5Ry49sAddkgR4DEb7DrXf9Q",
+    "place_name": "CRRAVE LEYTON",
+    "formatted_address": "323A Lea Bridge Rd, London E10 7LA",
+    "error": null
+  },
+  {
+    "address": "All Saints, N1, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJC3gs6z8bdkgRMtrj1kaEN1Y",
+    "place_name": "All Saints Street",
+    "formatted_address": "All Saints St, London",
+    "error": null
+  },
+  {
+    "address": "Archway Dance Academy, N19, London",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJm1pVydMbdkgRr9OvA867hAc",
+    "place_name": "Archway Dance Academy",
+    "formatted_address": "Navigator Square, Archway, London N19 3TD",
+    "error": null
+  },
+  {
+    "address": "Archway Library, N19, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJWxOz0K0bdkgR5Tho41agb1Y",
+    "place_name": "Archway Library",
+    "formatted_address": "Hamlyn House, Highgate Hl, Archway, London N19 5PH",
+    "error": null
+  },
+  {
+    "address": "Fernbank Family Hub, N16, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJs_9IelwcdkgRc88THBLZ61k",
+    "place_name": "Fernbank Children's Centre",
+    "formatted_address": "1A Fountayne Rd, London N16 7EA",
+    "error": null
+  },
+  {
+    "address": "Sebright Children's Centre, E2, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJfbd_h8AcdkgRHWx68a6ZufI",
+    "place_name": "Sebright Children's Centre",
+    "formatted_address": "Haggerston Park, Queensbridge Rd, London E2 8NP",
+    "error": null
+  },
+  {
+    "address": "Ann Tayler Children Centre, E8, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJcbhrd-gcdkgRECKC6UEltwQ",
+    "place_name": "Ann Tayler Children and Family Hub",
+    "formatted_address": "Fields, 1-13 Triangle Rd, London E8 3RP",
+    "error": null
+  },
+  {
+    "address": "Holdspace Wynford, N1, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJr2svJ7MbdkgRRTATH0Eze7Y",
+    "place_name": "Holdspace",
+    "formatted_address": "Risinghill St, London N1 9SY",
+    "error": null
+  },
+  {
+    "address": "Hackney Showroom HQ, N4, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJuxChAPUcdkgRQg07SJ1LTx0",
+    "place_name": "Hackney Showroom",
+    "formatted_address": "4 Murrain Rd, Finsbury Park, London N4 2BN",
+    "error": null
+  },
+  {
+    "address": "Liverpool Road Community Centre, N1, London",
+    "activity_count": 17,
+    "status": "matched",
+    "place_id": "ChIJ4xxvYCwbdkgR_U4DvUB5iRo",
+    "place_name": "Liverpool Road Community Centre",
+    "formatted_address": "Laycock St, London N1 1LP",
+    "error": null
+  },
+  {
+    "address": "Le Dance Studio, E20, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJkSKd7QkddkgR5heBH7GgbxU",
+    "place_name": "Le Dance Studio",
+    "formatted_address": "2 Tandy Pl, London E20 3AS",
+    "error": null
+  },
+  {
+    "address": "Wanstead House Community Association, E11, London",
+    "activity_count": 10,
+    "status": "matched",
+    "place_id": "ChIJtVFaJBSn2EcROtoiUFXaEdc",
+    "place_name": "Wanstead House Community Centre",
+    "formatted_address": "Wanstead House Community Association, London E11 2NT",
+    "error": null
+  },
+  {
+    "address": "Wanstead Library, E11, London",
+    "activity_count": 8,
+    "status": "matched",
+    "place_id": "ChIJ_1W0MRWn2EcRdFCmkEaWSsk",
+    "place_name": "Wanstead Library",
+    "formatted_address": "3 Spratt Hall Rd, London E11 2RQ",
+    "error": null
+  },
+  {
+    "address": "Wanstead United Reformed Church, E11, London",
+    "activity_count": 19,
+    "status": "matched",
+    "place_id": "ChIJFfYfQz6n2EcR7yHuLAjtOfk",
+    "place_name": "Wanstead United Reformed Church",
+    "formatted_address": "Nightingale Ln, London E11 2HD",
+    "error": null
+  },
+  {
+    "address": "Snaresbrook Scout Hut, E11, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJo-C7K0Gn2EcRK5zBVNRfk-A",
+    "place_name": "Snaresbrook Scout Hut",
+    "formatted_address": "72 Hollybush Hill, London E11 1PE",
+    "error": null
+  },
+  {
+    "address": "The Duke Wanstead, E11, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJbSszxj6n2EcR5AHI1MIFWIg",
+    "place_name": "The Duke Wanstead",
+    "formatted_address": "79 Nightingale Ln, London E11 2EY",
+    "error": null
+  },
+  {
+    "address": "Good Shepherd Studios, London E11",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJuRUUuFWn2EcROV2zhCaXSr8",
+    "place_name": "Good Shepherd Studios",
+    "formatted_address": "Good Shepherd Studios, 15A Davies Ln, Bushwood, London E11 3DR",
+    "error": null
+  },
+  {
+    "address": "Good Shepherd Studios, E11, London",
+    "activity_count": 12,
+    "status": "matched",
+    "place_id": "ChIJuRUUuFWn2EcROV2zhCaXSr8",
+    "place_name": "Good Shepherd Studios",
+    "formatted_address": "Good Shepherd Studios, 15A Davies Ln, Bushwood, London E11 3DR",
+    "error": null
+  },
+  {
+    "address": "CRATE Walthamstow, E17, London",
+    "activity_count": 3,
+    "status": "unmatched",
+    "place_id": null,
+    "place_name": null,
+    "formatted_address": null,
+    "error": null
+  },
+  {
+    "address": "High Street, Walthamstow, London E17 7JN",
+    "activity_count": 8,
+    "status": "matched",
+    "place_id": "ChIJ6cCYf8EddkgRdJXqr71RURI",
+    "place_name": "High Street",
+    "formatted_address": "High St, London",
+    "error": null
+  },
+  {
+    "address": "5 Oaks Grove, Chingford, London E4 6EY",
+    "activity_count": 10,
+    "status": "matched",
+    "place_id": "ChIJSzqqKJqg2EcRgO4NrkNEdh4",
+    "place_name": "5 Oaks Grove",
+    "formatted_address": "5 Oaks Grove, London E4 6EY",
+    "error": null
+  },
+  {
+    "address": "2-8 Cathall Road, Leytonstone, London E11 4LF",
+    "activity_count": 12,
+    "status": "matched",
+    "place_id": "ChIJz2n7tnin2EcRtifTi0MuOVg",
+    "place_name": "Leytonstone Family Hub",
+    "formatted_address": "2-8 Cathall Rd, London E11 4LF",
+    "error": null
+  },
+  {
+    "address": "313 Billet Road, Walthamstow, London E17 5PX",
+    "activity_count": 8,
+    "status": "matched",
+    "place_id": "ChIJiVHhENYddkgRFTE-G2rKJh8",
+    "place_name": "313 Billet Rd",
+    "formatted_address": "313 Billet Rd, London E17 5PX",
+    "error": null
+  },
+  {
+    "address": "7 Saxon Close, Walthamstow, London E17 8LE",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJKRGSH74ddkgRynesivfmhEE",
+    "place_name": "7 Saxon Cl",
+    "formatted_address": "7 Saxon Cl, London E17 8LE",
+    "error": null
+  },
+  {
+    "address": "Walthamstow Toy Library, E17, London",
+    "activity_count": 50,
+    "status": "matched",
+    "place_id": "ChIJ-5-zJPIddkgRSIEKJlIec10",
+    "place_name": "Walthamstow Toy Library",
+    "formatted_address": "6-8 Somers Rd, London E17 6RX",
+    "error": null
+  },
+  {
+    "address": "Heathcote and Star, E11, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJL4ygEH2n2EcRw4qpPD3oI9A",
+    "place_name": "Heathcote & Star",
+    "formatted_address": "344 Grove Green Rd, London E11 4EA",
+    "error": null
+  },
+  {
+    "address": "St Michael and All Angels Hall, E8, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJF9fUjuscdkgRi11ZdAaiMPU",
+    "place_name": "St Michael & All Angels Church, London Fields",
+    "formatted_address": "94B Lansdowne Dr, Blackstone Estate, London E8 3ER",
+    "error": null
+  },
+  {
+    "address": "Shern Hall Methodist Church, E17, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJj-1WMPQddkgRr2c3CFeK2CU",
+    "place_name": "Shern Hall Methodist Church",
+    "formatted_address": "Shern Hall Methodist Church, 173 Shernhall St, London E17 9HX",
+    "error": null
+  },
+  {
+    "address": "Carpenters & Dockland Centre, E15, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJ-QwBa2EddkgRZNrEDzl0PnI",
+    "place_name": "Carpenters & Dockland Centre",
+    "formatted_address": "98 Gibbins Rd, London E15 2HU",
+    "error": null
+  },
+  {
+    "address": "Leytonstone United Free Church, E11, London",
+    "activity_count": 6,
+    "status": "matched",
+    "place_id": "ChIJ_c1bumOn2EcRRR4bonQP-wU",
+    "place_name": "Leytonstone United Free Church",
+    "formatted_address": "55 Wallwood Rd, London E11 1AY",
+    "error": null
+  },
+  {
+    "address": "Wanstead Quaker Meeting House, E11, London",
+    "activity_count": 7,
+    "status": "matched",
+    "place_id": "ChIJgwE6um2n2EcR0-d2wELRtTA",
+    "place_name": "Wanstead Quaker Meeting House",
+    "formatted_address": "Quaker Meeting House, Friends Meeting House, Burial Ground, Bush Rd, London E11 3AU",
+    "error": null
+  },
+  {
+    "address": "Woodgrange Baptist Church, E7, London",
+    "activity_count": 5,
+    "status": "matched",
+    "place_id": "ChIJIRnuSaOn2EcRVG1TXd-TQuY",
+    "place_name": "Woodgrange Baptist Church",
+    "formatted_address": "345 Romford Rd, London E7 8AA",
+    "error": null
+  },
+  {
+    "address": "Liverpool Road Community Centre, Samuel Lewis Trust Estate, Liverpool Road, London N1 1LP",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJ4xxvYCwbdkgR_U4DvUB5iRo",
+    "place_name": "Liverpool Road Community Centre",
+    "formatted_address": "Laycock St, London N1 1LP",
+    "error": null
+  },
+  {
+    "address": "The Mill (Community Centre), E17, London",
+    "activity_count": 9,
+    "status": "matched",
+    "place_id": "ChIJW_vvL8YddkgRi3ngXRsGA2s",
+    "place_name": "The Mill (Community Centre)",
+    "formatted_address": "7-11 Coppermill Ln, London E17 7HA",
+    "error": null
+  },
+  {
+    "address": "The Salvation Army, E17, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJW1HoUuYddkgR1H8ESLj9cnA",
+    "place_name": "The Salvation Army",
+    "formatted_address": "434 Forest Rd, London E17 4PY",
+    "error": null
+  },
+  {
+    "address": "Elizabeth House, N5, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJyaE2eIEbdkgRCDu6RZbt1r4",
+    "place_name": "Elizabeth House",
+    "formatted_address": "2 Hurlock St, London N5 1ED",
+    "error": null
+  },
+  {
+    "address": "St John of Jerusalem Church, Hackney, E9, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJt5SrER4ddkgRaQaCUFB8nvc",
+    "place_name": "St John of Jerusalem Church, South Hackney",
+    "formatted_address": "Lauriston Rd, London E9 7EY",
+    "error": null
+  },
+  {
+    "address": "St Michael & All Angels, Walthamstow, E17, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJTQ-Qd8QddkgRiQau9TbQcrg",
+    "place_name": "St Michael & All Angels, Walthamstow",
+    "formatted_address": "Northcote Rd, London E17 6PQ",
+    "error": null
+  },
+  {
+    "address": "St Mary's Neighbourhood Centre, N1, London",
+    "activity_count": 10,
+    "status": "matched",
+    "place_id": "ChIJc8iWZp4bdkgRkzRzKKCsAg8",
+    "place_name": "St Mary's Neighbourhood Centre",
+    "formatted_address": "Upper St, London N1 2TX",
+    "error": null
+  },
+  {
+    "address": "St James Hall, Islington, N1, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJX0RofmAbdkgRCmk5ryp9EiU",
+    "place_name": "St James’ Church Hall",
+    "formatted_address": "42 Packington St, London N1 8RD",
+    "error": null
+  },
+  {
+    "address": "CRATE St James Street, E17, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJ54sqULYddkgR0itO30PTWpE",
+    "place_name": "CRATE St James Street",
+    "formatted_address": "CRATE, SJS, 35 St James St, London E17 7FY",
+    "error": null
+  },
+  {
+    "address": "Tun, E10, London",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJb3L-i3gddkgRhcpDpT_pUOc",
+    "place_name": "Tun café and bar",
+    "formatted_address": "140 Tilbury Rd, London E10 6RE",
+    "error": null
+  },
+  {
+    "address": "Barefoot School of Performing Arts - Camden, NW5, London",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJQ9PhJD4bdkgRUtr2tlCssx0",
+    "place_name": "Barefoot Performing Arts Camden (BPA Camden)",
+    "formatted_address": "2 Patshull Rd, London NW5 2LB",
+    "error": null
+  },
+  {
+    "address": "Birkbeck ToddlerLab, WC1E, London",
+    "activity_count": 5,
+    "status": "matched",
+    "place_id": "ChIJKYMGuCkbdkgR8Wm6hDK6Mqw",
+    "place_name": "Birkbeck ToddlerLab",
+    "formatted_address": "33 Torrington Square, London WC1E 7JL",
+    "error": null
+  },
+  {
+    "address": "Blackhorse Road Baptist Church, E17, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJd1bQMs8ddkgRkbT8WJQcZkk",
+    "place_name": "Blackhorse Road Baptist Church",
+    "formatted_address": "65 Blackhorse Rd, London E17 7AS",
+    "error": null
+  },
+  {
+    "address": "The Hub Cafe, E9, London",
+    "activity_count": 7,
+    "status": "unmatched",
+    "place_id": null,
+    "place_name": null,
+    "formatted_address": null,
+    "error": null
+  },
+  {
+    "address": "Poplar Union, London E14",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJJYxCpUoddkgRJMBRDEU6SjM",
+    "place_name": "Poplar Union",
+    "formatted_address": "Poplar Union, 2 Cotall St, London E14 6TL",
+    "error": null
+  },
+  {
+    "address": "N1c community centre, N1C, London",
+    "activity_count": 7,
+    "status": "unmatched",
+    "place_id": null,
+    "place_name": null,
+    "formatted_address": null,
+    "error": null
+  },
+  {
+    "address": "Christ Church Wanstead, E11, London",
+    "activity_count": 6,
+    "status": "matched",
+    "place_id": "ChIJP1EGqmqn2EcRZj_dJmS1ItQ",
+    "place_name": "Christ Church Wanstead",
+    "formatted_address": "Wanstead Pl, London E11 2SW",
+    "error": null
+  },
+  {
+    "address": "Highams Park Baptist Church, London E4",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ51pwXccfdkgRyXWQj6VmXpk",
+    "place_name": "Highams Park Baptist Church",
+    "formatted_address": "129 Cavendish Rd, London E4 9NG",
+    "error": null
+  },
+  {
+    "address": "The Scout Hall, E17, London",
+    "activity_count": 5,
+    "status": "matched",
+    "place_id": "ChIJcQEKSPYddkgRjyxp8vYas50",
+    "place_name": "14th Walthamstow Scout Group",
+    "formatted_address": "205a Wood St, London E17 3NU",
+    "error": null
+  },
+  {
+    "address": "The Quaker Meeting House, E17, London",
+    "activity_count": 12,
+    "status": "matched",
+    "place_id": "ChIJwWDWfugddkgRWf7bZNTis6k",
+    "place_name": "Walthamstow Quaker Meeting House",
+    "formatted_address": "1A Jewel Rd, London E17 4QU",
+    "error": null
+  },
+  {
+    "address": "St Mary's Welcome Centre, E17, London",
+    "activity_count": 13,
+    "status": "matched",
+    "place_id": "ChIJYUYkOMAddkgRAxC5ONXOCkY",
+    "place_name": "St Mary's Welcome Centre",
+    "formatted_address": "8 Church End, London E17 9RJ",
+    "error": null
+  },
+  {
+    "address": "Highams Park Baptist Church, E4, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJ51pwXccfdkgRyXWQj6VmXpk",
+    "place_name": "Highams Park Baptist Church",
+    "formatted_address": "129 Cavendish Rd, London E4 9NG",
+    "error": null
+  },
+  {
+    "address": "The Scout Hut, E17, London",
+    "activity_count": 1,
+    "status": "unmatched",
+    "place_id": null,
+    "place_name": null,
+    "formatted_address": null,
+    "error": null
+  },
+  {
+    "address": "The Royal Standard, London SE3",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJTYCw7DOo2EcRXmjrMxe603Q",
+    "place_name": "The Royal Standard",
+    "formatted_address": "44 Vanbrugh Park, Greater, Blackheath, London SE3 7JQ",
+    "error": null
+  },
+  {
+    "address": "Boxx, E18, London",
+    "activity_count": 6,
+    "status": "matched",
+    "place_id": "ChIJXz4eoqDYdUgR0M8cmr82gtw",
+    "place_name": "Boxx",
+    "formatted_address": "Mae, 96 George Ln, London E18 1AD",
+    "error": null
+  },
+  {
+    "address": "Breathe Studio, N1, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJWUfP79YbdkgR885c2XXxkIs",
+    "place_name": "Breathe Studio",
+    "formatted_address": "Ste 7, Islington House, 313-314 Upper St, London N1 2XQ",
+    "error": null
+  },
+  {
+    "address": "Forest Lane Lodge, E7, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJ6WEwJZqn2EcROisugTP3tO8",
+    "place_name": "Forest Lane Lodge",
+    "formatted_address": "Magpie Cl, London E7 9DE",
+    "error": null
+  },
+  {
+    "address": "The Clapton Hart, E5, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJHR4pfPgcdkgRZRSlOZj1q4A",
+    "place_name": "The Clapton Hart",
+    "formatted_address": "231 Lower Clapton Rd, Lower Clapton, London E5 8EH",
+    "error": null
+  },
+  {
+    "address": "The Red Lion, E11, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJRzzPTWWn2EcRn04bh00Fpi0",
+    "place_name": "The Red Lion Leytonstone",
+    "formatted_address": "640 High Rd Leytonstone, Bushwood, London E11 3AA",
+    "error": null
+  },
+  {
+    "address": "The King's Head Crouch End, N8, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJfRLcUMcbdkgRubz156ctt2I",
+    "place_name": "The Kings Head",
+    "formatted_address": "2 Crouch End Hill, London N8 8AA",
+    "error": null
+  },
+  {
+    "address": "Big Penny Social, E17, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJOXISL-oddkgR8T4iCezLtY4",
+    "place_name": "Big Penny Social",
+    "formatted_address": "1 Priestley Way, London E17 6AL",
+    "error": null
+  },
+  {
+    "address": "Outside Caledonian Road & Barnsbury overground station, N1, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ-WcKxWwbdkgR52W61Bw6f-o",
+    "place_name": "Caledonian Road & Barnsbury",
+    "formatted_address": "Hemingford Rd, London N1 1DF",
+    "error": null
+  },
+  {
+    "address": "Just inside Abney Park Cemetery Egyptian Gates (NOT THE CHURCH STREET ENTRANCE), N16, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJX5ZsHGEcdkgR0ECJJ1Ud9Eg",
+    "place_name": "Abney Park Cemetery Trust",
+    "formatted_address": "Stoke Newington High St, London N16 0LH",
+    "error": null
+  },
+  {
+    "address": "Outside Haggerston Station, E8, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJF09fLZQcdkgRRsmL3iIoewI",
+    "place_name": "Haggerston",
+    "formatted_address": "London E8 4DY, UK",
+    "error": null
+  },
+  {
+    "address": "Three Crowns, Stoke Newington, N16, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ2XzqK2EcdkgRkN65U4eJ-bU",
+    "place_name": "Three Crowns, Stoke Newington",
+    "formatted_address": "175 Stoke Newington High St, London N16 0LH",
+    "error": null
+  },
+  {
+    "address": "Three Colts Tavern, E2, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJd-rG30kddkgRkUDIyBCSy3M",
+    "place_name": "Three Colts Tavern",
+    "formatted_address": "199 Cambridge Heath Rd, London E2 0EL",
+    "error": null
+  },
+  {
+    "address": "Backyard Comedy Club, E2, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJx_pRYdocdkgRpHKFmsPmcAM",
+    "place_name": "Backyard Comedy Club",
+    "formatted_address": "231 Cambridge Heath Rd, London E2 0EL",
+    "error": null
+  },
+  {
+    "address": "Finsbury Park Picturehouse, N4, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJgdX8IZsbdkgRCb-4YbTyeWI",
+    "place_name": "Finsbury Park Picturehouse",
+    "formatted_address": "Unit 1, Cinema LS, 17 City N Pl, Finsbury Park, London N4 3FU",
+    "error": null
+  },
+  {
+    "address": "Brickworks Community Centre, N4, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJ__8v8b0bdkgRQUpgxtWLct8",
+    "place_name": "Brickworks Community Centre",
+    "formatted_address": "42 Crouch Hill, Finsbury Park, London N4 4BY",
+    "error": null
+  },
+  {
+    "address": "Mortimer Terrace Nature Reserve, NW5, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJ6xnjQg4bdkgRYB_BNIzg7gk",
+    "place_name": "Mortimer Terrace Nature Reserve",
+    "formatted_address": "Wesleyan Pl, London NW5 1LN",
+    "error": null
+  },
+  {
+    "address": "Highbury Fields, N5, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJc8RPdXsbdkgR8a6N0kAODUw",
+    "place_name": "Highbury Fields",
+    "formatted_address": "Highbury Cres, London N5 1AR",
+    "error": null
+  },
+  {
+    "address": "Clissold Park, N16, London",
+    "activity_count": 16,
+    "status": "matched",
+    "place_id": "ChIJ20fKH3wcdkgRu2dDMx_lAUk",
+    "place_name": "Clissold Park",
+    "formatted_address": "Green Lanes, London N16 9HJ",
+    "error": null
+  },
+  {
+    "address": "Moon, NW5, London",
+    "activity_count": 13,
+    "status": "matched",
+    "place_id": "ChIJOQu6qMgbdkgRgjXsuaRsK8M",
+    "place_name": "Moon Women's Health",
+    "formatted_address": "Ground Floor, Shop, 63 Chetwynd Rd, London NW5 1BX",
+    "error": null
+  },
+  {
+    "address": "Cat and Mouse Library, N7, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJ162gQAkbdkgRMZcg8wcspKI",
+    "place_name": "Cat and Mouse Library",
+    "formatted_address": "277 Camden Rd, London N7 0JN",
+    "error": null
+  },
+  {
+    "address": "Cavendish School, NW1, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJGcKREOEadkgRi3KIpCekrsQ",
+    "place_name": "The Cavendish School",
+    "formatted_address": "31 Inverness St, London NW1 7HB",
+    "error": null
+  },
+  {
+    "address": "Walthamstow Central Baptist Church, E17, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJK5LxXuwddkgRwH1VrsLeEec",
+    "place_name": "Walthamstow Central Baptist Church",
+    "formatted_address": "101 Orford Rd, London E17 9QR",
+    "error": null
+  },
+  {
+    "address": "Central Library, Islington, N5, London",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJueELi3AbdkgRCWGCMmeXhJg",
+    "place_name": "Islington Central Library",
+    "formatted_address": "2 Fieldway Cres, London N5 1PF",
+    "error": null
+  },
+  {
+    "address": "People's Park Tavern, E9, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJkYItVzcddkgRZdpcdl0r5g8",
+    "place_name": "People's Park Tavern",
+    "formatted_address": "360 Victoria Park Rd, London E9 7BT",
+    "error": null
+  },
+  {
+    "address": "Soho Theatre Walthamstow, E17, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJsy232EsddkgRB-0s8gKGk1Q",
+    "place_name": "Soho Theatre Walthamstow",
+    "formatted_address": "186 Hoe St, London E17 4QH",
+    "error": null
+  },
+  {
+    "address": "The Parish Church of Christ Church Highbury with St. John and St. Saviour, N5, London",
+    "activity_count": 5,
+    "status": "matched",
+    "place_id": "ChIJt6Xll34bdkgRQmJn8RQI1ZQ",
+    "place_name": "The Parish Church of Christ Church Highbury with St. John and St. Saviour",
+    "formatted_address": "159 Highbury Grove, London N5 1SA",
+    "error": null
+  },
+  {
+    "address": "Church Lane Community Garden, London E11 4QX, UK",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJfU9IQHun2EcR3rDzXnSAQW0",
+    "place_name": "Church Lane Community Garden",
+    "formatted_address": "Bushwood, London E11 4QY",
+    "error": null
+  },
+  {
+    "address": "Islington Dance Studios, N1, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJpXeMLA8bdkgRee1wymLN6-0",
+    "place_name": "Angélina Jandolo Dance - Islington",
+    "formatted_address": "Claremont project, 4 White Lion St, London N1 9PD",
+    "error": null
+  },
+  {
+    "address": "Hargrave Hall Community Centre, N19, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJgXFP664bdkgRynmdgsPRDnU",
+    "place_name": "Hargrave Hall Community Centre",
+    "formatted_address": "Hargrave Hall, Hargrave Rd, Archway, London N19 5SP",
+    "error": null
+  },
+  {
+    "address": "TripSpace - Yoga & Dance, E8, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJxXDS5JUcdkgRhNxvx1veC_s",
+    "place_name": "TRIPSPACE",
+    "formatted_address": "339 Acton Mews, London E8 4EA",
+    "error": null
+  },
+  {
+    "address": "London Fields Fitness Studio, E8, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ9ca5F-YcdkgR-IsQHjtDHM4",
+    "place_name": "London Fields Fitness Studio",
+    "formatted_address": "Unit 8, Bayford Business Centre, Bayford St, London E8 3SE",
+    "error": null
+  },
+  {
+    "address": "Salisbury Manor, E4, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJR2G2gWwfdkgR-JYjO_KnOc4",
+    "place_name": "Salisbury Manor",
+    "formatted_address": "4 Burnside Ave, London E4 8YJ",
+    "error": null
+  },
+  {
+    "address": "Tufnell Park Primary School, N7, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJsyDZEbgbdkgR_tLIXUgfmN4",
+    "place_name": "Tufnell Park Primary School",
+    "formatted_address": "31 Carleton Rd, London N7 0HJ",
+    "error": null
+  },
+  {
+    "address": "Drayton Park Primary School, N5, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJv9TsAHobdkgR3syZ3u55vEM",
+    "place_name": "Drayton Park Primary School",
+    "formatted_address": "52 Drayton Park, London N5 1PJ",
+    "error": null
+  },
+  {
+    "address": "Cook with Kasper, E17, London",
+    "activity_count": 2,
+    "status": "unmatched",
+    "place_id": null,
+    "place_name": null,
+    "formatted_address": null,
+    "error": null
+  },
+  {
+    "address": "St George the Martyr Church, WC1N, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJO-5OyDYbdkgRVs96NiyQ5hI",
+    "place_name": "St George the Martyr Church",
+    "formatted_address": "44 Queen Square, London WC1N 3AH",
+    "error": null
+  },
+  {
+    "address": "Stoke Newington School & Sixth Form, N16, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJo6eJEX0cdkgR_fBhOJpoUJk",
+    "place_name": "Stoke Newington School & Sixth Form",
+    "formatted_address": "Clissold Rd, London N16 9EX",
+    "error": null
+  },
+  {
+    "address": "Tower Theatre Company, N16, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJp6o5SGccdkgRtxoEGzY4OAQ",
+    "place_name": "Tower Theatre Company",
+    "formatted_address": "16 Northwold Rd, London N16 7HR",
+    "error": null
+  },
+  {
+    "address": "Springfield Park, E5, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJP5Rgc1ocdkgRtKVjdogqD24",
+    "place_name": "Springfield Park",
+    "formatted_address": "Springfield, London E5 9EF",
+    "error": null
+  },
+  {
+    "address": "Hackney Downs Park, E5, London",
+    "activity_count": 7,
+    "status": "matched",
+    "place_id": "ChIJVxcPU_AcdkgRf8VZgLcFmrc",
+    "place_name": "Hackney Downs Park",
+    "formatted_address": "Downs Park Rd, Lower Clapton, London E5 8NP",
+    "error": null
+  },
+  {
+    "address": "Lloyd Park, Forest Road, Walthamstow, London E17 5JW",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJfeIwGecddkgRhGSB5s-hbeE",
+    "place_name": "Lloyd Park",
+    "formatted_address": "Forest Rd, London E17 4PP",
+    "error": null
+  },
+  {
+    "address": "St Bartholomew's Church, E6, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJmzvvJDSm2EcRDibergzRKHY",
+    "place_name": "St Bartholomew’s Church & Centre, East Ham",
+    "formatted_address": "292b Barking Rd, London E6 3BA",
+    "error": null
+  },
+  {
+    "address": "Spirelight Studios, N7, London",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJ1xu6cQAbdkgR7li7wjZxcoo",
+    "place_name": "Spirelight Studios Islington",
+    "formatted_address": "Spirelight Studios Islington, 2 Parkhurst Rd, London N7 0SF",
+    "error": null
+  },
+  {
+    "address": "Thornhill Primary School, N1, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJF7NKO2kbdkgRQXFBJtnA--o",
+    "place_name": "Thornhill Primary School",
+    "formatted_address": "Thornhill Rd, London N1 1HX",
+    "error": null
+  },
+  {
+    "address": "Woodford Memorial Hall, E18, London",
+    "activity_count": 6,
+    "status": "matched",
+    "place_id": "ChIJWTU1-Eqn2EcRe4FEeThb5zc",
+    "place_name": "Woodford Memorial Hall",
+    "formatted_address": "209 High Rd, London E18 2PA",
+    "error": null
+  },
+  {
+    "address": "All Saints Church Highams Park, E4, London",
+    "activity_count": 5,
+    "status": "matched",
+    "place_id": "ChIJk471d6ig2EcRsAt5zT2TYi0",
+    "place_name": "All Saints’ Church, Highams Park",
+    "formatted_address": "All Saints Church, London E4 9QZ",
+    "error": null
+  },
+  {
+    "address": "Walthamstow Quaker Meeting House, E17, London",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJwWDWfugddkgRWf7bZNTis6k",
+    "place_name": "Walthamstow Quaker Meeting House",
+    "formatted_address": "1A Jewel Rd, London E17 4QU",
+    "error": null
+  },
+  {
+    "address": "Discover Pops Up! at Stratford Centre, E15, London",
+    "activity_count": 7,
+    "status": "matched",
+    "place_id": "ChIJwTSYm1Cn2EcRM1O_xjLSi_A",
+    "place_name": "Discover Pops Up! at Stratford Centre",
+    "formatted_address": "Unit 14, stratford centre, 54a Broadway, London E15 1NG",
+    "error": null
+  },
+  {
+    "address": "Winchester Road Methodist Church, E4, London",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJPxBCAwEedkgRgLv2XgmY57o",
+    "place_name": "Winchester Road Methodist Church",
+    "formatted_address": "82 Winchester Rd, London E4 9JP",
+    "error": null
+  },
+  {
+    "address": "Forest Gate Community School, E7, London",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJ-dEfEeCm2EcRlBe_AdoQ4zg",
+    "place_name": "Forest Gate Community School",
+    "formatted_address": "Forest Ln, London E7 9BB",
+    "error": null
+  },
+  {
+    "address": "Catholic Church of Our Lady of Good Counsel, Stoke Newington, N16, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJQWK_ZmQcdkgRcEMIPacFOv8",
+    "place_name": "Catholic Church of Our Lady of Good Counsel, Stoke Newington",
+    "formatted_address": "Our lady of Good Council, 24 Bouverie Rd, London N16 0AJ",
+    "error": null
+  },
+  {
+    "address": "Copper Lane, N16, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJAThPLIccdkgRkfFKrCNtcU4",
+    "place_name": "Copper Lane",
+    "formatted_address": "Copper Ln, Newington Green, London",
+    "error": null
+  },
+  {
+    "address": "Maryland Creative Quarters, E15, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJUYZdNAyn2EcR0pd_1I0akig",
+    "place_name": "Maryland Creative Quarters",
+    "formatted_address": "Gurney Rd, London E15 1SH",
+    "error": null
+  },
+  {
+    "address": "Christ Church Highbury,, N5, London",
+    "activity_count": 13,
+    "status": "matched",
+    "place_id": "ChIJt6Xll34bdkgRQmJn8RQI1ZQ",
+    "place_name": "The Parish Church of Christ Church Highbury with St. John and St. Saviour",
+    "formatted_address": "159 Highbury Grove, London N5 1SA",
+    "error": null
+  },
+  {
+    "address": "High Road, Leyton, London E10 5QH",
+    "activity_count": 9,
+    "status": "matched",
+    "place_id": "ChIJLQ2lcYQddkgRewnvb6U6Sus",
+    "place_name": "High Road Leyton",
+    "formatted_address": "High Rd. Leyton, London",
+    "error": null
+  },
+  {
+    "address": "Raine's Foundation School, E2, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJFYXXsN4cdkgRM4pQ6G5OS68",
+    "place_name": "Raine’s Foundation School",
+    "formatted_address": "Approach Rd, Bethnal Green, London E2 9LY",
+    "error": null
+  },
+  {
+    "address": "East of Eden: Reformer Pilates, RIDE (spin indoor cycling), Barre, Hot Yoga and Yoga, E17, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJY1GyV-gddkgRQ63THBuV8_Q",
+    "place_name": "East of Eden: Reformer Pilates, RIDE (spin indoor cycling), Barre, Hot Yoga and Yoga",
+    "formatted_address": "Studio 1, 14 Hatherley Mews, London E17 4QP",
+    "error": null
+  },
+  {
+    "address": "Islington Studios, N19, London",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJm2g1NQAbdkgRvjmQItLW9Vk",
+    "place_name": "Islington Studios",
+    "formatted_address": "Islington Studios, 159-163 Marlborough Rd, London N19 4NF",
+    "error": null
+  },
+  {
+    "address": "Emmanuel Holloway, N7, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJP4sTUJ4bdkgRZMKHJm5H71U",
+    "place_name": "Emmanuel Church, Holloway",
+    "formatted_address": "145 Hornsey Rd, London N7 6DU",
+    "error": null
+  },
+  {
+    "address": "Estorick Collection of Modern Italian Art, N1, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJh08hgGQbdkgRki0CFHsluoA",
+    "place_name": "Estorick Collection of Modern Italian Art",
+    "formatted_address": "39A Canonbury Square, London N1 2AN",
+    "error": null
+  },
+  {
+    "address": "Everyman Stratford International, 4 Redman Place, London E20 1JQ",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJn-DLrnsddkgRzv6V88vb248",
+    "place_name": "Everyman Stratford International",
+    "formatted_address": "4 Redman Pl, Stratford Cross, London E20 1JQ",
+    "error": null
+  },
+  {
+    "address": "33 Clyde Place, Leyton, London E10 5AS",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJ58rgAZEddkgRWuORGOoaDCQ",
+    "place_name": "Seddon Centre",
+    "formatted_address": "Forest Community Centre, 33 Clyde Pl, London E10 5AS",
+    "error": null
+  },
+  {
+    "address": "Pelican Music, N16, London",
+    "activity_count": 8,
+    "status": "matched",
+    "place_id": "ChIJea5QxAQddkgRGHw_pMLnqOE",
+    "place_name": "Pelican Music",
+    "formatted_address": "183 Stoke Newington Church St, London N16 0UL",
+    "error": null
+  },
+  {
+    "address": "Fe Fe Fanclub, N1, London",
+    "activity_count": 15,
+    "status": "matched",
+    "place_id": "ChIJx_9fJwAbdkgRZVxxS3BJqlU",
+    "place_name": "Fe Fe Fanclub",
+    "formatted_address": "Unit 1, 6F Esther Anne Pl, Islington Square, London N1 1WL",
+    "error": null
+  },
+  {
+    "address": "FieldWorks Dance, E8, London",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJg8oW98oddkgREytVMu8wPLA",
+    "place_name": "FieldWorks Dance",
+    "formatted_address": "47 Martello St, London E8 3PE",
+    "error": null
+  },
+  {
+    "address": "Finsbury Library, EC1V, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJZeqjvlobdkgRi51gGMn2BuU",
+    "place_name": "Finsbury Library",
+    "formatted_address": "245 St John St, London EC1V 4NB",
+    "error": null
+  },
+  {
+    "address": "Hillside Children’s Centre, N16, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJjYMev2gcdkgRnEqEbN_5BBw",
+    "place_name": "Hillside Children’s Centre",
+    "formatted_address": "1 Leatherhead Cl, London N16 5QR",
+    "error": null
+  },
+  {
+    "address": "Fix East Village & Studio, E20, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJq2GXsWQddkgRlNdbB6sdluI",
+    "place_name": "Fix",
+    "formatted_address": "11 Penny Brookes St, East Village, London E20 1BN",
+    "error": null
+  },
+  {
+    "address": "Knebworth Pilates Studio, SG3, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJO7LR-eMvdkgRT0D10ghMx_o",
+    "place_name": "Knebworth Pilates Studio",
+    "formatted_address": "9 Stevenage Rd, Knebworth SG3 6AN",
+    "error": null
+  },
+  {
+    "address": "Flying Sycamores forest school, E17, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJT54CQK2ez24RqYUdd20tN-o",
+    "place_name": "Flying Sycamores forest school",
+    "formatted_address": "Coppermill Fields Picnic bench, Coppermill Ln, London E17 7HG",
+    "error": null
+  },
+  {
+    "address": "Ainslie Wood, E4, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJS0TklxoedkgRbIqzgAtme_U",
+    "place_name": "Ainslie Wood, London",
+    "formatted_address": "Ainslie Wood, London, London",
+    "error": null
+  },
+  {
+    "address": "Mainyard Studio's, E10, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJ6WckW-UddkgRKAAp3G1ebqE",
+    "place_name": "Mainyard Studios [Leyton]",
+    "formatted_address": "102 Rookery Ct, London E10 5FA",
+    "error": null
+  },
+  {
+    "address": "Form, E8, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJNyvhfsIcdkgR2vHPV1KzcD0",
+    "place_name": "Form Personal Training",
+    "formatted_address": "Fields, Unit 8 Broadway Market Mews, London E8 4TS",
+    "error": null
+  },
+  {
+    "address": "Form Personal Training, E8, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJNyvhfsIcdkgR2vHPV1KzcD0",
+    "place_name": "Form Personal Training",
+    "formatted_address": "Fields, Unit 8 Broadway Market Mews, London E8 4TS",
+    "error": null
+  },
+  {
+    "address": "The Highams Park, IG8, London",
+    "activity_count": 6,
+    "status": "matched",
+    "place_id": "ChIJO7ZB76Sg2EcRacWMih5WV0o",
+    "place_name": "The Highams Park",
+    "formatted_address": "The Highams Park",
+    "error": null
+  },
+  {
+    "address": "Parliament Hill NW5 1NA, NW5, London",
+    "activity_count": 6,
+    "status": "matched",
+    "place_id": "ChIJ_4LX7l4adkgRSNxuMRF6HF0",
+    "place_name": "Parliament Hill Viewpoint",
+    "formatted_address": "Heath Lodge, London NW5 1QR",
+    "error": null
+  },
+  {
+    "address": "Frampton Park Baptist Church, E9, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJg1q_5-McdkgRu5JqYJpiN_k",
+    "place_name": "Frampton Park Baptist Church",
+    "formatted_address": "Frampton Park Rd, London E9 7PQ",
+    "error": null
+  },
+  {
+    "address": "Elian’s Corner, N7, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJm-xLWrUbdkgR9KChBblfQ3Y",
+    "place_name": "Elian's Corner",
+    "formatted_address": "222 Hornsey Rd, London N7 7LL",
+    "error": null
+  },
+  {
+    "address": "Jim & Tonic at The Print House, E15, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJT5KX9VwddkgR8cDQ2HABmHo",
+    "place_name": "The Print House at Jim & Tonic East",
+    "formatted_address": "133 High St, London E15 2RB",
+    "error": null
+  },
+  {
+    "address": "728 High Rd Leytonstone, Bushwood, London E11 3AJ, UK",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJPTWCpm-n2EcRMJDtL7bAtXc",
+    "place_name": "728 High Rd Leytonstone",
+    "formatted_address": "728 High Rd Leytonstone, Bushwood, London E11 3AJ",
+    "error": null
+  },
+  {
+    "address": "Walthamstow School for Girls, E17, London",
+    "activity_count": 8,
+    "status": "matched",
+    "place_id": "ChIJS6JHT_AddkgRhlyB0TextDY",
+    "place_name": "Walthamstow School for Girls'",
+    "formatted_address": "Church Hill, London E17 9RZ",
+    "error": null
+  },
+  {
+    "address": "Green Grove, N17, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ6wfnhYUDdkgR8bgMTNvMfzE",
+    "place_name": "Green Dale",
+    "formatted_address": "Green Dl, London",
+    "error": null
+  },
+  {
+    "address": "Grove Hill Evangelical Church, E18, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJuQblxU2n2EcRPH-KqY83NbI",
+    "place_name": "Grove Hill Evangelical Church",
+    "formatted_address": "123 Grove Hill, London E18 2HY",
+    "error": null
+  },
+  {
+    "address": "Guardians Studios, NW1, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ4fkoV70bdkgRbLzKw8lxsN8",
+    "place_name": "Guardians Studios",
+    "formatted_address": "14 Castlehaven Rd, London NW1 8RA",
+    "error": null
+  },
+  {
+    "address": "Stoke Newington School, N16, London",
+    "activity_count": 6,
+    "status": "matched",
+    "place_id": "ChIJo6eJEX0cdkgR_fBhOJpoUJk",
+    "place_name": "Stoke Newington School & Sixth Form",
+    "formatted_address": "Clissold Rd, London N16 9EX",
+    "error": null
+  },
+  {
+    "address": "New Unity, N1, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ8Z3FjWYbdkgRhDeE54E1E7Y",
+    "place_name": "Unity Hall",
+    "formatted_address": "277A Upper St, London N1 2TZ",
+    "error": null
+  },
+  {
+    "address": "St Michael & All Angels Church, E8, London",
+    "activity_count": 9,
+    "status": "matched",
+    "place_id": "ChIJF9fUjuscdkgRi11ZdAaiMPU",
+    "place_name": "St Michael & All Angels Church, London Fields",
+    "formatted_address": "94B Lansdowne Dr, Blackstone Estate, London E8 3ER",
+    "error": null
+  },
+  {
+    "address": "The City Academy, Hackney, E9, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ54KYbP0cdkgR39TM__iyoYs",
+    "place_name": "The City Academy, Hackney",
+    "formatted_address": "Homerton Row, London E9 6EA",
+    "error": null
+  },
+  {
+    "address": "Victoria Park, E3, London",
+    "activity_count": 9,
+    "status": "matched",
+    "place_id": "ChIJCUxlFQAddkgRoIdWOe5iz1g",
+    "place_name": "Victoria park",
+    "formatted_address": "Pagoda, London E3 5SX",
+    "error": null
+  },
+  {
+    "address": "Happy Ninos Day Nursery, E15, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJlUVk4Yun2EcR_MgNF87eICM",
+    "place_name": "Happy Ninos Nursery & Day Care",
+    "formatted_address": "9 Brydges Rd, London E15 1NA",
+    "error": null
+  },
+  {
+    "address": "Park View Community Room, WR14, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJzceFAban2EcRGWzmH80Wc-4",
+    "place_name": "Park View Venue",
+    "formatted_address": "1 Grangewood St, London E6 1EZ",
+    "error": null
+  },
+  {
+    "address": "St James' Hall, N1, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJX0RofmAbdkgRCmk5ryp9EiU",
+    "place_name": "St James’ Church Hall",
+    "formatted_address": "42 Packington St, London N1 8RD",
+    "error": null
+  },
+  {
+    "address": "Durning Hall, E7, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ6--_UPin2EcRA4ACMy1gAFc",
+    "place_name": "Durning Hall",
+    "formatted_address": "Earlham Grove, London E7 9AB",
+    "error": null
+  },
+  {
+    "address": "The Cornerstone, 149 Canterbury Road, Leyton, London E10 6EH",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJyXH6fYoddkgRy1Tznc-A-Pk",
+    "place_name": "Cornerstone Church",
+    "formatted_address": "149 Canterbury Rd, London E10 6EH",
+    "error": null
+  },
+  {
+    "address": "Rectory Road, E17, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJu7GUpu8ddkgRP_iBdyc-BpI",
+    "place_name": "Rectory Road",
+    "formatted_address": "Rectory Rd, London",
+    "error": null
+  },
+  {
+    "address": "Music Tree, N1, London",
+    "activity_count": 31,
+    "status": "matched",
+    "place_id": "ChIJ2dI1VDobdkgRh8askle2hfs",
+    "place_name": "Music Tree",
+    "formatted_address": "51 Barnsbury St, London N1 1TP",
+    "error": null
+  },
+  {
+    "address": "HELLO Yoga Studio + FAIR-WELL Shop, N7, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJI_qYKqMbdkgRemg2sPzmUak",
+    "place_name": "HELLO Yoga Studio + FAIR-WELL Shop",
+    "formatted_address": "330 Hornsey Rd, Finsbury Park, London N7 7HE",
+    "error": null
+  },
+  {
+    "address": "2 Tiltman Place, N7, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJueTEPp8bdkgR_yhMXIO9WX4",
+    "place_name": "2 Tiltman Pl",
+    "formatted_address": "2 Tiltman Pl, Finsbury Park, London N7 7EN",
+    "error": null
+  },
+  {
+    "address": "52nd Efs Scout Hut, E18, London",
+    "activity_count": 5,
+    "status": "matched",
+    "place_id": "ChIJJf2Mj0qn2EcRJnmQJkeiyIA",
+    "place_name": "52nd EFS Scout Group",
+    "formatted_address": "118 High Rd, London E18 2QS",
+    "error": null
+  },
+  {
+    "address": "St Joan of Arc Community Centre, N5, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJP3nTnn8bdkgR47p2tuVT6qI",
+    "place_name": "St Joan of Arc Community centre",
+    "formatted_address": "St Joan of Arc Community centre, Kelross Rd, London N5 2QN",
+    "error": null
+  },
+  {
+    "address": "Highbury Community Nursery, N5, London",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJaZyjOH8bdkgRgEYG_NIcWkw",
+    "place_name": "Highbury Community Nursery",
+    "formatted_address": "15 Aubert Park, London N5 1TL",
+    "error": null
+  },
+  {
+    "address": "Highbury Roundhouse, N5, London",
+    "activity_count": 7,
+    "status": "matched",
+    "place_id": "ChIJ1W_4G4AbdkgRo5lKs1YRnFU",
+    "place_name": "Highbury Roundhouse",
+    "formatted_address": "Highbury Roundhouse Youth & Community Centre, 71 Ronalds Rd, London N5 1XB",
+    "error": null
+  },
+  {
+    "address": "The Bridge Academy, E2, London",
+    "activity_count": 6,
+    "status": "matched",
+    "place_id": "ChIJNZmx3b8cdkgRzuFnAYNkzMU",
+    "place_name": "The Bridge Academy",
+    "formatted_address": "Laburnum St, London E2 8BA",
+    "error": null
+  },
+  {
+    "address": "Suzuki hub, E2, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ1xZep78cdkgRLoaDGISpOHU",
+    "place_name": "Suzuki Hub in Haggerston",
+    "formatted_address": "116 Weymouth Terrace, London E2 8LR",
+    "error": null
+  },
+  {
+    "address": "Millfields Park, E5, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJJXP_ilQcdkgRQTwaz-G5v0E",
+    "place_name": "Millfields Park",
+    "formatted_address": "Chatsworth Rd, Lower Clapton, London E5 0AR",
+    "error": null
+  },
+  {
+    "address": "Forest Road, Walthamstow, London E17 3GN",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "EhlGb3Jlc3QgUmQsIExvbmRvbiBFMTcsIFVLIi4qLAoUChIJO53N6ucddkgR-g1-xYQEmCwSFAoSCdHJGodRp9hHEQd5nMrFlrxj",
+    "place_name": "Forest Road",
+    "formatted_address": "Forest Rd, London E17",
+    "error": null
+  },
+  {
+    "address": "The Lammas School, E10, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJqxWoHqMddkgRgwJC0fz_dD8",
+    "place_name": "The Lammas School",
+    "formatted_address": "150 Seymour Rd, London E10 7LX",
+    "error": null
+  },
+  {
+    "address": "United Kingdom, N1, London",
+    "activity_count": 6,
+    "status": "unmatched",
+    "place_id": null,
+    "place_name": null,
+    "formatted_address": null,
+    "error": null
+  },
+  {
+    "address": "St Michael & All Angels Church, SS9, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJF9fUjuscdkgRi11ZdAaiMPU",
+    "place_name": "St Michael & All Angels Church, London Fields",
+    "formatted_address": "94B Lansdowne Dr, Blackstone Estate, London E8 3ER",
+    "error": null
+  },
+  {
+    "address": "St. Saviour's Church, N4, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJzXFx2JcbdkgRMjdCZ-RStDM",
+    "place_name": "St. Saviour's Church",
+    "formatted_address": "St Saviour's Church, Hanley Rd, Finsbury Park, London N4 3DQ",
+    "error": null
+  },
+  {
+    "address": "Victoria Park, London E9",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJHUND2RgddkgRarf7ZQfLCw4",
+    "place_name": "Victoria Park",
+    "formatted_address": "London E9 7DD",
+    "error": null
+  },
+  {
+    "address": "Victoria Park, E9, London",
+    "activity_count": 15,
+    "status": "matched",
+    "place_id": "ChIJHUND2RgddkgRarf7ZQfLCw4",
+    "place_name": "Victoria Park",
+    "formatted_address": "London E9 7DD",
+    "error": null
+  },
+  {
+    "address": "Clapton Girls Academy, E5, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJK9qA1PgcdkgR8ZlKckRYENU",
+    "place_name": "Clapton Girls Academy",
+    "formatted_address": "Laura Pl, Lower Clapton, London E5 0RB",
+    "error": null
+  },
+  {
+    "address": "City of London Academy Islington, N1, London",
+    "activity_count": 6,
+    "status": "matched",
+    "place_id": "ChIJJxptFGAbdkgRPvBXYSZpnYo",
+    "place_name": "City of London Academy Islington",
+    "formatted_address": "Prebend St, London N1 8PQ",
+    "error": null
+  },
+  {
+    "address": "Yonder Studio E17, E17, London",
+    "activity_count": 9,
+    "status": "matched",
+    "place_id": "ChIJeZA38dEddkgRDrzH1jB8wi4",
+    "place_name": "Yonder Indoor Climbing Gym",
+    "formatted_address": "6 Hooker's Rd, London E17 6DP",
+    "error": null
+  },
+  {
+    "address": "St Peter's Church, De Beauvoir Town, London, N1, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ174vMZccdkgRbOmuw7YUvvs",
+    "place_name": "St Peter's Church, De Beauvoir Town",
+    "formatted_address": "Northchurch Terrace, London N1 4DA",
+    "error": null
+  },
+  {
+    "address": "Northchurch terrace, N1, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJASrxSpccdkgRXZ_2lRgYdRw",
+    "place_name": "Northchurch Terrace",
+    "formatted_address": "Northchurch Terrace, London",
+    "error": null
+  },
+  {
+    "address": "London Fields, E8, London",
+    "activity_count": 9,
+    "status": "matched",
+    "place_id": "ChIJ72_NROYcdkgRwvQ0hISRp0Q",
+    "place_name": "The London Fields",
+    "formatted_address": "137 Mare St, London E8 3RH",
+    "error": null
+  },
+  {
+    "address": "New Kingshold Community Centre, E9, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJGYnzAOEcdkgRe9yTpR10-OU",
+    "place_name": "New Kingshold Community Centre",
+    "formatted_address": "Ainsworth Rd, London E9 7LP",
+    "error": null
+  },
+  {
+    "address": "London Fields Lido, E8, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJteLYIO8cdkgRxYGV9AfNElI",
+    "place_name": "London Fields Lido",
+    "formatted_address": "London Fields West Side, London E8 3EU",
+    "error": null
+  },
+  {
+    "address": "The Ramsay Scout Centre, N7, London",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJWQpIUHQbdkgRBtowKMwr9f0",
+    "place_name": "The Ramsay Scout Centre",
+    "formatted_address": "319 Holloway Rd, London N7 9FU",
+    "error": null
+  },
+  {
+    "address": "Hilldrop Community Centre, N7, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJd9nwBwYbdkgRPQOrrredjTQ",
+    "place_name": "Hilldrop Community Centre",
+    "formatted_address": "Community Ln, Hilldrop Rd, London N7 0JE",
+    "error": null
+  },
+  {
+    "address": "Kids Inc Nursery, EN3, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ95dKdgcfdkgRDnEiNLMpSfY",
+    "place_name": "Kids Inc Day Nursery - Enfield",
+    "formatted_address": "8 Glyn Rd, Enfield EN3 4JL",
+    "error": null
+  },
+  {
+    "address": "The Green, Chingford, London E4 7EN",
+    "activity_count": 9,
+    "status": "matched",
+    "place_id": "ChIJEc62rYKg2EcR2MULMuuqj00",
+    "place_name": "The Green",
+    "formatted_address": "The Grn, London",
+    "error": null
+  },
+  {
+    "address": "North Countess Road, Walthamstow, London E17 5HS",
+    "activity_count": 5,
+    "status": "matched",
+    "place_id": "EiFOIENvdW50ZXNzIFJkLCBMb25kb24gRTE3IDVIUywgVUsiLiosChQKEgmLy5ih3x12SBFb44CY355XMxIUChIJezvqm98ddkgRbtU4Qh8zW3I",
+    "place_name": "North Countess Road",
+    "formatted_address": "N Countess Rd, London E17 5HS",
+    "error": null
+  },
+  {
+    "address": "Church Lane, Leytonstone, London E11 1HG",
+    "activity_count": 6,
+    "status": "matched",
+    "place_id": "ChIJa8CE12Sn2EcRrDHCSqcsykw",
+    "place_name": "Leytonstone Post Office",
+    "formatted_address": "21 Church Ln, Bushwood, London E11 1HG",
+    "error": null
+  },
+  {
+    "address": "Mossbourne Victoria Park Academy, E9, London",
+    "activity_count": 9,
+    "status": "matched",
+    "place_id": "ChIJ0-Vp3B4ddkgRV9Zmue8VaoU",
+    "place_name": "Mossbourne Victoria Park Academy",
+    "formatted_address": "Victoria Park Rd, London E9 7HD",
+    "error": null
+  },
+  {
+    "address": "St Paul Old Ford Church, E3, London",
+    "activity_count": 7,
+    "status": "matched",
+    "place_id": "ChIJbUbG_jwddkgRy-lqlBPsp08",
+    "place_name": "St Paul Old Ford",
+    "formatted_address": "St Paul's Church, St Pauls Church, St Paul’s Old Ford, 84 St Stephen's Rd, Bow, London E3 5JL",
+    "error": null
+  },
+  {
+    "address": "KindHaus, N16, London",
+    "activity_count": 9,
+    "status": "matched",
+    "place_id": "ChIJYzmOOewddkgR4RVOiBSSB0M",
+    "place_name": "KindHaus",
+    "formatted_address": "6a Howard Rd, London N16 8PX",
+    "error": null
+  },
+  {
+    "address": "Friends Meeting House, Burial Ground, Bush Rd, London E11 3AU, UK",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJadgZum2n2EcRg_oZf-FDHxU",
+    "place_name": "Friends Meeting House",
+    "formatted_address": "Friends Meeting House, Burial Ground, Bush Rd, London E11 3AU",
+    "error": null
+  },
+  {
+    "address": "Saint Anne Line Catholic Church South Woodford, E18, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJrd275Uun2EcRRRKuRezN_FY",
+    "place_name": "Saint Anne Line Catholic Church Woodford",
+    "formatted_address": "7 Grove Cres, London E18 2JR",
+    "error": null
+  },
+  {
+    "address": "Lana & Friends Wellness Studio, N16, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJY56k-98ddkgR2sFSmjXhW-s",
+    "place_name": "Lana & Friends Wellness Studio",
+    "formatted_address": "Unit 5, 3-5 Shelford Pl, London N16 9HS",
+    "error": null
+  },
+  {
+    "address": "101 Dalston Ln, E8, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJd0FU7vIcdkgRWlLVRg6DS48",
+    "place_name": "101 Dalston Ln",
+    "formatted_address": "101 Dalston Ln, London E8 1NH",
+    "error": null
+  },
+  {
+    "address": "4 Burnside Avenue, Chingford, London E4 8YJ",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJAemPOA0edkgRL-Q0B7luYBU",
+    "place_name": "4 Burnside Ave",
+    "formatted_address": "4 Burnside Ave, London E4 8YJ",
+    "error": null
+  },
+  {
+    "address": "Lewis Carroll Childrens Library, N1, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJwfWNbRUbdkgRaYeO9rIApio",
+    "place_name": "Lewis Carroll Childrens Library",
+    "formatted_address": "166 Copenhagen St, London N1 0ST",
+    "error": null
+  },
+  {
+    "address": "Lewis Carroll Library, 166 Copenhagen Street, London N1 0ST",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJwfWNbRUbdkgRaYeO9rIApio",
+    "place_name": "Lewis Carroll Childrens Library",
+    "formatted_address": "166 Copenhagen St, London N1 0ST",
+    "error": null
+  },
+  {
+    "address": "Leytonstone Library, E11, London",
+    "activity_count": 5,
+    "status": "matched",
+    "place_id": "ChIJm0hqSGWn2EcR0rgT5Y_n3jg",
+    "place_name": "Leytonstone Library",
+    "formatted_address": "6 Church Ln, Bushwood, London E11 1HG",
+    "error": null
+  },
+  {
+    "address": "Oxford House Bethnal Green, London E2",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ4-0LccUcdkgR2Ztk6B3FZOY",
+    "place_name": "Oxford House Bethnal Green",
+    "formatted_address": "Oxford House Bethnal Green, Derbyshire St, London E2 6HG",
+    "error": null
+  },
+  {
+    "address": "Oaklands Secondary School, E2, London",
+    "activity_count": 7,
+    "status": "matched",
+    "place_id": "ChIJF8x2u8QcdkgRRCbk_qEMZ54",
+    "place_name": "Oaklands Secondary School",
+    "formatted_address": "Old Bethnal Green Rd, London E2 6PR",
+    "error": null
+  },
+  {
+    "address": "Oxford House Bethnal Green, E2, London",
+    "activity_count": 7,
+    "status": "matched",
+    "place_id": "ChIJ4-0LccUcdkgR2Ztk6B3FZOY",
+    "place_name": "Oxford House Bethnal Green",
+    "formatted_address": "Oxford House Bethnal Green, Derbyshire St, London E2 6HG",
+    "error": null
+  },
+  {
+    "address": "Forest View Care Home, E17, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJY9BzO1in2EcRE2koLAGgNQA",
+    "place_name": "Forest View - Care Home Upper Walthamstow",
+    "formatted_address": "45 Upper Walthamstow Rd, London E17 3QG",
+    "error": null
+  },
+  {
+    "address": "Whittington Community Centre, N19, London",
+    "activity_count": 9,
+    "status": "matched",
+    "place_id": "ChIJcW78HqYbdkgRBuSiazv3IWs",
+    "place_name": "Whittington Park Community Centre",
+    "formatted_address": "Yerbury Rd, Archway, London N19 4RS",
+    "error": null
+  },
+  {
+    "address": "It Takes A Village, E17, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJzy0PHgAfdkgR3uzEeFFAWws",
+    "place_name": "It Takes a Village Play Cafe",
+    "formatted_address": "152 Billet Rd, London E17 5DT",
+    "error": null
+  },
+  {
+    "address": "Orford House, E17, London",
+    "activity_count": 7,
+    "status": "matched",
+    "place_id": "ChIJLza8T-wddkgRMPzrUVqTcW0",
+    "place_name": "Orford House",
+    "formatted_address": "Orford House, 73 Orford Rd, London E17 9QR",
+    "error": null
+  },
+  {
+    "address": "Christ Church Highbury, London N5",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJt6Xll34bdkgRQmJn8RQI1ZQ",
+    "place_name": "The Parish Church of Christ Church Highbury with St. John and St. Saviour",
+    "formatted_address": "159 Highbury Grove, London N5 1SA",
+    "error": null
+  },
+  {
+    "address": "Taramga Studio, E17, London",
+    "activity_count": 7,
+    "status": "matched",
+    "place_id": "ChIJFe0lb-YddkgRELrdOWnCr5Q",
+    "place_name": "Taramga Studio / Sup Yoga",
+    "formatted_address": "Taramga studio, 4, 6 Hooker's Rd, London E17 6DP",
+    "error": null
+  },
+  {
+    "address": "St John's Church, E17, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJ6ZKY5uIddkgRQlh8A1HWc2c",
+    "place_name": "St John's Church, Walthamstow",
+    "formatted_address": "18 Brookscroft Rd, London E17 4LH",
+    "error": null
+  },
+  {
+    "address": "Kitchen Jam, E20, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJ-Y7wTmMddkgRTOw2-HvNWbo",
+    "place_name": "KitchenJam Stratford",
+    "formatted_address": "8, 10 Penny Brookes St, East Village, London E20 1BN",
+    "error": null
+  },
+  {
+    "address": "King's House, N1, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJx9rULz8bdkgRTVKRmWM7YMg",
+    "place_name": "King's House",
+    "formatted_address": "King's House, 242 Pentonville Rd, London N1 9JY",
+    "error": null
+  },
+  {
+    "address": "E15 1TG, E15, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJdbl1bYSn2EcRDYbLY9iSBYo",
+    "place_name": "E15 1TG",
+    "formatted_address": "Janson Rd, London E15 1TG",
+    "error": null
+  },
+  {
+    "address": "Methodist Church, South Chingford, E4, London",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJ9XcvkxYedkgR8slAmG5owdc",
+    "place_name": "South Chingford Methodist Church",
+    "formatted_address": "3 New Rd, London E4 9EU",
+    "error": null
+  },
+  {
+    "address": "Gracepoint, London N1",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJv0b8nWEbdkgRnUZwsq92fcQ",
+    "place_name": "Gracepoint",
+    "formatted_address": "161-169 Essex Rd, London N1 2SN",
+    "error": null
+  },
+  {
+    "address": "Gracepoint, N1, London",
+    "activity_count": 47,
+    "status": "matched",
+    "place_id": "ChIJv0b8nWEbdkgRnUZwsq92fcQ",
+    "place_name": "Gracepoint",
+    "formatted_address": "161-169 Essex Rd, London N1 2SN",
+    "error": null
+  },
+  {
+    "address": "St Faith & St Laurence Church, B17, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJIw-ys4i9cEgRrCEwieoBd6E",
+    "place_name": "St Faith & St Laurence Church",
+    "formatted_address": "At the Junction of Balden Rd &, Croftdown Rd, Harborne, Birmingham, in B17 8RD",
+    "error": null
+  },
+  {
+    "address": "The Playroom (The Toy Project), N19, London",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJDfyHEHkbdkgRoAYDpQu4mok",
+    "place_name": "The Playroom (The TOY Project)",
+    "formatted_address": "93 Junction Rd, Archway, London N19 5QX",
+    "error": null
+  },
+  {
+    "address": "St John of Jerusalem Primary School, E9, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJg3DvdOEcdkgR-7vhvRiUfYc",
+    "place_name": "St John of Jerusalem Primary School",
+    "formatted_address": "Kingshold Rd, London E9 7JF",
+    "error": null
+  },
+  {
+    "address": "St Mary of Eton Church, E9, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJA_-j6xEddkgRIOBMYKACoco",
+    "place_name": "St Mary of Eton, Hackney Wick",
+    "formatted_address": "Eastway, London E9 5JA",
+    "error": null
+  },
+  {
+    "address": "Mainyard Studios, E9, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJs4ObJW0ddkgRMS1vun54rig",
+    "place_name": "Mainyard Studios",
+    "formatted_address": "Mainyard Studios, London E9 5LN",
+    "error": null
+  },
+  {
+    "address": "Move Studio London, E3, London",
+    "activity_count": 5,
+    "status": "matched",
+    "place_id": "ChIJffrsQ6IddkgRUO_s_L6rZyw",
+    "place_name": "move studio london",
+    "formatted_address": "Dane Pl, Bow, London E3 5EJ",
+    "error": null
+  },
+  {
+    "address": "St Mary's Centres at St Mary's Church, N16, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJvyfXW9AddkgRwdndYP94PDw",
+    "place_name": "St. Mary’s Centre N16",
+    "formatted_address": "St Mary’s Centre, Stoke Newington Church St, London N16 9ES",
+    "error": null
+  },
+  {
+    "address": "Saint Luke's Community Centre, E16, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJQwgJ5gio2EcRPIgc5Pta9oo",
+    "place_name": "Saint Luke's Community Centre",
+    "formatted_address": "St Luke's Community Centre, 85 Tarling Rd, London E16 1HN",
+    "error": null
+  },
+  {
+    "address": "Down To Earth Yoga, Pilates & Massage, N19, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJhRZnaQAbdkgR7CMvBktlLcw",
+    "place_name": "Down To Earth Yoga, Pilates & Massage",
+    "formatted_address": "225 & 225A, Brecknock Rd, London N19 5AA",
+    "error": null
+  },
+  {
+    "address": "Sarah Bonnell School, E15, London",
+    "activity_count": 5,
+    "status": "matched",
+    "place_id": "ChIJN96V6Y6n2EcRQTJfhSN7kLY",
+    "place_name": "Sarah Bonnell School",
+    "formatted_address": "14 Deanery Rd, London E15 4LP",
+    "error": null
+  },
+  {
+    "address": "Cumberland Community School (CCS), E13, London",
+    "activity_count": 13,
+    "status": "matched",
+    "place_id": "ChIJKc9jvdCn2EcRjl8nCDxHVYw",
+    "place_name": "Cumberland Community School (CCS)",
+    "formatted_address": "Oban Cl, London E13 8SJ",
+    "error": null
+  },
+  {
+    "address": "Atherton Leisure Centre, E15, London",
+    "activity_count": 5,
+    "status": "matched",
+    "place_id": "ChIJ_y1z8JCn2EcRZARz-7qaoao",
+    "place_name": "Atherton Leisure Centre",
+    "formatted_address": "189 Romford Rd, London E15 4JF",
+    "error": null
+  },
+  {
+    "address": "Newham African Caribbean Resource Centre, E13, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJax6p7cSn2EcRLl9gfK_3M_I",
+    "place_name": "Newham African Caribbean Resource Centre",
+    "formatted_address": "Community Centre, 627 Barking Rd, London E13 9EZ",
+    "error": null
+  },
+  {
+    "address": "The Tower Theatre, N16, London",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJp6o5SGccdkgRtxoEGzY4OAQ",
+    "place_name": "Tower Theatre Company",
+    "formatted_address": "16 Northwold Rd, London N16 7HR",
+    "error": null
+  },
+  {
+    "address": "William Morris Hall, E17, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJZdc3E-gddkgRpzwgD2WOgMA",
+    "place_name": "William Morris Community Centre",
+    "formatted_address": "6-8 Greenleaf Rd, London E17 6QQ",
+    "error": null
+  },
+  {
+    "address": "Abbey Gardens, E15, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJZy63iT2n2EcRlaABqpmHfs8",
+    "place_name": "Abbey Gardens",
+    "formatted_address": "Bakers Row, London E15 3NF",
+    "error": null
+  },
+  {
+    "address": "St Mary's Hornsey Rise, N19, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJlZUMbbwbdkgR-K1La28VzU8",
+    "place_name": "St Mary's Hornsey Rise",
+    "formatted_address": "Ashley Rd, London N19 3AD",
+    "error": null
+  },
+  {
+    "address": "Waltham Forest Feel Good Centre, Chingford Road, London E17",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJbePcE-MddkgRGdt61FRRSsE",
+    "place_name": "Waltham Forest Feel Good Centre",
+    "formatted_address": "170 Chingford Rd, London E17 5AA",
+    "error": null
+  },
+  {
+    "address": "228 Chingford Mount Rd, E4, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJzSbxpRYedkgR-_UTx2_cvIE",
+    "place_name": "228 Chingford Mount Rd, Greater",
+    "formatted_address": "228 Chingford Mount Rd, Greater, Chingford Mount, London E4 8JL",
+    "error": null
+  },
+  {
+    "address": "Mapledene and Queensbridge Children’s Centre, 54 Mapledene Road, Hackney, London E8 3LE",
+    "activity_count": 6,
+    "status": "matched",
+    "place_id": "ChIJK4e6quwcdkgRW36ZdOdYKd4",
+    "place_name": "Mapledene & Queensbridge Childrens Centre",
+    "formatted_address": "54 Mapledene Rd, London E8 3LE",
+    "error": null
+  },
+  {
+    "address": "Kumon Islington Winton Primary School, N1, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJq3BRamsbdkgRMCAo7TNV0E0",
+    "place_name": "Kumon Maths & English",
+    "formatted_address": "Winton Primary School Islington, 62-68 Killick St, London N1 9AZ",
+    "error": null
+  },
+  {
+    "address": "Mildmay Library, N1, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJ3V_5O4UcdkgRRiKaM2QO690",
+    "place_name": "Mildmay Library",
+    "formatted_address": "21-23 Mildmay Park, London N1 4NA",
+    "error": null
+  },
+  {
+    "address": "Millfields Children's Centre, E5, London",
+    "activity_count": 8,
+    "status": "matched",
+    "place_id": "ChIJW7eQEv8cdkgRkRjSadRLNDU",
+    "place_name": "Millfields Children's Centre",
+    "formatted_address": "Elmcroft St, Lower Clapton, London E5 0SQ",
+    "error": null
+  },
+  {
+    "address": "The Old Ivy House, EC1V, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJeUqQ91kbdkgRE2whlLh873Y",
+    "place_name": "The Old Ivy House",
+    "formatted_address": "166 Goswell Rd., London EC1V 7DT",
+    "error": null
+  },
+  {
+    "address": "Olden Community Garden, N5, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJldzk8XkbdkgRsgMVIJ6snFM",
+    "place_name": "Olden Community Garden",
+    "formatted_address": "Opposite, 22 Whistler St, London N5 1NH",
+    "error": null
+  },
+  {
+    "address": "Higham Hill Park Cafe, E17, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJsRwviIEddkgRvrAGBaiUgFg",
+    "place_name": "Higham Hill Park Cafe",
+    "formatted_address": "Higham Hill Park, Hecham Cl, London E17 5QT",
+    "error": null
+  },
+  {
+    "address": "Leyton Cricket Hub, E10, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJV8cBX4UddkgRpu_slybUw1k",
+    "place_name": "Leyton County Cricket Ground",
+    "formatted_address": "2 Crawley Rd, London E10 6RJ",
+    "error": null
+  },
+  {
+    "address": "Wanstead Parish Hall, E11, London",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJP1EGqmqn2EcRZj_dJmS1ItQ",
+    "place_name": "Christ Church Wanstead",
+    "formatted_address": "Wanstead Pl, London E11 2SW",
+    "error": null
+  },
+  {
+    "address": "Holy Family Catholic School, Walthamstow, E17, London",
+    "activity_count": 10,
+    "status": "matched",
+    "place_id": "ChIJB-p2_vAddkgRO-Xri349JQM",
+    "place_name": "Holy Family School & 6th Form",
+    "formatted_address": "Wiseman House Site, 34 Shernhall St, London E17 9RT",
+    "error": null
+  },
+  {
+    "address": "Christchurch Parish Hall, E11, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ4QPQEhWn2EcRubDwV8EUEVk",
+    "place_name": "Christchurch Green",
+    "formatted_address": "15 Woodbine Pl, London E11 2RH",
+    "error": null
+  },
+  {
+    "address": "The Old Church, N16, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJDbEpjHwcdkgRX6RihWePGDw",
+    "place_name": "The Old Church",
+    "formatted_address": "Stoke Newington Church St, London N16 9ES",
+    "error": null
+  },
+  {
+    "address": "Calthorpe Community Garden, WC1X, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJSWU_czgbdkgR0Hy7bzPcKpY",
+    "place_name": "Calthorpe Community Garden",
+    "formatted_address": "Calthorpe Community Garden, 258-274 Gray's Inn Rd, London WC1X 8LH",
+    "error": null
+  },
+  {
+    "address": "Northampton Square Bandstand, EC1V, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJrwIyCe4bdkgR7idKFAv_SyY",
+    "place_name": "Northampton Square bandstand",
+    "formatted_address": "London EC1V 0AJ",
+    "error": null
+  },
+  {
+    "address": "St Mary's Church, London N1",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJoVc842YbdkgRT7yE9PtntUY",
+    "place_name": "St Mary's Church, Islington",
+    "formatted_address": "Upper St, London N1 2TX",
+    "error": null
+  },
+  {
+    "address": "Room 71-73, N16, London",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJJxcrR9sddkgRxC2kNHp3ozY",
+    "place_name": "Room 71-73",
+    "formatted_address": "71-73 Stoke Newington Church St, London N16 0AS",
+    "error": null
+  },
+  {
+    "address": "Sadler's Wells Theatre, EC1R, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJhUo6z0QbdkgR2MzV1qA26Hs",
+    "place_name": "Sadler's Wells Theatre",
+    "formatted_address": "62 Rosebery Ave, London EC1R 4TN",
+    "error": null
+  },
+  {
+    "address": "The Forest Tavern, E7, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJPyBnb6Kn2EcRyNsWrDgZ5Ig",
+    "place_name": "Forest Tavern",
+    "formatted_address": "173 Forest Ln, London E7 9BB",
+    "error": null
+  },
+  {
+    "address": "The Community Hub, 18a Orford Road, Walthamstow, London E17 9LN",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJA2ju-u0ddkgR_ImUk0UuSQo",
+    "place_name": "Waltham Forest Community Hub",
+    "formatted_address": "18A Orford Rd, London E17 9LN",
+    "error": null
+  },
+  {
+    "address": "St Paul Old Ford Church, London E3",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJbUbG_jwddkgRy-lqlBPsp08",
+    "place_name": "St Paul Old Ford",
+    "formatted_address": "St Paul's Church, St Pauls Church, St Paul’s Old Ford, 84 St Stephen's Rd, Bow, London E3 5JL",
+    "error": null
+  },
+  {
+    "address": "N19 4NF, N19, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ4ykqQKMbdkgRzXLgJvcb02s",
+    "place_name": "N19 4NF",
+    "formatted_address": "London N19 4NF",
+    "error": null
+  },
+  {
+    "address": "F45 Camden, NW1, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJq6paFh8bdkgR0BAtbwG53pY",
+    "place_name": "F45 Training Camden",
+    "formatted_address": "39 Plender Street Basement, Centro 1, London NW1 0DT",
+    "error": null
+  },
+  {
+    "address": "Christ Church, N5, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJt6Xll34bdkgRQmJn8RQI1ZQ",
+    "place_name": "The Parish Church of Christ Church Highbury with St. John and St. Saviour",
+    "formatted_address": "159 Highbury Grove, London N5 1SA",
+    "error": null
+  },
+  {
+    "address": "St Peter de Beauvoir, N1, London",
+    "activity_count": 5,
+    "status": "matched",
+    "place_id": "ChIJ174vMZccdkgRbOmuw7YUvvs",
+    "place_name": "St Peter's Church, De Beauvoir Town",
+    "formatted_address": "Northchurch Terrace, London N1 4DA",
+    "error": null
+  },
+  {
+    "address": "St George in the East, London E1",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJvxDVUjIDdkgRr7lfjL93vao",
+    "place_name": "St George-in-the-East Church",
+    "formatted_address": "St George in the East Crypt West, 14 Cannon St Rd, London E1 0BH",
+    "error": null
+  },
+  {
+    "address": "Bethnal Green Montessori School, E2, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJw7BjvcYcdkgRnod86t9wUHo",
+    "place_name": "Bethnal Green Montessori School",
+    "formatted_address": "St. Peter’s North, Community Centre Weymouth Terrace, 1 Marian Pl, London E2 9AX",
+    "error": null
+  },
+  {
+    "address": "Highgate Newtown Community Partners, N19, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJOX3NaFMadkgRMOUy6Xhzilc",
+    "place_name": "Highgate Newtown Community Partners",
+    "formatted_address": "30 Bertram St, London N19 5DQ",
+    "error": null
+  },
+  {
+    "address": "Pause, London E10",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ4SS8L4QddkgR_yC7hGxRTlQ",
+    "place_name": "Pause Leyton",
+    "formatted_address": "478 High Rd. Leyton, London E10 6QA",
+    "error": null
+  },
+  {
+    "address": "Bridgets ASL and Chobham Manor Community Centre, London E20",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ-TD04YQddkgR52AUbRhuj6s",
+    "place_name": "Bridget's - ASL & Chobham Manor Community Centre",
+    "formatted_address": "1-3 Brevet Parade, Honour Lea Ave, Chobham Manor, London E20 1LF",
+    "error": null
+  },
+  {
+    "address": "Starr Studio, E8, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJl6Q-hAMddkgRxIre3g7jhTU",
+    "place_name": "Starr Studio",
+    "formatted_address": "Unit 12, 2-16 Bayford St, London E8 3SE",
+    "error": null
+  },
+  {
+    "address": "Pause, E10, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJ4SS8L4QddkgR_yC7hGxRTlQ",
+    "place_name": "Pause Leyton",
+    "formatted_address": "478 High Rd. Leyton, London E10 6QA",
+    "error": null
+  },
+  {
+    "address": "Bridget’s Café and Chobham Manor Community Centre, Brevet Parade, Honour Lea Avenue, London E20 1LF",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ-TD04YQddkgR52AUbRhuj6s",
+    "place_name": "Bridget's - ASL & Chobham Manor Community Centre",
+    "formatted_address": "1-3 Brevet Parade, Honour Lea Ave, Chobham Manor, London E20 1LF",
+    "error": null
+  },
+  {
+    "address": "St Mary’s Welcome Centre, 8 Church End, Walthamstow, London E17 9RJ",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJYUYkOMAddkgRAxC5ONXOCkY",
+    "place_name": "St Mary's Welcome Centre",
+    "formatted_address": "8 Church End, London E17 9RJ",
+    "error": null
+  },
+  {
+    "address": "Saint Silas Church, Pentonville, N1, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ2coo2kMbdkgR5_LlYL5bTts",
+    "place_name": "St Silas Church, Pentonville",
+    "formatted_address": "Penton St, London N1 9UL",
+    "error": null
+  },
+  {
+    "address": "Mudra Yoga London, N16, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJeXssuX0cdkgR8iUlelU4bLA",
+    "place_name": "Mudra Yoga London",
+    "formatted_address": "2 Shelford Pl, London N16 9HS",
+    "error": null
+  },
+  {
+    "address": "Ledian Gardens, ME17, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJ14R-cMUv30cRM8ZjOZyS49Q",
+    "place_name": "Ledian Gardens Retirement Village | Inspired Villages",
+    "formatted_address": "The Sales Office, Ledian Gardens, Upper St, Leeds, Maidstone ME17 1RZ",
+    "error": null
+  },
+  {
+    "address": "Queen Elizabeth Olympic Park, E20, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJkf4NDG8ddkgRXEINXuEbip8",
+    "place_name": "Queen Elizabeth Olympic Park",
+    "formatted_address": "London",
+    "error": null
+  },
+  {
+    "address": "The Meeting Point, E17, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJW8yVLIYddkgROXCpXnKKWzI",
+    "place_name": "The Meeting Point",
+    "formatted_address": "155a Boundary Rd, London E17 8NG",
+    "error": null
+  },
+  {
+    "address": "The Quaker Meeting House, London E17",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJwWDWfugddkgRWf7bZNTis6k",
+    "place_name": "Walthamstow Quaker Meeting House",
+    "formatted_address": "1A Jewel Rd, London E17 4QU",
+    "error": null
+  },
+  {
+    "address": "St Peter & St Paul Catholic Primary School, EC1V, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJUS3AlFAbdkgR24rLgMPlMu8",
+    "place_name": "St Peter & St Paul Catholic Primary School",
+    "formatted_address": "Compton St, London EC1V 0EU",
+    "error": null
+  },
+  {
+    "address": "Harmonize cafe, N16, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ77XGYKwddkgR4SjWQWiYRCA",
+    "place_name": "Harmonize Cafe",
+    "formatted_address": "214 Stoke Newington High St, London N16 7HU",
+    "error": null
+  },
+  {
+    "address": "Camden Therapy Centre, NW1, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJq4r5_0UbdkgRRLdYh87Wct0",
+    "place_name": "Camden Therapy",
+    "formatted_address": "152 Camden High St, London NW1 0NE",
+    "error": null
+  },
+  {
+    "address": "Music Tree, London N1",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJ2dI1VDobdkgRh8askle2hfs",
+    "place_name": "Music Tree",
+    "formatted_address": "51 Barnsbury St, London N1 1TP",
+    "error": null
+  },
+  {
+    "address": "Leytonstone High Road Methodist Church, E11, London",
+    "activity_count": 7,
+    "status": "matched",
+    "place_id": "ChIJCRVoknqn2EcRiHKBiKFtgsM",
+    "place_name": "Leytonstone High Road Methodist Church",
+    "formatted_address": "578 High Rd Leytonstone, Bushwood, London E11 3DA",
+    "error": null
+  },
+  {
+    "address": "The Social, E11, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJqZxJ_G-n2EcRbGWbDBlTP1E",
+    "place_name": "The Social (Leytonstone Ex-Servicemen's Club)",
+    "formatted_address": "2 Harvey Rd, Bushwood, London E11 3DB",
+    "error": null
+  },
+  {
+    "address": "N4 Library, N4, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJzcSyioQbdkgRLxpPrO1zxzk",
+    "place_name": "N4 Library",
+    "formatted_address": "26 Blackstock Rd, Finsbury Park, London N4 2JF",
+    "error": null
+  },
+  {
+    "address": "Salvation Army, E15, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJuY7o3Iqn2EcRedHUk46BD8Q",
+    "place_name": "The Salvation Army - Stratford",
+    "formatted_address": "1 Paul St, London E15 4QB",
+    "error": null
+  },
+  {
+    "address": "East Ham Library, E6, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ7wV8A0qm2EcRqqSlhI1ey_M",
+    "place_name": "East Ham Library",
+    "formatted_address": "328 Barking Rd, London E6 2RT",
+    "error": null
+  },
+  {
+    "address": "Shipman Youth Zone, E16, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJ0YZzJnao2EcRITuIrz5Iwas",
+    "place_name": "Shipman Youth Zone",
+    "formatted_address": "340 Prince Regent Ln, London E16 3JH",
+    "error": null
+  },
+  {
+    "address": "Islington Ecology Centre, N5, London",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJ1arDRp0bdkgRHvtrywPeWls",
+    "place_name": "Islington Ecology Centre",
+    "formatted_address": "191 Drayton Park, London N5 1PH",
+    "error": null
+  },
+  {
+    "address": "St Johns Highbury Parish Hall, N5, London",
+    "activity_count": 8,
+    "status": "matched",
+    "place_id": "ChIJv1b5GYIbdkgRflQhC0GPCgk",
+    "place_name": "St John’s Parish Hall",
+    "formatted_address": "St Johns School, Saint Johns School, 30 Conewood St, London N5 1DL",
+    "error": null
+  },
+  {
+    "address": "Mildmay Community Centre, N16, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJicIwW48cdkgRHAoHxMyhKr8",
+    "place_name": "Mildmay Community Centre",
+    "formatted_address": "Woodville Rd, Mayville Estate, London N16 8NA",
+    "error": null
+  },
+  {
+    "address": "Elizabeth House Community Centre, N5, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJyaE2eIEbdkgRCDu6RZbt1r4",
+    "place_name": "Elizabeth House",
+    "formatted_address": "2 Hurlock St, London N5 1ED",
+    "error": null
+  },
+  {
+    "address": "E7 0JU, E7, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJ24jGr6en2EcRR4h7Ib3yJ04",
+    "place_name": "E7 0JU",
+    "formatted_address": "London E7 0JU",
+    "error": null
+  },
+  {
+    "address": "North Library, N7, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJ2ZaRF6EbdkgRy4AzeXUq2u8",
+    "place_name": "Islington North Library",
+    "formatted_address": "Manor Gardens, London N7 6JX",
+    "error": null
+  },
+  {
+    "address": "St Jame's Church Hall, N1, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJX0RofmAbdkgRCmk5ryp9EiU",
+    "place_name": "St James’ Church Hall",
+    "formatted_address": "42 Packington St, London N1 8RD",
+    "error": null
+  },
+  {
+    "address": "Mary's Community Centre, N1, London",
+    "activity_count": 10,
+    "status": "matched",
+    "place_id": "ChIJc8iWZp4bdkgRkzRzKKCsAg8",
+    "place_name": "St Mary's Neighbourhood Centre",
+    "formatted_address": "Upper St, London N1 2TX",
+    "error": null
+  },
+  {
+    "address": "Eldwick Church, BD16, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJZR9Bmvvke0gRsVCBAxqK1nE",
+    "place_name": "The Eldwick Church",
+    "formatted_address": "Otley Rd, Eldwick, Bingley BD16 3EQ",
+    "error": null
+  },
+  {
+    "address": "Leyton Sports Ground, E10, London",
+    "activity_count": 16,
+    "status": "matched",
+    "place_id": "ChIJRxBlWYUddkgRITeu2GjUcO8",
+    "place_name": "Leyton Sports Ground",
+    "formatted_address": "Leyton Sports Ground, 485 High Rd, London E10 6PY",
+    "error": null
+  },
+  {
+    "address": "St Joseph's Infant School, E10, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJjQSMe6IddkgR_FJHZEAX_yk",
+    "place_name": "St Joseph's Infant School",
+    "formatted_address": "Marsh Ln, London E10 7BL",
+    "error": null
+  },
+  {
+    "address": "St Matthias Church & Hall, N16, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJEyJSHokcdkgReUSM8rRAn_0",
+    "place_name": "St Matthias Church Hall (& Church)",
+    "formatted_address": "Wordsworth Rd, London N16 8DD",
+    "error": null
+  },
+  {
+    "address": "Our Lady of Lourdes Catholic Church Wanstead, E11, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJ8-WZRmun2EcRaTwDe7jV_-g",
+    "place_name": "Our Lady of Lourdes Catholic Church, Wanstead",
+    "formatted_address": "51 Cambridge Park, London E11 2PR",
+    "error": null
+  },
+  {
+    "address": "Paper Dress Yoga, E8, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJS4CVOPscdkgR9hdxhF2jqK8",
+    "place_name": "Paper Dress Yoga",
+    "formatted_address": "352 Mare St, London E8 1HR",
+    "error": null
+  },
+  {
+    "address": "St Barnabas Homerton, E9, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJFWFTCwMddkgRoAFoKoU_690",
+    "place_name": "St Barnabas",
+    "formatted_address": "St Barnabas, Homerton High St, London E9 6DL",
+    "error": null
+  },
+  {
+    "address": "PAIISE, E10, London",
+    "activity_count": 8,
+    "status": "unmatched",
+    "place_id": null,
+    "place_name": null,
+    "formatted_address": null,
+    "error": null
+  },
+  {
+    "address": "Finsbury Park - Parkwood Primary School, N4, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJL4W_gYYbdkgRNgNsmLoIT7Q",
+    "place_name": "Parkwood Primary & Nursery School",
+    "formatted_address": "Queen's Dr, Finsbury Park, London N4 2HQ",
+    "error": null
+  },
+  {
+    "address": "Barnsbury - St Andrews Islington, N1, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJUTOZ-GobdkgRbhypsUMtRO4",
+    "place_name": "St Andrews C of E Primary School",
+    "formatted_address": "Matilda St, London N1 0LB",
+    "error": null
+  },
+  {
+    "address": "Golden Lane Community Hall, EC1Y, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJvf2q3gEbdkgRTv8COMhXfuE",
+    "place_name": "Golden Lane Community Centre",
+    "formatted_address": "Golden Lane Estate Community Centre, Golden Lane Estate, London EC1Y 0SA",
+    "error": null
+  },
+  {
+    "address": "Saint Georges Church, N7, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJ1cvRKggbdkgRQjLxeGMeWhg",
+    "place_name": "Saint Georges Church",
+    "formatted_address": "St Georges Church, Crayford Rd, London N7 0ND",
+    "error": null
+  },
+  {
+    "address": "Kentish Town Community Centre, NW5, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJX5H_4gQbdkgRVzasLJ8N7Pw",
+    "place_name": "Kentish Town Community Centre",
+    "formatted_address": "17 Busby Pl, London NW5 2SP",
+    "error": null
+  },
+  {
+    "address": "Holborn House Community Centre, WC1N, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ1-d7GDYbdkgRNZ9mu3ABrbI",
+    "place_name": "Holborn Community Association - Holborn House",
+    "formatted_address": "35 Emerald St, London WC1N 3QW",
+    "error": null
+  },
+  {
+    "address": "South Woodford - Efs Scout Hut, E18, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJPdgCfjen2EcRuMtr6SKa34U",
+    "place_name": "18th EFS Scout Group",
+    "formatted_address": "The Brian Gillman Endeavour Hut, Foxdene Cl, London E18 1BH",
+    "error": null
+  },
+  {
+    "address": "Victoria Park Baptist Church, E3, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJe0blRiUddkgRzUtTmH-_O8Y",
+    "place_name": "Victoria Park Baptist Church",
+    "formatted_address": "186 Grove Rd., Old Ford, London E3 5TG",
+    "error": null
+  },
+  {
+    "address": "Highbury - St John's Highbury Vale Primary School, N5, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJs9H0cgobdkgRDMxvCcFhXSI",
+    "place_name": "St John's Highbury Vale CE Primary School",
+    "formatted_address": "Conewood St, London N5 1DL",
+    "error": null
+  },
+  {
+    "address": "Dartmouth Park - Highgate Road Chapel, NW5, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJDzYbYP8adkgR0UWqpIrH45Q",
+    "place_name": "Highgate Road Chapel",
+    "formatted_address": "Highgate Road Chapel, Chetwynd Rd, London NW5 1BU",
+    "error": null
+  },
+  {
+    "address": "Exmouth Market Centre, EC1R, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJX6eEiUUbdkgRdvdkL80El64",
+    "place_name": "Exmouth Market",
+    "formatted_address": "23 Exmouth Market, London EC1R 4QB",
+    "error": null
+  },
+  {
+    "address": "Trinity Walthamstow URC Church, E17, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJyymgS-wddkgRUdnqF5N8gx4",
+    "place_name": "Trinity Walthamstow United Reformed Church",
+    "formatted_address": "58 Orford Rd, London E17 9QU",
+    "error": null
+  },
+  {
+    "address": "Ironmonger Row Baths, EC1V, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJVVUVElgbdkgRukOuqtuWGOU",
+    "place_name": "Ironmonger Row Baths",
+    "formatted_address": "1 Norman St, London EC1V 3AA",
+    "error": null
+  },
+  {
+    "address": "The Boiler House Community Space, N16, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ_c5Qe2ccdkgRJYKQhtm8xbg",
+    "place_name": "Boiler House Spaces - The Boiler House Community Centre",
+    "formatted_address": "George Downing Estate, Cazenove Rd, London N16 6BE",
+    "error": null
+  },
+  {
+    "address": "Hackney - Round Chapel Old School Rooms, E5, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJcRijlP4cdkgR6WJ3vLJ48xE",
+    "place_name": "Round Chapel Families",
+    "formatted_address": "The Old School, 2 Powerscroft Rd, Lower Clapton, London E5 0PU",
+    "error": null
+  },
+  {
+    "address": "Perform Within St James Church, N1, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJeUJuFGAbdkgR_UmGCg7BBhc",
+    "place_name": "St James' Church, Islington",
+    "formatted_address": "Prebend St, London N1 8PH",
+    "error": null
+  },
+  {
+    "address": "St George and All Saints, N7, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJed011AkbdkgRk3-2s9CqBog",
+    "place_name": "St George’s and All Saints, Tufnell Park",
+    "formatted_address": "Crayford Rd, London N7 0ND",
+    "error": null
+  },
+  {
+    "address": "660 High Road Leyton, London E10 6JP, UK",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ-3rvHI8ddkgREFRC8J_Juz8",
+    "place_name": "660 High Rd. Leyton",
+    "formatted_address": "660 High Rd. Leyton, London E10 6JP",
+    "error": null
+  },
+  {
+    "address": "The Claremont Project, N1, London",
+    "activity_count": 5,
+    "status": "matched",
+    "place_id": "ChIJKf54CEMbdkgRf3Ak2t7rtiI",
+    "place_name": "Claremont Project",
+    "formatted_address": "24 White Lion St, London N1 9PD",
+    "error": null
+  },
+  {
+    "address": "Holy Family School, E17, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJB-p2_vAddkgRO-Xri349JQM",
+    "place_name": "Holy Family School & 6th Form",
+    "formatted_address": "Wiseman House Site, 34 Shernhall St, London E17 9RT",
+    "error": null
+  },
+  {
+    "address": "Pink Pilates, EC1V, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJiemp_v4bdkgRbgq6NlZLB4Y",
+    "place_name": "Pink Pilates Angel",
+    "formatted_address": "359 City Rd, London EC1V 1LR",
+    "error": null
+  },
+  {
+    "address": "Newbery House, N1, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ9fNwJmIbdkgR5hb5kcxHGZM",
+    "place_name": "Newbery House",
+    "formatted_address": "Newbery House, Northampton St, London N1 2HX",
+    "error": null
+  },
+  {
+    "address": "Good Hotel - London, E16, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJnY_dUQyo2EcRfBBo4Y4RSVM",
+    "place_name": "Good Hotel London",
+    "formatted_address": "Royal Victoria Dock, Western Gateway, London E16 1FA",
+    "error": null
+  },
+  {
+    "address": "Derby Road Methodist Church, E18, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ-_cKzLSg2EcRhwJ6Bj6z6f8",
+    "place_name": "Woodford Methodist Church",
+    "formatted_address": "Derby Rd, London E18 2PU",
+    "error": null
+  },
+  {
+    "address": "Church of Saint Michael, BN1, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJF9fUjuscdkgRi11ZdAaiMPU",
+    "place_name": "St Michael & All Angels Church, London Fields",
+    "formatted_address": "94B Lansdowne Dr, Blackstone Estate, London E8 3ER",
+    "error": null
+  },
+  {
+    "address": "N1 1SF, N1, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJn5e6kWUbdkgR9K2siRRs0Ac",
+    "place_name": "N1 1SF",
+    "formatted_address": "Cobble Ln, London N1 1SF",
+    "error": null
+  },
+  {
+    "address": "The Mill 7-11 Coppermill Lane, E17, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJW_vvL8YddkgRi3ngXRsGA2s",
+    "place_name": "The Mill (Community Centre)",
+    "formatted_address": "7-11 Coppermill Ln, London E17 7HA",
+    "error": null
+  },
+  {
+    "address": "Courthouse Hotel Shoreditch, EC1V, London",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJX9kx97ocdkgRE4zMpHNkSdk",
+    "place_name": "Courthouse Hotel Shoreditch",
+    "formatted_address": "335-337 Old St, London EC1V 9LL",
+    "error": null
+  },
+  {
+    "address": "Wanstead Methodist Church, E11, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJY8oVeD-n2EcRyuec20WMGxk",
+    "place_name": "Wanstead Methodist Church",
+    "formatted_address": "Wanstead Methodist Church, Hermon Hill, London E11 2AR",
+    "error": null
+  },
+  {
+    "address": "Rocket Padel Ilford Ltd, IG1, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJaQL6ANan2EcRBABP5ngaNBY",
+    "place_name": "Rocket Padel Ilford Ltd",
+    "formatted_address": "Rocket Padel, Wellness Suite, 2 The Drive, Ilford IG1 3PS",
+    "error": null
+  },
+  {
+    "address": "Rainforest Soft Play Cafe, E8, London",
+    "activity_count": 61,
+    "status": "matched",
+    "place_id": "ChIJwVryoRIddkgRDxkfPdGDuBc",
+    "place_name": "Rainforest Soft Play Club C.I.C",
+    "formatted_address": "297 Haggerston Rd, London E8 4EN",
+    "error": null
+  },
+  {
+    "address": "The Excelsior Academy CST Trust, E8, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJQXsCRgYddkgRaO-L26KuatE",
+    "place_name": "The Excelsior Academy CST Trust",
+    "formatted_address": "Shacklewell Ln, London E8 2EY",
+    "error": null
+  },
+  {
+    "address": "St Mary's Church, N16, London",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJ47i_lHwcdkgRCt7ccTrQSks",
+    "place_name": "St Mary's Church",
+    "formatted_address": "Stoke Newington Church St, London N16 9ES",
+    "error": null
+  },
+  {
+    "address": "Rhythmic Health 13c Amwell St, EC1R, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJmWc6pEUbdkgRA_X4RdxT7Vc",
+    "place_name": "Rhythmic Health",
+    "formatted_address": "13C Amwell St, London EC1R 1UL",
+    "error": null
+  },
+  {
+    "address": "Redmond Community Centre, N4, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJPQ3LUXYcdkgRt0Zkohs7Xv0",
+    "place_name": "Redmond Community Centre",
+    "formatted_address": "Kayani Ave, Woodberry Down, London N4 2HF",
+    "error": null
+  },
+  {
+    "address": "St Monica's Roman Catholic Primary School, N1, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJi6kfGbscdkgRpBvPHbh8efo",
+    "place_name": "St Monica's Roman Catholic Primary School, Hackney",
+    "formatted_address": "43 Hoxton St, London N1 6QN",
+    "error": null
+  },
+  {
+    "address": "St Mary's Centre N16, N16, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJvyfXW9AddkgRwdndYP94PDw",
+    "place_name": "St. Mary’s Centre N16",
+    "formatted_address": "St Mary’s Centre, Stoke Newington Church St, London N16 9ES",
+    "error": null
+  },
+  {
+    "address": "Higham Hill Park, E17, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJEwe-u9cddkgRobjVdDL2mfY",
+    "place_name": "Higham Hill Park",
+    "formatted_address": "313 Billet Rd, London E17 5PX",
+    "error": null
+  },
+  {
+    "address": "St Mary Magdalene Academy, N7, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJWw6S5nEbdkgRq3DysAYWaiw",
+    "place_name": "St Mary Magdalene Academy",
+    "formatted_address": "475 Liverpool Rd, London N7 8PG",
+    "error": null
+  },
+  {
+    "address": "Acland Burghley School, NW5, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJ94YBg6obdkgR8kG7ia5Eu0g",
+    "place_name": "Acland Burghley School",
+    "formatted_address": "Acland Burghley School, 93 Burghley Rd, London NW5 1UJ",
+    "error": null
+  },
+  {
+    "address": "School 21, E15, London",
+    "activity_count": 10,
+    "status": "matched",
+    "place_id": "ChIJe-wH-4qn2EcRQLe1zv0mDFU",
+    "place_name": "School 21",
+    "formatted_address": "Pitchford St, London E15 4RZ",
+    "error": null
+  },
+  {
+    "address": "Salway Evangelical Church, IG8, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJu9uvhLWg2EcR31f-HNPpelw",
+    "place_name": "Salway Evangelical Church",
+    "formatted_address": "Forest Approach, Woodford, Woodford Green IG8 9BW",
+    "error": null
+  },
+  {
+    "address": "Sandscape kids play and cafe, N4, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ53blUGEbdkgRmr_COl4Fqeo",
+    "place_name": "Sandscape Kids Play and Cafe",
+    "formatted_address": "93 Stroud Green Rd, Finsbury Park, London N4 3PX",
+    "error": null
+  },
+  {
+    "address": "The Canvas, previous Yoganest, E2, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJhXl-7NscdkgR1P9wOSVGPLA",
+    "place_name": "The Canvas",
+    "formatted_address": "The Canvas, 27 Old Ford Rd., London E2 9PJ",
+    "error": null
+  },
+  {
+    "address": "Vibast Community Centre, EC1V, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJIUsOD6gcdkgRAQQv-wy24Ew",
+    "place_name": "Vibast Community Centre",
+    "formatted_address": "167 Old St, London EC1V 9NH",
+    "error": null
+  },
+  {
+    "address": "The Ramsay Scout Centre, London N7",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJWQpIUHQbdkgRBtowKMwr9f0",
+    "place_name": "The Ramsay Scout Centre",
+    "formatted_address": "319 Holloway Rd, London N7 9FU",
+    "error": null
+  },
+  {
+    "address": "The Wilds at Barking Riverside, IG11, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJv2dK3Vul2EcRewHFjSEy4ak",
+    "place_name": "The Wilds at Barking Riverside",
+    "formatted_address": "The Wilds, Northgate Rd, Barking IG11 0AN",
+    "error": null
+  },
+  {
+    "address": "N1 8AF, N1, London",
+    "activity_count": 6,
+    "status": "unmatched",
+    "place_id": null,
+    "place_name": null,
+    "formatted_address": null,
+    "error": null
+  },
+  {
+    "address": "Leyton County Cricket Ground, E10, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJV8cBX4UddkgRpu_slybUw1k",
+    "place_name": "Leyton County Cricket Ground",
+    "formatted_address": "2 Crawley Rd, London E10 6RJ",
+    "error": null
+  },
+  {
+    "address": "The Old Fire Station Community Centre, N16, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJt3mF42AcdkgR93EldVhSkOk",
+    "place_name": "The Old Fire Station Community Centre",
+    "formatted_address": "61 Leswin Rd, London N16 7NX",
+    "error": null
+  },
+  {
+    "address": "The Winns Primary School, E17, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJT4gdFN4ddkgRFBTVNbb9wRg",
+    "place_name": "The Winns Primary School",
+    "formatted_address": "Fleeming Rd, London E17 5ET",
+    "error": null
+  },
+  {
+    "address": "Canal Club Community Centre, E2, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJkRrFGHUddkgRkhWhOoKYy4E",
+    "place_name": "Canal Club Community Centre",
+    "formatted_address": "Waterloo Gardens, Bethnal Green, London E2 9HP",
+    "error": null
+  },
+  {
+    "address": "SALASPARK, SW18, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJM7EbeCoPdkgRIforB16kTRY",
+    "place_name": "SalaSpark Ltd",
+    "formatted_address": "3 Eastfields Ave, London SW18 1GN",
+    "error": null
+  },
+  {
+    "address": "St Mary's Neighbourhood Centre, London N1",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJc8iWZp4bdkgRkzRzKKCsAg8",
+    "place_name": "St Mary's Neighbourhood Centre",
+    "formatted_address": "Upper St, London N1 2TX",
+    "error": null
+  },
+  {
+    "address": "St Joseph's Roman Catholic Church Community Hall, London E10",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJcR8c_JoddkgRrP527VA0Ih0",
+    "place_name": "Saint Joseph's Roman Catholic Church",
+    "formatted_address": "Saint Joseph's Roman Catholic Church, 68 Grange Park Rd, London E10 5ES",
+    "error": null
+  },
+  {
+    "address": "Aberfeldy Practice, E14, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJtX4GT6sCdkgR82xfbf05yVU",
+    "place_name": "The Aberfeldy Practice",
+    "formatted_address": "19 Aberfeldy Sq, Aberfeldy Village, London E14 0XA",
+    "error": null
+  },
+  {
+    "address": "Hampden Chapel, E9, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJd3BF-uEcdkgRFtUgdjr2mzQ",
+    "place_name": "Hampden Chapel",
+    "formatted_address": "Lauriston Rd, London E9 7EU",
+    "error": null
+  },
+  {
+    "address": "Greenleaf Road Baptist Church, E17, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJH2vHqcIddkgRk8QUi72RfWA",
+    "place_name": "Greenleaf Road Baptist Church",
+    "formatted_address": "4 Greenleaf Rd, London E17 6QQ",
+    "error": null
+  },
+  {
+    "address": "Cornerstone Cafe London, London E13",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJNxPXht2n2EcRJMCaKwHH1LY",
+    "place_name": "Cornerstone Cafe London",
+    "formatted_address": "408 Barking Rd, London E13 8HJ",
+    "error": null
+  },
+  {
+    "address": "Cornerstone Cafe London, E13, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJNxPXht2n2EcRJMCaKwHH1LY",
+    "place_name": "Cornerstone Cafe London",
+    "formatted_address": "408 Barking Rd, London E13 8HJ",
+    "error": null
+  },
+  {
+    "address": "Cantelowes Skatepark, NW1, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ2wAN0gQbdkgRLlAd4LHgbOc",
+    "place_name": "Cantelowes Skatepark",
+    "formatted_address": "212 Camden Rd, London NW1 9BY",
+    "error": null
+  },
+  {
+    "address": "South Chingford Foundation School, E4, London",
+    "activity_count": 6,
+    "status": "matched",
+    "place_id": "ChIJ7zavTA8edkgRtQaNLZ-eFTs",
+    "place_name": "South Chingford Foundation School",
+    "formatted_address": "Stadium Close, London E4 8ES",
+    "error": null
+  },
+  {
+    "address": "Forest School, E17, London",
+    "activity_count": 17,
+    "status": "matched",
+    "place_id": "ChIJO1O8rVun2EcR_qvzy7FVamU",
+    "place_name": "Forest School",
+    "formatted_address": "Oakhurst Gardens, London E17 3PY",
+    "error": null
+  },
+  {
+    "address": "Woodford Memorial, E18, London",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJWTU1-Eqn2EcRe4FEeThb5zc",
+    "place_name": "Woodford Memorial Hall",
+    "formatted_address": "209 High Rd, London E18 2PA",
+    "error": null
+  },
+  {
+    "address": "Sol Centre Studio, N19, London",
+    "activity_count": 1,
+    "status": "unmatched",
+    "place_id": null,
+    "place_name": null,
+    "formatted_address": null,
+    "error": null
+  },
+  {
+    "address": "South Library, N1, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJO2ueJmEbdkgRKZHrrwaJ7es",
+    "place_name": "Islington South Library",
+    "formatted_address": "115-117 Essex Rd, London N1 2SL",
+    "error": null
+  },
+  {
+    "address": "St Augustine's Church, N5, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJObxbRIAcdkgROCu9V3HzpB0",
+    "place_name": "St Augustine's Church, Highbury",
+    "formatted_address": "108 Highbury New Park, London N5 2DR",
+    "error": null
+  },
+  {
+    "address": "St Peter's in the Forest, E17, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJObuoUPOn2EcRvsIWECIUKIM",
+    "place_name": "St Peter-in-the-Forest",
+    "formatted_address": "18 Woodford New Rd, London E17 3PP",
+    "error": null
+  },
+  {
+    "address": "Hartlip Village Hall, ME9, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJNfxJnkzT2EcR975JZG1QOvw",
+    "place_name": "Hartlip Village Hall",
+    "formatted_address": "7TH, The St, Hartlip, Sittingbourne ME9 7TL",
+    "error": null
+  },
+  {
+    "address": "155 Canterbury Road, Leyton, London E10 6EJ",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ5wDZiYoddkgRimMVsRkJQeI",
+    "place_name": "Barclay Primary School",
+    "formatted_address": "155 Canterbury Rd, Greater, London E10 6EJ",
+    "error": null
+  },
+  {
+    "address": "398 Hoe Street, Walthamstow, London E17 9AA",
+    "activity_count": 1,
+    "status": "unmatched",
+    "place_id": null,
+    "place_name": null,
+    "formatted_address": null,
+    "error": null
+  },
+  {
+    "address": "2 Brunel Road, Walthamstow, London E17 8SB",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ954SPLgddkgR7Q7tZ_-HR4M",
+    "place_name": "2 Brunel Rd",
+    "formatted_address": "2 Brunel Rd, London E17 8SB",
+    "error": null
+  },
+  {
+    "address": "Berger Primary School, E9, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJpQ4yMB0ddkgRgErdO7kA-uc",
+    "place_name": "Berger Primary School",
+    "formatted_address": "Anderson Rd, London E9 6HB",
+    "error": null
+  },
+  {
+    "address": "Brookscroft Road, Walthamstow, London E17 4LH",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "EiJCcm9va3Njcm9mdCBSZCwgTG9uZG9uIEUxNyA0TEgsIFVLIi4qLAoUChIJ9eC5J_0ddkgRsvHkmSGYxGQSFAoSCfFDsObiHXZIEcow7IfL57MF",
+    "place_name": "Brookscroft Road",
+    "formatted_address": "Brookscroft Rd, London E17 4LH",
+    "error": null
+  },
+  {
+    "address": "47 Woodbury Road, Walthamstow, London E17 9SB",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJf7SPZ-4ddkgR7vq8lZQJgA0",
+    "place_name": "47 Woodbury Rd",
+    "formatted_address": "47 Woodbury Rd, London E17 9SB",
+    "error": null
+  },
+  {
+    "address": "134-136 Downsell Road, Leyton, London E15 2BS",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJaT8rh4Cn2EcR-OEjI9xkVNU",
+    "place_name": "Downsell Primary School",
+    "formatted_address": "134-136 Downsell Rd, London E15 2BS",
+    "error": null
+  },
+  {
+    "address": "80 Greenleaf Road, Walthamstow, London E17 6QW",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJCxz2Rt0ddkgRsEXG4BzH5Rg",
+    "place_name": "80 Greenleaf Rd",
+    "formatted_address": "80 Greenleaf Rd, London E17 6QW",
+    "error": null
+  },
+  {
+    "address": "Castle Avenue, Highams Park, London E4 9QD",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "Eh1DYXN0bGUgQXZlLCBMb25kb24gRTQgOVFELCBVSyIuKiwKFAoSCTvsjzKmoNhHEfMWYrBUKWcSEhQKEgnX1hkrpqDYRxFsDsqPFSTOQQ",
+    "place_name": "Castle Avenue",
+    "formatted_address": "Castle Ave, London E4 9QD",
+    "error": null
+  },
+  {
+    "address": "Low Hall Lane, Walthamstow, London E17 8BE",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "Eh9Mb3cgSGFsbCBMbiwgTG9uZG9uIEUxNyA4QkUsIFVLIi4qLAoUChIJLxPQYbgddkgRZyVd3DeS1MISFAoSCXl9lqO4HXZIES9xIg8hYlP4",
+    "place_name": "Low Hall Lane",
+    "formatted_address": "Low Hall Ln, London E17 8BE",
+    "error": null
+  },
+  {
+    "address": "21 Wellington Avenue, Chingford, London E4 6RE",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJB9X_izwedkgR1NdpTGGn95Y",
+    "place_name": "21 Wellington Ave",
+    "formatted_address": "21 Wellington Ave, London E4 6RE",
+    "error": null
+  },
+  {
+    "address": "Selwyn Avenue, Chingford, London E4 9NE",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "Eh1TZWx3eW4gQXZlLCBMb25kb24gRTQgOU5FLCBVSyIuKiwKFAoSCRNxfpADHnZIEfVHT8enfMvKEhQKEgmtcGlEBB52SBFnAeWrSIVn7Q",
+    "place_name": "Selwyn Avenue",
+    "formatted_address": "Selwyn Ave, London E4 9NE",
+    "error": null
+  },
+  {
+    "address": "Perth Road, Leyton, London E10 7PB",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJN4fO26QddkgR7GzW5MhG3jY",
+    "place_name": "Sybourn Primary School and Early Excellence Centre",
+    "formatted_address": "2 Perth Rd, London E10 7PB",
+    "error": null
+  },
+  {
+    "address": "48a Greenway Avenue, Walthamstow, London E17 3QN",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJE__LkFin2EcREpn6lOrd6WE",
+    "place_name": "48a Greenway Ave",
+    "formatted_address": "48a Greenway Ave, London E17 3QN",
+    "error": null
+  },
+  {
+    "address": "Colchester Road, Walthamstow, London E17 8LH",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "EhlDb2xjaGVzdGVyIFJkLCBMb25kb24sIFVLIi4qLAoUChIJB-mxjI0ddkgRdXA22STic70SFAoSCXFFh4nmHXZIEUisrzyO-7_f",
+    "place_name": "Colchester Road",
+    "formatted_address": "Colchester Rd, London",
+    "error": null
+  },
+  {
+    "address": "Nailour Community Hall, N7, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJY0exWRIbdkgRzCwrvFJYecQ",
+    "place_name": "Nailour Community Hall",
+    "formatted_address": "Blundell St, London N7 9BH",
+    "error": null
+  },
+  {
+    "address": "Emmanuel Community School Walthamstow, E17, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJW8Ye4cIddkgRxlgWZqFGKec",
+    "place_name": "Emmanuel Community School Walthamstow",
+    "formatted_address": "The Drive, London E17 3BN",
+    "error": null
+  },
+  {
+    "address": "Artworks East, E10, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ74UnFwAddkgRGh89z-qRAxg",
+    "place_name": "Artworks East",
+    "formatted_address": "32-34 Osier Way, London E10 5SB",
+    "error": null
+  },
+  {
+    "address": "721 High Road Leytonstone, London E11 4RD, UK",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJAQCz9nqn2EcRuu-epoPoUQg",
+    "place_name": "721 High Rd Leytonstone",
+    "formatted_address": "721 High Rd Leytonstone, Bushwood, London E11 4RD",
+    "error": null
+  },
+  {
+    "address": "Chestnuts Farm Allotments, E17, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJUb8Bt7sddkgRFIXjKc4KtPc",
+    "place_name": "Low Hall Farm Allotments",
+    "formatted_address": "Bridge Rd, London E17 8HG",
+    "error": null
+  },
+  {
+    "address": "Priory Court Community Centre, E17, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJNZgnN9wddkgRADYEbrL6ujA",
+    "place_name": "Priory Court Community Centre",
+    "formatted_address": "11 Priory Ct, London E17 5NB",
+    "error": null
+  },
+  {
+    "address": "Islington Museum, EC1V, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJdR8jvlobdkgRb9OcMTWg5ec",
+    "place_name": "Islington Museum",
+    "formatted_address": "Patrick Coman House, 245 St John St, London EC1V 4NB",
+    "error": null
+  },
+  {
+    "address": "Stratford Library, 3 The Grove, Stratford, London E15 1EL",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJh2d8ffOn2EcReJJKNVIZFhg",
+    "place_name": "Stratford Library",
+    "formatted_address": "3 The Grove, London E15 1EL",
+    "error": null
+  },
+  {
+    "address": "Victoria Park Harriers and Tower Hamlets Athletics Club, E9, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJs7VBURAddkgRGswNmdbNMXs",
+    "place_name": "Victoria Park Harriers & Tower Hamlets Athletics Club",
+    "formatted_address": "St Augustine's Hall, Cadogan Terrace, London E9 5EG",
+    "error": null
+  },
+  {
+    "address": "30 Goswell Rd., EC1M, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJmdbo_FYbdkgRkJMdnFIktl8",
+    "place_name": "30 Goswell Rd.",
+    "formatted_address": "30 Goswell Rd., Barbican, London EC1M 7AA",
+    "error": null
+  },
+  {
+    "address": "Edible Landscapes London, N4, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJITy8pYkbdkgRreHyOd3e-tM",
+    "place_name": "Edible Landscapes London",
+    "formatted_address": "Finsbury Park, London N4 1BH",
+    "error": null
+  },
+  {
+    "address": "2A Perth Road, E10, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJeT_PLqUddkgRGIVt4zBNftI",
+    "place_name": "2 Perth Rd",
+    "formatted_address": "2 Perth Rd, London E10 7PB",
+    "error": null
+  },
+  {
+    "address": "Goodinge Community Centre, N7, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJeR04SQ4bdkgRXYbXllFipz0",
+    "place_name": "Goodinge Community Centre",
+    "formatted_address": "Goodinge Community Centre, London N7 9GZ",
+    "error": null
+  },
+  {
+    "address": "324 Cann Hall Road, London E11 3NW, UK",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ6YpM4nWn2EcRbzUER1KuCCQ",
+    "place_name": "324 Cann Hall Rd",
+    "formatted_address": "324 Cann Hall Rd, London E11 3NW",
+    "error": null
+  },
+  {
+    "address": "Shoreditch Park, N1, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJAdyu_aIcdkgRs96BIc--zl8",
+    "place_name": "Shoreditch Park",
+    "formatted_address": "188 New N Rd, London N1 6TA",
+    "error": null
+  },
+  {
+    "address": "Highbury Fields Tennis Courts, N5, London",
+    "activity_count": 9,
+    "status": "matched",
+    "place_id": "ChIJTdn4XHkbdkgR8q1yWeHKAEk",
+    "place_name": "Highbury Fields Tennis Courts",
+    "formatted_address": "1AR, 24-25, Highbury Terrace, London N5 1UP",
+    "error": null
+  },
+  {
+    "address": "St Mark's Church, N4, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJe5xFWJgbdkgRVsLt4LmoqAw",
+    "place_name": "St Mark's Church, Tollington",
+    "formatted_address": "1a Moray Rd, Finsbury Park, London N4 3LD",
+    "error": null
+  },
+  {
+    "address": "The Body People Fitness, Aerial & Dance Studio, E20, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJgZYKvOkddkgRTeWmj8tWV-E",
+    "place_name": "The Body People Fitness, Aerial & Dance Studio",
+    "formatted_address": "9 Copper St, London E20 3AW",
+    "error": null
+  },
+  {
+    "address": "The Castle Cinema, First Floor, 64-66 Brooksby’s Walk, Hackney, London E9 6DA",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJS5lX2gMddkgRAQ_dwtvL2TQ",
+    "place_name": "The Castle Cinema",
+    "formatted_address": "First Floor, 64 - 66 Brooksby's Walk, London E9 6DA",
+    "error": null
+  },
+  {
+    "address": "The Castle Play Space, London E11",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJPz80ZgCn2EcRm37QclmMPkM",
+    "place_name": "The Castle Play Space",
+    "formatted_address": "370 Grove Green Rd, London E11 4AJ",
+    "error": null
+  },
+  {
+    "address": "Heathcote and Star Pub, E11, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJL4ygEH2n2EcRw4qpPD3oI9A",
+    "place_name": "Heathcote & Star",
+    "formatted_address": "344 Grove Green Rd, London E11 4EA",
+    "error": null
+  },
+  {
+    "address": "Heathcote & Star, E11, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJL4ygEH2n2EcRw4qpPD3oI9A",
+    "place_name": "Heathcote & Star",
+    "formatted_address": "344 Grove Green Rd, London E11 4EA",
+    "error": null
+  },
+  {
+    "address": "Lloyd park, E17, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJfeIwGecddkgRhGSB5s-hbeE",
+    "place_name": "Lloyd Park",
+    "formatted_address": "Forest Rd, London E17 4PP",
+    "error": null
+  },
+  {
+    "address": "Wanstead Flats E11 3BW, E11, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJn1QccQmn2EcRwIbmj1mM1_A",
+    "place_name": "Wanstead Flats",
+    "formatted_address": "Capel Rd, London E11 2LT",
+    "error": null
+  },
+  {
+    "address": "The Fence, Farringdon, EC1M, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ6aUJJ1IbdkgR1nv6QossVJg",
+    "place_name": "The Fence, Farringdon",
+    "formatted_address": "67-69 Cowcross St, London EC1M 6BP",
+    "error": null
+  },
+  {
+    "address": "Peter Paine Performance Centre, PE12, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJdRv-uwcedkgRtgezOeQPqAY",
+    "place_name": "Peter May Sports Centre",
+    "formatted_address": "135 Wadham Rd, London E17 4HR",
+    "error": null
+  },
+  {
+    "address": "Whittington Park, N19, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJTcBTpEEbdkgRFFpm4LbRo-4",
+    "place_name": "Whittington Park",
+    "formatted_address": "Archway, London N19 4RE",
+    "error": null
+  },
+  {
+    "address": "Highbury Fields Bandstand, N5, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJAQGGCXwbdkgR3Y7wbrmRk1A",
+    "place_name": "Highbury Fields Bandstand",
+    "formatted_address": "42 Highbury Pl, London N5 1QL",
+    "error": null
+  },
+  {
+    "address": "10 Cynthia St, N1, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJk19-PUEbdkgRA6nyFSpPB2w",
+    "place_name": "Unlock Democracy Ltd",
+    "formatted_address": "Unlock Democracy Ltd, 10 Cynthia St, London N1 9JF",
+    "error": null
+  },
+  {
+    "address": "Bread Street Kitchen, Bar & Rooftop - Stratford, E20, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJZwXq3WUddkgRhLmi8i0FI7w",
+    "place_name": "Bread Street Kitchen, Bar & Rooftop - Stratford",
+    "formatted_address": "9 Endeavour Square, Stratford Cross, London E20 1JN",
+    "error": null
+  },
+  {
+    "address": "Five Points Courtyard, E8, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJPR2MXfAcdkgR2xaMsu5rJYs",
+    "place_name": "The Five Points Taproom & Courtyard",
+    "formatted_address": "61 Mare St, London E8 4RG",
+    "error": null
+  },
+  {
+    "address": "The Pembury Tavern, E8, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJoYQEhvAcdkgRQrz3O6jLA-g",
+    "place_name": "The Pembury Tavern",
+    "formatted_address": "90 Amhurst Rd, London E8 1JH",
+    "error": null
+  },
+  {
+    "address": "647-661 High Rd Leytonstone, Bushwood, London E11 4RD, UK",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJPdo8N3qn2EcRufOl6eIR1F8",
+    "place_name": "647-661 High Rd Leytonstone",
+    "formatted_address": "647-661 High Rd Leytonstone, Bushwood, London E11 4RD",
+    "error": null
+  },
+  {
+    "address": "The Woodside Primary Academy, E17, London",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJERajp_kddkgRPwXPeaIx2AM",
+    "place_name": "Woodside Primary Academy",
+    "formatted_address": "778 Forest Rd, London E17 3JX",
+    "error": null
+  },
+  {
+    "address": "Be Well York Hall, E2, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJH8k2bS4ddkgRT0-V6dAik70",
+    "place_name": "Be Well The Spa",
+    "formatted_address": "York Hall Leisure Centre, Be Well The Spa, Old Ford Rd., London E2 9PJ",
+    "error": null
+  },
+  {
+    "address": "Daubeney Childrens Centre, E5, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJE8y_ZwYddkgRVETCWYs6INw",
+    "place_name": "Daubeney Childrens Centre",
+    "formatted_address": "Daubeney Rd, London E5 0EG",
+    "error": null
+  },
+  {
+    "address": "1st and 2nd floor, N5, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJDWpGJnEbdkgRnHiBYkhP67o",
+    "place_name": "1st and 2nd Floors, 3 Drayton Park",
+    "formatted_address": "1st and 2nd Floors, 3 Drayton Park, London N5 1NU",
+    "error": null
+  },
+  {
+    "address": "The Old Dairy, N4, London",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJy0FQTpYbdkgROvvO_SFdVHY",
+    "place_name": "The Old Dairy",
+    "formatted_address": "The Old Dairy, 1-3 Crouch Hill, Finsbury Park, London N4 4AP",
+    "error": null
+  },
+  {
+    "address": "The Factory Fitness and Dance Centre, N19, London",
+    "activity_count": 6,
+    "status": "matched",
+    "place_id": "ChIJtwEQPaMbdkgRSl6513FXDZo",
+    "place_name": "The Factory Fitness and Dance Centre",
+    "formatted_address": "407 Hornsey Rd, London N19 4DX",
+    "error": null
+  },
+  {
+    "address": "Seven sisters community hall, SA10, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJv3RdZqNFbkgRmcs9kGCgBvk",
+    "place_name": "Community Hall of Seven Sisters",
+    "formatted_address": "Seven Sisters, Neath SA10 9BA",
+    "error": null
+  },
+  {
+    "address": "St John’s the Baptist Church, NG4, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ82LGoaQcdkgR2OxDs4q52zI",
+    "place_name": "St John the Baptist Church, Hoxton",
+    "formatted_address": "St Johns Centre, 85 Pitfield St, London N1 6NP",
+    "error": null
+  },
+  {
+    "address": "The Reformery, E7, London",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJG2PirVKn2EcRzNSc3_l2aCY",
+    "place_name": "The Reformery",
+    "formatted_address": "Arch 436, London E7 0LA",
+    "error": null
+  },
+  {
+    "address": "98b St Paul St, N1, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJbdqD2F8bdkgR_QK19wlohls",
+    "place_name": "98b St Paul St",
+    "formatted_address": "98b St Paul St, London N1 7DF",
+    "error": null
+  },
+  {
+    "address": "Roseberry Mansions, N1C, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJjZSTiRYbdkgRUen4W4tMK10",
+    "place_name": "Roseberry Mansions",
+    "formatted_address": "1 Tapper Walk, London N1C 4AQ",
+    "error": null
+  },
+  {
+    "address": "Alliston House, E17, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJj69uYPAddkgRtpFVMgNKwKg",
+    "place_name": "Alliston House",
+    "formatted_address": "Alliston House, Church Hill Rd, London E17 3EX",
+    "error": null
+  },
+  {
+    "address": "Chestnut Manor Care Home, E11, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJOajWZ2un2EcRrhhKyMBh4-Q",
+    "place_name": "Chestnut Manor Care Home",
+    "formatted_address": "63 Cambridge Park, London E11 2PR",
+    "error": null
+  },
+  {
+    "address": "George Mason Lodge, E11, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJUZ49SWOn2EcREj4rJNwcnyY",
+    "place_name": "George Mason Lodge",
+    "formatted_address": "20 Chelmsford Rd, London E11 1BS",
+    "error": null
+  },
+  {
+    "address": "Little Sisters of the Poor, N16, London",
+    "activity_count": 1,
+    "status": "unmatched",
+    "place_id": null,
+    "place_name": null,
+    "formatted_address": null,
+    "error": null
+  },
+  {
+    "address": "Muriel Street Care Home, N1, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJVQDBNEAbdkgRu5V61ShQhxM",
+    "place_name": "Muriel Street Care Home - Care UK",
+    "formatted_address": "37 Muriel St, London N1 0TH",
+    "error": null
+  },
+  {
+    "address": "Silk Court, E2, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ4y7nfsYcdkgRwsMFNXu1BLE",
+    "place_name": "Silk Court care home, Bethnal Green",
+    "formatted_address": "16 Ivimey St, London E2 6LR",
+    "error": null
+  },
+  {
+    "address": "Summerdale Court Care Home, E16, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJRcVRAeCn2EcR46o9Bcy6IPU",
+    "place_name": "Summerdale Court Care Home",
+    "formatted_address": "73 Butchers Rd, London E16 1PH",
+    "error": null
+  },
+  {
+    "address": "Westgate House, E7, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJacDVNpen2EcRbXmU5B-m7_c",
+    "place_name": "Westgate House",
+    "formatted_address": "Westgate House, Romford Rd, London E7 9HY",
+    "error": null
+  },
+  {
+    "address": "Netball Courts, Highbury Fields, N5, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJHcLqUnkbdkgRq579Rt_3Kys",
+    "place_name": "Highbury Fields Netball Courts",
+    "formatted_address": "Highbury Fields, London N5 1AL",
+    "error": null
+  },
+  {
+    "address": "Cookie's Cafe, N1, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJYwCpay8bdkgRHXyoK2SvkO0",
+    "place_name": "Mayvn Cafe",
+    "formatted_address": "4 Pentonville Rd, London N1 9HF",
+    "error": null
+  },
+  {
+    "address": "N19 3QL, N19, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJA01FZ7sbdkgR-_fvcEzHb_A",
+    "place_name": "N19 3QL",
+    "formatted_address": "Hornsey Rd, London N19 3QL",
+    "error": null
+  },
+  {
+    "address": "Yonder Studio E17, London E17",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJeZA38dEddkgRDrzH1jB8wi4",
+    "place_name": "Yonder Indoor Climbing Gym",
+    "formatted_address": "6 Hooker's Rd, London E17 6DP",
+    "error": null
+  },
+  {
+    "address": "Sutton House, E9, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJZyit6PwcdkgR8An8dSeQ6O8",
+    "place_name": "Sutton House",
+    "formatted_address": "Sutton House, London E9 6JQ",
+    "error": null
+  },
+  {
+    "address": "Yonder Yoga E17, E17, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJeZA38dEddkgRDrzH1jB8wi4",
+    "place_name": "Yonder Indoor Climbing Gym",
+    "formatted_address": "6 Hooker's Rd, London E17 6DP",
+    "error": null
+  },
+  {
+    "address": "St Stephen's, Canonbury, London N1",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJUz7Sg2EbdkgRhj8j3y4nmyk",
+    "place_name": "St Stephen’s, Canonbury",
+    "formatted_address": "17 Canonbury Rd, London N1 2HT",
+    "error": null
+  },
+  {
+    "address": "St Stephen's, Canonbury, N1, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJUz7Sg2EbdkgRhj8j3y4nmyk",
+    "place_name": "St Stephen’s, Canonbury",
+    "formatted_address": "17 Canonbury Rd, London N1 2HT",
+    "error": null
+  },
+  {
+    "address": "South Woodford Library and Gym, E18, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJwTgY7Eqn2EcRrTpufZs9Oas",
+    "place_name": "South Woodford Library and Gym",
+    "formatted_address": "114 High Rd, London E18 2QS",
+    "error": null
+  },
+  {
+    "address": "St Matthew's Church, West Ham, E15, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJxQ11q5Gn2EcRapNfLm03T0w",
+    "place_name": "St Matthew's Church, West Ham",
+    "formatted_address": "The Vicarage, 38 Dyson Rd, London E15 4JX",
+    "error": null
+  },
+  {
+    "address": "Holy Trinity South Woodford Church Hall, E18, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJhcBv_Dmn2EcRxT74l0Q_QWk",
+    "place_name": "Holy Trinity Church, South Woodford",
+    "formatted_address": "185 Hermon Hill, London E18 1QQ",
+    "error": null
+  },
+  {
+    "address": "Saint Nicholas Church, Poplar, E14, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJSygsWqsCdkgRYRmzQtuiu60",
+    "place_name": "St Nicholas’ Church, Poplar",
+    "formatted_address": "Aberfeldy St, Aberfeldy Village, London E14 0PT",
+    "error": null
+  },
+  {
+    "address": "St John on Bethnal Green, E2, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJhZb-TtocdkgRCxq1ganf4zk",
+    "place_name": "St John on Bethnal Green",
+    "formatted_address": "200 Cambridge Heath Rd, Bethnal Green, London E2 9PA",
+    "error": null
+  },
+  {
+    "address": "St. Hilda's East Community Centre, E2, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJmxGiZbccdkgRqobVh2kL4-A",
+    "place_name": "St. Hilda's East Community Centre",
+    "formatted_address": "18 Club Row, London E2 7EY",
+    "error": null
+  },
+  {
+    "address": "Stafford Hall (Next to St Barnabas Church), E17, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJl0IqRJQddkgRwXry8v27jQM",
+    "place_name": "Stafford Hall",
+    "formatted_address": "London E17 8JZ",
+    "error": null
+  },
+  {
+    "address": "N7 9DP, N7, London",
+    "activity_count": 7,
+    "status": "matched",
+    "place_id": "ChIJzZvjcpkbdkgR9JyPz4OASl4",
+    "place_name": "N7 London",
+    "formatted_address": "Unit 2, 303 Holloway Rd, London N7 8HS",
+    "error": null
+  },
+  {
+    "address": "N7 9DP, London N7",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ401Zqg0bdkgRtuvTLMXgeJY",
+    "place_name": "N7 9DP",
+    "formatted_address": "North Road, London N7 9DP",
+    "error": null
+  },
+  {
+    "address": "Woodford Methodist Church Hall, E18, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJ-_cKzLSg2EcRhwJ6Bj6z6f8",
+    "place_name": "Woodford Methodist Church",
+    "formatted_address": "Derby Rd, London E18 2PU",
+    "error": null
+  },
+  {
+    "address": "Wanstead House Community Association, London E11",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJtVFaJBSn2EcROtoiUFXaEdc",
+    "place_name": "Wanstead House Community Centre",
+    "formatted_address": "Wanstead House Community Association, London E11 2NT",
+    "error": null
+  },
+  {
+    "address": "Woodford Baptist Church, E18, London",
+    "activity_count": 7,
+    "status": "matched",
+    "place_id": "ChIJ5dCaMjen2EcRBtNPduqT-vQ",
+    "place_name": "Woodford Baptist Church",
+    "formatted_address": "32 George Ln, London E18 1LW",
+    "error": null
+  },
+  {
+    "address": "Waltham Forest Community Hub, E17, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJA2ju-u0ddkgR_ImUk0UuSQo",
+    "place_name": "Waltham Forest Community Hub",
+    "formatted_address": "18A Orford Rd, London E17 9LN",
+    "error": null
+  },
+  {
+    "address": "Walthamstow Toy Library, London E17",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ-5-zJPIddkgRSIEKJlIec10",
+    "place_name": "Walthamstow Toy Library",
+    "formatted_address": "6-8 Somers Rd, London E17 6RX",
+    "error": null
+  },
+  {
+    "address": "Nuffield Romford, RM1, London",
+    "activity_count": 4,
+    "status": "matched",
+    "place_id": "ChIJRVlYo8mk2EcR7jU1yW_Yb50",
+    "place_name": "Nuffield Health Romford Fitness & Wellbeing Gym",
+    "formatted_address": "4, The Brewery, Romford ROC Dr, Romford RM1 1AU",
+    "error": null
+  },
+  {
+    "address": "Switchboard Studios, E17, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ-9nT_j4ddkgRdO8jiPOEocA",
+    "place_name": "Switchboard Studios",
+    "formatted_address": "Unit 50, Uplands Business Park, Uplands Entrance B, Blackhorse Ln, London E17 5QJ",
+    "error": null
+  },
+  {
+    "address": "Wentworth Children's Centre, E9, London",
+    "activity_count": 7,
+    "status": "matched",
+    "place_id": "ChIJZ0uLpdkddkgRLnqasGGWe6s",
+    "place_name": "Wentworth Children's Centre",
+    "formatted_address": "Hartlake Road Granard House, London E9 5BN",
+    "error": null
+  },
+  {
+    "address": "Wesley's Chapel, EC1Y, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJRx_fO68cdkgRgVzZWYFfKr8",
+    "place_name": "Wesley's Chapel & Leysian Mission",
+    "formatted_address": "49 City Rd, London EC1Y 1AU",
+    "error": null
+  },
+  {
+    "address": "Islington West Library, N1, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJh2lVXGsbdkgRqEEEhhqHtcc",
+    "place_name": "Islington West Library",
+    "formatted_address": "107 Bridgeman Rd, London N1 1BD",
+    "error": null
+  },
+  {
+    "address": "London Fields Woodland, E8, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJH7vcjOYddkgRQAmHYvUaK-U",
+    "place_name": "London Fields",
+    "formatted_address": "London Fields West Side, London E8 3EU",
+    "error": null
+  },
+  {
+    "address": "The Glass House, E5, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJJU5GDJEddkgRHfefKxiINVk",
+    "place_name": "Springfield - The Glass House",
+    "formatted_address": "Springfield, London E5 9EF",
+    "error": null
+  },
+  {
+    "address": "Woodford Methodist Church, E18, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ-_cKzLSg2EcRhwJ6Bj6z6f8",
+    "place_name": "Woodford Methodist Church",
+    "formatted_address": "Derby Rd, London E18 2PU",
+    "error": null
+  },
+  {
+    "address": "65 Belgrave Road, London E11 3QP, UK",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ0aAzDnOn2EcRNnXCZd-PCuk",
+    "place_name": "65 Belgrave Rd",
+    "formatted_address": "65 Belgrave Rd, Aldersbrook, London E11 3QP",
+    "error": null
+  },
+  {
+    "address": "172 Arlington Rd, NW1, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJxaD3quEadkgR20zc8drAgRA",
+    "place_name": "172 Arlington Rd",
+    "formatted_address": "172 Arlington Rd, London NW1 7HL",
+    "error": null
+  },
+  {
+    "address": "N7 0EA, N7, London",
+    "activity_count": 3,
+    "status": "matched",
+    "place_id": "ChIJzZvjcpkbdkgR9JyPz4OASl4",
+    "place_name": "N7 London",
+    "formatted_address": "Unit 2, 303 Holloway Rd, London N7 8HS",
+    "error": null
+  },
+  {
+    "address": "Yogahome, N16, London",
+    "activity_count": 7,
+    "status": "matched",
+    "place_id": "ChIJIxc1TIgcdkgRtCEszm9g8A4",
+    "place_name": "Yogahome",
+    "formatted_address": "14 Allen Rd, London N16 8SD",
+    "error": null
+  },
+  {
+    "address": "2 Crawley Road, Leyton, London E10 6RJ",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJn8aMzoQddkgR3R02WaNlvIQ",
+    "place_name": "Crawley Road Medical Centre",
+    "formatted_address": "479 High Rd. Leyton, London E10 5EL",
+    "error": null
+  },
+  {
+    "address": "The Young Actors Theatre Islington, N1, London",
+    "activity_count": 5,
+    "status": "matched",
+    "place_id": "ChIJHyKN4mkbdkgRQIbaOTVurPk",
+    "place_name": "The Young Actors Theatre Islington",
+    "formatted_address": "Barnsbury Rd, London N1 0ES",
+    "error": null
+  },
+  {
+    "address": "Church on the Corner, N1, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJE2sZCEIbdkgRoJJ9ntgnhGs",
+    "place_name": "Church on the Corner",
+    "formatted_address": "64 Barnsbury Rd, London N1 0ES",
+    "error": null
+  },
+  {
+    "address": "SOLA, E10, London",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJX05UxmIddkgRlzqPqw_op4M",
+    "place_name": "Sola | Movement studio",
+    "formatted_address": "31 Goldsmith Rd, London E10 5EZ",
+    "error": null
+  },
+  {
+    "address": "Zip Zap Islington, N1, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJ1yjdANsbdkgRlm3s4K0O_Iw",
+    "place_name": "Zip Zap Islington",
+    "formatted_address": "St James' Hall, 42 Packington St, London N1 8PF",
+    "error": null
+  },
+  {
+    "address": "St Mary's Church Stoke Newington, N16, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJ47i_lHwcdkgRCt7ccTrQSks",
+    "place_name": "St Mary's Church",
+    "formatted_address": "Stoke Newington Church St, London N16 9ES",
+    "error": null
+  },
+  {
+    "address": "Orford House Walthamstow Village, E17, London",
+    "activity_count": 2,
+    "status": "matched",
+    "place_id": "ChIJLza8T-wddkgRMPzrUVqTcW0",
+    "place_name": "Orford House",
+    "formatted_address": "Orford House, 73 Orford Rd, London E17 9QR",
+    "error": null
+  },
+  {
+    "address": "St Mary's Church Stoke Newington, London N16",
+    "activity_count": 1,
+    "status": "matched",
+    "place_id": "ChIJ47i_lHwcdkgRCt7ccTrQSks",
+    "place_name": "St Mary's Church",
+    "formatted_address": "Stoke Newington Church St, London N16 9ES",
+    "error": null
+  }
+]

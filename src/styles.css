@@ -1566,6 +1566,15 @@ input[type='range'] {
   -webkit-line-clamp: 2;
 }
 
+.card-content .card-address {
+  margin-top: -8px;
+  color: var(--green-dark);
+  font-size: 0.8rem;
+  font-weight: 800;
+  line-height: 1.25;
+  -webkit-line-clamp: 1;
+}
+
 .card-links {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

@@ -1,0 +1,36 @@
+-- Keep the category values concise, consistent and suitable for user-facing filters.
+update public.activities
+set category = case lower(trim(category))
+  when 'family activity' then 'Family activities'
+  when 'parent-and-baby playgroups' then 'Stay & play'
+  when 'baby stay and play' then 'Stay & play'
+  when 'baby dance or movement classes' then 'Baby dance & movement'
+  when 'baby music classes' then 'Music & singing'
+  when 'baby sing a long' then 'Music & singing'
+  when 'baby yoga' then 'Baby yoga'
+  when 'sensory play' then 'Baby sensory'
+  when 'baby sensory classes' then 'Baby sensory'
+  when 'arts and crafts' then 'Arts & crafts'
+  when 'baby massage classes' then 'Baby massage'
+  when 'baby story time at the library' then 'Story & rhyme time'
+  when 'story time' then 'Story & rhyme time'
+  when 'rhyme time at the library' then 'Story & rhyme time'
+  when 'baby signing' then 'Baby signing'
+  when 'baby signing classes' then 'Baby signing'
+  when 'infant feeding support' then 'Feeding & postnatal support'
+  when 'postnatal support group' then 'Feeding & postnatal support'
+  when 'post-natal support' then 'Feeding & postnatal support'
+  when 'child friendly cafe' then 'Child-friendly cafes'
+  when 'park' then 'Parks & outdoor play'
+  when 'outdoor play' then 'Parks & outdoor play'
+  when 'child friendly museum' then 'Museums & culture'
+  when 'soft play' then 'Soft play'
+  when 'baby swimming lessons' then 'Baby swimming'
+  when 'developmental play sessions' then 'Developmental play'
+  when 'family hub' then 'Family hubs'
+  when 'parent-and-baby coffee morning' then 'Parent meet-ups'
+  when 'baby cinema screenings' then 'Baby & toddler cinema'
+  when 'postnatal fitness' then 'Postnatal fitness'
+  else category
+end
+where category is not null;

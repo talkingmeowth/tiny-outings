@@ -2,7 +2,7 @@
   {
     "name": "Baby Sensory Islington - 4 to 13 months",
     "address": "Liverpool Road Community Centre, Samuel Lewis Trust Estate, Liverpool Road, London N1 1LP",
-    "category": "baby sensory classes",
+    "category": "Baby sensory",
     "start": "10:00",
     "end": "10:50",
     "days": [
@@ -21,7 +21,7 @@
   {
     "name": "Baby Sensory Islington - 7 to 13 months",
     "address": "Liverpool Road Community Centre, Samuel Lewis Trust Estate, Liverpool Road, London N1 1LP",
-    "category": "baby sensory classes",
+    "category": "Baby sensory",
     "start": "11:10",
     "end": "12:00",
     "days": [
@@ -40,7 +40,7 @@
   {
     "name": "Baby Sensory Islington - 7 to 13 months (midday)",
     "address": "Liverpool Road Community Centre, Samuel Lewis Trust Estate, Liverpool Road, London N1 1LP",
-    "category": "baby sensory classes",
+    "category": "Baby sensory",
     "start": "12:20",
     "end": "13:10",
     "days": [
@@ -59,7 +59,7 @@
   {
     "name": "Baby Sensory Islington - Birth to 6 months",
     "address": "Liverpool Road Community Centre, Samuel Lewis Trust Estate, Liverpool Road, London N1 1LP",
-    "category": "baby sensory classes",
+    "category": "Baby sensory",
     "start": "13:30",
     "end": "14:20",
     "days": [
@@ -78,7 +78,7 @@
   {
     "name": "Mini Musicians Babies and Toddlers - Autumn 2026",
     "address": "The Community Hub, 18a Orford Road, Walthamstow, London E17 9LN",
-    "category": "baby music classes",
+    "category": "Music & singing",
     "start": "10:45",
     "end": "11:30",
     "days": [
@@ -97,7 +97,7 @@
   {
     "name": "Everyman Stratford International Baby Club",
     "address": "Everyman Stratford International, 4 Redman Place, London E20 1JQ",
-    "category": "baby cinema screenings",
+    "category": "Baby & toddler cinema",
     "start": "10:00",
     "end": "12:00",
     "days": [],
@@ -115,7 +115,7 @@
     "area": "Newham",
     "name": "Mother & More Baby Massage - Stratford Autumn 2026",
     "address": "Bridget’s Café and Chobham Manor Community Centre, Brevet Parade, Honour Lea Avenue, London E20 1LF",
-    "category": "baby massage classes",
+    "category": "Baby massage",
     "start": "11:00",
     "end": "11:45",
     "days": [
@@ -135,7 +135,7 @@
     "area": "Waltham Forest",
     "name": "Mother & More Baby Massage - Walthamstow Village Autumn 2026",
     "address": "St Mary’s Welcome Centre, 8 Church End, Walthamstow, London E17 9RJ",
-    "category": "baby massage classes",
+    "category": "Baby massage",
     "start": "11:00",
     "end": "11:45",
     "days": [
@@ -155,7 +155,7 @@
     "area": "Hackney",
     "name": "The Castle Cinema Parent and Baby Screenings",
     "address": "The Castle Cinema, First Floor, 64-66 Brooksby’s Walk, Hackney, London E9 6DA",
-    "category": "baby cinema screenings",
+    "category": "Baby & toddler cinema",
     "start": "10:00",
     "end": "12:00",
     "days": [],

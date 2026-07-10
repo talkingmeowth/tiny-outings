@@ -12,6 +12,7 @@
     "activities:best-start": "node scripts/build-expanded-activities-seed.js --best-start-only",
     "activities:google-e10": "node scripts/build-google-places-e10.js",
     "activities:images": "node scripts/enrich-activity-images.js",
+    "activities:locations": "node scripts/enrich-activity-locations.js",
     "render:download": "node scripts/prepare-render-download.js",
     "cap:sync": "npm run build && npx cap sync",
     "android:add": "npx cap add android",

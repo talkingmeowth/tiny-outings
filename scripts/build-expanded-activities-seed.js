@@ -241,16 +241,26 @@ function inferBorough(address) {
 
 function categoryForName(name) {
   const value = normalizeText(name).toLowerCase();
-  if (value.includes('cafe') || value.includes('coffee')) return 'child friendly cafe';
-  if (value.includes('story') || value.includes('rhymes')) return 'story time';
-  if (value.includes('massage')) return 'baby yoga';
-  if (value.includes('feeding') || value.includes('solids') || value.includes('dental') || value.includes('health') || value.includes('sleep')) return 'infant feeding support';
-  if (value.includes('sensory')) return 'sensory play';
-  if (value.includes('wild') || value.includes('garden') || value.includes('nature')) return 'outdoor play';
-  if (value.includes('music') || value.includes('bongalong') || value.includes('tambini') || value.includes('bambini')) return 'baby sing a long';
-  if (value.includes('craft') || value.includes('lego') || value.includes('duplo') || value.includes('create') || value.includes('play') || value.includes('friends')) return 'baby stay and play';
-  if (value.includes('ballers') || value.includes('film')) return 'family activity';
-  return 'family activity';
+  if (value.includes('family hub')) return 'Family hubs';
+  if (value.includes('cafe') || value.includes('coffee')) return 'Child-friendly cafes';
+  if (value.includes('museum') || value.includes('gallery')) return 'Museums & culture';
+  if (value.includes('cinema')) return 'Baby & toddler cinema';
+  if (value.includes('swim')) return 'Baby swimming';
+  if (value.includes('yoga')) return 'Baby yoga';
+  if (value.includes('story') || value.includes('rhymes')) return 'Story & rhyme time';
+  if (value.includes('massage')) return 'Baby massage';
+  if (value.includes('feeding') || value.includes('solids') || value.includes('dental') || value.includes('health') || value.includes('sleep')) return 'Feeding & postnatal support';
+  if (value.includes('sensory')) return 'Baby sensory';
+  if (value.includes('wild') || value.includes('garden') || value.includes('nature')) return 'Parks & outdoor play';
+  if (value.includes('sign')) return 'Baby signing';
+  if (value.includes('pilates') || value.includes('postnatal') || value.includes('buggy') || value.includes('fitness')) return 'Postnatal fitness';
+  if (value.includes('dance') || value.includes('ballet') || value.includes('movement')) return 'Baby dance & movement';
+  if (value.includes('music') || value.includes('bongalong') || value.includes('tambini') || value.includes('bambini')) return 'Music & singing';
+  if (value.includes('soft play')) return 'Soft play';
+  if (value.includes('craft') || value.includes('lego') || value.includes('duplo') || value.includes('create')) return 'Arts & crafts';
+  if (value.includes('play') || value.includes('friends')) return 'Stay & play';
+  if (value.includes('ballers') || value.includes('film')) return 'Family activities';
+  return 'Family activities';
 }
 
 function parseTimePart(raw, fallbackPeriod = null) {
@@ -563,12 +573,12 @@ function parseTransitionPage(url, html) {
       : plain.match(/<meta name="description" content="([^"]+)/i)?.[1] || '',
   );
   const category = /library for change/i.test(title)
-    ? 'family activity'
+    ? 'Family activities'
     : /cafe|coffee|pastries|cakes|toasties|bread|food|drink|deli|bakery/i.test(`${title} ${description}`)
-    ? 'child friendly cafe'
+    ? 'Child-friendly cafes'
     : /garden|wildlife|nature/i.test(`${title} ${description}`)
-      ? 'outdoor play'
-      : 'family activity';
+      ? 'Parks & outdoor play'
+      : 'Family activities';
 
   const useCase = /child|children|family|families|cafe|coffee|cake|toast|garden|nature|wildlife|library|community|play|social/i.test(`${title} ${description}`);
   if (!title || !useCase) return null;
@@ -580,20 +590,20 @@ function parseTransitionPage(url, html) {
     lat: null,
     long: null,
     category,
-    start_time: category === 'child friendly cafe' ? '09:00' : '10:00',
-    end_time: category === 'child friendly cafe' ? '17:00' : '12:00',
+    start_time: category === 'Child-friendly cafes' ? '09:00' : '10:00',
+    end_time: category === 'Child-friendly cafes' ? '17:00' : '12:00',
     google_link: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address || `${title} Leytonstone`)}`,
     website: url,
     child_friendly_score: /child friendly/i.test(description) ? 4.5 : null,
     app_rating: null,
     number_of_reviews: 0,
-    age_suitability: category === 'child friendly cafe' ? 'Parents, babies and families' : 'Families and children',
+    age_suitability: category === 'Child-friendly cafes' ? 'Parents, babies and families' : 'Families and children',
     borough: inferBorough(address || 'E11'),
     days_of_week: [],
     recurrence_rule: null,
     schedule_notes: 'Check opening times or session details with the venue before travelling.',
     description: [description, telephone && `Phone: ${telephone}`, email && `Email: ${email}`].filter(Boolean).join(' '),
-    cost: category === 'child friendly cafe' ? 'Cafe purchases' : 'Check source',
+    cost: category === 'Child-friendly cafes' ? 'Cafe purchases' : 'Check source',
     booking_required: false,
     source_name: 'Transition Leytonstone Green Directory',
     source_url: url,
