@@ -11,3 +11,4 @@ android/.gradle/
 android/**/build/
 render-mobile/
 supabase/.temp/
+tmp-wf-media-11253.*

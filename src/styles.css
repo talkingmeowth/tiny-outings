@@ -466,7 +466,8 @@ input[type='range'] {
 }
 
 .start-summary {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
@@ -479,6 +480,7 @@ input[type='range'] {
 .start-summary div {
   display: grid;
   gap: 2px;
+  min-width: 0;
 }
 
 .start-summary span,
@@ -489,7 +491,7 @@ input[type='range'] {
 
 .start-summary strong {
   font-family: 'Fraunces', Georgia, serif;
-  font-size: 3rem;
+  font-size: 2.65rem;
   line-height: 0.9;
 }
 
@@ -699,6 +701,7 @@ input[type='range'] {
   display: grid;
   align-content: start;
   gap: 12px;
+  grid-template-rows: auto auto auto minmax(0, 1fr);
   min-height: 0;
   padding: 20px;
   overflow: hidden;
@@ -709,14 +712,18 @@ input[type='range'] {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  min-width: 0;
 }
 
 .card-kicker > span {
+  overflow: hidden;
   color: var(--coral-dark);
   font-size: 0.78rem;
   font-weight: 900;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .card-content h2 {
@@ -753,17 +760,19 @@ input[type='range'] {
 
 .card-summary span {
   display: grid;
-  gap: 5px;
-  min-height: 64px;
+  gap: 6px;
+  min-height: 78px;
   min-width: 0;
-  align-content: center;
-  padding: 10px 12px;
-  overflow: visible;
+  align-content: start;
+  padding: 12px;
+  overflow: hidden;
   font-size: 0.88rem;
   line-height: 1.25;
 }
 
-.card-summary span:last-child:nth-child(odd) {
+.card-summary span:last-child:nth-child(odd),
+.card-summary span.is-wide,
+.detail-grid span.is-wide {
   grid-column: 1 / -1;
 }
 
@@ -776,11 +785,30 @@ input[type='range'] {
 
 .detail-grid span {
   display: grid;
-  gap: 4px;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .detail-grid strong {
   color: var(--ink);
+}
+
+.card-summary small,
+.detail-grid small {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-weight: 900;
+  line-height: 1.22;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.detail-grid small {
+  font-size: 0.92rem;
 }
 
 .link-button {
@@ -1500,7 +1528,7 @@ input[type='range'] {
 }
 
 .tinder-stage {
-  height: clamp(640px, calc(100dvh - 230px), 780px);
+  height: clamp(680px, calc(100dvh - 190px), 820px);
   min-height: 0;
 }
 
@@ -1509,7 +1537,7 @@ input[type='range'] {
 }
 
 .swipe-card {
-  grid-template-rows: 32% minmax(0, 68%);
+  grid-template-rows: 34% minmax(0, 66%);
   border-radius: 38px;
 }
 
@@ -1524,18 +1552,18 @@ input[type='range'] {
 
 .card-content {
   align-content: start;
-  gap: 14px;
-  padding: 22px;
+  gap: 16px;
+  padding: 22px 22px 24px;
 }
 
 .card-content p {
   display: -webkit-box;
   overflow: hidden;
   color: rgba(36, 52, 47, 0.72);
-  font-size: clamp(1rem, 4.7vw, 1.25rem);
-  line-height: 1.38;
+  font-size: clamp(0.95rem, 4.1vw, 1.12rem);
+  line-height: 1.45;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
 }
 
 .card-links {
@@ -1614,21 +1642,21 @@ input[type='range'] {
 
 @media (max-width: 420px) {
   .tinder-stage {
-    height: clamp(620px, calc(100dvh - 220px), 760px);
+    height: clamp(660px, calc(100dvh - 176px), 800px);
   }
 
   .swipe-card {
-    grid-template-rows: 30% minmax(0, 70%);
+    grid-template-rows: 33% minmax(0, 67%);
   }
 
   .card-content {
-    gap: 13px;
-    padding: 20px;
+    gap: 15px;
+    padding: 20px 18px 22px;
   }
 
   .card-summary span {
-    min-height: 70px;
-    padding: 11px 12px;
+    min-height: 82px;
+    padding: 12px;
   }
 
   .card-links {
@@ -1636,6 +1664,11 @@ input[type='range'] {
   }
 
   .start-summary {
+    grid-template-columns: 1fr;
     gap: 12px;
+  }
+
+  .start-actions {
+    grid-template-columns: 1fr 1fr;
   }
 }
