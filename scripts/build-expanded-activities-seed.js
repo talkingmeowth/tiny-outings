@@ -464,7 +464,8 @@ function parseBestStartRows() {
       start_time: startTime,
       end_time: endTime,
       google_link: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`,
-      website: 'https://www.walthamforest.gov.uk/events',
+      // Each timetable row has its own stable source anchor; do not send families to the generic events page.
+      website: sourceUrl,
       child_friendly_score: null,
       app_rating: null,
       number_of_reviews: 0,
