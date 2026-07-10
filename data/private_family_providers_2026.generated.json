@@ -1,0 +1,172 @@
+[
+  {
+    "name": "Baby Sensory Islington - 4 to 13 months",
+    "address": "Liverpool Road Community Centre, Samuel Lewis Trust Estate, Liverpool Road, London N1 1LP",
+    "category": "baby sensory classes",
+    "start": "10:00",
+    "end": "10:50",
+    "days": [
+      "Tuesdays"
+    ],
+    "age": "4-13 months",
+    "cost": "Term £65; trial and single-session options shown by provider",
+    "description": "Baby Sensory class for babies aged 4 to 13 months.",
+    "website": "https://www.babysensory.com/islington/timetable",
+    "source": "Baby Sensory Islington",
+    "availabilityType": "date_range",
+    "startDate": "2026-06-02",
+    "endDate": "2026-07-14",
+    "notes": "Tuesday course running 2 June to 14 July 2026; check the provider for the next term."
+  },
+  {
+    "name": "Baby Sensory Islington - 7 to 13 months",
+    "address": "Liverpool Road Community Centre, Samuel Lewis Trust Estate, Liverpool Road, London N1 1LP",
+    "category": "baby sensory classes",
+    "start": "11:10",
+    "end": "12:00",
+    "days": [
+      "Tuesdays"
+    ],
+    "age": "7-13 months",
+    "cost": "Term £65; trial and single-session options shown by provider",
+    "description": "Baby Sensory class for babies aged 7 to 13 months.",
+    "website": "https://www.babysensory.com/islington/timetable",
+    "source": "Baby Sensory Islington",
+    "availabilityType": "date_range",
+    "startDate": "2026-06-02",
+    "endDate": "2026-07-14",
+    "notes": "Tuesday course running 2 June to 14 July 2026; check the provider for the next term."
+  },
+  {
+    "name": "Baby Sensory Islington - 7 to 13 months (midday)",
+    "address": "Liverpool Road Community Centre, Samuel Lewis Trust Estate, Liverpool Road, London N1 1LP",
+    "category": "baby sensory classes",
+    "start": "12:20",
+    "end": "13:10",
+    "days": [
+      "Tuesdays"
+    ],
+    "age": "7-13 months",
+    "cost": "Term £65; trial and single-session options shown by provider",
+    "description": "Baby Sensory class for babies aged 7 to 13 months.",
+    "website": "https://www.babysensory.com/islington/timetable",
+    "source": "Baby Sensory Islington",
+    "availabilityType": "date_range",
+    "startDate": "2026-06-02",
+    "endDate": "2026-07-14",
+    "notes": "Tuesday course running 2 June to 14 July 2026; check the provider for the next term."
+  },
+  {
+    "name": "Baby Sensory Islington - Birth to 6 months",
+    "address": "Liverpool Road Community Centre, Samuel Lewis Trust Estate, Liverpool Road, London N1 1LP",
+    "category": "baby sensory classes",
+    "start": "13:30",
+    "end": "14:20",
+    "days": [
+      "Tuesdays"
+    ],
+    "age": "Birth to 6 months",
+    "cost": "Term £65; trial and single-session options shown by provider",
+    "description": "Baby Sensory class for babies from birth to 6 months.",
+    "website": "https://www.babysensory.com/islington/timetable",
+    "source": "Baby Sensory Islington",
+    "availabilityType": "date_range",
+    "startDate": "2026-06-02",
+    "endDate": "2026-07-14",
+    "notes": "Tuesday course running 2 June to 14 July 2026; check the provider for the next term."
+  },
+  {
+    "name": "Mini Musicians Babies and Toddlers - Autumn 2026",
+    "address": "The Community Hub, 18a Orford Road, Walthamstow, London E17 9LN",
+    "category": "baby music classes",
+    "start": "10:45",
+    "end": "11:30",
+    "days": [
+      "Fridays"
+    ],
+    "age": "Birth to 4 years",
+    "cost": "£100 for 10 sessions; £60 for 5 sessions; £13 drop-in/taster",
+    "description": "Music class for babies, toddlers and their parents using singing, movement and instruments.",
+    "website": "https://www.wfmusichub.org/groups/explore/mini-musicians-baby-and-toddler",
+    "source": "Waltham Forest Music Service",
+    "availabilityType": "date_range",
+    "startDate": "2026-09-25",
+    "endDate": "2026-12-04",
+    "notes": "Fridays, 25 September to 4 December 2026; no class 30 October."
+  },
+  {
+    "name": "Everyman Stratford International Baby Club",
+    "address": "Everyman Stratford International, 4 Redman Place, London E20 1JQ",
+    "category": "baby cinema screenings",
+    "start": "10:00",
+    "end": "12:00",
+    "days": [],
+    "age": "Babies under 12 months with parent or carer",
+    "cost": "See current Everyman booking page",
+    "description": "Weekly baby-friendly cinema screening with reduced volume and soft lighting. Ticket includes a hot drink and cake or small popcorn.",
+    "website": "https://www.everymancinema.com/venues-list/g029x-everyman-stratford-international/",
+    "source": "Everyman Cinema",
+    "availabilityType": "unknown",
+    "startDate": null,
+    "endDate": null,
+    "notes": "Weekly morning screening. Film and exact screening time vary; check the live Everyman programme before booking."
+  },
+  {
+    "area": "Newham",
+    "name": "Mother & More Baby Massage - Stratford Autumn 2026",
+    "address": "Bridget’s Café and Chobham Manor Community Centre, Brevet Parade, Honour Lea Avenue, London E20 1LF",
+    "category": "baby massage classes",
+    "start": "11:00",
+    "end": "11:45",
+    "days": [
+      "Tuesdays"
+    ],
+    "age": "Birth to around 6 months",
+    "cost": "£114 for six-week course",
+    "description": "Baby massage and reflexology course with gentle movement and songs for parents and babies.",
+    "website": "https://www.motherandmore.uk/service-page/baby-massage-stratford-sept",
+    "source": "Mother & More",
+    "availabilityType": "date_range",
+    "startDate": "2026-09-15",
+    "endDate": "2026-10-20",
+    "notes": "Six-week course from 15 September to 20 October 2026; booking required."
+  },
+  {
+    "area": "Waltham Forest",
+    "name": "Mother & More Baby Massage - Walthamstow Village Autumn 2026",
+    "address": "St Mary’s Welcome Centre, 8 Church End, Walthamstow, London E17 9RJ",
+    "category": "baby massage classes",
+    "start": "11:00",
+    "end": "11:45",
+    "days": [
+      "Thursdays"
+    ],
+    "age": "Birth to around 6 months",
+    "cost": "£114 for six-week course",
+    "description": "Baby massage and reflexology course with gentle movement and songs for parents and babies.",
+    "website": "https://www.motherandmore.uk/service-page/baby-massage-walthamstow-village-sept",
+    "source": "Mother & More",
+    "availabilityType": "date_range",
+    "startDate": "2026-09-17",
+    "endDate": "2026-10-22",
+    "notes": "Six-week course from 17 September to 22 October 2026; booking required."
+  },
+  {
+    "area": "Hackney",
+    "name": "The Castle Cinema Parent and Baby Screenings",
+    "address": "The Castle Cinema, First Floor, 64-66 Brooksby’s Walk, Hackney, London E9 6DA",
+    "category": "baby cinema screenings",
+    "start": "10:00",
+    "end": "12:00",
+    "days": [],
+    "age": "Babies under 1 year with parent or carer",
+    "cost": "See current cinema listings",
+    "description": "Parent-and-baby cinema screenings for adults with babies under one; babies attend free.",
+    "website": "https://thecastlecinema.com/info/",
+    "source": "The Castle Cinema",
+    "availabilityType": "unknown",
+    "startDate": null,
+    "endDate": null,
+    "notes": "Screening days and exact times vary. Check the live Castle Cinema programme before booking."
+  }
+]
