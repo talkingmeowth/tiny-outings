@@ -8,12 +8,26 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 const pdfTextPath = join(repoRoot, 'tmp-wf-media-11253.txt');
 const pdfBinaryPath = join(repoRoot, 'tmp-wf-media-11253.bin');
-const outputSqlPath = join(repoRoot, 'supabase', 'seed', 'activities_expanded_family_sources.generated.sql');
+const bestStartOnly = process.argv.includes('--best-start-only');
+const outputSqlPath = join(
+  repoRoot,
+  'supabase',
+  'seed',
+  bestStartOnly ? 'activities_waltham_forest_best_start_2026.generated.sql' : 'activities_expanded_family_sources.generated.sql',
+);
 
 const sourcePdfUrl = 'https://www.walthamforest.gov.uk/media/11253';
 const transitionDirectoryUrl = 'https://www.transitionleytonstone.org.uk/green-directory';
 const availabilityStartDate = '2026-04-01';
 const availabilityEndDate = '2026-08-31';
+const termStartDate = '2026-04-13';
+const termEndDate = '2026-07-20';
+const weekdayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const monthNumbers = new Map([
+  ['january', '01'], ['february', '02'], ['march', '03'], ['april', '04'],
+  ['may', '05'], ['june', '06'], ['july', '07'], ['august', '08'],
+  ['september', '09'], ['october', '10'], ['november', '11'], ['december', '12'],
+]);
 
 const transitionUseCaseSlugs = [
   'church-lane-community-garden',
@@ -192,6 +206,13 @@ function sqlArray(values = []) {
   return cleanValues.length ? `array[${cleanValues.map(sqlString).join(', ')}]` : "'{}'";
 }
 
+function sqlDateArray(values = []) {
+  const cleanValues = [...new Set(values.filter(Boolean))];
+  return cleanValues.length
+    ? 'array[' + cleanValues.map(sqlString).join(', ') + ']::date[]'
+    : "'{}'::date[]";
+}
+
 function slug(value) {
   return normalizeText(value)
     .toLowerCase()
@@ -356,6 +377,34 @@ function areaForOffset(text, offset) {
   return markers[0]?.[1] >= 0 ? markers[0][0] : 'Walthamstow';
 }
 
+function weekdayForOffset(text, offset) {
+  const before = text.slice(0, offset);
+  let closest = null;
+
+  for (const weekday of weekdayNames) {
+    const matcher = new RegExp(`\\b${weekday}\\b`, 'gi');
+    for (const match of before.matchAll(matcher)) {
+      if (!closest || match.index > closest.index) closest = { weekday, index: match.index };
+    }
+  }
+
+  return closest?.weekday || null;
+}
+
+function datesFromFrequency(rawFrequency) {
+  const cleaned = normalizeText(rawFrequency).replace(/course\s+\d+\s*:/gi, '');
+  const dates = [];
+  const dateGroups = [...cleaned.matchAll(/((?:\d{1,2}\s*,?\s*)+)\s*(january|february|march|april|may|june|july|august|september|october|november|december)\b/gi)];
+
+  for (const group of dateGroups) {
+    const month = monthNumbers.get(group[2].toLowerCase());
+    const days = group[1].match(/\d{1,2}/g) || [];
+    for (const day of days) dates.push(`2026-${month}-${day.padStart(2, '0')}`);
+  }
+
+  return [...new Set(dates)].sort();
+}
+
 function parseBestStartRows() {
   const text = normalizeText(readFileSync(pdfTextPath, 'utf8'));
   const locationMatches = [...text.matchAll(/Location:\s*/g)];
@@ -386,6 +435,10 @@ function parseBestStartRows() {
     const rawMore = truncateAtNextKnownName(extractField(chunk, 'More information', []), name);
     const address = venueAddresses.get(location) || `${location}, Waltham Forest, London`;
     const { start: startTime, end: endTime } = parseTimeRange(rawTime);
+    const weekday = weekdayForOffset(text, start);
+    const specificDates = datesFromFrequency(rawFrequency);
+    const isWeekly = rawFrequency.toLowerCase().includes('weekly');
+    const isTermTimeOnly = rawFrequency.toLowerCase().includes('term time');
     const key = `${name}|${location}|${startTime}|${endTime}|${rawFrequency}`;
     if (seen.has(key)) continue;
     seen.add(key);
@@ -407,8 +460,8 @@ function parseBestStartRows() {
       number_of_reviews: 0,
       age_suitability: rawAge || 'Under-5s and families',
       borough: 'Waltham Forest',
-      days_of_week: [],
-      recurrence_rule: rawFrequency.toLowerCase().includes('weekly') ? 'FREQ=WEEKLY' : null,
+      days_of_week: weekday ? [weekday] : [],
+      recurrence_rule: isWeekly && weekday ? `FREQ=WEEKLY;BYDAY=${weekday.slice(0, 2).toUpperCase()}` : null,
       schedule_notes: rawFrequency,
       description: `${name} from Waltham Forest Best Start in Life timetable. ${rawMore || 'Check the council events page before travelling.'}`,
       cost: rawCost || (rawFrequency.toLowerCase().includes('free') ? 'Free' : 'Check source'),
@@ -417,13 +470,13 @@ function parseBestStartRows() {
       source_url: sourceUrl,
       image_url: null,
       image_source_url: sourcePdfUrl,
-      activity_date: null,
-      available_dates: [],
-      availability_start_date: availabilityStartDate,
-      availability_end_date: availabilityEndDate,
-      available_days_of_week: [],
-      availability_type: rawFrequency.toLowerCase().includes('weekly') ? 'date_range' : 'specific_dates',
-      availability_notes: `From April-August 2026 Best Start timetable. Frequency: ${rawFrequency}. Verify live details at walthamforest.gov.uk/events.`,
+      activity_date: specificDates.length === 1 ? specificDates[0] : null,
+      available_dates: specificDates,
+      availability_start_date: isWeekly ? (isTermTimeOnly ? termStartDate : availabilityStartDate) : null,
+      availability_end_date: isWeekly ? (isTermTimeOnly ? termEndDate : availabilityEndDate) : null,
+      available_days_of_week: weekday ? [weekday] : [],
+      availability_type: isWeekly ? (isTermTimeOnly ? 'date_range' : 'weekly') : 'specific_dates',
+      availability_notes: `Best Start timetable: ${rawFrequency}. ${isTermTimeOnly ? 'Term time shown as 13 April-20 July 2026; holiday exceptions may apply. ' : ''}Verify live details at walthamforest.gov.uk/events.`,
       public_listing_status: 'published',
     });
   }
@@ -690,7 +743,8 @@ function rowToSql(row) {
   return `(${values.map((value, index) => {
     if (index === 3 || index === 4 || index === 10 || index === 11 || index === 12) return value ?? 'null';
     if (index === 20) return value ? 'true' : 'false';
-    if (index === 15 || index === 26 || index === 29) return sqlArray(value);
+    if (index === 15 || index === 29) return sqlArray(value);
+    if (index === 26) return sqlDateArray(value);
     return sqlString(value);
   }).join(', ')})`;
 }
@@ -792,8 +846,8 @@ function dedupeRows(rows) {
 async function main() {
   await ensureBestStartPdfText();
   const bestStartRows = parseBestStartRows();
-  const transitionRows = await parseTransitionRows();
-  const happityRows = await parseHappityRows();
+  const transitionRows = bestStartOnly ? [] : await parseTransitionRows();
+  const happityRows = bestStartOnly ? [] : await parseHappityRows();
   const rows = dedupeRows([...bestStartRows, ...transitionRows, ...happityRows]);
 
   mkdirSync(dirname(outputSqlPath), { recursive: true });

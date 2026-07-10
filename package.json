@@ -9,6 +9,8 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "activities:expanded": "node scripts/build-expanded-activities-seed.js",
+    "activities:best-start": "node scripts/build-expanded-activities-seed.js --best-start-only",
+    "activities:google-e10": "node scripts/build-google-places-e10.js",
     "activities:images": "node scripts/enrich-activity-images.js",
     "render:download": "node scripts/prepare-render-download.js",
     "cap:sync": "npm run build && npx cap sync",

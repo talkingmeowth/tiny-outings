@@ -62,6 +62,20 @@ supabase functions deploy activity-link-autofill
 
 In Google Cloud, enable Places API (New). The function uses server-side Place Details, Text Search, and Place Photos calls so the API key is not exposed in the mobile app. If Google does not return a photo, the function tries the activity website's Open Graph/Twitter image and stores it for activity cards.
 
+### E10 family-friendly places import
+
+To expand the directory with permanent family-friendly places around E10, enable both **Places API (New)** and **Geocoding API** for the Google Maps key, then run:
+
+    set GOOGLE_MAPS_API_KEY=your_server_side_key
+    npm run activities:google-e10
+
+The import geocodes E10, searches a strict 10-mile (16,093 metre) radius, and combines typed Nearby Search requests for cafes, parks, playgrounds, museums, libraries and amusement centres with family-focused Text Search requests. It de-duplicates by Google place ID, excludes permanently closed venues, fetches place details and a representative photo, and writes:
+
+- supabase/seed/activities_google_places_e10_10_miles.generated.sql — reviewable, idempotent database upsert
+- data/google-places-e10-10-miles.generated.json — audit file, including the source centre, distance and rank inputs
+
+The generated records use the existing activities fields. Google opening hours populate the normal availability fields and the original hours JSON is kept in google_opening_hours. The script does not request or store Google review text.
+
 ## Activity Table Notes
 
 The table includes the requested core fields:
