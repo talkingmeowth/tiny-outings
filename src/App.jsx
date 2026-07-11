@@ -39,6 +39,7 @@ const activitySelectColumns = [
   'google_photo_url',
   'image_source_url',
   'source_url',
+  'source_name',
   'google_primary_type',
   'google_place_id',
   'google_place_uri',
@@ -132,6 +133,7 @@ function defaultFilters() {
     walkMinutes: 35,
     weekStart: startOfWeekISO(todayISO()),
     interests: [...activityInterestOptions],
+    eventsOnly: false,
   };
 }
 
@@ -475,6 +477,11 @@ function activityMatchesInterests(activity, selectedCategories, allCategoriesSel
   return selectedCategories.has(String(activity.category || '').toLowerCase());
 }
 
+function isEventListing(activity) {
+  return activity.availability_type === 'one_off'
+    || /eventbrite/i.test(String(activity.source_name || activity.source_url || ''));
+}
+
 function buildSubmittedPayload(enriched, link) {
   const appRating = numericOrNull(enriched.app_rating ?? enriched.google_rating);
   const reviewCount = Number(enriched.number_of_reviews ?? enriched.google_user_rating_count ?? 0);
@@ -543,6 +550,7 @@ export default function App() {
       weekStart: stored.weekStart || defaults.weekStart,
       // Categories always begin broad. Parents can narrow them for the current session.
       interests: defaults.interests,
+      eventsOnly: Boolean(stored.eventsOnly),
     };
   });
   const [userLocation, setUserLocation] = useState(null);
@@ -603,9 +611,10 @@ export default function App() {
       const interestMatch = activityMatchesInterests(activity, selectedCategorySet, allCategoriesSelected);
       const distanceMatch =
         !userLocation || activity.distance == null || activity.distance <= distanceLimit;
-      return activity.public_listing_status === 'published' && interestMatch && distanceMatch;
+      const eventMatch = !deferredFilters.eventsOnly || isEventListing(activity);
+      return activity.public_listing_status === 'published' && interestMatch && distanceMatch && eventMatch;
     }),
-    [activitiesWithDistance, selectedCategorySet, allCategoriesSelected, distanceLimit, userLocation],
+    [activitiesWithDistance, selectedCategorySet, allCategoriesSelected, deferredFilters.eventsOnly, distanceLimit, userLocation],
   );
   const weekMatchedActivities = useMemo(
     () => sharedFilteredActivities.filter(
@@ -1208,6 +1217,27 @@ function StartScreen({
                 {interest}
               </button>
             ))}
+          </div>
+        </div>
+
+        <div className="field-group">
+          <span>Show</span>
+          <p>Switch to time-specific plans.</p>
+          <div className="chip-grid" role="group" aria-label="Listing type">
+            <button
+              type="button"
+              className={classNames('filter-chip', !filters.eventsOnly && 'is-on')}
+              onClick={() => setFilters((current) => ({ ...current, eventsOnly: false }))}
+            >
+              All outings
+            </button>
+            <button
+              type="button"
+              className={classNames('filter-chip', filters.eventsOnly && 'is-on')}
+              onClick={() => setFilters((current) => ({ ...current, eventsOnly: true }))}
+            >
+              Events
+            </button>
           </div>
         </div>
 
