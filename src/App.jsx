@@ -3,7 +3,7 @@ import { supabase } from './supabaseClient';
 
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
-const planningStorageVersion = '2026-07-11-events-and-drive-filter-reset';
+const planningStorageVersion = '2026-07-11-parks-filter-reset';
 const visibilityOptions = ['private', 'public'];
 const statusOptions = ['booked', 'tentative'];
 const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -61,6 +61,7 @@ const activityInterestOptions = [
   'Baby classes',
   'Play & learn',
   'Food & socials',
+  'Parks',
   'Days out',
 ];
 
@@ -71,7 +72,8 @@ const activityInterestCategories = {
   ],
   'Play & learn': ['Stay & play', 'Story & rhyme time', 'Arts & crafts', 'Soft play', 'Family hubs'],
   'Food & socials': ['Child-friendly cafes', 'Bookshops', 'Parent meet-ups', 'Feeding & postnatal support'],
-  'Days out': ['Parks & outdoor play', 'Museums & culture', 'Baby & toddler cinema', 'Family activities'],
+  Parks: ['Parks & outdoor play'],
+  'Days out': ['Museums & culture', 'Baby & toddler cinema', 'Family activities'],
 };
 
 let routesLibraryPromise;
