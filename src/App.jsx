@@ -70,7 +70,7 @@ const activityInterestCategories = {
     'Baby swimming', 'Postnatal fitness', 'Baby dance & movement', 'Developmental play',
   ],
   'Play & learn': ['Stay & play', 'Story & rhyme time', 'Arts & crafts', 'Soft play', 'Family hubs'],
-  'Food & socials': ['Child-friendly cafes', 'Parent meet-ups', 'Feeding & postnatal support'],
+  'Food & socials': ['Child-friendly cafes', 'Bookshops', 'Parent meet-ups', 'Feeding & postnatal support'],
   'Days out': ['Parks & outdoor play', 'Museums & culture', 'Baby & toddler cinema', 'Family activities'],
 };
 

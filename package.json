@@ -17,6 +17,7 @@
     "activities:eventbrite-baby": "node scripts/import-eventbrite-baby-london.js",
     "activities:fever-family": "node scripts/import-fever-london-family.js",
     "activities:cafe-images": "node scripts/enrich-cafe-google-photo-references.js",
+    "activities:london-chains": "node scripts/build-london-chain-places.js",
     "render:download": "node scripts/prepare-render-download.js",
     "cap:sync": "npm run build && npx cap sync",
     "android:add": "npx cap add android",
