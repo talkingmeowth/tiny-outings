@@ -58,28 +58,21 @@ const emptyLinkForm = {
 };
 
 const activityInterestOptions = [
-  'Baby yoga',
-  'Baby massage',
-  'Baby sensory',
-  'Music & singing',
-  'Baby signing',
-  'Baby swimming',
-  'Postnatal fitness',
-  'Baby dance & movement',
-  'Developmental play',
-  'Stay & play',
-  'Story & rhyme time',
-  'Arts & crafts',
-  'Feeding & postnatal support',
-  'Soft play',
-  'Child-friendly cafes',
-  'Parks & outdoor play',
-  'Museums & culture',
-  'Baby & toddler cinema',
-  'Family hubs',
-  'Parent meet-ups',
-  'Family activities',
+  'Baby classes',
+  'Play & learn',
+  'Food & socials',
+  'Days out',
 ];
+
+const activityInterestCategories = {
+  'Baby classes': [
+    'Baby yoga', 'Baby massage', 'Baby sensory', 'Music & singing', 'Baby signing',
+    'Baby swimming', 'Postnatal fitness', 'Baby dance & movement', 'Developmental play',
+  ],
+  'Play & learn': ['Stay & play', 'Story & rhyme time', 'Arts & crafts', 'Soft play', 'Family hubs'],
+  'Food & socials': ['Child-friendly cafes', 'Parent meet-ups', 'Feeding & postnatal support'],
+  'Days out': ['Parks & outdoor play', 'Museums & culture', 'Baby & toddler cinema', 'Family activities'],
+};
 
 let routesLibraryPromise;
 
@@ -106,7 +99,7 @@ function loadRoutesLibrary() {
   return routesLibraryPromise;
 }
 
-async function fetchWalkingRoute(origin, activity) {
+async function fetchTravelRoute(origin, activity, travelMode) {
   const routesLibrary = await loadRoutesLibrary();
   if (!routesLibrary || activity.lat == null || activity.long == null) return null;
 
@@ -114,7 +107,7 @@ async function fetchWalkingRoute(origin, activity) {
   const { routes } = await Route.computeRoutes({
     origin: { lat: origin.lat, lng: origin.long },
     destination: { lat: activity.lat, lng: activity.long },
-    travelMode: 'WALKING',
+    travelMode,
     fields: ['distanceMeters', 'durationMillis'],
   });
   const route = routes?.[0];
@@ -122,7 +115,7 @@ async function fetchWalkingRoute(origin, activity) {
 
   return {
     distance: Number(route.distanceMeters) / 1609.344,
-    walkMinutes: Math.max(1, Math.round(Number(route.durationMillis) / 60000)),
+    minutes: Math.max(1, Math.round(Number(route.durationMillis) / 60000)),
   };
 }
 
@@ -293,6 +286,10 @@ function formatDistance(miles) {
 
 function formatWalk(minutes) {
   return Number.isFinite(minutes) ? `${minutes} min walk` : null;
+}
+
+function formatDrive(minutes) {
+  return Number.isFinite(minutes) ? `${minutes} min drive` : null;
 }
 
 function isFlexibleActivity(activity) {
@@ -474,12 +471,24 @@ function isActivityAvailableOn(activity, dateISO) {
 
 function activityMatchesInterests(activity, selectedCategories, allCategoriesSelected) {
   if (allCategoriesSelected) return true;
-  return selectedCategories.has(String(activity.category || '').toLowerCase());
+  const category = String(activity.category || '');
+  return [...selectedCategories].some((interest) => activityInterestCategories[interest]?.includes(category));
+}
+
+function isEventSource(activity) {
+  return /eventbrite|fever/i.test(String(activity.source_name || activity.source_url || ''));
+}
+
+function hasEventDate(activity) {
+  return Boolean(
+    activity.activity_date
+    || activity.available_dates?.length
+    || (activity.availability_start_date && activity.availability_end_date),
+  );
 }
 
 function isEventListing(activity) {
-  return activity.availability_type === 'one_off'
-    || /eventbrite|fever/i.test(String(activity.source_name || activity.source_url || ''));
+  return isEventSource(activity) && hasEventDate(activity);
 }
 
 function buildSubmittedPayload(enriched, link) {
@@ -564,11 +573,11 @@ export default function App() {
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [returnScreen, setReturnScreen] = useState('swipe');
   const [dragState, setDragState] = useState({ activityId: null, startX: null, offsetX: 0 });
-  const [walkingRoutes, setWalkingRoutes] = useState({});
+  const [travelRoutes, setTravelRoutes] = useState({});
   // Keep Plan controls responsive while the directory catches up with a changed filter.
   const deferredFilters = useDeferredValue(filters);
   const selectedCategorySet = useMemo(
-    () => new Set(deferredFilters.interests.map((interest) => interest.toLowerCase())),
+    () => new Set(deferredFilters.interests),
     [deferredFilters.interests],
   );
   const allCategoriesSelected = selectedCategorySet.size === activityInterestOptions.length;
@@ -594,12 +603,14 @@ export default function App() {
   const activitiesWithDistance = useMemo(
     () => allActivities.map((activity) => ({
       ...activity,
-      distance: walkingRoutes[activity.activity_id]?.distance ?? (
+      distance: travelRoutes[activity.activity_id]?.walking?.distance ?? (
         googleMapsApiKey ? null : milesBetween(userLocation, { lat: activity.lat, long: activity.long })
       ),
-      walkMinutes: walkingRoutes[activity.activity_id]?.walkMinutes ?? null,
+      walkMinutes: travelRoutes[activity.activity_id]?.walking?.minutes ?? null,
+      driveDistance: travelRoutes[activity.activity_id]?.driving?.distance ?? null,
+      driveMinutes: travelRoutes[activity.activity_id]?.driving?.minutes ?? null,
     })),
-    [allActivities, userLocation, walkingRoutes],
+    [allActivities, userLocation, travelRoutes],
   );
 
   const publishedActivityCount = useMemo(
@@ -611,7 +622,9 @@ export default function App() {
       const interestMatch = activityMatchesInterests(activity, selectedCategorySet, allCategoriesSelected);
       const distanceMatch =
         !userLocation || activity.distance == null || activity.distance <= distanceLimit;
-      const eventMatch = !deferredFilters.eventsOnly || isEventListing(activity);
+      const eventMatch = deferredFilters.eventsOnly
+        ? isEventListing(activity)
+        : !isEventSource(activity);
       return activity.public_listing_status === 'published' && interestMatch && distanceMatch && eventMatch;
     }),
     [activitiesWithDistance, selectedCategorySet, allCategoriesSelected, deferredFilters.eventsOnly, distanceLimit, userLocation],
@@ -688,27 +701,31 @@ export default function App() {
   }, [activeScreen]);
 
   useEffect(() => {
-    setWalkingRoutes({});
+    setTravelRoutes({});
   }, [userLocation?.lat, userLocation?.long]);
 
   useEffect(() => {
     if (!googleMapsApiKey || !userLocation || !routeCandidates.length) return undefined;
     let cancelled = false;
-    const missingRoutes = routeCandidates.filter((activity) => !walkingRoutes[activity.activity_id]);
+    const missingRoutes = routeCandidates.filter((activity) => !travelRoutes[activity.activity_id]);
     if (!missingRoutes.length) return undefined;
 
     Promise.all(
       missingRoutes.map(async (activity) => ({
         activityId: activity.activity_id,
-        route: await fetchWalkingRoute(userLocation, activity),
+        routes: await Promise.all([
+          fetchTravelRoute(userLocation, activity, 'WALKING'),
+          fetchTravelRoute(userLocation, activity, 'DRIVING'),
+        ]),
       })),
     )
       .then((results) => {
         if (cancelled) return;
-        setWalkingRoutes((current) => {
+        setTravelRoutes((current) => {
           const next = { ...current };
           for (const result of results) {
-            if (result.route) next[result.activityId] = result.route;
+            const [walking, driving] = result.routes;
+            if (walking || driving) next[result.activityId] = { walking, driving };
           }
           return next;
         });
@@ -720,7 +737,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [routeCandidates, userLocation, walkingRoutes]);
+  }, [routeCandidates, userLocation, travelRoutes]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1204,8 +1221,8 @@ function StartScreen({
         </div>
 
         <div className="field-group">
-          <span>Mood</span>
-          <p>All selected. Tap to narrow.</p>
+          <span>Plan</span>
+          <p>Pick a few, or browse everything.</p>
           <div className="chip-grid interest-grid">
             {activityInterestOptions.map((interest) => (
               <button
@@ -1217,24 +1234,10 @@ function StartScreen({
                 {interest}
               </button>
             ))}
-          </div>
-        </div>
-
-        <div className="field-group">
-          <span>Show</span>
-          <p>Switch to time-specific plans.</p>
-          <div className="chip-grid" role="group" aria-label="Listing type">
-            <button
-              type="button"
-              className={classNames('filter-chip', !filters.eventsOnly && 'is-on')}
-              onClick={() => setFilters((current) => ({ ...current, eventsOnly: false }))}
-            >
-              All outings
-            </button>
             <button
               type="button"
               className={classNames('filter-chip', filters.eventsOnly && 'is-on')}
-              onClick={() => setFilters((current) => ({ ...current, eventsOnly: true }))}
+              onClick={() => setFilters((current) => ({ ...current, eventsOnly: !current.eventsOnly }))}
             >
               Events
             </button>
@@ -1511,8 +1514,11 @@ function ActivityCard({
     : undefined;
   const cost = activityCost(activity);
   const distance = formatDistance(activity.distance);
+  const driveDistance = formatDistance(activity.driveDistance);
   const walk = formatWalk(activity.walkMinutes);
-  const travelText = distance && walk ? `${distance} - ${walk}` : distance;
+  const drive = formatDrive(activity.driveMinutes);
+  const walkText = distance && walk ? `${distance} - ${walk}` : distance;
+  const driveText = driveDistance && drive ? `${driveDistance} - ${drive}` : driveDistance;
   const flexible = isFlexibleActivity(activity);
 
   return (
@@ -1574,7 +1580,8 @@ function ActivityCard({
               <small>{cost}</small>
             </span>
           )}
-          {travelText && <span><strong>Travel</strong><small>{travelText}</small></span>}
+          {walkText && <span><strong>Walk</strong><small>{walkText}</small></span>}
+          {driveText && <span><strong>Drive</strong><small>{driveText}</small></span>}
         </div>
       </div>
     </article>
