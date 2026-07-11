@@ -619,18 +619,32 @@ export default function App() {
     () => allActivities.filter((activity) => activity.public_listing_status === 'published').length,
     [allActivities],
   );
-  const sharedFilteredActivities = useMemo(
+  const baseFilteredActivities = useMemo(
     () => activitiesWithDistance.filter((activity) => {
       const interestMatch = activityMatchesInterests(activity, selectedCategorySet, allCategoriesSelected);
-      const distanceMatch =
-        !userLocation || (activity.distance != null && activity.distance <= distanceLimit);
       const eventMatch = deferredFilters.eventsOnly
         ? isEventListing(activity)
         : !isEventSource(activity);
-      return activity.public_listing_status === 'published' && interestMatch && distanceMatch && eventMatch;
+      return activity.public_listing_status === 'published' && interestMatch && eventMatch;
     }),
-    [activitiesWithDistance, selectedCategorySet, allCategoriesSelected, deferredFilters.eventsOnly, distanceLimit, userLocation],
+    [activitiesWithDistance, selectedCategorySet, allCategoriesSelected, deferredFilters.eventsOnly],
   );
+  const distanceMatchedActivities = useMemo(
+    () => !userLocation
+      ? baseFilteredActivities
+      : baseFilteredActivities.filter(
+        (activity) => activity.distance != null && activity.distance <= distanceLimit,
+      ),
+    [baseFilteredActivities, distanceLimit, userLocation],
+  );
+  // Do not leave a parent with an empty app if a device location is outside the
+  // London directory or is too imprecise for the chosen range.
+  const usingDistanceFallback = Boolean(userLocation)
+    && distanceMatchedActivities.length === 0
+    && baseFilteredActivities.length > 0;
+  const sharedFilteredActivities = usingDistanceFallback
+    ? baseFilteredActivities
+    : distanceMatchedActivities;
   const weekMatchedActivities = useMemo(
     () => sharedFilteredActivities.filter(
       (activity) => filteredWeekDays.some((day) => isActivityAvailableOn(activity, day)),
@@ -1083,6 +1097,7 @@ export default function App() {
             setFilters={setFilters}
             locationStatus={locationStatus}
             userLocation={userLocation}
+            usingDistanceFallback={usingDistanceFallback}
             weekDays={weekDays}
             totalActivityCount={publishedActivityCount}
             weekActivityCount={weekMatchedActivities.length}
@@ -1160,6 +1175,7 @@ function StartScreen({
   setFilters,
   locationStatus,
   userLocation,
+  usingDistanceFallback,
   weekDays,
   totalActivityCount,
   weekActivityCount,
@@ -1255,7 +1271,9 @@ function StartScreen({
             {locationStatus === 'idle' && 'Location off'}
           </strong>
           <p>
-            {userLocation
+            {usingDistanceFallback
+              ? 'No picks in this range, so you are seeing London ideas.'
+              : userLocation
               ? 'Showing closer picks first.'
               : 'Use your location or browse all.'}
           </p>
