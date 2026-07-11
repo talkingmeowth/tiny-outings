@@ -7,7 +7,14 @@ const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const listingUrl = 'https://www.eventbrite.co.uk/d/united-kingdom--london/baby/';
 const outputSql = join(root, 'supabase', 'seed', 'activities_eventbrite_london_baby_20260711.generated.sql');
 const outputAudit = join(root, 'data', 'eventbrite_london_baby_20260711.generated.json');
-const googleApiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_PLACES_API_KEY;
+const requestedPageLimit = Number.parseInt(process.env.EVENTBRITE_MAX_PAGES || '0', 10);
+const requestedStartPage = Math.max(1, Number.parseInt(process.env.EVENTBRITE_START_PAGE || '1', 10));
+const pageConcurrency = Math.max(1, Number.parseInt(process.env.EVENTBRITE_PAGE_CONCURRENCY || '1', 10));
+const pageDelayMs = Math.max(0, Number.parseInt(process.env.EVENTBRITE_PAGE_DELAY_MS || '1800', 10));
+const detailConcurrency = Math.max(1, Number.parseInt(process.env.EVENTBRITE_DETAIL_CONCURRENCY || '1', 10));
+const detailDelayMs = Math.max(0, Number.parseInt(process.env.EVENTBRITE_DETAIL_DELAY_MS || '1000', 10));
+const enrichGoogle = process.env.EVENTBRITE_ENRICH_GOOGLE === '1';
+const googleApiKey = enrichGoogle ? (process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_PLACES_API_KEY) : null;
 
 function readDotEnv(name) {
   try {
@@ -90,15 +97,42 @@ function eventJsonLd(html) {
 }
 
 async function fetchHtml(url) {
-  const response = await fetch(url, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (compatible; TinyOutings/1.0; +https://tiny-outings-cpjh.onrender.com)',
-      Accept: 'text/html,application/xhtml+xml',
-    },
-    signal: AbortSignal.timeout(30000),
-  });
-  if (!response.ok) throw new Error(`Eventbrite returned ${response.status}`);
-  return response.text();
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; TinyOutings/1.0; +https://tiny-outings-cpjh.onrender.com)',
+        Accept: 'text/html,application/xhtml+xml',
+      },
+      signal: AbortSignal.timeout(30000),
+    });
+    if (response.ok) return response.text();
+    if (![429, 500, 502, 503, 504].includes(response.status) || attempt === 3) {
+      throw new Error(`Eventbrite returned ${response.status}`);
+    }
+    const retryAfter = Number(response.headers.get('retry-after'));
+    await new Promise((resolve) => setTimeout(resolve, Number.isFinite(retryAfter) ? retryAfter * 1000 : 1200 * (attempt + 1)));
+  }
+  throw new Error('Eventbrite request failed after retries.');
+}
+
+function eventUrls(html) {
+  return [...new Set([...html.matchAll(/https:\/\/www\.eventbrite\.co\.uk\/e\/[^"'<>\s?]+/g)].map((match) => match[0]))];
+}
+
+function pageCount(html) {
+  const count = Number(html.match(/>\s*\d+\s*<\/span>\s*of\s*(\d+)\s*<\/li>/i)?.[1]);
+  return Number.isInteger(count) && count > 0 ? count : 1;
+}
+
+function listingPageUrl(page) {
+  if (page === 1) return listingUrl;
+  const url = new URL(listingUrl);
+  url.searchParams.set('page', String(page));
+  return url.toString();
+}
+
+function delay(milliseconds) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
 async function mapWithConcurrency(items, limit, mapper) {
@@ -229,14 +263,30 @@ function buildSql(rows) {
 
 async function main() {
   if (!supabaseUrl || !supabaseAnonKey) throw new Error('Missing Supabase configuration.');
-  const listing = await fetchHtml(listingUrl);
-  const urls = [...new Set([...listing.matchAll(/https:\/\/www\.eventbrite\.co\.uk\/e\/[^"'<>\s?]+/g)].map((match) => match[0]))];
+  const firstListing = await fetchHtml(listingUrl);
+  const availablePages = pageCount(firstListing);
+  const lastPage = requestedPageLimit > 0
+    ? Math.min(requestedStartPage + requestedPageLimit - 1, availablePages)
+    : availablePages;
+  const pageNumbers = Array.from({ length: Math.max(0, lastPage - requestedStartPage + 1) }, (_, index) => requestedStartPage + index);
+  const pages = await mapWithConcurrency(pageNumbers, pageConcurrency, async (page) => {
+    if (page === 1) return { page, urls: eventUrls(firstListing) };
+    try {
+      const html = await fetchHtml(listingPageUrl(page));
+      await delay(pageDelayMs);
+      return { page, urls: eventUrls(html) };
+    } catch (error) {
+      return { page, urls: [], error: error.message };
+    }
+  });
+  const urls = [...new Set(pages.flatMap((page) => page.urls))];
   const existing = await existingSourceUrls();
   const minimumDate = new Date();
   minimumDate.setHours(0, 0, 0, 0);
-  const audit = await mapWithConcurrency(urls, 4, async (url) => {
+  const audit = await mapWithConcurrency(urls, detailConcurrency, async (url) => {
     try {
       const event = eventJsonLd(await fetchHtml(url));
+      await delay(detailDelayMs);
       if (!event) return { url, status: 'skipped', reason: 'No event structured data' };
       const start = new Date(event.startDate);
       const address = cleanText(`${event.location?.address?.streetAddress || ''}, ${event.location?.address?.addressLocality || ''}`);
@@ -250,7 +300,7 @@ async function main() {
       return { url, status: 'error', reason: error.message };
     }
   });
-  const rows = audit.filter((item) => ['ready', 'existing'].includes(item.status)).map((item) => toRow(item.event, item.place));
+  const rows = audit.filter((item) => item.status === 'ready').map((item) => toRow(item.event, item.place));
   rows.sort((left, right) => left.activity_date.localeCompare(right.activity_date) || left.start_time.localeCompare(right.start_time));
   mkdirSync(dirname(outputSql), { recursive: true });
   mkdirSync(dirname(outputAudit), { recursive: true });
@@ -263,10 +313,15 @@ async function main() {
   writeFileSync(outputAudit, JSON.stringify({
     listing_url: listingUrl,
     generated_at: new Date().toISOString(),
+    pages_scanned: pageNumbers.length,
+    page_range: `${requestedStartPage}-${lastPage}`,
+    pages_available: availablePages,
+    google_enrichment: enrichGoogle,
+    page_errors: pages.filter((page) => page.error).map(({ page, error }) => ({ page, error })),
     audit: auditRows,
     rows,
   }, null, 2) + '\n');
-  console.log(`Found ${urls.length} event cards and generated ${rows.length} future London activity records.`);
+  console.log(`Scanned ${pageNumbers.length}/${availablePages} Eventbrite pages, found ${urls.length} unique cards, and generated ${rows.length} new future London activity records.`);
 }
 
 main().catch((error) => {
