@@ -1,0 +1,506 @@
+{
+  "listing_url": "https://www.eventbrite.co.uk/d/united-kingdom--london/baby/",
+  "generated_at": "2026-07-11T11:10:33.617Z",
+  "audit": [
+    {
+      "url": "https://www.eventbrite.co.uk/e/first-aid-for-babies-tickets-1991867412049",
+      "status": "skipped",
+      "reason": "No event structured data",
+      "event": null,
+      "google_place_id": null
+    },
+    {
+      "url": "https://www.eventbrite.co.uk/e/bring-your-own-baby-comedy-crystal-palace-daytime-comedy-club-for-parents-tickets-1985045296919",
+      "name": "Bring Your Own Baby Comedy Crystal Palace  daytime comedy club for parents",
+      "status": "ready",
+      "event": {
+        "name": "Bring Your Own Baby Comedy Crystal Palace  daytime comedy club for parents",
+        "startDate": "2026-07-14T12:00:00+01:00",
+        "location": {
+          "@type": "Place",
+          "name": "Bridge House",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "London",
+            "addressRegion": "England",
+            "addressCountry": "GB",
+            "streetAddress": "2 High Street, London, SE20 8RZ"
+          }
+        }
+      },
+      "google_place_id": "ChIJ5bFisW8BdkgRb6ySZ6yK2o8"
+    },
+    {
+      "url": "https://www.eventbrite.co.uk/e/bring-your-baby-guided-walk-women-from-sohos-history-tickets-1990335531152",
+      "status": "skipped",
+      "reason": "No event structured data",
+      "event": null,
+      "google_place_id": null
+    },
+    {
+      "url": "https://www.eventbrite.co.uk/e/bring-your-baby-guided-walk-women-from-hackney-history-haggerston-hoxton-tickets-1990335593338",
+      "status": "skipped",
+      "reason": "No event structured data",
+      "event": null,
+      "google_place_id": null
+    },
+    {
+      "url": "https://www.eventbrite.co.uk/e/hot-mama-pilates-x-padel-tickets-1992308298753",
+      "status": "skipped",
+      "reason": "No event structured data",
+      "event": null,
+      "google_place_id": null
+    },
+    {
+      "url": "https://www.eventbrite.co.uk/e/parents-babies-afternoon-wine-tasting-tickets-1988869846249",
+      "status": "skipped",
+      "reason": "No event structured data",
+      "event": null,
+      "google_place_id": null
+    },
+    {
+      "url": "https://www.eventbrite.co.uk/e/nct-watford-bumps-and-babies-tickets-1991415383018",
+      "status": "skipped",
+      "reason": "No event structured data",
+      "event": null,
+      "google_place_id": null
+    },
+    {
+      "url": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-epsom-parent-social-at-metropolis-food-hall-tickets-805700320347",
+      "status": "skipped",
+      "reason": "No event structured data",
+      "event": null,
+      "google_place_id": null
+    },
+    {
+      "url": "https://www.eventbrite.co.uk/e/squish-sessions-tickets-1990279449410",
+      "status": "skipped",
+      "reason": "No event structured data",
+      "event": null,
+      "google_place_id": null
+    },
+    {
+      "url": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-balham-parent-social-at-balham-bowls-club-tickets-907126859857",
+      "status": "skipped",
+      "reason": "No event structured data",
+      "event": null,
+      "google_place_id": null
+    },
+    {
+      "url": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-bethnal-green-parent-social-at-the-three-colts-tickets-1989874516244",
+      "status": "skipped",
+      "reason": "No event structured data",
+      "event": null,
+      "google_place_id": null
+    },
+    {
+      "url": "https://www.eventbrite.co.uk/e/west-hampstead-bach-to-baby-family-concert-tickets-1983868650538",
+      "name": "West Hampstead - Bach to Baby Family Concert",
+      "status": "ready",
+      "event": {
+        "name": "West Hampstead - Bach to Baby Family Concert",
+        "startDate": "2026-07-26T15:00:00+01:00",
+        "location": {
+          "@type": "Place",
+          "name": "Emmanuel Church",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "London",
+            "addressCountry": "GB",
+            "streetAddress": "Lyncroft Gardens, London, NW6 1JU"
+          }
+        }
+      },
+      "google_place_id": "ChIJ_eeG7X4QdkgRHRskjZnnmPA"
+    },
+    {
+      "url": "https://www.eventbrite.co.uk/e/bring-your-own-baby-comedy-east-dulwich-daytime-comedy-club-for-parents-tickets-1985047051166",
+      "name": "Bring Your Own Baby Comedy East Dulwich - daytime comedy club for parents",
+      "status": "ready",
+      "event": {
+        "name": "Bring Your Own Baby Comedy East Dulwich - daytime comedy club for parents",
+        "startDate": "2026-08-27T11:30:00+01:00",
+        "location": {
+          "@type": "Place",
+          "name": "East Dulwich Picturehouse & Cafe",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "London",
+            "addressRegion": "England",
+            "addressCountry": "GB",
+            "streetAddress": "116a Lordship Lane, London, SE22 8HD"
+          }
+        }
+      },
+      "google_place_id": "ChIJg8gr9pMDdkgRhIF02LqusN8"
+    },
+    {
+      "url": "https://www.eventbrite.co.uk/e/walthamstow-bach-to-baby-family-concert-tickets-1982883648370",
+      "name": "Walthamstow - Bach to Baby Family Concert",
+      "status": "ready",
+      "event": {
+        "name": "Walthamstow - Bach to Baby Family Concert",
+        "startDate": "2026-07-12T15:00:00+01:00",
+        "location": {
+          "@type": "Place",
+          "name": "St Michael & All Angels, Walthamstow",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "London",
+            "addressRegion": "England",
+            "addressCountry": "GB",
+            "streetAddress": "Northcote Road, London, E17 6PQ"
+          }
+        }
+      },
+      "google_place_id": "ChIJTQ-Qd8QddkgRiQau9TbQcrg"
+    },
+    {
+      "url": "https://www.eventbrite.co.uk/e/twickenham-1145-am-family-encounter-bank-holiday-tickets-1989843459352",
+      "name": "Twickenham 11:45 am family encounter (Bank Holiday)",
+      "status": "skipped",
+      "reason": "Outside London",
+      "event": null,
+      "google_place_id": null
+    },
+    {
+      "url": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-twickenham-parent-social-at-the-turks-head-tickets-929333861597",
+      "status": "skipped",
+      "reason": "No event structured data",
+      "event": null,
+      "google_place_id": null
+    },
+    {
+      "url": "https://www.eventbrite.co.uk/e/mum-baby-barre-fitness-tickets-1990691183919",
+      "name": "Mum & Baby Barre Fitness",
+      "status": "skipped",
+      "reason": "Past or cancelled event",
+      "event": null,
+      "google_place_id": null
+    },
+    {
+      "url": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-arnos-grove-enfield-parent-social-at-arnos-arms-tickets-1978680407363",
+      "status": "skipped",
+      "reason": "No event structured data",
+      "event": null,
+      "google_place_id": null
+    },
+    {
+      "url": "https://www.eventbrite.co.uk/e/all-things-baby-and-beyond-tickets-1980073958512",
+      "status": "skipped",
+      "reason": "No event structured data",
+      "event": null,
+      "google_place_id": null
+    },
+    {
+      "url": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-epsom-parent-social-at-metropolis-food-hall-tickets-1966945003454",
+      "status": "skipped",
+      "reason": "No event structured data",
+      "event": null,
+      "google_place_id": null
+    },
+    {
+      "url": "https://www.eventbrite.co.uk/e/squish-sessions-tickets-1990279556731",
+      "status": "skipped",
+      "reason": "No event structured data",
+      "event": null,
+      "google_place_id": null
+    },
+    {
+      "url": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-balham-parent-social-at-balham-bowls-club-tickets-1966942315414",
+      "status": "skipped",
+      "reason": "No event structured data",
+      "event": null,
+      "google_place_id": null
+    },
+    {
+      "url": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-bethnal-green-parent-social-at-the-three-colts-tickets-1989875059870",
+      "status": "skipped",
+      "reason": "No event structured data",
+      "event": null,
+      "google_place_id": null
+    },
+    {
+      "url": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-twickenham-parent-social-at-the-turks-head-tickets-1966953240090",
+      "status": "skipped",
+      "reason": "No event structured data",
+      "event": null,
+      "google_place_id": null
+    },
+    {
+      "url": "https://www.eventbrite.co.uk/e/mum-baby-barre-fitness-tickets-1990691201973",
+      "name": "Mum & Baby Barre Fitness",
+      "status": "ready",
+      "event": {
+        "name": "Mum & Baby Barre Fitness",
+        "startDate": "2026-07-13T09:45:00+01:00",
+        "location": {
+          "@type": "Place",
+          "name": "Barefoot Yoga & Therapy",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "London",
+            "addressRegion": "England",
+            "addressCountry": "GB",
+            "streetAddress": "10 Angel Lane Arches, London, SE173FR"
+          }
+        }
+      },
+      "google_place_id": null
+    },
+    {
+      "url": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-arnos-grove-enfield-parent-social-at-arnos-arms-tickets-1978681244868",
+      "status": "skipped",
+      "reason": "No event structured data",
+      "event": null,
+      "google_place_id": null
+    }
+  ],
+  "rows": [
+    {
+      "activity_name": "Walthamstow - Bach to Baby Family Concert",
+      "address": "Northcote Rd, London E17 6PQ",
+      "postcode": "E17 6PQ",
+      "lat": 51.5853088,
+      "long": -0.029547499999999997,
+      "category": "Music & singing",
+      "start_time": "15:00",
+      "end_time": "15:45",
+      "google_link": "https://maps.google.com/?cid=13290914384792389257&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+      "website": "https://www.eventbrite.co.uk/e/walthamstow-bach-to-baby-family-concert-tickets-1982883648370",
+      "child_friendly_score": null,
+      "app_rating": null,
+      "number_of_reviews": 0,
+      "age_suitability": "Parents, babies and young children",
+      "borough": "Waltham Forest",
+      "days_of_week": [
+        "Sunday"
+      ],
+      "recurrence_rule": null,
+      "schedule_notes": "One-off Eventbrite listing. Check Eventbrite for availability and booking details.",
+      "description": "Bach to Baby is the critically acclaimed concert series for babies, toddlers and their carers.",
+      "cost": "£17.70 per ticket",
+      "booking_required": true,
+      "source_name": "Eventbrite London baby listings",
+      "source_url": "https://www.eventbrite.co.uk/e/walthamstow-bach-to-baby-family-concert-tickets-1982883648370",
+      "image_url": "https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F86557395%2F126161857041%2F1%2Foriginal.20200107-122336?w=940&auto=format%2Ccompress&q=75&sharp=10&rect=0%2C0%2C2160%2C1080&s=64fbdd4ea098ebf2feb2d92cc6156860",
+      "image_source_url": "https://www.eventbrite.co.uk/e/walthamstow-bach-to-baby-family-concert-tickets-1982883648370",
+      "google_place_id": "ChIJTQ-Qd8QddkgRiQau9TbQcrg",
+      "google_place_uri": "https://maps.google.com/?cid=13290914384792389257&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+      "google_photo_url": null,
+      "google_rating": 4.3,
+      "google_user_rating_count": 43,
+      "google_primary_type": "church",
+      "google_opening_hours": null,
+      "google_summary": null,
+      "activity_date": "2026-07-12",
+      "available_dates": [
+        "2026-07-12"
+      ],
+      "availability_start_date": null,
+      "availability_end_date": null,
+      "available_days_of_week": [
+        "Sunday"
+      ],
+      "availability_type": "one_off",
+      "availability_notes": "Eventbrite listing on 12/07/2026. Booking required.",
+      "public_listing_status": "published"
+    },
+    {
+      "activity_name": "Mum & Baby Barre Fitness",
+      "address": "Barefoot Yoga & Therapy, 10 Angel Lane Arches, London, SE173FR, London",
+      "postcode": "SE173FR",
+      "lat": null,
+      "long": null,
+      "category": "Postnatal fitness",
+      "start_time": "09:45",
+      "end_time": "10:45",
+      "google_link": "https://www.google.com/maps/search/?api=1&query=Barefoot%20Yoga%20%26%20Therapy%2C%2010%20Angel%20Lane%20Arches%2C%20London%2C%20SE173FR%2C%20London",
+      "website": "https://www.eventbrite.co.uk/e/mum-baby-barre-fitness-tickets-1990691183919",
+      "child_friendly_score": null,
+      "app_rating": null,
+      "number_of_reviews": 0,
+      "age_suitability": "Parents, babies and young children",
+      "borough": "London",
+      "days_of_week": [
+        "Monday"
+      ],
+      "recurrence_rule": null,
+      "schedule_notes": "One-off Eventbrite listing. Check Eventbrite for availability and booking details.",
+      "description": "A low impact whole body postnatal workout combining yoga, Pilates and ballet styles (bring baby)",
+      "cost": "£20.21 per ticket",
+      "booking_required": true,
+      "source_name": "Eventbrite London baby listings",
+      "source_url": "https://www.eventbrite.co.uk/e/mum-baby-barre-fitness-tickets-1990691183919",
+      "image_url": "https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F1185761113%2F159233413696%2F1%2Foriginal.20260530-132928?crop=focalpoint&fit=crop&w=940&auto=format%2Ccompress&q=75&sharp=10&fp-x=0.5&fp-y=0.5&s=94bda1673653b9a917e9116f9bee47a9",
+      "image_source_url": "https://www.eventbrite.co.uk/e/mum-baby-barre-fitness-tickets-1990691183919",
+      "google_place_id": null,
+      "google_place_uri": null,
+      "google_photo_url": null,
+      "google_rating": null,
+      "google_user_rating_count": null,
+      "google_primary_type": null,
+      "google_opening_hours": null,
+      "google_summary": null,
+      "activity_date": "2026-07-13",
+      "available_dates": [
+        "2026-07-13"
+      ],
+      "availability_start_date": null,
+      "availability_end_date": null,
+      "available_days_of_week": [
+        "Monday"
+      ],
+      "availability_type": "one_off",
+      "availability_notes": "Eventbrite listing on 13/07/2026. Booking required.",
+      "public_listing_status": "published"
+    },
+    {
+      "activity_name": "Bring Your Own Baby Comedy Crystal Palace daytime comedy club for parents",
+      "address": "2 High St, London SE20 8RZ",
+      "postcode": "SE20 8RZ",
+      "lat": 51.418153399999994,
+      "long": -0.060489,
+      "category": "Parent meet-ups",
+      "start_time": "12:00",
+      "end_time": "13:30",
+      "google_link": "https://maps.google.com/?cid=10365749965423291503&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+      "website": "https://www.eventbrite.co.uk/e/bring-your-own-baby-comedy-crystal-palace-daytime-comedy-club-for-parents-tickets-1985045296919",
+      "child_friendly_score": null,
+      "app_rating": null,
+      "number_of_reviews": 0,
+      "age_suitability": "Parents, babies and young children",
+      "borough": "London",
+      "days_of_week": [
+        "Tuesday"
+      ],
+      "recurrence_rule": null,
+      "schedule_notes": "One-off Eventbrite listing. Check Eventbrite for availability and booking details.",
+      "description": "Grown up comedy, babies welcome. A funny, friendly afternoon of top comedy and... you can bring your baby!",
+      "cost": "£13.50 per ticket",
+      "booking_required": true,
+      "source_name": "Eventbrite London baby listings",
+      "source_url": "https://www.eventbrite.co.uk/e/bring-your-own-baby-comedy-crystal-palace-daytime-comedy-club-for-parents-tickets-1985045296919",
+      "image_url": "https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F569574939%2F1097186576613%2F1%2Foriginal.20221016-175645?w=940&auto=format%2Ccompress&q=75&sharp=10&rect=0%2C0%2C2160%2C1080&s=eb179e79ace0566f987cc4ff238128fb",
+      "image_source_url": "https://www.eventbrite.co.uk/e/bring-your-own-baby-comedy-crystal-palace-daytime-comedy-club-for-parents-tickets-1985045296919",
+      "google_place_id": "ChIJ5bFisW8BdkgRb6ySZ6yK2o8",
+      "google_place_uri": "https://maps.google.com/?cid=10365749965423291503&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+      "google_photo_url": null,
+      "google_rating": 4.3,
+      "google_user_rating_count": 1225,
+      "google_primary_type": "pub",
+      "google_opening_hours": null,
+      "google_summary": null,
+      "activity_date": "2026-07-14",
+      "available_dates": [
+        "2026-07-14"
+      ],
+      "availability_start_date": null,
+      "availability_end_date": null,
+      "available_days_of_week": [
+        "Tuesday"
+      ],
+      "availability_type": "one_off",
+      "availability_notes": "Eventbrite listing on 14/07/2026. Booking required.",
+      "public_listing_status": "published"
+    },
+    {
+      "activity_name": "West Hampstead - Bach to Baby Family Concert",
+      "address": "Lyncroft Gardens, London NW6 1JU",
+      "postcode": "NW6 1JU",
+      "lat": 51.5526771,
+      "long": -0.19251459999999998,
+      "category": "Music & singing",
+      "start_time": "15:00",
+      "end_time": "16:00",
+      "google_link": "https://maps.google.com/?cid=17336861412246690589&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+      "website": "https://www.eventbrite.co.uk/e/west-hampstead-bach-to-baby-family-concert-tickets-1983868650538",
+      "child_friendly_score": null,
+      "app_rating": null,
+      "number_of_reviews": 0,
+      "age_suitability": "Parents, babies and young children",
+      "borough": "London",
+      "days_of_week": [
+        "Sunday"
+      ],
+      "recurrence_rule": null,
+      "schedule_notes": "One-off Eventbrite listing. Check Eventbrite for availability and booking details.",
+      "description": "Bach to Baby is the critically acclaimed concert series for babies, toddlers and their carers.",
+      "cost": "£17.70 per ticket",
+      "booking_required": true,
+      "source_name": "Eventbrite London baby listings",
+      "source_url": "https://www.eventbrite.co.uk/e/west-hampstead-bach-to-baby-family-concert-tickets-1983868650538",
+      "image_url": "https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F86557395%2F126161857041%2F1%2Foriginal.20200107-122336?w=940&auto=format%2Ccompress&q=75&sharp=10&rect=0%2C0%2C2160%2C1080&s=64fbdd4ea098ebf2feb2d92cc6156860",
+      "image_source_url": "https://www.eventbrite.co.uk/e/west-hampstead-bach-to-baby-family-concert-tickets-1983868650538",
+      "google_place_id": "ChIJ_eeG7X4QdkgRHRskjZnnmPA",
+      "google_place_uri": "https://maps.google.com/?cid=17336861412246690589&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+      "google_photo_url": null,
+      "google_rating": 4.6,
+      "google_user_rating_count": 55,
+      "google_primary_type": "church",
+      "google_opening_hours": null,
+      "google_summary": null,
+      "activity_date": "2026-07-26",
+      "available_dates": [
+        "2026-07-26"
+      ],
+      "availability_start_date": null,
+      "availability_end_date": null,
+      "available_days_of_week": [
+        "Sunday"
+      ],
+      "availability_type": "one_off",
+      "availability_notes": "Eventbrite listing on 26/07/2026. Booking required.",
+      "public_listing_status": "published"
+    },
+    {
+      "activity_name": "Bring Your Own Baby Comedy East Dulwich - daytime comedy club for parents",
+      "address": "116a Lordship Ln, London SE22 8HD",
+      "postcode": "SE22 8HD",
+      "lat": 51.456420099999995,
+      "long": -0.07617199999999999,
+      "category": "Parent meet-ups",
+      "start_time": "11:30",
+      "end_time": "13:00",
+      "google_link": "https://maps.google.com/?cid=16118575183877669252&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+      "website": "https://www.eventbrite.co.uk/e/bring-your-own-baby-comedy-east-dulwich-daytime-comedy-club-for-parents-tickets-1985047051166",
+      "child_friendly_score": null,
+      "app_rating": null,
+      "number_of_reviews": 0,
+      "age_suitability": "Parents, babies and young children",
+      "borough": "London",
+      "days_of_week": [
+        "Thursday"
+      ],
+      "recurrence_rule": null,
+      "schedule_notes": "One-off Eventbrite listing. Check Eventbrite for availability and booking details.",
+      "description": "Grown up comedy, babies welcome. A funny, friendly afternoon of top comedy... and you can bring your baby!",
+      "cost": "£12.20 per ticket",
+      "booking_required": true,
+      "source_name": "Eventbrite London baby listings",
+      "source_url": "https://www.eventbrite.co.uk/e/bring-your-own-baby-comedy-east-dulwich-daytime-comedy-club-for-parents-tickets-1985047051166",
+      "image_url": "https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F617082809%2F1097186576613%2F1%2Foriginal.20221016-170757?w=940&auto=format%2Ccompress&q=75&sharp=10&rect=0%2C0%2C2160%2C1080&s=b9cdbf21442e9494568b5b43063c8dc2",
+      "image_source_url": "https://www.eventbrite.co.uk/e/bring-your-own-baby-comedy-east-dulwich-daytime-comedy-club-for-parents-tickets-1985047051166",
+      "google_place_id": "ChIJg8gr9pMDdkgRhIF02LqusN8",
+      "google_place_uri": "https://maps.google.com/?cid=16118575183877669252&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+      "google_photo_url": null,
+      "google_rating": 4.5,
+      "google_user_rating_count": 1109,
+      "google_primary_type": "movie_theater",
+      "google_opening_hours": null,
+      "google_summary": null,
+      "activity_date": "2026-08-27",
+      "available_dates": [
+        "2026-08-27"
+      ],
+      "availability_start_date": null,
+      "availability_end_date": null,
+      "available_days_of_week": [
+        "Thursday"
+      ],
+      "availability_type": "one_off",
+      "availability_notes": "Eventbrite listing on 27/08/2026. Booking required.",
+      "public_listing_status": "published"
+    }
+  ]
+}
