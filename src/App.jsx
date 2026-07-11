@@ -3,7 +3,7 @@ import { supabase } from './supabaseClient';
 
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
-const planningStorageVersion = '2026-07-09-activity-visibility-reset';
+const planningStorageVersion = '2026-07-11-current-week-filter-reset';
 const visibilityOptions = ['private', 'public'];
 const statusOptions = ['booked', 'tentative'];
 const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -122,7 +122,7 @@ async function fetchTravelRoute(origin, activity, travelMode) {
 function defaultFilters() {
   return {
     distanceMode: 'radius',
-    radiusMiles: 3,
+    radiusMiles: 10,
     walkMinutes: 35,
     weekStart: startOfWeekISO(todayISO()),
     interests: [...activityInterestOptions],
@@ -159,7 +159,9 @@ function clearOldPlanningCache() {
   const versionKey = `${storagePrefix}:planning-storage-version`;
   try {
     if (window.localStorage.getItem(versionKey) === planningStorageVersion) return;
-    for (const key of ['swipes', 'shortlists', 'statuses', 'calendar-events']) {
+    // A saved past week or Events-only mode can otherwise make a populated
+    // directory look empty after an app update.
+    for (const key of ['filters', 'swipes', 'shortlists', 'statuses', 'calendar-events']) {
       window.localStorage.removeItem(`${storagePrefix}:${key}`);
     }
     window.localStorage.setItem(versionKey, planningStorageVersion);
