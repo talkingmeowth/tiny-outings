@@ -604,7 +604,7 @@ export default function App() {
     () => allActivities.map((activity) => ({
       ...activity,
       distance: travelRoutes[activity.activity_id]?.walking?.distance ?? (
-        googleMapsApiKey ? null : milesBetween(userLocation, { lat: activity.lat, long: activity.long })
+        milesBetween(userLocation, { lat: activity.lat, long: activity.long })
       ),
       walkMinutes: travelRoutes[activity.activity_id]?.walking?.minutes ?? null,
       driveDistance: travelRoutes[activity.activity_id]?.driving?.distance ?? null,
@@ -621,7 +621,7 @@ export default function App() {
     () => activitiesWithDistance.filter((activity) => {
       const interestMatch = activityMatchesInterests(activity, selectedCategorySet, allCategoriesSelected);
       const distanceMatch =
-        !userLocation || activity.distance == null || activity.distance <= distanceLimit;
+        !userLocation || (activity.distance != null && activity.distance <= distanceLimit);
       const eventMatch = deferredFilters.eventsOnly
         ? isEventListing(activity)
         : !isEventSource(activity);

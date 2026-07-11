@@ -84,7 +84,8 @@ function isPlausiblePlace(group, place) {
     .split(' ')
     .filter((token) => token.length > 3 && !['london', 'road', 'street', 'centre', 'center', 'library'].includes(token));
   const returned = normalizedAddress(`${place.displayName?.text || ''} ${place.formattedAddress || ''}`);
-  return tokens.length === 0 || tokens.some((token) => returned.includes(token));
+  // Never turn a generic location such as "London" into a random map pin.
+  return tokens.length > 0 && tokens.some((token) => returned.includes(token));
 }
 
 function shouldApplyPlaceUpdate(group, activity, place) {
