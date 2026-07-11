@@ -479,7 +479,7 @@ function activityMatchesInterests(activity, selectedCategories, allCategoriesSel
 
 function isEventListing(activity) {
   return activity.availability_type === 'one_off'
-    || /eventbrite/i.test(String(activity.source_name || activity.source_url || ''));
+    || /eventbrite|fever/i.test(String(activity.source_name || activity.source_url || ''));
 }
 
 function buildSubmittedPayload(enriched, link) {
