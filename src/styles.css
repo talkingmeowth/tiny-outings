@@ -375,6 +375,12 @@ p {
   padding: 18px;
 }
 
+/* The Plan screen contains many interactive controls; avoid a full-page blur repaint on mobile. */
+.start-screen .filter-card,
+.start-screen .start-summary {
+  backdrop-filter: none;
+}
+
 .field-group {
   display: grid;
   gap: 10px;

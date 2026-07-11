@@ -550,10 +550,11 @@ export default function App() {
   const [returnScreen, setReturnScreen] = useState('swipe');
   const [dragState, setDragState] = useState({ activityId: null, startX: null, offsetX: 0 });
   const [walkingRoutes, setWalkingRoutes] = useState({});
-  const deferredInterests = useDeferredValue(filters.interests);
+  // Keep Plan controls responsive while the directory catches up with a changed filter.
+  const deferredFilters = useDeferredValue(filters);
   const selectedCategorySet = useMemo(
-    () => new Set(deferredInterests.map((interest) => interest.toLowerCase())),
-    [deferredInterests],
+    () => new Set(deferredFilters.interests.map((interest) => interest.toLowerCase())),
+    [deferredFilters.interests],
   );
   const allCategoriesSelected = selectedCategorySet.size === activityInterestOptions.length;
 
@@ -567,9 +568,13 @@ export default function App() {
     () => new Map(allActivities.map((activity) => [String(activity.activity_id), activity])),
     [allActivities],
   );
-  const distanceLimit = filters.distanceMode === 'walk'
-    ? Number(filters.walkMinutes) / 20
-    : Number(filters.radiusMiles);
+  const distanceLimit = deferredFilters.distanceMode === 'walk'
+    ? Number(deferredFilters.walkMinutes) / 20
+    : Number(deferredFilters.radiusMiles);
+  const filteredWeekDays = useMemo(
+    () => Array.from({ length: 7 }, (_, index) => addDaysISO(deferredFilters.weekStart, index)),
+    [deferredFilters.weekStart],
+  );
 
   const activitiesWithDistance = useMemo(
     () => allActivities.map((activity) => ({
@@ -597,9 +602,9 @@ export default function App() {
   );
   const weekMatchedActivities = useMemo(
     () => sharedFilteredActivities.filter(
-      (activity) => weekDays.some((day) => isActivityAvailableOn(activity, day)),
+      (activity) => filteredWeekDays.some((day) => isActivityAvailableOn(activity, day)),
     ),
-    [sharedFilteredActivities, weekDays],
+    [sharedFilteredActivities, filteredWeekDays],
   );
   const filteredActivities = useMemo(
     () => sharedFilteredActivities.filter(
