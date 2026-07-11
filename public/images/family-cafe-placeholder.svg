@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Family cafe illustration</title>
+  <desc id="desc">A warm illustrated cafe table with a coffee cup, a child's cup and a small flower.</desc>
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f6c965"/>
+      <stop offset="1" stop-color="#f58b70"/>
+    </linearGradient>
+    <linearGradient id="table" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fef5df"/>
+      <stop offset="1" stop-color="#f9e3bb"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="720" fill="url(#wall)"/>
+  <circle cx="1020" cy="138" r="180" fill="#fce9b3" opacity=".72"/>
+  <circle cx="132" cy="162" r="108" fill="#b9dfd0" opacity=".8"/>
+  <path d="M0 495C210 430 350 545 575 492S930 424 1200 505V720H0Z" fill="url(#table)"/>
+  <path d="M0 565C220 505 405 615 617 560S944 515 1200 590" fill="none" stroke="#e9c67f" stroke-width="14" opacity=".7"/>
+  <ellipse cx="482" cy="520" rx="190" ry="48" fill="#d5a65d" opacity=".3"/>
+  <path d="M336 325H590V468C590 524 535 554 464 554S336 524 336 468Z" fill="#fff8e9"/>
+  <path d="M590 357H658C707 357 730 398 730 434S707 511 658 511H590" fill="none" stroke="#fff8e9" stroke-width="42"/>
+  <path d="M387 300C365 245 407 204 435 164M472 298C452 237 498 205 524 155" fill="none" stroke="#355f52" stroke-linecap="round" stroke-width="25" opacity=".8"/>
+  <rect x="750" y="362" width="164" height="145" rx="32" fill="#a8d9d4"/>
+  <path d="M775 348C780 280 884 280 889 348" fill="none" stroke="#a8d9d4" stroke-width="28"/>
+  <path d="M778 430H887" stroke="#355f52" stroke-width="19" stroke-linecap="round" opacity=".7"/>
+  <path d="M978 469V318" stroke="#355f52" stroke-width="20" stroke-linecap="round"/>
+  <path d="M978 350C911 327 906 252 958 228C1020 255 1031 324 978 350Z" fill="#4a8c6d"/>
+  <path d="M978 390C1039 366 1066 296 1029 253C968 282 934 350 978 390Z" fill="#6aae84"/>
+  <ellipse cx="976" cy="482" rx="80" ry="24" fill="#d5a65d" opacity=".3"/>
+  <rect x="932" y="456" width="88" height="66" rx="12" fill="#f9f0da"/>
+</svg>

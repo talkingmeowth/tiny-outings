@@ -407,15 +407,21 @@ function isUsablePhotoUrl(url) {
     'image.thum.io',
     's.wordpress.com/mshots',
     'maps.googleapis.com/maps/api/place/photo',
-    'places.googleapis.com/v1/',
   ].some((blocked) => value.includes(blocked));
+}
+
+function googlePhotoMediaUrl(photoReference) {
+  const value = String(photoReference || '');
+  if (!value.startsWith('places/') || !googleMapsApiKey) return value || null;
+  return `https://places.googleapis.com/v1/${encodeURI(value)}/media?maxWidthPx=1200&key=${encodeURIComponent(googleMapsApiKey)}`;
 }
 
 function activityPhotoUrls(activity) {
   const candidates = [
-    activity.google_photo_url,
+    googlePhotoMediaUrl(activity.google_photo_url),
     activity.image_url,
     activity.photo_url,
+    activity.category === 'Child-friendly cafes' ? '/images/family-cafe-placeholder.svg' : null,
   ].filter(isUsablePhotoUrl);
 
   return [...new Set(candidates)];
@@ -427,8 +433,9 @@ function activityPhotoUrl(activity) {
 
 function activityPhotoLabel(activity) {
   const photoUrl = activityPhotoUrl(activity);
-  if (photoUrl && photoUrl === activity.google_photo_url) return 'Google Places photo';
+  if (photoUrl && (photoUrl === activity.google_photo_url || String(activity.google_photo_url || '').startsWith('places/'))) return 'Google Places photo';
   if (photoUrl && (photoUrl === activity.image_url || photoUrl === activity.photo_url)) return 'Activity photo';
+  if (photoUrl === '/images/family-cafe-placeholder.svg') return 'Family cafe illustration';
   if (photoUrl) return 'Website preview';
   return 'Photo pending';
 }
