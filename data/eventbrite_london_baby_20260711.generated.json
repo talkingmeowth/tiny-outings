@@ -1,18 +1,31 @@
 {
   "listing_url": "https://www.eventbrite.co.uk/d/united-kingdom--london/baby/",
-  "generated_at": "2026-07-11T11:10:33.617Z",
+  "generated_at": "2026-07-11T11:13:40.094Z",
   "audit": [
     {
       "url": "https://www.eventbrite.co.uk/e/first-aid-for-babies-tickets-1991867412049",
-      "status": "skipped",
-      "reason": "No event structured data",
-      "event": null,
-      "google_place_id": null
+      "name": "First Aid for Babies",
+      "status": "ready",
+      "event": {
+        "name": "First Aid for Babies",
+        "startDate": "2026-07-12T14:00:00+01:00",
+        "location": {
+          "@type": "Place",
+          "name": "Dockland Settlements No.2",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "London",
+            "addressCountry": "GB",
+            "streetAddress": "4a Saunders Ness Road, London, e14 3ps"
+          }
+        }
+      },
+      "google_place_id": "ChIJL1wt_0cDdkgRa7DXHywq9Fk"
     },
     {
       "url": "https://www.eventbrite.co.uk/e/bring-your-own-baby-comedy-crystal-palace-daytime-comedy-club-for-parents-tickets-1985045296919",
       "name": "Bring Your Own Baby Comedy Crystal Palace  daytime comedy club for parents",
-      "status": "ready",
+      "status": "existing",
       "event": {
         "name": "Bring Your Own Baby Comedy Crystal Palace  daytime comedy club for parents",
         "startDate": "2026-07-14T12:00:00+01:00",
@@ -32,71 +45,132 @@
     },
     {
       "url": "https://www.eventbrite.co.uk/e/bring-your-baby-guided-walk-women-from-sohos-history-tickets-1990335531152",
-      "status": "skipped",
-      "reason": "No event structured data",
-      "event": null,
-      "google_place_id": null
+      "name": "BRING YOUR BABY GUIDED WALK: \"Women from Soho's History\"",
+      "status": "ready",
+      "event": {
+        "name": "BRING YOUR BABY GUIDED WALK: \"Women from Soho's History\"",
+        "startDate": "2026-07-17T11:00:00+01:00",
+        "location": {
+          "@type": "Place",
+          "name": "Tottenham Court Road Station",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "London",
+            "addressRegion": "England",
+            "addressCountry": "GB",
+            "streetAddress": "Oxford Street, London, W1D 2DH"
+          }
+        }
+      },
+      "google_place_id": "ChIJtUZOyuQbdkgRXoQ_b1kJeis"
     },
     {
       "url": "https://www.eventbrite.co.uk/e/bring-your-baby-guided-walk-women-from-hackney-history-haggerston-hoxton-tickets-1990335593338",
-      "status": "skipped",
-      "reason": "No event structured data",
-      "event": null,
-      "google_place_id": null
+      "name": "BRING YOUR BABY GUIDED WALK Women from Hackney History: Haggerston & Hoxton",
+      "status": "ready",
+      "event": {
+        "name": "BRING YOUR BABY GUIDED WALK Women from Hackney History: Haggerston & Hoxton",
+        "startDate": "2026-07-23T11:00:00+01:00",
+        "location": {
+          "@type": "Place",
+          "name": "Outside Haggerston Station",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "London",
+            "addressRegion": "England",
+            "addressCountry": "GB",
+            "streetAddress": "Lee Street, London, E8 4DY"
+          }
+        }
+      },
+      "google_place_id": "ChIJbz_f1ZUcdkgR6TEsHGj-fOI"
     },
     {
       "url": "https://www.eventbrite.co.uk/e/hot-mama-pilates-x-padel-tickets-1992308298753",
-      "status": "skipped",
-      "reason": "No event structured data",
-      "event": null,
-      "google_place_id": null
+      "name": "HOT MAMA PILATES X PADEL",
+      "status": "ready",
+      "event": {
+        "name": "HOT MAMA PILATES X PADEL",
+        "startDate": "2026-07-15T11:00:00+01:00",
+        "location": {
+          "@type": "Place",
+          "name": "Racketeer",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "London",
+            "addressRegion": "England",
+            "addressCountry": "GB",
+            "streetAddress": "55-61 North Acton Road, London, NW10 6PH"
+          }
+        }
+      },
+      "google_place_id": "ChIJWy5SVeURdkgReFEXLWplQ2A"
     },
     {
       "url": "https://www.eventbrite.co.uk/e/parents-babies-afternoon-wine-tasting-tickets-1988869846249",
-      "status": "skipped",
-      "reason": "No event structured data",
-      "event": null,
-      "google_place_id": null
+      "name": "Parents & Babies Afternoon Wine Tasting",
+      "status": "ready",
+      "event": {
+        "name": "Parents & Babies Afternoon Wine Tasting",
+        "startDate": "2026-07-21T14:30:00+01:00",
+        "location": {
+          "@type": "Place",
+          "name": "Kenrick's Wines Sydenham",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "London",
+            "addressRegion": "England",
+            "addressCountry": "GB",
+            "streetAddress": "4 Sydenham Station Approach, London, SE26 5EU"
+          }
+        }
+      },
+      "google_place_id": "ChIJC47ldxABdkgR1k3l6gt68kE"
     },
     {
       "url": "https://www.eventbrite.co.uk/e/nct-watford-bumps-and-babies-tickets-1991415383018",
+      "name": "NCT Watford Bumps and Babies",
       "status": "skipped",
-      "reason": "No event structured data",
+      "reason": "Outside London",
       "event": null,
       "google_place_id": null
     },
     {
       "url": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-epsom-parent-social-at-metropolis-food-hall-tickets-805700320347",
+      "name": "BRING YOUR BABY PUB QUIZ | Epsom Parent Social at Metropolis Food Hall",
       "status": "skipped",
-      "reason": "No event structured data",
+      "reason": "Past or cancelled event",
       "event": null,
       "google_place_id": null
     },
     {
       "url": "https://www.eventbrite.co.uk/e/squish-sessions-tickets-1990279449410",
+      "name": "SQUISH SESSIONS.",
       "status": "skipped",
-      "reason": "No event structured data",
+      "reason": "Past or cancelled event",
       "event": null,
       "google_place_id": null
     },
     {
       "url": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-balham-parent-social-at-balham-bowls-club-tickets-907126859857",
+      "name": "BRING YOUR BABY PUB QUIZ | Balham Parent Social at Balham Bowls Club",
       "status": "skipped",
-      "reason": "No event structured data",
+      "reason": "Past or cancelled event",
       "event": null,
       "google_place_id": null
     },
     {
       "url": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-bethnal-green-parent-social-at-the-three-colts-tickets-1989874516244",
+      "name": "BRING YOUR BABY PUB QUIZ | Bethnal Green Parent Social at The Three Colts",
       "status": "skipped",
-      "reason": "No event structured data",
+      "reason": "Past or cancelled event",
       "event": null,
       "google_place_id": null
     },
     {
       "url": "https://www.eventbrite.co.uk/e/west-hampstead-bach-to-baby-family-concert-tickets-1983868650538",
       "name": "West Hampstead - Bach to Baby Family Concert",
-      "status": "ready",
+      "status": "existing",
       "event": {
         "name": "West Hampstead - Bach to Baby Family Concert",
         "startDate": "2026-07-26T15:00:00+01:00",
@@ -116,7 +190,7 @@
     {
       "url": "https://www.eventbrite.co.uk/e/bring-your-own-baby-comedy-east-dulwich-daytime-comedy-club-for-parents-tickets-1985047051166",
       "name": "Bring Your Own Baby Comedy East Dulwich - daytime comedy club for parents",
-      "status": "ready",
+      "status": "existing",
       "event": {
         "name": "Bring Your Own Baby Comedy East Dulwich - daytime comedy club for parents",
         "startDate": "2026-08-27T11:30:00+01:00",
@@ -137,7 +211,7 @@
     {
       "url": "https://www.eventbrite.co.uk/e/walthamstow-bach-to-baby-family-concert-tickets-1982883648370",
       "name": "Walthamstow - Bach to Baby Family Concert",
-      "status": "ready",
+      "status": "existing",
       "event": {
         "name": "Walthamstow - Bach to Baby Family Concert",
         "startDate": "2026-07-12T15:00:00+01:00",
@@ -165,8 +239,9 @@
     },
     {
       "url": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-twickenham-parent-social-at-the-turks-head-tickets-929333861597",
+      "name": "BRING YOUR BABY PUB QUIZ | Twickenham Parent Social at The Turk's Head",
       "status": "skipped",
-      "reason": "No event structured data",
+      "reason": "Past or cancelled event",
       "event": null,
       "google_place_id": null
     },
@@ -180,57 +255,103 @@
     },
     {
       "url": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-arnos-grove-enfield-parent-social-at-arnos-arms-tickets-1978680407363",
+      "name": "BRING YOUR BABY PUB QUIZ | Arnos Grove Enfield Parent Social at Arnos Arms",
       "status": "skipped",
-      "reason": "No event structured data",
+      "reason": "Past or cancelled event",
       "event": null,
       "google_place_id": null
     },
     {
       "url": "https://www.eventbrite.co.uk/e/all-things-baby-and-beyond-tickets-1980073958512",
+      "name": "All Things Baby and Beyond",
       "status": "skipped",
-      "reason": "No event structured data",
+      "reason": "Outside London",
       "event": null,
       "google_place_id": null
     },
     {
       "url": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-epsom-parent-social-at-metropolis-food-hall-tickets-1966945003454",
+      "name": "BRING YOUR BABY PUB QUIZ | Epsom Parent Social at Metropolis Food Hall",
       "status": "skipped",
-      "reason": "No event structured data",
+      "reason": "Outside London",
       "event": null,
       "google_place_id": null
     },
     {
       "url": "https://www.eventbrite.co.uk/e/squish-sessions-tickets-1990279556731",
-      "status": "skipped",
-      "reason": "No event structured data",
-      "event": null,
-      "google_place_id": null
+      "name": "SQUISH SESSIONS.",
+      "status": "ready",
+      "event": {
+        "name": "SQUISH SESSIONS.",
+        "startDate": "2026-07-21T09:30:00+01:00",
+        "location": {
+          "@type": "Place",
+          "name": "Morocco Bound Bookshop Wandsworth",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "London",
+            "addressRegion": "England",
+            "addressCountry": "GB",
+            "streetAddress": "New Acres, #Unit 3A, London, SW18 1UZ"
+          }
+        }
+      },
+      "google_place_id": "ChIJJR_SHYSp2EcR2mPFCnVUYLs"
     },
     {
       "url": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-balham-parent-social-at-balham-bowls-club-tickets-1966942315414",
-      "status": "skipped",
-      "reason": "No event structured data",
-      "event": null,
-      "google_place_id": null
+      "name": "BRING YOUR BABY PUB QUIZ | Balham Parent Social at Balham Bowls Club",
+      "status": "ready",
+      "event": {
+        "name": "BRING YOUR BABY PUB QUIZ | Balham Parent Social at Balham Bowls Club",
+        "startDate": "2026-07-17T12:00:00+01:00",
+        "location": {
+          "@type": "Place",
+          "name": "Balham Bowls Club",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "London",
+            "addressRegion": "England",
+            "addressCountry": "GB",
+            "streetAddress": "7-9 Ramsden Road, London, SW12 8QX"
+          }
+        }
+      },
+      "google_place_id": "ChIJ2xhV8sUFdkgRTW5pI3QxKEk"
     },
     {
       "url": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-bethnal-green-parent-social-at-the-three-colts-tickets-1989875059870",
-      "status": "skipped",
-      "reason": "No event structured data",
-      "event": null,
-      "google_place_id": null
+      "name": "BRING YOUR BABY PUB QUIZ | Bethnal Green Parent Social at The Three Colts",
+      "status": "ready",
+      "event": {
+        "name": "BRING YOUR BABY PUB QUIZ | Bethnal Green Parent Social at The Three Colts",
+        "startDate": "2026-08-07T12:00:00+01:00",
+        "location": {
+          "@type": "Place",
+          "name": "Three Colts Tavern",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "London",
+            "addressRegion": "England",
+            "addressCountry": "GB",
+            "streetAddress": "199 Cambridge Heath Road, London, E2 0EL"
+          }
+        }
+      },
+      "google_place_id": "ChIJd-rG30kddkgRkUDIyBCSy3M"
     },
     {
       "url": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-twickenham-parent-social-at-the-turks-head-tickets-1966953240090",
+      "name": "BRING YOUR BABY PUB QUIZ | Twickenham Parent Social at The Turk's Head",
       "status": "skipped",
-      "reason": "No event structured data",
+      "reason": "Outside London",
       "event": null,
       "google_place_id": null
     },
     {
       "url": "https://www.eventbrite.co.uk/e/mum-baby-barre-fitness-tickets-1990691201973",
       "name": "Mum & Baby Barre Fitness",
-      "status": "ready",
+      "status": "existing",
       "event": {
         "name": "Mum & Baby Barre Fitness",
         "startDate": "2026-07-13T09:45:00+01:00",
@@ -250,13 +371,76 @@
     },
     {
       "url": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-arnos-grove-enfield-parent-social-at-arnos-arms-tickets-1978681244868",
-      "status": "skipped",
-      "reason": "No event structured data",
-      "event": null,
-      "google_place_id": null
+      "name": "BRING YOUR BABY PUB QUIZ | Arnos Grove Enfield Parent Social at Arnos Arms",
+      "status": "ready",
+      "event": {
+        "name": "BRING YOUR BABY PUB QUIZ | Arnos Grove Enfield Parent Social at Arnos Arms",
+        "startDate": "2026-07-23T12:00:00+01:00",
+        "location": {
+          "@type": "Place",
+          "name": "The Arnos Arms",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "London",
+            "addressRegion": "England",
+            "addressCountry": "GB",
+            "streetAddress": "338 Bowes Road, London, N11 1AN"
+          }
+        }
+      },
+      "google_place_id": "ChIJwe0olXMZdkgRHBFjdELIdqw"
     }
   ],
   "rows": [
+    {
+      "activity_name": "First Aid for Babies",
+      "address": "4 Saunders Ness Rd, London E14 3PS",
+      "postcode": "E14 3PS",
+      "lat": 51.486672,
+      "long": -0.0096537,
+      "category": "Family activities",
+      "start_time": "14:00",
+      "end_time": "16:30",
+      "google_link": "https://maps.google.com/?cid=6481852132694143083&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+      "website": "https://www.eventbrite.co.uk/e/first-aid-for-babies-tickets-1991867412049",
+      "child_friendly_score": null,
+      "app_rating": null,
+      "number_of_reviews": 0,
+      "age_suitability": "Parents, babies and young children",
+      "borough": "London",
+      "days_of_week": [
+        "Sunday"
+      ],
+      "recurrence_rule": null,
+      "schedule_notes": "One-off Eventbrite listing. Check Eventbrite for availability and booking details.",
+      "description": "Join Dr. Shiri Lejay (Consultant Paediatrician), for an educational and interactive workshop for parents and caregivers hosted by Sharon Osu",
+      "cost": "£0.00 per ticket",
+      "booking_required": true,
+      "source_name": "Eventbrite London baby listings",
+      "source_url": "https://www.eventbrite.co.uk/e/first-aid-for-babies-tickets-1991867412049",
+      "image_url": "https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F1186877173%2F767183452493%2F1%2Foriginal.20260614-180005?crop=focalpoint&fit=crop&w=940&auto=format%2Ccompress&q=75&sharp=10&fp-x=0.727&fp-y=0.534&s=98e727f71708f38058f9ec6fb11b4a00",
+      "image_source_url": "https://www.eventbrite.co.uk/e/first-aid-for-babies-tickets-1991867412049",
+      "google_place_id": "ChIJL1wt_0cDdkgRa7DXHywq9Fk",
+      "google_place_uri": "https://maps.google.com/?cid=6481852132694143083&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+      "google_photo_url": null,
+      "google_rating": 4.6,
+      "google_user_rating_count": 10,
+      "google_primary_type": "community_center",
+      "google_opening_hours": null,
+      "google_summary": null,
+      "activity_date": "2026-07-12",
+      "available_dates": [
+        "2026-07-12"
+      ],
+      "availability_start_date": null,
+      "availability_end_date": null,
+      "available_days_of_week": [
+        "Sunday"
+      ],
+      "availability_type": "one_off",
+      "availability_notes": "Eventbrite listing on 12/07/2026. Booking required.",
+      "public_listing_status": "published"
+    },
     {
       "activity_name": "Walthamstow - Bach to Baby Family Concert",
       "address": "Northcote Rd, London E17 6PQ",
@@ -405,6 +589,349 @@
       "public_listing_status": "published"
     },
     {
+      "activity_name": "HOT MAMA PILATES X PADEL",
+      "address": "55, 61 N Acton Rd, London NW10 6PH",
+      "postcode": "NW10 6PH",
+      "lat": 51.5312795,
+      "long": -0.25979759999999996,
+      "category": "Postnatal fitness",
+      "start_time": "11:00",
+      "end_time": "13:00",
+      "google_link": "https://maps.google.com/?cid=6936499357778137464&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+      "website": "https://www.eventbrite.co.uk/e/hot-mama-pilates-x-padel-tickets-1992308298753",
+      "child_friendly_score": null,
+      "app_rating": null,
+      "number_of_reviews": 0,
+      "age_suitability": "Parents, babies and young children",
+      "borough": "London",
+      "days_of_week": [
+        "Wednesday"
+      ],
+      "recurrence_rule": null,
+      "schedule_notes": "One-off Eventbrite listing. Check Eventbrite for availability and booking details.",
+      "description": "Join Maison Mère x The Organised Mums for a morning of padel, Pilates, childcare and community!",
+      "cost": "£45.00 per ticket",
+      "booking_required": true,
+      "source_name": "Eventbrite London baby listings",
+      "source_url": "https://www.eventbrite.co.uk/e/hot-mama-pilates-x-padel-tickets-1992308298753",
+      "image_url": "https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F1187777139%2F2914036896031%2F1%2Foriginal.20260627-223455?crop=focalpoint&fit=crop&w=940&auto=format%2Ccompress&q=75&sharp=10&fp-x=0.784&fp-y=1.0&s=b353887812fbae6c133ac019648c381d",
+      "image_source_url": "https://www.eventbrite.co.uk/e/hot-mama-pilates-x-padel-tickets-1992308298753",
+      "google_place_id": "ChIJWy5SVeURdkgReFEXLWplQ2A",
+      "google_place_uri": "https://maps.google.com/?cid=6936499357778137464&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+      "google_photo_url": null,
+      "google_rating": 4.6,
+      "google_user_rating_count": 69,
+      "google_primary_type": "sports_complex",
+      "google_opening_hours": null,
+      "google_summary": null,
+      "activity_date": "2026-07-15",
+      "available_dates": [
+        "2026-07-15"
+      ],
+      "availability_start_date": null,
+      "availability_end_date": null,
+      "available_days_of_week": [
+        "Wednesday"
+      ],
+      "availability_type": "one_off",
+      "availability_notes": "Eventbrite listing on 15/07/2026. Booking required.",
+      "public_listing_status": "published"
+    },
+    {
+      "activity_name": "BRING YOUR BABY GUIDED WALK: \"Women from Soho's History\"",
+      "address": "Tottenham Court Road Station, Oxford St, London W1D 2DH",
+      "postcode": "W1D 2DH",
+      "lat": 51.5162122,
+      "long": -0.1306278,
+      "category": "Parks & outdoor play",
+      "start_time": "11:00",
+      "end_time": "14:00",
+      "google_link": "https://maps.google.com/?cid=3132826770512774238&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+      "website": "https://www.eventbrite.co.uk/e/bring-your-baby-guided-walk-women-from-sohos-history-tickets-1990335531152",
+      "child_friendly_score": null,
+      "app_rating": null,
+      "number_of_reviews": 0,
+      "age_suitability": "Parents, babies and young children",
+      "borough": "London",
+      "days_of_week": [
+        "Friday"
+      ],
+      "recurrence_rule": null,
+      "schedule_notes": "One-off Eventbrite listing. Check Eventbrite for availability and booking details.",
+      "description": "Bring Your Baby Guided London Walks are sensitively devised to suit parents and carers of even the tiniest babies to enjoy London’s history.",
+      "cost": "£24.12 per ticket",
+      "booking_required": true,
+      "source_name": "Eventbrite London baby listings",
+      "source_url": "https://www.eventbrite.co.uk/e/bring-your-baby-guided-walk-women-from-sohos-history-tickets-1990335531152",
+      "image_url": "https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F447683259%2F210761915866%2F1%2Foriginal.20230216-120928?w=940&auto=format%2Ccompress&q=75&sharp=10&rect=0%2C0%2C2160%2C1080&s=82ee798a9db085f3ae661b87653a43ab",
+      "image_source_url": "https://www.eventbrite.co.uk/e/bring-your-baby-guided-walk-women-from-sohos-history-tickets-1990335531152",
+      "google_place_id": "ChIJtUZOyuQbdkgRXoQ_b1kJeis",
+      "google_place_uri": "https://maps.google.com/?cid=3132826770512774238&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+      "google_photo_url": null,
+      "google_rating": 4.6,
+      "google_user_rating_count": 179,
+      "google_primary_type": "transportation_service",
+      "google_opening_hours": null,
+      "google_summary": null,
+      "activity_date": "2026-07-17",
+      "available_dates": [
+        "2026-07-17"
+      ],
+      "availability_start_date": null,
+      "availability_end_date": null,
+      "available_days_of_week": [
+        "Friday"
+      ],
+      "availability_type": "one_off",
+      "availability_notes": "Eventbrite listing on 17/07/2026. Booking required.",
+      "public_listing_status": "published"
+    },
+    {
+      "activity_name": "BRING YOUR BABY PUB QUIZ | Balham Parent Social at Balham Bowls Club",
+      "address": "7-9 Ramsden Rd, London SW12 8QX",
+      "postcode": "SW12 8QX",
+      "lat": 51.444900499999996,
+      "long": -0.1525129,
+      "category": "Parent meet-ups",
+      "start_time": "12:00",
+      "end_time": "14:30",
+      "google_link": "https://maps.google.com/?cid=5271517738717245005&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+      "website": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-balham-parent-social-at-balham-bowls-club-tickets-907126859857",
+      "child_friendly_score": null,
+      "app_rating": null,
+      "number_of_reviews": 0,
+      "age_suitability": "Parents, babies and young children",
+      "borough": "London",
+      "days_of_week": [
+        "Friday"
+      ],
+      "recurrence_rule": null,
+      "schedule_notes": "One-off Eventbrite listing. Check Eventbrite for availability and booking details.",
+      "description": "A relaxed daytime pub quiz for parents and carers with babies, with built-in breaks, prizes, lunch options, and baby-friendly facilities.",
+      "cost": "£12.35 per ticket",
+      "booking_required": true,
+      "source_name": "Eventbrite London baby listings",
+      "source_url": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-balham-parent-social-at-balham-bowls-club-tickets-907126859857",
+      "image_url": "https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F768790249%2F210761915866%2F1%2Foriginal.20240515-210016?w=940&auto=format%2Ccompress&q=75&sharp=10&rect=0%2C27%2C4464%2C2232&s=168e4164af265f97520b4580d64c733d",
+      "image_source_url": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-balham-parent-social-at-balham-bowls-club-tickets-907126859857",
+      "google_place_id": "ChIJ2xhV8sUFdkgRTW5pI3QxKEk",
+      "google_place_uri": "https://maps.google.com/?cid=5271517738717245005&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+      "google_photo_url": null,
+      "google_rating": 4.5,
+      "google_user_rating_count": 1652,
+      "google_primary_type": "pub",
+      "google_opening_hours": null,
+      "google_summary": null,
+      "activity_date": "2026-07-17",
+      "available_dates": [
+        "2026-07-17"
+      ],
+      "availability_start_date": null,
+      "availability_end_date": null,
+      "available_days_of_week": [
+        "Friday"
+      ],
+      "availability_type": "one_off",
+      "availability_notes": "Eventbrite listing on 17/07/2026. Booking required.",
+      "public_listing_status": "published"
+    },
+    {
+      "activity_name": "SQUISH SESSIONS.",
+      "address": "Unit 3A, Pilots Walk, New Acres, London SW18 1UZ",
+      "postcode": "SW18 1UZ",
+      "lat": 51.461260499999995,
+      "long": -0.190901,
+      "category": "Baby sensory",
+      "start_time": "09:30",
+      "end_time": "10:45",
+      "google_link": "https://maps.google.com/?cid=13501884544525362138&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+      "website": "https://www.eventbrite.co.uk/e/squish-sessions-tickets-1990279449410",
+      "child_friendly_score": null,
+      "app_rating": null,
+      "number_of_reviews": 0,
+      "age_suitability": "Parents, babies and young children",
+      "borough": "London",
+      "days_of_week": [
+        "Tuesday"
+      ],
+      "recurrence_rule": null,
+      "schedule_notes": "One-off Eventbrite listing. Check Eventbrite for availability and booking details.",
+      "description": "Intentional, calming, baby-led soft play every week at Morocco Bound Bookshop, Wandsworth",
+      "cost": "£7.97 per ticket",
+      "booking_required": true,
+      "source_name": "Eventbrite London baby listings",
+      "source_url": "https://www.eventbrite.co.uk/e/squish-sessions-tickets-1990279449410",
+      "image_url": "https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F1181612821%2F2997141768305%2F1%2Foriginal.20260407-170720?crop=focalpoint&fit=crop&w=940&auto=format%2Ccompress&q=75&sharp=10&fp-x=0.5&fp-y=0.5&s=20f751ba18cca76fc85a8ab73ec8f3cc",
+      "image_source_url": "https://www.eventbrite.co.uk/e/squish-sessions-tickets-1990279449410",
+      "google_place_id": "ChIJJR_SHYSp2EcR2mPFCnVUYLs",
+      "google_place_uri": "https://maps.google.com/?cid=13501884544525362138&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+      "google_photo_url": null,
+      "google_rating": 4.8,
+      "google_user_rating_count": 20,
+      "google_primary_type": "book_store",
+      "google_opening_hours": null,
+      "google_summary": null,
+      "activity_date": "2026-07-21",
+      "available_dates": [
+        "2026-07-21"
+      ],
+      "availability_start_date": null,
+      "availability_end_date": null,
+      "available_days_of_week": [
+        "Tuesday"
+      ],
+      "availability_type": "one_off",
+      "availability_notes": "Eventbrite listing on 21/07/2026. Booking required.",
+      "public_listing_status": "published"
+    },
+    {
+      "activity_name": "Parents & Babies Afternoon Wine Tasting",
+      "address": "4 Sydenham Station Approach, London SE26 5EU",
+      "postcode": "SE26 5EU",
+      "lat": 51.4266541,
+      "long": -0.0541458,
+      "category": "Parent meet-ups",
+      "start_time": "14:30",
+      "end_time": "15:30",
+      "google_link": "https://maps.google.com/?cid=4751994748433419734&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+      "website": "https://www.eventbrite.co.uk/e/parents-babies-afternoon-wine-tasting-tickets-1988869846249",
+      "child_friendly_score": null,
+      "app_rating": null,
+      "number_of_reviews": 0,
+      "age_suitability": "Parents, babies and young children",
+      "borough": "London",
+      "days_of_week": [
+        "Tuesday"
+      ],
+      "recurrence_rule": null,
+      "schedule_notes": "One-off Eventbrite listing. Check Eventbrite for availability and booking details.",
+      "description": "A relaxed, baby-friendly tasting with 3 wines and cheese",
+      "cost": "£15.00 per ticket",
+      "booking_required": true,
+      "source_name": "Eventbrite London baby listings",
+      "source_url": "https://www.eventbrite.co.uk/e/parents-babies-afternoon-wine-tasting-tickets-1988869846249",
+      "image_url": "https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F1183860566%2F1831631714933%2F1%2Foriginal.20260505-212942?crop=focalpoint&fit=crop&w=940&auto=format%2Ccompress&q=75&sharp=10&fp-x=0.497&fp-y=0.183&s=8d00c7f9939eac01f117b5237e47c807",
+      "image_source_url": "https://www.eventbrite.co.uk/e/parents-babies-afternoon-wine-tasting-tickets-1988869846249",
+      "google_place_id": "ChIJC47ldxABdkgR1k3l6gt68kE",
+      "google_place_uri": "https://maps.google.com/?cid=4751994748433419734&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+      "google_photo_url": null,
+      "google_rating": 4.7,
+      "google_user_rating_count": 28,
+      "google_primary_type": "liquor_store",
+      "google_opening_hours": null,
+      "google_summary": null,
+      "activity_date": "2026-07-21",
+      "available_dates": [
+        "2026-07-21"
+      ],
+      "availability_start_date": null,
+      "availability_end_date": null,
+      "available_days_of_week": [
+        "Tuesday"
+      ],
+      "availability_type": "one_off",
+      "availability_notes": "Eventbrite listing on 21/07/2026. Booking required.",
+      "public_listing_status": "published"
+    },
+    {
+      "activity_name": "BRING YOUR BABY GUIDED WALK Women from Hackney History: Haggerston & Hoxton",
+      "address": "8 Lee St, London E8 4DY",
+      "postcode": "E8 4DY",
+      "lat": 51.5383888,
+      "long": -0.0759806,
+      "category": "Parks & outdoor play",
+      "start_time": "11:00",
+      "end_time": "14:00",
+      "google_link": "https://maps.google.com/?cid=16320198872786547177&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+      "website": "https://www.eventbrite.co.uk/e/bring-your-baby-guided-walk-women-from-hackney-history-haggerston-hoxton-tickets-1990335593338",
+      "child_friendly_score": null,
+      "app_rating": null,
+      "number_of_reviews": 0,
+      "age_suitability": "Parents, babies and young children",
+      "borough": "Hackney",
+      "days_of_week": [
+        "Thursday"
+      ],
+      "recurrence_rule": null,
+      "schedule_notes": "One-off Eventbrite listing. Check Eventbrite for availability and booking details.",
+      "description": "Bring Your Baby Guided London Walks are sensitively devised to suit parents and carers of even the tiniest babies to enjoy London’s history.",
+      "cost": "£24.12 per ticket",
+      "booking_required": true,
+      "source_name": "Eventbrite London baby listings",
+      "source_url": "https://www.eventbrite.co.uk/e/bring-your-baby-guided-walk-women-from-hackney-history-haggerston-hoxton-tickets-1990335593338",
+      "image_url": "https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F842385139%2F210761915866%2F1%2Foriginal.20240905-113052?crop=focalpoint&fit=crop&w=940&auto=format%2Ccompress&q=75&sharp=10&fp-x=0.005&fp-y=0.005&s=89fd7b3934b67808a669225d03c8e2d9",
+      "image_source_url": "https://www.eventbrite.co.uk/e/bring-your-baby-guided-walk-women-from-hackney-history-haggerston-hoxton-tickets-1990335593338",
+      "google_place_id": "ChIJbz_f1ZUcdkgR6TEsHGj-fOI",
+      "google_place_uri": "https://maps.google.com/?cid=16320198872786547177&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+      "google_photo_url": null,
+      "google_rating": 4.4,
+      "google_user_rating_count": 219,
+      "google_primary_type": "coffee_shop",
+      "google_opening_hours": null,
+      "google_summary": null,
+      "activity_date": "2026-07-23",
+      "available_dates": [
+        "2026-07-23"
+      ],
+      "availability_start_date": null,
+      "availability_end_date": null,
+      "available_days_of_week": [
+        "Thursday"
+      ],
+      "availability_type": "one_off",
+      "availability_notes": "Eventbrite listing on 23/07/2026. Booking required.",
+      "public_listing_status": "published"
+    },
+    {
+      "activity_name": "BRING YOUR BABY PUB QUIZ | Arnos Grove Enfield Parent Social at Arnos Arms",
+      "address": "338 Bowes Rd, Arnos Grove, London N11 1AN",
+      "postcode": "N11 1AN",
+      "lat": 51.6162066,
+      "long": -0.132064,
+      "category": "Parent meet-ups",
+      "start_time": "12:00",
+      "end_time": "14:30",
+      "google_link": "https://maps.google.com/?cid=12427340409521508636&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+      "website": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-arnos-grove-enfield-parent-social-at-arnos-arms-tickets-1978680407363",
+      "child_friendly_score": null,
+      "app_rating": null,
+      "number_of_reviews": 0,
+      "age_suitability": "Parents, babies and young children",
+      "borough": "London",
+      "days_of_week": [
+        "Thursday"
+      ],
+      "recurrence_rule": null,
+      "schedule_notes": "One-off Eventbrite listing. Check Eventbrite for availability and booking details.",
+      "description": "A relaxed daytime pub quiz for parents and carers with babies, with built-in breaks, prizes, lunch options, and baby-friendly facilities.",
+      "cost": "£12.35 per ticket",
+      "booking_required": true,
+      "source_name": "Eventbrite London baby listings",
+      "source_url": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-arnos-grove-enfield-parent-social-at-arnos-arms-tickets-1978680407363",
+      "image_url": "https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F1173305281%2F210761915866%2F1%2Foriginal.20251219-234005?w=940&auto=format%2Ccompress&q=75&sharp=10&rect=0%2C47%2C2678%2C1339&s=c8f60911d49f83168465e86c8cb9b5d4",
+      "image_source_url": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-arnos-grove-enfield-parent-social-at-arnos-arms-tickets-1978680407363",
+      "google_place_id": "ChIJwe0olXMZdkgRHBFjdELIdqw",
+      "google_place_uri": "https://maps.google.com/?cid=12427340409521508636&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+      "google_photo_url": null,
+      "google_rating": 4.4,
+      "google_user_rating_count": 2044,
+      "google_primary_type": "pub",
+      "google_opening_hours": null,
+      "google_summary": null,
+      "activity_date": "2026-07-23",
+      "available_dates": [
+        "2026-07-23"
+      ],
+      "availability_start_date": null,
+      "availability_end_date": null,
+      "available_days_of_week": [
+        "Thursday"
+      ],
+      "availability_type": "one_off",
+      "availability_notes": "Eventbrite listing on 23/07/2026. Booking required.",
+      "public_listing_status": "published"
+    },
+    {
       "activity_name": "West Hampstead - Bach to Baby Family Concert",
       "address": "Lyncroft Gardens, London NW6 1JU",
       "postcode": "NW6 1JU",
@@ -451,6 +978,55 @@
       ],
       "availability_type": "one_off",
       "availability_notes": "Eventbrite listing on 26/07/2026. Booking required.",
+      "public_listing_status": "published"
+    },
+    {
+      "activity_name": "BRING YOUR BABY PUB QUIZ | Bethnal Green Parent Social at The Three Colts",
+      "address": "199 Cambridge Heath Rd, London E2 0EL",
+      "postcode": "E2 0EL",
+      "lat": 51.5246979,
+      "long": -0.055083299999999995,
+      "category": "Parent meet-ups",
+      "start_time": "12:00",
+      "end_time": "14:30",
+      "google_link": "https://maps.google.com/?cid=8343923335419674769&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+      "website": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-bethnal-green-parent-social-at-the-three-colts-tickets-1989874516244",
+      "child_friendly_score": null,
+      "app_rating": null,
+      "number_of_reviews": 0,
+      "age_suitability": "Parents, babies and young children",
+      "borough": "Hackney",
+      "days_of_week": [
+        "Friday"
+      ],
+      "recurrence_rule": null,
+      "schedule_notes": "One-off Eventbrite listing. Check Eventbrite for availability and booking details.",
+      "description": "A relaxed daytime pub quiz for parents and carers with babies, with built-in breaks, prizes, lunch options, and baby-friendly facilities.",
+      "cost": "£12.35 per ticket",
+      "booking_required": true,
+      "source_name": "Eventbrite London baby listings",
+      "source_url": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-bethnal-green-parent-social-at-the-three-colts-tickets-1989874516244",
+      "image_url": "https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F1184896982%2F210761915866%2F1%2Foriginal.20260518-232037?crop=focalpoint&fit=crop&w=940&auto=format%2Ccompress&q=75&sharp=10&fp-x=0.518&fp-y=0.047&s=537970aa102197a9bb33e4fddb8849c2",
+      "image_source_url": "https://www.eventbrite.co.uk/e/bring-your-baby-pub-quiz-bethnal-green-parent-social-at-the-three-colts-tickets-1989874516244",
+      "google_place_id": "ChIJd-rG30kddkgRkUDIyBCSy3M",
+      "google_place_uri": "https://maps.google.com/?cid=8343923335419674769&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+      "google_photo_url": null,
+      "google_rating": 4.5,
+      "google_user_rating_count": 398,
+      "google_primary_type": "pub",
+      "google_opening_hours": null,
+      "google_summary": null,
+      "activity_date": "2026-08-07",
+      "available_dates": [
+        "2026-08-07"
+      ],
+      "availability_start_date": null,
+      "availability_end_date": null,
+      "available_days_of_week": [
+        "Friday"
+      ],
+      "availability_type": "one_off",
+      "availability_notes": "Eventbrite listing on 07/08/2026. Booking required.",
       "public_listing_status": "published"
     },
     {
