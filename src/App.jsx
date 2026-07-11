@@ -3,7 +3,7 @@ import { supabase } from './supabaseClient';
 
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
-const planningStorageVersion = '2026-07-11-current-week-filter-reset';
+const planningStorageVersion = '2026-07-11-events-and-drive-filter-reset';
 const visibilityOptions = ['private', 'public'];
 const statusOptions = ['booked', 'tentative'];
 const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -124,9 +124,10 @@ function defaultFilters() {
     distanceMode: 'radius',
     radiusMiles: 10,
     walkMinutes: 35,
+    driveMinutes: 25,
     weekStart: startOfWeekISO(todayISO()),
     interests: [...activityInterestOptions],
-    eventsOnly: false,
+    includeEvents: true,
   };
 }
 
@@ -555,13 +556,14 @@ export default function App() {
     const stored = loadStored('filters', {});
     const defaults = defaultFilters();
     return {
-      distanceMode: stored.distanceMode === 'walk' ? 'walk' : 'radius',
+      distanceMode: ['walk', 'drive'].includes(stored.distanceMode) ? stored.distanceMode : 'radius',
       radiusMiles: Number(stored.radiusMiles) || defaults.radiusMiles,
       walkMinutes: Number(stored.walkMinutes) || defaults.walkMinutes,
+      driveMinutes: Number(stored.driveMinutes) || defaults.driveMinutes,
       weekStart: stored.weekStart || defaults.weekStart,
       // Categories always begin broad. Parents can narrow them for the current session.
       interests: defaults.interests,
-      eventsOnly: Boolean(stored.eventsOnly),
+      includeEvents: stored.includeEvents !== false,
     };
   });
   const [userLocation, setUserLocation] = useState(null);
@@ -594,9 +596,6 @@ export default function App() {
     () => new Map(allActivities.map((activity) => [String(activity.activity_id), activity])),
     [allActivities],
   );
-  const distanceLimit = deferredFilters.distanceMode === 'walk'
-    ? Number(deferredFilters.walkMinutes) / 20
-    : Number(deferredFilters.radiusMiles);
   const filteredWeekDays = useMemo(
     () => Array.from({ length: 7 }, (_, index) => addDaysISO(deferredFilters.weekStart, index)),
     [deferredFilters.weekStart],
@@ -622,20 +621,30 @@ export default function App() {
   const baseFilteredActivities = useMemo(
     () => activitiesWithDistance.filter((activity) => {
       const interestMatch = activityMatchesInterests(activity, selectedCategorySet, allCategoriesSelected);
-      const eventMatch = deferredFilters.eventsOnly
-        ? isEventListing(activity)
+      const eventMatch = deferredFilters.includeEvents
+        ? (!isEventSource(activity) || isEventListing(activity))
         : !isEventSource(activity);
       return activity.public_listing_status === 'published' && interestMatch && eventMatch;
     }),
-    [activitiesWithDistance, selectedCategorySet, allCategoriesSelected, deferredFilters.eventsOnly],
+    [activitiesWithDistance, selectedCategorySet, allCategoriesSelected, deferredFilters.includeEvents],
   );
   const distanceMatchedActivities = useMemo(
     () => !userLocation
       ? baseFilteredActivities
-      : baseFilteredActivities.filter(
-        (activity) => activity.distance != null && activity.distance <= distanceLimit,
-      ),
-    [baseFilteredActivities, distanceLimit, userLocation],
+      : baseFilteredActivities.filter((activity) => {
+        if (activity.distance == null) return false;
+        if (deferredFilters.distanceMode === 'walk') {
+          const minutes = activity.walkMinutes ?? activity.distance * 20;
+          return minutes <= Number(deferredFilters.walkMinutes);
+        }
+        if (deferredFilters.distanceMode === 'drive') {
+          // A conservative London fallback while the precise Google route loads.
+          const minutes = activity.driveMinutes ?? activity.distance * 6;
+          return minutes <= Number(deferredFilters.driveMinutes);
+        }
+        return activity.distance <= Number(deferredFilters.radiusMiles);
+      }),
+    [baseFilteredActivities, deferredFilters.distanceMode, deferredFilters.driveMinutes, deferredFilters.radiusMiles, deferredFilters.walkMinutes, userLocation],
   );
   // Do not leave a parent with an empty app if a device location is outside the
   // London directory or is too imprecise for the chosen range.
@@ -1187,6 +1196,7 @@ function StartScreen({
   onStart,
 }) {
   const isWalkMode = filters.distanceMode === 'walk';
+  const isDriveMode = filters.distanceMode === 'drive';
   const chosenInterests = filters.interests || [];
 
   function toggleInterest(interest) {
@@ -1254,8 +1264,8 @@ function StartScreen({
             ))}
             <button
               type="button"
-              className={classNames('filter-chip', filters.eventsOnly && 'is-on')}
-              onClick={() => setFilters((current) => ({ ...current, eventsOnly: !current.eventsOnly }))}
+              className={classNames('filter-chip', filters.includeEvents && 'is-on')}
+              onClick={() => setFilters((current) => ({ ...current, includeEvents: !current.includeEvents }))}
             >
               Events
             </button>
@@ -1306,22 +1316,31 @@ function StartScreen({
             >
               Walk time
             </button>
+            <button
+              type="button"
+              className={classNames(isDriveMode && 'is-on')}
+              onClick={() => setFilters((current) => ({ ...current, distanceMode: 'drive' }))}
+            >
+              Drive time
+            </button>
           </div>
         </div>
 
         <div className="range-card">
-          <span>{isWalkMode ? `${filters.walkMinutes} min walk` : `${filters.radiusMiles} miles`}</span>
-          {isWalkMode ? (
+          <span>{isWalkMode ? `${filters.walkMinutes} min walk` : isDriveMode ? `${filters.driveMinutes} min drive` : `${filters.radiusMiles} miles`}</span>
+          {isWalkMode || isDriveMode ? (
             <label>
-              <span>Walk</span>
+              <span>{isWalkMode ? 'Walk' : 'Drive'}</span>
               <input
                 type="range"
                 min="5"
                 max="90"
                 step="5"
-                value={filters.walkMinutes}
+                value={isWalkMode ? filters.walkMinutes : filters.driveMinutes}
                 onChange={(event) =>
-                  setFilters((current) => ({ ...current, walkMinutes: Number(event.target.value) }))
+                  setFilters((current) => isWalkMode
+                    ? { ...current, walkMinutes: Number(event.target.value) }
+                    : { ...current, driveMinutes: Number(event.target.value) })
                 }
               />
             </label>

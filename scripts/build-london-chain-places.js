@@ -4,8 +4,8 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
-const outputSql = join(root, 'supabase', 'seed', 'activities_london_chains_and_bookshops_20260711.generated.sql');
-const outputAudit = join(root, 'data', 'london_chains_and_bookshops_20260711.generated.json');
+const outputSql = join(root, 'supabase', 'seed', 'activities_london_cafe_expansion_20260711.generated.sql');
+const outputAudit = join(root, 'data', 'london_cafe_expansion_20260711.generated.json');
 const apiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_PLACES_API_KEY;
 const zones = [
   { name: 'East London', center: { latitude: 51.542, longitude: -0.018 } },
@@ -18,6 +18,9 @@ const searches = [
   { query: "GAIL's Bakery", category: 'Child-friendly cafes', type: 'cafe' },
   { query: 'Starbucks', category: 'Child-friendly cafes', type: 'cafe' },
   { query: 'Blank Street Coffee', category: 'Child-friendly cafes', type: 'cafe' },
+  { query: 'family friendly cafe', category: 'Child-friendly cafes', type: 'cafe' },
+  { query: 'baby friendly cafe', category: 'Child-friendly cafes', type: 'cafe' },
+  { query: 'Yardarm', category: 'Child-friendly cafes', type: 'cafe' },
   { query: 'bookshop', category: 'Bookshops', type: 'bookshop' },
   { query: "children's bookshop", category: 'Bookshops', type: 'bookshop' },
 ];
@@ -165,6 +168,8 @@ function toRow(place, discovery) {
   const isCafe = discovery.types.has('cafe');
   const rating = Number(place.rating || 0) || null;
   const reviewCount = Number(place.userRatingCount || 0);
+  // Avoid promoting low-quality cafes while retaining unrated family venues for manual review.
+  if (isCafe && rating !== null && reviewCount >= 10 && rating < 3.8) return null;
   const photoReference = place.photos?.[0]?.name || null;
   return {
     activity_name: place.displayName?.text || (isCafe ? 'Cafe' : 'Bookshop'),
