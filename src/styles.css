@@ -736,7 +736,9 @@ input[type='range'] {
   display: -webkit-box;
   overflow: hidden;
   font-size: clamp(1.45rem, 6.4vw, 2.15rem);
-  line-height: 1.06;
+  /* Fraunces has deep descenders; leave room for letters such as y and g. */
+  line-height: 1.16;
+  padding-block: 0.04em 0.12em;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
