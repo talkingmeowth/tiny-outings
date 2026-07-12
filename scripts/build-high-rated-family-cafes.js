@@ -11,15 +11,24 @@ const apiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_PLACES_API_
 const areas = [
   { name: 'Leyton', borough: 'Waltham Forest', center: { latitude: 51.5607, longitude: -0.0088 } },
   { name: 'Leytonstone', borough: 'Waltham Forest', center: { latitude: 51.5685, longitude: 0.0092 } },
+  { name: 'Walthamstow', borough: 'Waltham Forest', center: { latitude: 51.582, longitude: -0.020 } },
   { name: 'Hackney', borough: 'Hackney', center: { latitude: 51.545, longitude: -0.055 } },
+  { name: 'Stoke Newington', borough: 'Hackney', center: { latitude: 51.562, longitude: -0.075 } },
   { name: 'Islington', borough: 'Islington', center: { latitude: 51.5362, longitude: -0.1033 } },
+  { name: 'Finsbury Park, Islington', borough: 'Islington', center: { latitude: 51.564, longitude: -0.106 } },
   { name: 'Stratford', borough: 'Newham', center: { latitude: 51.5413, longitude: -0.003 } },
+];
+const namedBakeries = [
+  'Beaten by a Whisker Walthamstow',
+  'Jolene Bakery Newington Green',
+  'Jolene Bakery Hornsey Road',
+  'SUBA Walthamstow',
 ];
 const radiusMeters = 2500;
 const discoveryMask = 'places.id';
 const detailsMask = [
   'id', 'displayName', 'formattedAddress', 'location', 'googleMapsUri', 'websiteUri',
-  'rating', 'userRatingCount', 'primaryType', 'types', 'regularOpeningHours', 'businessStatus', 'goodForChildren',
+  'rating', 'userRatingCount', 'primaryType', 'types', 'regularOpeningHours', 'businessStatus', 'goodForChildren', 'photos',
 ].join(',');
 const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -123,7 +132,7 @@ async function discover(area, textQuery) {
       maxResultCount: 20,
       languageCode: 'en-GB',
       regionCode: 'GB',
-      locationBias: { circle: { center: area.center, radius: radiusMeters } },
+      locationBias: area ? { circle: { center: area.center, radius: radiusMeters } } : undefined,
     }),
   });
   return result.places || [];
@@ -154,15 +163,16 @@ async function existingPlaceIds() {
   }
 }
 
-function isCafe(place) {
-  return [place.primaryType, ...(place.types || [])].filter(Boolean).join(' ').toLowerCase().includes('cafe');
+function isCafeOrBakery(place) {
+  const types = [place.primaryType, ...(place.types || [])].filter(Boolean).join(' ').toLowerCase();
+  return types.includes('cafe') || types.includes('bakery') || types.includes('coffee_shop');
 }
 
 function isHighRated(place) {
   return Number(place.rating || 0) >= 4.4 && Number(place.userRatingCount || 0) >= 50;
 }
 
-function toRow(place, area, discoveryTerms) {
+function toRow(place, area, discoveryTerms, named) {
   const hours = availability(place.regularOpeningHours);
   const rating = Number(place.rating);
   const reviewCount = Number(place.userRatingCount);
@@ -186,16 +196,16 @@ function toRow(place, area, discoveryTerms) {
     days_of_week: hours.days,
     recurrence_rule: hours.days.length ? `FREQ=WEEKLY;BYDAY=${hours.days.map((day) => day.slice(0, 2).toUpperCase()).join(',')}` : null,
     schedule_notes: hours.notes,
-    description: `High-rated cafe discovered in a family-focused Google Places search for ${area.name}: ${rating}/5 from ${reviewCount} Google reviews.`,
-    cost: 'Cafe purchases',
+    description: `${named ? 'Independent bakery' : 'High-rated cafe or bakery'} discovered in a family-focused Google Places search for ${area.name}: ${rating}/5 from ${reviewCount} Google reviews.`,
+    cost: 'Cafe or bakery purchases',
     booking_required: false,
-    source_name: 'Google Places API family cafe discovery',
+    source_name: 'Google Places API family cafe and bakery discovery',
     source_url: `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(place.id)}`,
     image_url: null,
     image_source_url: place.websiteUri || place.googleMapsUri || null,
     google_place_id: place.id,
     google_place_uri: place.googleMapsUri || null,
-    google_photo_url: null,
+    google_photo_url: place.photos?.[0]?.name || null,
     google_rating: rating,
     google_user_rating_count: reviewCount,
     google_primary_type: place.primaryType || 'cafe',
@@ -243,14 +253,28 @@ async function main() {
   const discovered = new Map();
 
   for (const area of areas) {
-    for (const query of [`family friendly cafe in ${area.name}, London`, `baby friendly cafe in ${area.name}, London`]) {
+    for (const query of [
+      `family friendly cafe in ${area.name}, London`,
+      `baby friendly cafe in ${area.name}, London`,
+      `independent bakery in ${area.name}, London`,
+    ]) {
       for (const place of await discover(area, query)) {
         const current = discovered.get(place.id) || { areas: new Set(), terms: new Set() };
         current.areas.add(area.name);
         current.terms.add(query);
-        discovered.set(place.id, current);
-      }
+      discovered.set(place.id, current);
     }
+  }
+
+  for (const query of namedBakeries) {
+    for (const place of await discover(null, query)) {
+      const current = discovered.get(place.id) || { areas: new Set(), terms: new Set(), named: false };
+      current.areas.add('Named bakery');
+      current.terms.add(query);
+      current.named = true;
+      discovered.set(place.id, current);
+    }
+  }
   }
 
   const rows = [];
@@ -258,11 +282,11 @@ async function main() {
     if (existing.ids.has(id)) continue;
     const place = await details(id);
     const area = areas.find((item) => distanceMeters(item.center, place.location) <= radiusMeters);
-    if (!area || !isCafe(place) || !isHighRated(place)) continue;
-    if (place.goodForChildren !== true && ![...discovery.terms].some((term) => term.includes('family friendly'))) continue;
+    if (!area || !isCafeOrBakery(place) || (!discovery.named && !isHighRated(place))) continue;
+    if (!discovery.named && place.goodForChildren !== true && ![...discovery.terms].some((term) => term.includes('family friendly'))) continue;
     const existingKey = `${normalized(place.displayName?.text)}|${postcode(place.formattedAddress) || ''}`;
     if (existing.venueKeys.has(existingKey)) continue;
-    rows.push(toRow(place, area, discovery.terms));
+    rows.push(toRow(place, area, discovery.terms, discovery.named));
   }
 
   rows.sort((left, right) => right.google_rating - left.google_rating || right.google_user_rating_count - left.google_user_rating_count);

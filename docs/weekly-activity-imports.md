@@ -1,7 +1,7 @@
 # Weekly Activity Imports
 
 The directory can be refreshed weekly with the Waltham Forest Best Start in
-Life, Eventbrite, Fever, local parks, and official Google Places importers. Each importer writes SQL using the activity
+Life, Eventbrite, Fever, local parks, quality cafes and bakeries, and official Google Places importers. Each importer writes SQL using the activity
 table's existing conflict keys, so a repeated run only adds new source URLs or
 updates an existing Google Place/Fever listing. Listings without a verified
 latitude and longitude stay out of the published directory, preserving accurate

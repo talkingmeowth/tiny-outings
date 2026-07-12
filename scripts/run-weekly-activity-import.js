@@ -41,6 +41,12 @@ const sources = [
     output: join(root, 'supabase', 'seed', 'activities_london_parks_20260711.generated.sql'),
     requiresGoogleKey: true,
   },
+  {
+    name: 'quality-cafes-and-bakeries',
+    script: 'build-high-rated-family-cafes.js',
+    output: join(root, 'supabase', 'seed', 'activities_high_rated_family_cafes_20260711.generated.sql'),
+    requiresGoogleKey: true,
+  },
 ];
 
 function printHelp() {
