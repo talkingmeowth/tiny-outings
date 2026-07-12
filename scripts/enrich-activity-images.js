@@ -148,6 +148,7 @@ async function fetchPublishedActivities() {
     'address',
     'borough',
     'category',
+    'source_name',
     'website',
     'source_url',
     'google_link',

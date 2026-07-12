@@ -1482,8 +1482,8 @@ function SwipeScreen({
             message="You have swiped through this day and time. Pick from your saved ideas, tap Start over, or change the day/time above."
           />
         )}
-        {!loading && deckActivities.slice(0, 3).reverse().map((activity, reverseIndex, visibleDeck) => {
-          const stackIndex = visibleDeck.length - reverseIndex - 1;
+        {!loading && deckActivities.slice(0, 1).map((activity) => {
+          const stackIndex = 0;
           const isTop = activity.activity_id === topActivity?.activity_id;
           const offset = isTop && dragState.activityId === activity.activity_id ? dragState.offsetX : 0;
           const decisionClass = offset > 40 ? 'is-yes' : offset < -40 ? 'is-no' : '';
