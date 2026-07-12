@@ -669,9 +669,10 @@ export default function App() {
     [sharedFilteredActivities, selectedDate],
   );
   const slotActivities = useMemo(
-    () => filteredActivities.filter(
-      (activity) => isFlexibleActivity(activity) || activity.time_window === selectedWindow,
-    ),
+    () => filteredActivities
+      .filter((activity) => isFlexibleActivity(activity) || activity.time_window === selectedWindow)
+      // Dated events should not be hidden behind everyday cafes and parks.
+      .sort((left, right) => Number(isEventListing(right)) - Number(isEventListing(left))),
     [filteredActivities, selectedWindow],
   );
   const swipedIds = useMemo(
