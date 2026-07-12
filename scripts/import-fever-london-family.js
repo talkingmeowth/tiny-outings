@@ -7,6 +7,33 @@ const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const listingUrl = 'https://feverup.com/en/london/family';
 const outputSql = join(root, 'supabase', 'seed', 'activities_fever_london_family_20260711.generated.sql');
 const outputAudit = join(root, 'data', 'fever_london_family_20260711.generated.json');
+const excludedTitles = new Set([
+  'les miserables',
+  'modern magic show with jake banfield',
+  'paradox museum london the ultimate birthday party venue in london',
+]);
+const curatedSummaries = {
+  'babylon park londons underground theme park': 'Indoor Camden theme park with rides, arcade games and soft-play zones for little explorers.',
+  'christmas by candlelight at 235 shaftesbury avenue': 'Seasonal candlelit concert at Bloomsbury Central, with child concession tickets available.',
+  'halloween at kew': 'After-dark Halloween trail at Kew Gardens with illuminated scenes, performers and seasonal treats.',
+  'harry potter warner bros studios with coach transport from london': 'Coach day trip from central London to the Warner Bros. Studio Tour and its Harry Potter film sets.',
+  'hobbledown heath londons largest adventure playground': 'Adventure playground and animal park with climbing, outdoor play and family-friendly activities.',
+  'house of dreamers': 'Family-friendly immersive exhibition with dreamy installations, a giant ball pit and interactive moments.',
+  'kid quest in kensington gardens london superhero city adventure for kids ages 4 8': 'Self-guided superhero adventure around Kensington Gardens for children aged 4 to 8.',
+  'matilda the musical': 'West End musical based on Roald Dahl\'s Matilda, best suited to older children.',
+  'mini genius lab cool science experiments for kids': 'Hands-on science workshop where children can try colourful experiments and learn through play.',
+  'paradox museum london': 'Interactive illusion museum with playful rooms, visual puzzles and family photo opportunities.',
+  'paw patrol afternoon tea bus tour': 'PAW Patrol-themed afternoon tea and sightseeing bus ride around central London.',
+  'paw patrol christmas lights bus tour': 'Seasonal PAW Patrol bus tour with London lights, treats and family entertainment.',
+  'peppa pig afternoon tea london sightseeing bus tour': 'Peppa Pig-themed afternoon tea and sightseeing bus ride for young children and their grown-ups.',
+  'peppa pig christmas bus tour': 'Seasonal Peppa Pig sightseeing bus tour with festive treats and entertainment.',
+  'peppa pig halloween london sightseeing bus tour': 'Seasonal Peppa Pig bus tour with Halloween treats, games and sightseeing.',
+  'raver tots wembley': 'Family dance party with child-friendly music, performers, face painting and space to move.',
+  'the lion king': 'Family West End musical at the Lyceum Theatre, recommended for children aged three and over.',
+  'the museum of brands a visual journey through consumer culture': 'Small Notting Hill museum with nostalgic toys, packaging and family tickets.',
+  'tootbus london discovery bus tour': 'Hop-on hop-off London bus tour with a children\'s audio guide and stroller-friendly access.',
+  'zsl london zoo': 'Family day out at London Zoo with animals, keeper talks and feeding sessions.',
+};
 
 function cleanText(value) {
   return String(value || '')
@@ -15,6 +42,15 @@ function cleanText(value) {
     .replace(/&#x27;|&#39;/g, "'")
     .replace(/<[^>]+>/g, '')
     .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function normalized(value) {
+  return cleanText(value)
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
     .trim();
 }
 
@@ -106,8 +142,16 @@ function productJsonLd(html) {
 }
 
 function familyRelevant(product) {
-  const text = `${product.name || ''} ${product.description || ''}`.toLowerCase();
-  return /baby|toddler|kid|child|children|family|parent|peppa|paw patrol|matilda|lion king|harry potter|halloween at kew|hobbledown|bubble planet|babylon park|london zoo|space explorers|dinos|mini genius|raver tots|museum of brands|moco museum|paradox museum|science museum/.test(text);
+  const title = normalized(product.name);
+  const text = `${title} ${product.description || ''}`.toLowerCase();
+  return !excludedTitles.has(title)
+    && /baby|toddler|kid|child|children|family|parent|peppa|paw patrol|matilda|lion king|harry potter|halloween at kew|hobbledown|bubble planet|babylon park|london zoo|space explorers|dinos|mini genius|raver tots|museum of brands|moco museum|paradox museum|science museum/.test(text);
+}
+
+function shortDescription(product) {
+  const curated = curatedSummaries[normalized(product.name)];
+  if (curated) return curated;
+  return 'Family outing in London. Check Fever for the latest dates, times and tickets.';
 }
 
 function categoryFor(product) {
@@ -155,7 +199,7 @@ function rowFor(product, url, html) {
     days_of_week: hours.days,
     recurrence_rule: null,
     schedule_notes: hours.notes || 'Select a live date and time on Fever before booking.',
-    description,
+    description: shortDescription(product),
     cost: Number.isFinite(price) ? `GBP ${price.toFixed(2)} from Fever` : 'Check Fever',
     booking_required: true,
     source_name: 'Fever London family listings',
