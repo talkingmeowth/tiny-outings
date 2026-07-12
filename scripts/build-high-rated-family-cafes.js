@@ -24,6 +24,8 @@ const namedBakeries = [
   'Jolene Bakery Hornsey Road',
   'SUBA Walthamstow',
 ];
+// Exclude venues manually reviewed as unsuitable for the family directory.
+const excludedPlaceIds = new Set(['ChIJy8yEC48ddkgRlogHHcXa_Ew']);
 const radiusMeters = 2500;
 const discoveryMask = 'places.id';
 const detailsMask = [
@@ -279,6 +281,7 @@ async function main() {
 
   const rows = [];
   for (const [id, discovery] of discovered) {
+    if (excludedPlaceIds.has(id)) continue;
     if (existing.ids.has(id)) continue;
     const place = await details(id);
     const area = areas.find((item) => distanceMeters(item.center, place.location) <= radiusMeters);

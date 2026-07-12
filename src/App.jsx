@@ -5,7 +5,6 @@ const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
 // Reset outdated swipe/filter state without touching planned calendar entries.
 const planningStorageVersion = '2026-07-12-events-visibility';
-const visibilityOptions = ['private', 'public'];
 const statusOptions = ['booked', 'tentative'];
 const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const activitySelectColumns = [
@@ -972,7 +971,6 @@ export default function App() {
       start_time: activity.start_time,
       end_time: activity.end_time,
       status,
-      visibility: 'private',
       created_at: new Date().toISOString(),
     };
 
@@ -1667,7 +1665,7 @@ function ShortlistPanel({
           {chosenForSlot.map((event) => (
             <div key={event.local_id}>
               <strong>{event.activity.activity_name}</strong>
-              <small>{statusLabels[event.status]} - {event.visibility}</small>
+              <small>{statusLabels[event.status]}</small>
             </div>
           ))}
         </div>
@@ -1738,16 +1736,6 @@ function CalendarScreen({ weekDays, calendarEvents, onOpenActivity, onUpdateEven
                             >
                               {statusOptions.map((status) => (
                                 <option key={status} value={status}>{statusLabels[status]}</option>
-                              ))}
-                            </select>
-                            <select
-                              value={event.visibility}
-                              onChange={(changeEvent) =>
-                                onUpdateEvent(event, { visibility: changeEvent.target.value })
-                              }
-                            >
-                              {visibilityOptions.map((visibility) => (
-                                <option key={visibility} value={visibility}>{visibility}</option>
                               ))}
                             </select>
                           </div>
