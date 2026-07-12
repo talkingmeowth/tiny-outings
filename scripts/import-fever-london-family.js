@@ -61,6 +61,11 @@ function normalized(value) {
     .trim();
 }
 
+function plainEventName(value) {
+  return cleanText(value).normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+    .replaceAll('&', ' and ').replace(/[^A-Za-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 const weekdayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 function toTwentyFourHour(value) {
@@ -189,7 +194,7 @@ function rowFor(product, url, html) {
   const address = location.toLowerCase().includes('london') ? location : `${location}, ${locality}`;
   const description = cleanText(product.description);
   return {
-    activity_name: name,
+    activity_name: plainEventName(name),
     address,
     postcode: null,
     lat: Number.isFinite(Number(geo.latitude)) ? Number(geo.latitude) : null,

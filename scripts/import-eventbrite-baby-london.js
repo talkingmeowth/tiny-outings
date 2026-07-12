@@ -48,6 +48,11 @@ function cleanText(value) {
   return String(value || '').replace(/\s+/g, ' ').trim();
 }
 
+function plainEventName(value) {
+  return cleanText(value).normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+    .replaceAll('&', ' and ').replace(/[^A-Za-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 function postcode(value) {
   return String(value || '').match(/\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b/i)?.[0]?.toUpperCase() || null;
 }
@@ -193,7 +198,7 @@ function toRow(event, place) {
   const address = place?.formattedAddress || eventAddress;
   const eventUrl = event.url;
   return {
-    activity_name: cleanText(event.name),
+    activity_name: plainEventName(event.name),
     address,
     postcode: postcode(address),
     lat: place?.location?.latitude ?? null,

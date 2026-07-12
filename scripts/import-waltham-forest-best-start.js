@@ -38,6 +38,11 @@ function cleanText(value) {
     .trim();
 }
 
+function plainEventName(value) {
+  return cleanText(value).normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+    .replaceAll('&', ' and ').replace(/[^A-Za-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 function escapeRegex(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -243,7 +248,7 @@ function parseEvent(url, html, place, occurrences) {
     : `Council event on ${eventDate.date}. Check the council event page for changes.`;
 
   return {
-    activity_name: activityName,
+    activity_name: plainEventName(activityName),
     address: place.formattedAddress || venue,
     postcode: (place.formattedAddress || venue).match(/\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b/i)?.[0]?.toUpperCase() || null,
     lat: Number(place.location.latitude),

@@ -180,6 +180,11 @@ function normalizeText(value) {
     .trim();
 }
 
+function plainEventName(value) {
+  return normalizeText(value).normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+    .replaceAll('&', ' and ').replace(/[^A-Za-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 function decodeHtml(value) {
   return String(value || '')
     .replace(/<br\s*\/?>/gi, '\n')
@@ -621,7 +626,7 @@ function parseHappityListingPage(url, html) {
     const [startTime, endTime] = time.split('-').map((part) => part.trim());
     const borough = url.match(/happity\.co\.uk\/([^/]+)/)?.[1]?.replaceAll('-', ' ') || 'London';
     rows.push({
-      activity_name: title,
+      activity_name: plainEventName(title),
       address: venueLine || `${title}, London`,
       postcode: inferPostcode(venueLine),
       lat: null,
