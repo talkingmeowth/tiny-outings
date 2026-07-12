@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "activities:expanded": "node scripts/build-expanded-activities-seed.js",
-    "activities:best-start": "node scripts/build-expanded-activities-seed.js --best-start-only",
+    "activities:best-start": "node scripts/import-waltham-forest-best-start.js",
     "activities:google-e10": "node scripts/build-google-places-e10.js",
     "activities:images": "node scripts/enrich-activity-images.js",
     "activities:locations": "node scripts/enrich-activity-locations.js",

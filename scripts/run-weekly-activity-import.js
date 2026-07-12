@@ -13,6 +13,12 @@ const auditPath = join(outputDirectory, `${runDate}.json`);
 
 const sources = [
   {
+    name: 'waltham-forest-best-start',
+    script: 'import-waltham-forest-best-start.js',
+    output: join(root, 'supabase', 'seed', 'activities_waltham_forest_best_start_live.generated.sql'),
+    requiresGoogleKey: true,
+  },
+  {
     name: 'eventbrite',
     script: 'import-eventbrite-baby-london.js',
     output: join(root, 'supabase', 'seed', 'activities_eventbrite_london_baby_20260711.generated.sql'),

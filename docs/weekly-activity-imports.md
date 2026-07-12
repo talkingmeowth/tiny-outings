@@ -1,7 +1,7 @@
 # Weekly Activity Imports
 
-The directory can be refreshed weekly with the existing Eventbrite, Fever, and
-official Google Places importers. Each importer writes SQL using the activity
+The directory can be refreshed weekly with the Waltham Forest Best Start in
+Life, Eventbrite, Fever, and official Google Places importers. Each importer writes SQL using the activity
 table's existing conflict keys, so a repeated run only adds new source URLs or
 updates an existing Google Place/Fever listing. Listings without a verified
 latitude and longitude stay out of the published directory, preserving accurate
@@ -55,7 +55,7 @@ so newly imported records become available as soon as the SQL completes.
 ## Safety Rules
 
 - The runner stops before applying SQL if a required source fails.
-- Eventbrite and Google Places sources require a configured Google key and are
+- Waltham Forest Best Start, Eventbrite, and Google Places sources require a configured Google key and are
   skipped rather than guessed.
 - Eventbrite inserts use the listing URL as the duplicate key.
 - Fever inserts update by listing URL; Google Places inserts update by place ID.

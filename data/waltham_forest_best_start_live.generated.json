@@ -1,0 +1,855 @@
+{
+  "listing_url": "https://www.walthamforest.gov.uk/events?events_category=447&events_location=All&page=0",
+  "generated_at": "2026-07-12T19:09:29.535Z",
+  "pages_scanned": 85,
+  "unique_event_pages": 141,
+  "rows": 120,
+  "audit": [
+    {
+      "url": "https://www.walthamforest.gov.uk/events/henry-infant-feeding-group-queens-road",
+      "name": "HENRY infant feeding group at Queens Road",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stay-and-play-selwyn-primary",
+      "name": "Stay and play at Selwyn Primary",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/little-ballers-chingford-library",
+      "name": "Little Ballers at Chingford Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/flourish-post-natal-support-group-lloyd-park-centre",
+      "name": "Flourish (post-natal support group), at The Lloyd Park Centre",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/child-health-clinic-best-start-family-hub-queens-road",
+      "name": "Child Health Clinic at Best Start Family Hub: Queens Road",
+      "status": "skipped",
+      "reason": "Outside the family activity directory scope"
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/little-ballers-queens-road-family-hub",
+      "name": "Little Ballers at Queens Road Family Hub",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/flourish-post-natal-support-group-best-start-family-hub-chingford",
+      "name": "Flourish (post-natal support group) at Best Start Family Hub: Chingford",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/healthy-eating-and-dental-health-drop-queens-road",
+      "name": "Healthy eating and dental health drop-in, Queens Road",
+      "status": "skipped",
+      "reason": "Outside the family activity directory scope"
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/sensory-play-and-learn-best-start-family-hub-leytonstone",
+      "name": "Sensory Play and Learn at Best Start Family Hub: Leytonstone",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stories-and-rhymes-wood-street-library",
+      "name": "Stories and Rhymes at Wood Street Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stories-and-rhymes-leytonstone-library",
+      "name": "Stories and Rhymes at Leytonstone Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stories-and-rhymes-leyton-library",
+      "name": "Stories and rhymes at Leyton Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stay-and-play-lea-bridge-library-monday",
+      "name": "Stay and play at Lea Bridge Library: Monday",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stay-and-play-leyton-library-monday-and-friday",
+      "name": "Stay and play at Leyton Library: Monday and Friday",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stories-and-rhymes-walthamstow-library",
+      "name": "Stories and Rhymes at Walthamstow Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stories-and-rhyme-walthamstow-library",
+      "name": "Stories and Rhyme at Walthamstow Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/play-and-learn-under-2s-seddon-centre-leyton",
+      "name": "Play and learn for under 2's at Seddon centre, Leyton",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/learning-together-pre-school-best-start-family-hub-chingford",
+      "name": "Learning together Pre-school at Best Start Family Hub: Chingford",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/lets-create-seddon-centre-leyton",
+      "name": "Let's create at the Seddon Centre in Leyton",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/kids-crafts-leytonstone-library-monday-and-wednesday-afternoon",
+      "name": "Kids Crafts at Leytonstone Library: Monday and Wednesday Afternoon",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/tambinis-music-and-rhymes-seddon-centre-leyton",
+      "name": "Tambini's music and rhymes at the Seddon Centre in Leyton",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/crafty-families-lea-bridge-library",
+      "name": "Crafty Families at Lea Bridge Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/story-time-leytonstone-library",
+      "name": "Story Time at Leytonstone Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stay-and-play-thomas-gamuel-school",
+      "name": "Stay and play at Thomas Gamuel School",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stay-and-play-downsell-primary",
+      "name": "Stay and play at Downsell primary",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stay-and-play-leytonstone-library",
+      "name": "Stay and Play at Leytonstone Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/speech-and-language-support-drop-best-start-family-hub-walthamstow",
+      "name": "Speech and Language Support Drop-In at Best Start Family Hub: Walthamstow",
+      "status": "skipped",
+      "reason": "Outside the family activity directory scope"
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/community-drop-queens-road-family-hub",
+      "name": "Community Drop in at Queens Road Family Hub",
+      "status": "skipped",
+      "reason": "Outside the family activity directory scope"
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/flourish-post-natal-support-group-best-start-family-hub-queens-road",
+      "name": "Flourish (post-natal support group) at Best Start Family Hub: Queens Road",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/you-and-your-new-baby-stay-and-play-leyton-sports-ground",
+      "name": "You and your new baby: Stay and play at Leyton Sports Ground",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/you-and-your-new-baby-best-start-family-hub-leytonstone",
+      "name": "You and Your New Baby at Best Start Family Hub: Leytonstone",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/play-and-learn-0-4-years-chingford-family-hub",
+      "name": "Play and learn (0 to 4 years) at Chingford Family Hub",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/sensory-play-and-learn-best-start-family-hub-chingford",
+      "name": "Sensory Play and Learn at Best Start Family Hub: Chingford",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/dads-stay-and-play-wood-street-library",
+      "name": "Dad's Stay and Play at Wood Street Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stay-and-play-chingford-library-tuesday",
+      "name": "Stay and Play at Chingford Library, Tuesday",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stay-and-play-wood-street-library",
+      "name": "Stay and play at Wood Street Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stories-and-rhymes-lea-bridge-library",
+      "name": "Stories and Rhymes at Lea Bridge Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stay-and-play-leyton-library-tuesday",
+      "name": "Stay and play at Leyton library: Tuesday",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stay-and-play-time-hale-end-library-tuesday",
+      "name": "Stay and Play time at Hale End Library (Tuesday)",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/child-health-clinic-tuesday-best-start-family-hub-walthamstow",
+      "name": "Child Health Clinic on Tuesday at Best start family hub: Walthamstow",
+      "status": "skipped",
+      "reason": "Outside the family activity directory scope"
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/flourish-post-natal-support-group-leytonstone-family-hub",
+      "name": "Flourish (post-natal support group) at Leytonstone family hub",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/henry-infant-feeding-group-drop-best-start-family-hub-walthamstow",
+      "name": "HENRY Infant Feeding Group Drop-in at Best start Family Hub: Walthamstow",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/parents-lounge-break-tha-cycle-queens-road",
+      "name": "The parents lounge: Break Tha Cycle, Queens Road",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/learning-together-under-2s-leyton-sport-ground",
+      "name": "Learning together: Under-2s at Leyton Sport Ground",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/you-and-your-new-baby-best-start-family-hub-chingford",
+      "name": "You and Your New Baby at Best Start Family Hub: Chingford",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/kids-craft-club-chingford-library",
+      "name": "Kids Craft Club at Chingford Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/kids-crafts-north-chingford-library-tuesday-and-thursday",
+      "name": "Kids Crafts at North Chingford Library, Tuesday and Thursday",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/kids-crafts-leyton-library-tuesday",
+      "name": "Kids crafts at Leyton Library: Tuesday",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/quit-right-waltham-forest-walthamstow-library",
+      "name": "Quit Right Waltham Forest at Walthamstow Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stay-and-play-chapel-end-early-years-centre",
+      "name": "Stay and play at Chapel End Early Years Centre",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stay-and-play-barn-croft-primary-school",
+      "name": "Stay and play at Barn Croft Primary School",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/healthy-eating-and-dental-health-drop-leytonstone",
+      "name": "Healthy eating and dental health drop-in, Leytonstone",
+      "status": "skipped",
+      "reason": "Outside the family activity directory scope"
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/child-health-clinic-best-start-family-hub-leytonstone",
+      "name": "Child Health Clinic at Best Start Family Hub: Leytonstone",
+      "status": "skipped",
+      "reason": "Outside the family activity directory scope"
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stay-and-play-walthamstow-library-morning-session",
+      "name": "Stay and Play at Walthamstow Library: Morning session",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stay-and-play-leytonstone-library-wednesday",
+      "name": "Stay and play at Leytonstone library: Wednesday",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/community-drop-chingford-library",
+      "name": "Community Drop in at Chingford Library",
+      "status": "skipped",
+      "reason": "Outside the family activity directory scope"
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/tambinis-music-and-rhymes-salisbury-manor-primary-school",
+      "name": "Tambini's music and rhymes at Salisbury Manor Primary School",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/tambini-music-and-rhymes-chingford-family-hub",
+      "name": "Tambini music and rhymes at Chingford Family Hub",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stay-and-play-church-hill-nursery-school",
+      "name": "Stay and play at Church Hill Nursery School",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stories-and-rhymes-hale-end-library-wednesday",
+      "name": "Stories and Rhymes at Hale End Library: Wednesday",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stories-and-rhymes-chingford-library",
+      "name": "Stories and Rhymes at Chingford Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stay-and-play-time-hale-end-library",
+      "name": "Stay and Play time at Hale End Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/lets-create-salisbury-manor-primary-school",
+      "name": "Let's Create at Salisbury Manor Primary School",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/henry-infant-feeding-group-drop-walthamstow-library",
+      "name": "HENRY infant feeding group drop-in at Walthamstow Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stay-and-play-walthamstow-library-afternoon-session",
+      "name": "Stay and Play at Walthamstow Library: Afternoon session",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/starting-solids-workshop-best-start-family-hub-walthamstow",
+      "name": "Starting Solids Workshop at Best Start Family Hub: Walthamstow",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/learning-together-pre-school-best-start-family-hub-queens-road",
+      "name": "Learning together Pre-school at Best Start Family Hub: Queens Road",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/learning-together-pre-school-united-free-church",
+      "name": "Learning together: Pre-school at United Free Church",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/quit-right-best-start-family-hub-chingford",
+      "name": "Quit Right at Best Start Family Hub: Chingford",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/initial-sleep-consultation-best-start-family-hub-chingford",
+      "name": "Initial Sleep Consultation at Best Start Family Hub: Chingford",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/quitright-waltham-forest-chingford-family-hub",
+      "name": "QuitRight Waltham Forest at Chingford Family Hub",
+      "status": "skipped",
+      "reason": "Outside the family activity directory scope"
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/kids-crafts-walthamstow-library-wednesday",
+      "name": "Kids Crafts at Walthamstow Library: Wednesday",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/child-health-clinic-best-start-family-hub-walthamstow-wednesday",
+      "name": "Child Health Clinic at Best Start Family Hub: Walthamstow on Wednesday",
+      "status": "skipped",
+      "reason": "Outside the family activity directory scope"
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/kids-construction-club-north-chingford-library",
+      "name": "Kids construction club at North Chingford Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stay-and-play-barclay-primary-school-leyton",
+      "name": "Stay and play at Barclay Primary School, Leyton",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stay-and-play-chingford-library-thursday",
+      "name": "Stay and Play at Chingford Library, Thursday",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/grow-wild-explorer-first-session",
+      "name": "Grow Wild Explorer: First session",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/play-and-learn-under-2s-best-start-family-hub-walthamstow",
+      "name": "Play and learn for under-2s at Best Start Family Hub: Walthamstow",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/community-drop-walthamstow-library",
+      "name": "Community Drop in at Walthamstow Library",
+      "status": "skipped",
+      "reason": "Outside the family activity directory scope"
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/learning-together-pre-school-seddon-centre",
+      "name": "Learning together: Pre-school at the Seddon Centre",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/under-2s-play-session-best-start-family-hub-leytonstone",
+      "name": "Under-2's Play Session at Best Start Family Hub: Leytonstone",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/mini-morris-garden-explorers",
+      "name": "Mini Morris: Garden explorers",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/quit-right-best-start-family-hub-leytonstone",
+      "name": "Quit Right at Best Start Family Hub: Leytonstone",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/bambinis-music-and-play-0-to1-queens-road",
+      "name": "Bambini's music and play (0 to1) at Queens Road",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/grow-wild-explorer-second-session",
+      "name": "Grow Wild Explorer: Second session",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stories-and-rhymes-higham-hill-library",
+      "name": "Stories and Rhymes at Higham Hill Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/tambinis-music-and-rhymes-best-start-family-hub-queens-road",
+      "name": "Tambini's music and rhymes at Best Start Family Hub: Queens Road",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/you-and-your-new-baby-best-start-family-hub-walthamstow",
+      "name": "You and your new baby at Best Start Family Hub: Walthamstow",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/duplo-and-toys-play-session-leyton-library",
+      "name": "Duplo and toys play session at Leyton Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/quitright-waltham-forest-queens-road-family-hub",
+      "name": "QuitRight Waltham Forest at Queens Road Family Hub",
+      "status": "skipped",
+      "reason": "Outside the family activity directory scope"
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/child-health-clinic-best-start-family-hub-chingford",
+      "name": "Child Health Clinic at Best Start Family Hub: Chingford",
+      "status": "skipped",
+      "reason": "Outside the family activity directory scope"
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/quit-right-best-start-family-hub-queens-road",
+      "name": "Quit Right at Best Start Family Hub: Queens Road",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/healthy-eating-and-dental-health-drop-chingford",
+      "name": "Healthy eating and dental health drop-in, Chingford",
+      "status": "skipped",
+      "reason": "Outside the family activity directory scope"
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/learning-together-pre-school-best-start-family-hub-walthamstow",
+      "name": "Learning together Pre-school at Best Start Family Hub: Walthamstow",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/speech-and-language-support-drop-queens-road",
+      "name": "Speech and language support drop-in at Queens Road",
+      "status": "skipped",
+      "reason": "Outside the family activity directory scope"
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stay-and-play-low-hall-nursery-school",
+      "name": "Stay and play at Low Hall Nursery School",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/quit-right-best-start-family-hub-walthamstow",
+      "name": "Quit Right at Best Start Family Hub: Walthamstow",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/kids-crafts-lea-bridge-library-thursday",
+      "name": "Kids Crafts at Lea Bridge Library: Thursday",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/tambinis-music-and-rhymes-best-start-family-hub-leytonstone",
+      "name": "Tambini's music and rhymes at Best Start Family Hub: Leytonstone",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stay-and-play-parkside-primary-school",
+      "name": "Stay and play at Parkside Primary School",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stay-and-play-greenleaf-primary-school",
+      "name": "Stay and play at Greenleaf Primary School",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stay-and-play-barclay-primary-school-hoe-street",
+      "name": "Stay and play at Barclay primary school (Hoe street)",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/child-health-clinic-chingford-health-centre",
+      "name": "Child Health Clinic at Chingford Health Centre",
+      "status": "skipped",
+      "reason": "Outside the family activity directory scope"
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/community-drop-leytonstone-library",
+      "name": "Community drop-in at Leytonstone Library",
+      "status": "skipped",
+      "reason": "Outside the family activity directory scope"
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/sensory-play-and-learn-best-start-family-hub-queens-road",
+      "name": "Sensory play and learn at Best Start Family Hub: Queens Road",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/123-mini-chefs-best-start-family-hub-queens-road",
+      "name": "123 Mini Chefs at Best Start Family Hub: Queens Road",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/exploring-foods-best-start-family-hub-leytonstone",
+      "name": "Exploring foods at Best Start Family Hub: Leytonstone",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/play-and-learn-0-4-best-start-family-hub-leytonstone",
+      "name": "Play and Learn (0 to 4) at Best Start Family Hub: Leytonstone",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stay-and-play-sybourn-primary-school",
+      "name": "Stay and Play at Sybourn Primary School",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/play-and-learn-under-2s-best-start-family-hub-chingford",
+      "name": "Play and learn for under-2s at Best Start Family Hub: Chingford",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stay-and-play-higham-hill-library",
+      "name": "Stay and Play at Higham Hill Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/stay-and-play-walthamstow-library-friday",
+      "name": "Stay and Play at Walthamstow Library: Friday",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/henry-women-only-infant-feeding-cafe-best-start-family-hub-leytonstone",
+      "name": "HENRY Women only infant feeding Café at Best Start Family Hub: Leytonstone",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/sensory-play-and-learn-best-start-family-hub-walthamstow",
+      "name": "Sensory play and learn at Best Start Family Hub: Walthamstow",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/grandparents-group-best-start-family-hub-chingford",
+      "name": "Grandparents Group at Best Start Family Hub: Chingford",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/lego-club-leyton-library",
+      "name": "Lego club at Leyton Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/childrens-film-club-lea-bridge-library",
+      "name": "Children's Film Club at Lea Bridge Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/dads-coffee-morning-stay-and-play-lea-bridge-library",
+      "name": "Dads' Coffee Morning Stay and Play at Lea Bridge Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/family-cooking-club-queens-road-family-hub",
+      "name": "Family Cooking Club at Queens Road Family Hub",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/dads-stay-and-play-leyton-library",
+      "name": "Dads' Stay and Play at Leyton Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/kids-craft-club-chingford-library-saturday",
+      "name": "Kids Craft Club at Chingford Library: Saturday",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/saturday-craft-session-hale-end-library",
+      "name": "Saturday Craft session at Hale End Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/kids-crafts-north-chingford-library-saturday",
+      "name": "Kids Crafts at North Chingford Library: Saturday",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/kids-crafts-leyton-library-saturday",
+      "name": "Kids Crafts at Leyton Library: Saturday",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/kids-crafts-lea-bridge-library-saturday",
+      "name": "Kids Crafts at Lea Bridge Library: Saturday",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/childrens-film-club-leyton-library",
+      "name": "Children's Film Club at Leyton Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/kids-crafts-higham-hill-library-saturday",
+      "name": "Kids Crafts at Higham Hill Library: Saturday",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/books-and-craft-lea-bridge-library",
+      "name": "Books and Craft at Lea Bridge Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/dads-stay-and-play-chingford-library",
+      "name": "Dads' Stay and Play at Chingford Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/kids-crafts-north-chingford-library-sunday",
+      "name": "Kids Crafts at North Chingford Library: Sunday",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/kids-craft-club-chingford-library-sunday",
+      "name": "Kids Craft Club at Chingford Library: Sunday",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/dads-stay-and-play-leytonstone-library",
+      "name": "Dads' Stay and Play at Leytonstone Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/speech-and-language-support-drop-leytonstone",
+      "name": "Speech and Language Support Drop-In: Leytonstone",
+      "status": "skipped",
+      "reason": "Outside the family activity directory scope"
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/lets-create-best-start-family-hub-leytonstone",
+      "name": "Let's Create at Best Start Family Hub: Leytonstone",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/april-healthy-eating-and-dental-health-drop-walthamstow",
+      "name": "April Healthy eating and dental health drop-in: Walthamstow",
+      "status": "skipped",
+      "reason": "Outside the family activity directory scope"
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/healthy-eating-and-dental-health-drop-lloyd-park-centre-friday",
+      "name": "Healthy eating and dental health drop-in at The Lloyd Park Centre: Friday",
+      "status": "skipped",
+      "reason": "Outside the family activity directory scope"
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/baby-and-toddler-clothes-exchange-lea-bridge-library",
+      "name": "Baby and Toddler Clothes Exchange at Lea Bridge Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/send-lego-club-best-start-family-hub-queens-road",
+      "name": "SEND Lego club at Best Start Family Hub: Queens Road",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/upcycled-kids-craft-north-chingford-library",
+      "name": "Upcycled Kid's Craft at North Chingford Library",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/healthy-eating-and-dental-health-drop-walthamstow-family-hub-thursday",
+      "name": "Healthy eating and dental health drop-in at Walthamstow family hub: Thursday",
+      "status": "skipped",
+      "reason": "Outside the family activity directory scope"
+    },
+    {
+      "url": "https://www.walthamforest.gov.uk/events/initial-sleep-consultation-best-start-family-hub-queens-road",
+      "name": "Initial sleep consultation at Best Start Family Hub: Queens Road",
+      "status": "ready",
+      "reason": null
+    }
+  ]
+}

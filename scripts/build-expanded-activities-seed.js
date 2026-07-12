@@ -9,6 +9,7 @@ const repoRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 const pdfTextPath = join(repoRoot, 'tmp-wf-media-11253.txt');
 const pdfBinaryPath = join(repoRoot, 'tmp-wf-media-11253.bin');
 const bestStartOnly = process.argv.includes('--best-start-only');
+const useLegacyBestStartPdf = process.argv.includes('--legacy-best-start-pdf');
 const outputSqlPath = join(
   repoRoot,
   'supabase',
@@ -818,8 +819,13 @@ function dedupeRows(rows) {
 }
 
 async function main() {
-  await ensureBestStartPdfText();
-  const bestStartRows = parseBestStartRows();
+  // The live council events importer supersedes this historical PDF extractor.
+  // Keep it behind an explicit flag only for reproducible archive research.
+  if (bestStartOnly && !useLegacyBestStartPdf) {
+    throw new Error('The PDF Best Start importer has been retired. Run npm run activities:best-start instead.');
+  }
+  if (useLegacyBestStartPdf) await ensureBestStartPdfText();
+  const bestStartRows = useLegacyBestStartPdf ? parseBestStartRows() : [];
   const transitionRows = bestStartOnly ? [] : await parseTransitionRows();
   const happityRows = bestStartOnly ? [] : await parseHappityRows();
   const rows = dedupeRows([...bestStartRows, ...transitionRows, ...happityRows]);
