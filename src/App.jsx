@@ -4,7 +4,7 @@ import { supabase } from './supabaseClient';
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
 // Reset outdated swipe/filter state without touching planned calendar entries.
-const planningStorageVersion = '2026-07-12-directory-recovery';
+const planningStorageVersion = '2026-07-12-events-visibility';
 const visibilityOptions = ['private', 'public'];
 const statusOptions = ['booked', 'tentative'];
 const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -499,16 +499,11 @@ function isEventSource(activity) {
   ].filter(Boolean).join(' '));
 }
 
-function hasEventDate(activity) {
-  return Boolean(
-    activity.activity_date
-    || activity.available_dates?.length
-    || (activity.availability_start_date && activity.availability_end_date),
-  );
-}
-
 function isEventListing(activity) {
-  return isEventSource(activity) && hasEventDate(activity);
+  // Fever and Eventbrite listings are events even when their publisher has
+  // not supplied a machine-readable date yet. Dated entries are still
+  // filtered by isActivityAvailableOn when a parent chooses a planning week.
+  return isEventSource(activity);
 }
 
 function buildSubmittedPayload(enriched, link) {
