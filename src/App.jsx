@@ -462,6 +462,9 @@ function activityCost(activity) {
 function isActivityAvailableOn(activity, dateISO) {
   const weekday = weekdayName(dateISO);
   const explicitDates = activity.available_dates || [];
+  const availableDays = activity.available_days_of_week?.length
+    ? activity.available_days_of_week
+    : activity.days_of_week;
 
   if (activity.activity_date === dateISO || explicitDates.includes(dateISO)) return true;
 
@@ -475,9 +478,16 @@ function isActivityAvailableOn(activity, dateISO) {
   if (activity.availability_start_date && dateISO < activity.availability_start_date) return false;
   if (activity.availability_end_date && dateISO > activity.availability_end_date) return false;
 
-  const availableDays = activity.available_days_of_week?.length
-    ? activity.available_days_of_week
-    : activity.days_of_week;
+  // Do not guess dates for ticketed events. A source page without a specific
+  // date, a date range, or recurring days belongs in the directory data but
+  // must not be offered as a plan for every day of the year.
+  if (
+    isEventSource(activity)
+    && !activity.activity_date
+    && explicitDates.length === 0
+    && !(activity.availability_start_date && activity.availability_end_date)
+    && !availableDays?.length
+  ) return false;
 
   if (availableDays?.length) return availableDays.includes(weekday);
   return true;

@@ -91,8 +91,8 @@ function rowFor(product, url) {
     lat: Number.isFinite(Number(geo.latitude)) ? Number(geo.latitude) : null,
     long: Number.isFinite(Number(geo.longitude)) ? Number(geo.longitude) : null,
     category: categoryFor(product),
-    start_time: '10:00',
-    end_time: '17:00',
+    start_time: null,
+    end_time: null,
     google_link: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`,
     website: url,
     child_friendly_score: null,
@@ -102,7 +102,7 @@ function rowFor(product, url) {
     borough: 'London',
     days_of_week: [],
     recurrence_rule: null,
-    schedule_notes: 'Select a live date and time on Fever before booking.',
+    schedule_notes: 'Fever did not publish a structured date or time in the listing.',
     description,
     cost: Number.isFinite(price) ? `GBP ${price.toFixed(2)} from Fever` : 'Check Fever',
     booking_required: true,
@@ -112,11 +112,11 @@ function rowFor(product, url) {
     image_source_url: url,
     activity_date: null,
     available_dates: [],
-    availability_start_date: new Date().toISOString().slice(0, 10),
+    availability_start_date: null,
     availability_end_date: null,
     available_days_of_week: [],
-    availability_type: 'date_range',
-    availability_notes: 'Fever lists live availability in its ticket selector. Check Fever before booking.',
+    availability_type: 'unknown',
+    availability_notes: 'Not imported into planning until Fever provides a confirmed date or date range.',
     public_listing_status: 'published',
   };
 }
@@ -162,7 +162,11 @@ async function main() {
   const urls = listingUrls(await fetchHtml(listingUrl));
   const audit = await mapWithConcurrency(urls, 3, async (url) => {
     try {
-      const product = productJsonLd(await fetchHtml(url));
+      const html = await fetchHtml(url);
+      if (/no tickets are available at the moment/i.test(html)) {
+        return { url, status: 'skipped', reason: 'No live tickets available' };
+      }
+      const product = productJsonLd(html);
       if (!product) return { url, status: 'skipped', reason: 'No product data' };
       if (!familyRelevant(product)) return { url, name: product.name, status: 'skipped', reason: 'Not explicitly family-focused' };
       return { url, name: product.name, status: 'ready', product };
