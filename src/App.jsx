@@ -491,7 +491,12 @@ function activityMatchesInterests(activity, selectedCategories, allCategoriesSel
 }
 
 function isEventSource(activity) {
-  return /eventbrite|fever/i.test(String(activity.source_name || activity.source_url || ''));
+  return /eventbrite|fever/i.test([
+    activity.data_source,
+    activity.source_name,
+    activity.source_url,
+    activity.website,
+  ].filter(Boolean).join(' '));
 }
 
 function hasEventDate(activity) {
@@ -597,6 +602,7 @@ export default function App() {
     [deferredFilters.interests],
   );
   const allCategoriesSelected = selectedCategorySet.size === activityInterestOptions.length;
+  const eventsOnly = deferredFilters.includeEvents && selectedCategorySet.size === 0;
 
   const weekDays = useMemo(
     () => Array.from({ length: 7 }, (_, index) => addDaysISO(filters.weekStart, index)),
@@ -632,13 +638,19 @@ export default function App() {
   );
   const baseFilteredActivities = useMemo(
     () => activitiesWithDistance.filter((activity) => {
-      const interestMatch = activityMatchesInterests(activity, selectedCategorySet, allCategoriesSelected);
-      const eventMatch = deferredFilters.includeEvents
-        ? (!isEventSource(activity) || isEventListing(activity))
-        : !isEventSource(activity);
+      // Events are an independent tag: when it is the only selection, do not
+      // also require an activity category match.
+      const interestMatch = eventsOnly
+        ? isEventListing(activity)
+        : activityMatchesInterests(activity, selectedCategorySet, allCategoriesSelected);
+      const eventMatch = eventsOnly
+        ? true
+        : deferredFilters.includeEvents
+          ? (!isEventSource(activity) || isEventListing(activity))
+          : !isEventSource(activity);
       return activity.public_listing_status === 'published' && interestMatch && eventMatch;
     }),
-    [activitiesWithDistance, selectedCategorySet, allCategoriesSelected, deferredFilters.includeEvents],
+    [activitiesWithDistance, selectedCategorySet, allCategoriesSelected, deferredFilters.includeEvents, eventsOnly],
   );
   const distanceMatchedActivities = useMemo(
     () => !userLocation
