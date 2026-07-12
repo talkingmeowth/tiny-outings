@@ -3,7 +3,8 @@ import { supabase } from './supabaseClient';
 
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
-const planningStorageVersion = '2026-07-11-parks-filter-reset';
+// Reset outdated swipe/filter state without touching planned calendar entries.
+const planningStorageVersion = '2026-07-12-directory-recovery';
 const visibilityOptions = ['private', 'public'];
 const statusOptions = ['booked', 'tentative'];
 const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -165,7 +166,7 @@ function clearOldPlanningCache() {
     if (window.localStorage.getItem(versionKey) === planningStorageVersion) return;
     // A saved past week or Events-only mode can otherwise make a populated
     // directory look empty after an app update.
-    for (const key of ['filters', 'swipes', 'shortlists', 'statuses', 'calendar-events']) {
+    for (const key of ['filters', 'swipes', 'shortlists', 'statuses']) {
       window.localStorage.removeItem(`${storagePrefix}:${key}`);
     }
     window.localStorage.setItem(versionKey, planningStorageVersion);

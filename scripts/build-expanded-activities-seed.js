@@ -298,11 +298,6 @@ function parseTimeRange(rawTime) {
   return { start, end };
 }
 
-function extractField(text, fieldName, followingFields) {
-  const pattern = new RegExp(`${fieldName}:\\s*([\\s\\S]*?)(?=${followingFields.map((field) => `${field}:`).join('|')}|$)`, 'i');
-  return normalizeText(text.match(pattern)?.[1] || '');
-}
-
 function lastKnownName(text) {
   const haystack = normalizeText(text).toLowerCase();
   const matches = knownBestStartNames
@@ -310,55 +305,6 @@ function lastKnownName(text) {
     .map((name) => ({ name, index: haystack.lastIndexOf(normalizeText(name).toLowerCase()) }))
     .sort((a, b) => b.index - a.index);
   return matches[0]?.name || null;
-}
-
-function truncateAtNextKnownName(value) {
-  const cleaned = normalizeText(value);
-  const lowerCleaned = cleaned.toLowerCase();
-  const indexes = knownBestStartNames
-    .map((name) => lowerCleaned.indexOf(normalizeText(name).toLowerCase()))
-    .filter((index) => index > 0);
-  const noiseIndexes = [
-    'all sessions',
-    'see walthamforest',
-    'sessions are subject',
-    'session explainer',
-    'top tip',
-    '--- page',
-    'chingford (north)',
-    'walthamstow (central)',
-    'leyton (south west)',
-    'leytonstone (south east)',
-    'remember to',
-    "when you're out",
-    "when you\\'re out",
-    'violence against women',
-    'vawg',
-    'quitright',
-    'you can start',
-    'everyday routines',
-    'sing songs',
-    'scan the qr',
-    'book now',
-    'make sure',
-    'visit the dentist',
-    'when your baby',
-    'monday',
-    'tuesday',
-    'wednesday',
-    'thursday',
-    'friday',
-    'saturday',
-    'sunday',
-    "i've",
-    "i've",
-    'we like',
-    'infant feeding support',
-  ]
-    .map((phrase) => lowerCleaned.indexOf(phrase))
-    .filter((index) => index > 0);
-  const index = [...indexes, ...noiseIndexes].length ? Math.min(...indexes, ...noiseIndexes) : -1;
-  return normalizeText(index > 0 ? cleaned.slice(0, index) : cleaned);
 }
 
 function normalizeLocation(rawLocation, fallbackArea) {
@@ -374,31 +320,6 @@ function normalizeLocation(rawLocation, fallbackArea) {
     location = `Best Start Family Hub: ${fallbackArea}`;
   }
   return location;
-}
-
-function areaForOffset(text, offset) {
-  const before = text.slice(0, offset);
-  const markers = [
-    ['Chingford', before.lastIndexOf('Chingford Activities')],
-    ['Walthamstow', before.lastIndexOf('Walthamstow Activities')],
-    ['Queens Road', before.lastIndexOf('Leyton Activities')],
-    ['Leytonstone', before.lastIndexOf('Leytonstone Activities')],
-  ].sort((a, b) => b[1] - a[1]);
-  return markers[0]?.[1] >= 0 ? markers[0][0] : 'Walthamstow';
-}
-
-function weekdayForOffset(text, offset) {
-  const before = text.slice(0, offset);
-  let closest = null;
-
-  for (const weekday of weekdayNames) {
-    const matcher = new RegExp(`\\b${weekday}\\b`, 'gi');
-    for (const match of before.matchAll(matcher)) {
-      if (!closest || match.index > closest.index) closest = { weekday, index: match.index };
-    }
-  }
-
-  return closest?.weekday || null;
 }
 
 function datesFromFrequency(rawFrequency) {
