@@ -1,0 +1,21 @@
+{
+  "schedule_rows": 1522,
+  "repaired_records": 3,
+  "updates": [
+    {
+      "activityId": "cc1cfc66-86cd-4066-9da0-ac1f602f5d4e",
+      "detailUrl": "https://www.happity.co.uk/schedules/singing-mamas-london-cornerstone-cafe-london-singing-mamas-newham",
+      "activityName": "Singing Mamas Newham"
+    },
+    {
+      "activityId": "8307371a-99b3-45a8-b0df-07f86d2d81f7",
+      "detailUrl": "https://www.happity.co.uk/schedules/mums-art-club-london-the-quaker-meeting-house-mums-art-club",
+      "activityName": "Mums Art Club"
+    },
+    {
+      "activityId": "65558959-03aa-4a9c-8328-cfd8ab335e59",
+      "detailUrl": "https://www.happity.co.uk/schedules/tta-london-n7-9dp-leaves-colours-nature-painting-workshop-tuesdays-10-00-11-00",
+      "activityName": "TTA - Leaves & Colours: Nature Painting Workshop"
+    }
+  ]
+}

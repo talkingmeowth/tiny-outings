@@ -40,6 +40,7 @@ const activitySelectColumns = [
   'image_source_url',
   'source_url',
   'source_name',
+  'data_source',
   'google_primary_type',
   'google_place_id',
   'google_place_uri',

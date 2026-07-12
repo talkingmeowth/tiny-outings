@@ -19,6 +19,7 @@
     "activities:cafe-images": "node scripts/enrich-cafe-google-photo-references.js",
     "activities:london-chains": "node scripts/build-london-chain-places.js",
     "activities:london-parks": "node scripts/build-london-parks.js",
+    "activities:repair-happity-links": "node scripts/repair-happity-links.js",
     "render:download": "node scripts/prepare-render-download.js",
     "cap:sync": "npm run build && npx cap sync",
     "android:add": "npx cap add android",
