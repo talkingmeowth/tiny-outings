@@ -11,6 +11,12 @@ const excludedTitles = new Set([
   'les miserables',
   'modern magic show with jake banfield',
   'paradox museum london the ultimate birthday party venue in london',
+  'the jury experience the 20 million dollar heist',
+  'the phantom of the opera',
+  'stranger things the first shadow',
+  'harry potter and the cursed child parts one and two',
+  'silent disco retro gaming party',
+  'beauty wellness gift card',
 ]);
 const curatedSummaries = {
   'babylon park londons underground theme park': 'Indoor Camden theme park with rides, arcade games and soft-play zones for little explorers.',
@@ -33,6 +39,7 @@ const curatedSummaries = {
   'the museum of brands a visual journey through consumer culture': 'Small Notting Hill museum with nostalgic toys, packaging and family tickets.',
   'tootbus london discovery bus tour': 'Hop-on hop-off London bus tour with a children\'s audio guide and stroller-friendly access.',
   'zsl london zoo': 'Family day out at London Zoo with animals, keeper talks and feeding sessions.',
+  'paddington afternoon tea london sightseeing tour': 'Paddington-themed afternoon tea and London sightseeing tour for families.',
 };
 
 function cleanText(value) {
@@ -143,9 +150,10 @@ function productJsonLd(html) {
 
 function familyRelevant(product) {
   const title = normalized(product.name);
-  const text = `${title} ${product.description || ''}`.toLowerCase();
+  // Fever's Family filter also contains adult theatre and nightlife. Publish
+  // only activities that are clearly suitable for babies or young children.
   return !excludedTitles.has(title)
-    && /baby|toddler|kid|child|children|family|parent|peppa|paw patrol|matilda|lion king|harry potter|halloween at kew|hobbledown|bubble planet|babylon park|london zoo|space explorers|dinos|mini genius|raver tots|museum of brands|moco museum|paradox museum|science museum/.test(text);
+    && /babylon park|house of dreamers|peppa pig|paw patrol|paddington|hobbledown|london zoo|raver tots|kid quest|mini genius|paradox museum london|museum of brands|tootbus|harry potter warner|halloween at kew|christmas by candlelight|matilda the musical|the lion king/.test(title);
 }
 
 function shortDescription(product) {
@@ -187,8 +195,10 @@ function rowFor(product, url, html) {
     lat: Number.isFinite(Number(geo.latitude)) ? Number(geo.latitude) : null,
     long: Number.isFinite(Number(geo.longitude)) ? Number(geo.longitude) : null,
     category: categoryFor(product),
-    start_time: hours.start,
-    end_time: hours.end,
+    // The schema requires a time. The availability note keeps these fallback
+    // values from being presented as a confirmed Fever session time.
+    start_time: hours.start || '09:00',
+    end_time: hours.end || '17:00',
     google_link: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`,
     website: url,
     child_friendly_score: null,
@@ -263,7 +273,7 @@ async function main() {
       const html = await fetchHtml(url);
       const product = productJsonLd(html);
       if (!product) return { url, status: 'skipped', reason: 'No product data' };
-      if (!familyRelevant(product)) return { url, name: product.name, status: 'skipped', reason: 'Not explicitly family-focused' };
+      if (!familyRelevant(product)) return { url, name: product.name, status: 'skipped', reason: 'Not suitable for babies and young children' };
       return { url, name: product.name, status: 'ready', product, html };
     } catch (error) {
       return { url, status: 'error', reason: error.message };
