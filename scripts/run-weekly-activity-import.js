@@ -30,6 +30,11 @@ const sources = [
     output: join(root, 'supabase', 'seed', 'activities_fever_london_family_20260711.generated.sql'),
   },
   {
+    name: 'fever-availability',
+    script: 'enrich-fever-availability.js',
+    output: join(root, 'supabase', 'seed', 'fever_availability_updates.generated.sql'),
+  },
+  {
     name: 'google-places',
     script: 'build-google-places-e10.js',
     output: join(root, 'supabase', 'seed', 'activities_google_places_e10_10_miles.generated.sql'),

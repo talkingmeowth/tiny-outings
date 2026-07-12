@@ -16,6 +16,7 @@
     "activities:family-cafes": "node scripts/build-high-rated-family-cafes.js",
     "activities:eventbrite-baby": "node scripts/import-eventbrite-baby-london.js",
     "activities:fever-family": "node scripts/import-fever-london-family.js",
+    "activities:fever-availability": "node scripts/enrich-fever-availability.js",
     "activities:cafe-images": "node scripts/enrich-cafe-google-photo-references.js",
     "activities:london-chains": "node scripts/build-london-chain-places.js",
     "activities:london-parks": "node scripts/build-london-parks.js",
