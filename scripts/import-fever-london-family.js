@@ -18,6 +18,56 @@ function cleanText(value) {
     .trim();
 }
 
+const weekdayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+function toTwentyFourHour(value) {
+  const match = String(value || '').trim().match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)$/i);
+  if (!match) return null;
+  let hour = Number(match[1]);
+  const minute = Number(match[2] || 0);
+  if (match[3].toLowerCase() === 'pm' && hour !== 12) hour += 12;
+  if (match[3].toLowerCase() === 'am' && hour === 12) hour = 0;
+  return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+}
+
+function weekdaysBetween(first, last) {
+  const start = weekdayOrder.indexOf(first);
+  const end = weekdayOrder.indexOf(last || first);
+  return start === -1 || end === -1 ? [] : weekdayOrder.slice(start, end + 1);
+}
+
+function feverWeeklyHours(html) {
+  const text = cleanText(html).replaceAll('–', '-').replaceAll('—', '-');
+  const timeSection = text.match(/Time:\s*([\s\S]*?)(?=Duration:|Location:|Age requirement:|Accessibility:|Description:|$)/i)?.[1] || '';
+  const pattern = /(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)(?:\s*-\s*(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday))?(?:\s*&\s*Public Holidays)?\s*:\s*(\d{1,2}(?::\d{2})?\s*(?:AM|PM))\s*-\s*(\d{1,2}(?::\d{2})?\s*(?:AM|PM))/gi;
+  const periods = [];
+  for (const match of timeSection.matchAll(pattern)) {
+    const start = toTwentyFourHour(match[3]);
+    const end = toTwentyFourHour(match[4]);
+    if (!start || !end) continue;
+    periods.push({ days: weekdaysBetween(match[1], match[2]), start, end, label: match[0].trim() });
+  }
+  const days = [...new Set(periods.flatMap((period) => period.days))];
+  if (!periods.length) return { days: [], start: null, end: null, type: 'unknown', notes: null };
+  return {
+    days,
+    start: periods.map((period) => period.start).sort()[0],
+    end: periods.map((period) => period.end).sort().at(-1),
+    type: days.length === 7 ? 'daily' : 'weekly',
+    notes: `Fever opening hours: ${periods.map((period) => period.label).join(' | ')}`,
+  };
+}
+
+function feverCalendarDates(html) {
+  const today = new Date().toISOString().slice(0, 10);
+  const latest = new Date();
+  latest.setFullYear(latest.getFullYear() + 1);
+  const latestDate = latest.toISOString().slice(0, 10);
+  return [...new Set([...String(html || '').matchAll(/\b20\d{2}-\d{2}-\d{2}\b/g)].map((match) => match[0]))]
+    .filter((date) => date >= today && date <= latestDate)
+    .sort();
+}
+
 function sql(value) {
   if (value === null || value === undefined || value === '') return 'null';
   return `$$${String(value).replaceAll('$$', '$ $')}$$`;
@@ -74,8 +124,10 @@ function ageSuitability(description) {
   return match ? match[1].trim() : 'Families and children';
 }
 
-function rowFor(product, url) {
+function rowFor(product, url, html) {
   const offer = Array.isArray(product.offers) ? product.offers[0] : product.offers;
+  const hours = feverWeeklyHours(html);
+  const calendarDates = feverCalendarDates(html);
   const place = offer?.areaServed || {};
   const geo = place.geo || product.image?.contentLocation?.geo || {};
   const price = Number(offer?.price);
@@ -91,8 +143,8 @@ function rowFor(product, url) {
     lat: Number.isFinite(Number(geo.latitude)) ? Number(geo.latitude) : null,
     long: Number.isFinite(Number(geo.longitude)) ? Number(geo.longitude) : null,
     category: categoryFor(product),
-    start_time: null,
-    end_time: null,
+    start_time: hours.start,
+    end_time: hours.end,
     google_link: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`,
     website: url,
     child_friendly_score: null,
@@ -100,9 +152,9 @@ function rowFor(product, url) {
     number_of_reviews: 0,
     age_suitability: ageSuitability(description),
     borough: 'London',
-    days_of_week: [],
+    days_of_week: hours.days,
     recurrence_rule: null,
-    schedule_notes: 'Fever did not publish a structured date or time in the listing.',
+    schedule_notes: hours.notes || 'Select a live date and time on Fever before booking.',
     description,
     cost: Number.isFinite(price) ? `GBP ${price.toFixed(2)} from Fever` : 'Check Fever',
     booking_required: true,
@@ -110,13 +162,15 @@ function rowFor(product, url) {
     source_url: url,
     image_url: product.image?.contentUrl || null,
     image_source_url: url,
-    activity_date: null,
-    available_dates: [],
-    availability_start_date: null,
-    availability_end_date: null,
-    available_days_of_week: [],
-    availability_type: 'unknown',
-    availability_notes: 'Not imported into planning until Fever provides a confirmed date or date range.',
+    activity_date: calendarDates.length === 1 ? calendarDates[0] : null,
+    available_dates: calendarDates,
+    availability_start_date: calendarDates[0] || null,
+    availability_end_date: calendarDates.at(-1) || null,
+    available_days_of_week: hours.days,
+    availability_type: calendarDates.length ? 'specific_dates' : hours.type,
+    availability_notes: calendarDates.length
+      ? `Fever ticket calendar lists ${calendarDates.length} bookable date${calendarDates.length === 1 ? '' : 's'} through ${calendarDates.at(-1)}. ${hours.notes || 'Select a time in Fever.'}`
+      : hours.notes || 'Fever has not published a structured availability schedule yet.',
     public_listing_status: 'published',
   };
 }
@@ -163,20 +217,17 @@ async function main() {
   const audit = await mapWithConcurrency(urls, 3, async (url) => {
     try {
       const html = await fetchHtml(url);
-      if (/no tickets are available at the moment/i.test(html)) {
-        return { url, status: 'skipped', reason: 'No live tickets available' };
-      }
       const product = productJsonLd(html);
       if (!product) return { url, status: 'skipped', reason: 'No product data' };
       if (!familyRelevant(product)) return { url, name: product.name, status: 'skipped', reason: 'Not explicitly family-focused' };
-      return { url, name: product.name, status: 'ready', product };
+      return { url, name: product.name, status: 'ready', product, html };
     } catch (error) {
       return { url, status: 'error', reason: error.message };
     }
   });
   const rows = audit
     .filter((item) => item.status === 'ready')
-    .map((item) => ({ item, row: rowFor(item.product, item.url) }))
+    .map((item) => ({ item, row: rowFor(item.product, item.url, item.html) }))
     .filter(({ item, row }) => {
       const hasCoordinates = Number.isFinite(row.lat) && Number.isFinite(row.long);
       if (!hasCoordinates) {
