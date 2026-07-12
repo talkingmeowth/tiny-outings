@@ -170,7 +170,18 @@ async function main() {
       return { url, status: 'error', reason: error.message };
     }
   });
-  const rows = audit.filter((item) => item.status === 'ready').map((item) => rowFor(item.product, item.url));
+  const rows = audit
+    .filter((item) => item.status === 'ready')
+    .map((item) => ({ item, row: rowFor(item.product, item.url) }))
+    .filter(({ item, row }) => {
+      const hasCoordinates = Number.isFinite(row.lat) && Number.isFinite(row.long);
+      if (!hasCoordinates) {
+        item.status = 'skipped';
+        item.reason = 'No verified venue coordinate';
+      }
+      return hasCoordinates;
+    })
+    .map(({ row }) => row);
   mkdirSync(dirname(outputSql), { recursive: true });
   mkdirSync(dirname(outputAudit), { recursive: true });
   writeFileSync(outputSql, buildSql(rows));

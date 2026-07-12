@@ -13,8 +13,9 @@ const pageConcurrency = Math.max(1, Number.parseInt(process.env.EVENTBRITE_PAGE_
 const pageDelayMs = Math.max(0, Number.parseInt(process.env.EVENTBRITE_PAGE_DELAY_MS || '1800', 10));
 const detailConcurrency = Math.max(1, Number.parseInt(process.env.EVENTBRITE_DETAIL_CONCURRENCY || '1', 10));
 const detailDelayMs = Math.max(0, Number.parseInt(process.env.EVENTBRITE_DETAIL_DELAY_MS || '1000', 10));
-const enrichGoogle = process.env.EVENTBRITE_ENRICH_GOOGLE === '1';
-const googleApiKey = enrichGoogle ? (process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_PLACES_API_KEY) : null;
+const googleApiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_PLACES_API_KEY;
+// Weekly imports require a verified venue so the app's distance filters remain accurate.
+const enrichGoogle = process.env.EVENTBRITE_ENRICH_GOOGLE !== '0' && Boolean(googleApiKey);
 
 function readDotEnv(name) {
   try {
@@ -295,6 +296,9 @@ async function main() {
       }
       if (!/london/i.test(address)) return { url, name: event.name, status: 'skipped', reason: 'Outside London' };
       const place = await googlePlace(`${event.location?.name || ''}, ${address}`, postcode(address));
+      if (!place?.location) {
+        return { url, name: event.name, status: 'skipped', reason: 'No verified Google Places coordinate' };
+      }
       return { url, name: event.name, status: existing.has(event.url) ? 'existing' : 'ready', event, place };
     } catch (error) {
       return { url, status: 'error', reason: error.message };

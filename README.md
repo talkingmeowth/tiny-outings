@@ -76,6 +76,15 @@ The import geocodes E10, searches a strict 10-mile (16,093 metre) radius, and co
 
 The generated records use the existing activities fields. Google opening hours populate the normal availability fields and the original hours JSON is kept in google_opening_hours. The script does not request or store Google review text.
 
+## Weekly Directory Refresh
+
+Run `npm.cmd run activities:weekly` to discover net-new Eventbrite, Fever, and
+Google Places listings and generate reviewable SQL. Add `:apply` to insert the
+results directly into Supabase with `DATABASE_URL` configured. The repository
+also contains a Monday GitHub Actions workflow; see
+[`docs/weekly-activity-imports.md`](docs/weekly-activity-imports.md) for the
+required secrets and exact setup.
+
 ## Activity Table Notes
 
 The table includes the requested core fields:

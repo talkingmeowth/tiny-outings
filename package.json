@@ -20,6 +20,8 @@
     "activities:london-chains": "node scripts/build-london-chain-places.js",
     "activities:london-parks": "node scripts/build-london-parks.js",
     "activities:repair-happity-links": "node scripts/repair-happity-links.js",
+    "activities:weekly": "node scripts/run-weekly-activity-import.js",
+    "activities:weekly:apply": "node scripts/run-weekly-activity-import.js --apply",
     "render:download": "node scripts/prepare-render-download.js",
     "cap:sync": "npm run build && npx cap sync",
     "android:add": "npx cap add android",
