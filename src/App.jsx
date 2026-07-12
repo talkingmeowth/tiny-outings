@@ -422,11 +422,19 @@ function googlePhotoMediaUrl(photoReference) {
 }
 
 function activityPhotoUrls(activity) {
+  const category = String(activity.category || '').toLowerCase();
+  const fallbackImage = category.includes('park')
+    ? '/images/park-placeholder.svg'
+    : category.includes('book')
+      ? '/images/bookshop-placeholder.svg'
+      : category.includes('cafe')
+        ? '/images/family-cafe-placeholder.svg'
+        : '/images/family-outing-placeholder.svg';
   const candidates = [
     googlePhotoMediaUrl(activity.google_photo_url),
     activity.image_url,
     activity.photo_url,
-    activity.category === 'Child-friendly cafes' ? '/images/family-cafe-placeholder.svg' : null,
+    fallbackImage,
   ].filter(isUsablePhotoUrl);
 
   return [...new Set(candidates)];
@@ -440,7 +448,7 @@ function activityPhotoLabel(activity) {
   const photoUrl = activityPhotoUrl(activity);
   if (photoUrl && (photoUrl === activity.google_photo_url || String(activity.google_photo_url || '').startsWith('places/'))) return 'Google Places photo';
   if (photoUrl && (photoUrl === activity.image_url || photoUrl === activity.photo_url)) return 'Activity photo';
-  if (photoUrl === '/images/family-cafe-placeholder.svg') return 'Family cafe illustration';
+  if (String(photoUrl).includes('-placeholder.svg')) return 'Activity illustration';
   if (photoUrl) return 'Website preview';
   return 'Photo pending';
 }

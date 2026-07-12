@@ -1,21 +1,222 @@
 {
   "schedule_rows": 1522,
-  "repaired_records": 3,
+  "repaired_records": 36,
   "updates": [
     {
+      "activityId": "f665a72e-2b1c-42d9-9d4d-ebfb98a7a401",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "A1 JUDO CLUB - PARENT & CHILD JUDO TOTS CLASS (2-5 YEAR OLDS)"
+    },
+    {
+      "activityId": "75eab9fa-6c16-41a5-bcfb-c3de66aa21a9",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "ADRENALIN DANCE PRODUCTIONS - BOP | CREATIVE DANCE IN. E5"
+    },
+    {
+      "activityId": "23af2eb3-baf3-45f9-8b09-2609441ac24e",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "ADRENALIN DANCE PRODUCTIONS - ROMP AND ROLL , ADULT AND TODDLER DANCE IN E5"
+    },
+    {
+      "activityId": "dbd02590-2d80-4457-8843-962937d7fa29",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "JO JINGLES - BABY JINGLES"
+    },
+    {
+      "activityId": "06de8cd8-86bb-4672-ade9-27c4413e146c",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "COSMO PLACE"
+    },
+    {
+      "activityId": "253c78f9-121d-42e9-bf5d-5d2bae86b9eb",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "CREATIVE ARTS KIDS - BALLET AND CREATIVE DANCE 3-4Y"
+    },
+    {
+      "activityId": "0e9bd105-bb34-4454-970d-057b7f11b37e",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "CUBI CARS CLUB"
+    },
+    {
+      "activityId": "cbbc047b-c8ec-4689-836b-23138ca82217",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "DANCE STABLES - JUNIOR BALLET (6-12 YEAR OLDS)"
+    },
+    {
+      "activityId": "b4eb9f77-0856-4d42-b429-dcb81bf9f3a6",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "DANCE STUDIO NIKA"
+    },
+    {
+      "activityId": "6edd5885-e12c-460a-9fde-33e13f3af2be",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "DANI GRANT SCHOOL OF DANCE - GRADE 1 BALLET CLASS"
+    },
+    {
+      "activityId": "3ceca716-5786-489d-80e9-0113577357ea",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "GEMMA DEAN LIFE COACHING - MINDFUL PARENT HUB"
+    },
+    {
+      "activityId": "b09b3447-f54c-486f-b21d-72fafc4a422a",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "GRACE CHURCH WANSTEAD - GRACE CHURCH TOTS"
+    },
+    {
+      "activityId": "a56d9947-0692-407d-9a87-a5671a6be317",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "HER VILLAGE MATERNITY - ANTENATAL CLASS | THE INFORMED BIRTH PROGRAMME"
+    },
+    {
+      "activityId": "3abbd045-e176-46cc-9183-79653608143d",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "JO JINGLES - JO JINGLERS"
+    },
+    {
+      "activityId": "23e65a31-6905-4014-9cd6-9eb813652098",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "THE FOOTBALL FUN FACTORY"
+    },
+    {
+      "activityId": "44831cb3-773a-46bb-91e7-1c449164bda9",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "MUMMY'S DAY OUT - MAMA MEET UP - WALK"
+    },
+    {
+      "activityId": "eedf9442-0dde-4915-8765-8d0b23ff6df3",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "NEWHAM CHINESE SCHOOL"
+    },
+    {
+      "activityId": "926209cc-91e3-408b-abf5-c49bca906b30",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "MONTESSORI BABY AND TODDLER GROUP"
+    },
+    {
+      "activityId": "d2f08095-c7aa-4f7d-bd73-f195cbc7c3b9",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "NUMBER TRAIN"
+    },
+    {
+      "activityId": "b528b6d2-a8b5-41d0-9b2b-fdb07dd36b37",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "SHANICE POWNALL - INFANT FEEDING SPECIALIST - INFANT FEEDING SUPPORT WITH SHANICE"
+    },
+    {
+      "activityId": "fb6b4bc4-ff41-4122-b879-0b70cf3e2dd6",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "MILLFIELD'S CHILDREN'S CENTRE - 4 WEEK BABY MASSAGE COURSE"
+    },
+    {
+      "activityId": "d67ec564-1cf5-45de-8886-99aa2bc8e090",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "MILLFIELD'S CHILDREN'S CENTRE - MINI MOVERS"
+    },
+    {
+      "activityId": "0cf54a56-34f0-41a6-965c-d10a8c9ff044",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "MILLFIELD'S CHILDREN'S CENTRE - MUSIC AND MOVEMENT"
+    },
+    {
+      "activityId": "416e9a9f-dc9e-4eea-8869-4655dba6906b",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "SHANICE POWNALL - INFANT FEEDING SPECIALIST - INFANT FEEDING SUPPORT WITH SHANICE"
+    },
+    {
+      "activityId": "4668b711-5aa7-448a-af80-8dc7e13ed617",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "SHANICE POWNALL - INFANT FEEDING SPECIALIST - INFANT FEEDING SUPPORT WITH SHANICE"
+    },
+    {
+      "activityId": "e72038f0-e2b0-4185-b7ee-5751483c5d60",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "SHANICE POWNALL - INFANT FEEDING SPECIALIST - INFANT FEEDING SUPPORT WITH SHANICE"
+    },
+    {
+      "activityId": "6c4858ae-55ea-4bf2-b034-5200a3179993",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "SHANICE POWNALL - INFANT FEEDING SPECIALIST - INFANT FEEDING SUPPORT WITH SHANICE"
+    },
+    {
+      "activityId": "31a36dbd-31a1-40be-805b-19d245b23f8a",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "PUPSTER AND PALS! - PUPSTER AND PALS: BABIES AND TODDLERS!"
+    },
+    {
+      "activityId": "0cae2ffa-cd7d-4477-9f7f-ed5a9c50b160",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "TOTS AND TINYS"
+    },
+    {
       "activityId": "cc1cfc66-86cd-4066-9da0-ac1f602f5d4e",
-      "detailUrl": "https://www.happity.co.uk/schedules/singing-mamas-london-cornerstone-cafe-london-singing-mamas-newham",
+      "detailUrl": null,
+      "imageUrl": "https://happity-production.s3.amazonaws.com/uploads/company/logo/1790/event_Singing_Mamas_logo.png?v=1692272860",
       "activityName": "Singing Mamas Newham"
     },
     {
-      "activityId": "8307371a-99b3-45a8-b0df-07f86d2d81f7",
-      "detailUrl": "https://www.happity.co.uk/schedules/mums-art-club-london-the-quaker-meeting-house-mums-art-club",
-      "activityName": "Mums Art Club"
+      "activityId": "042fb677-f300-42bd-91fb-5fcb17cf13ea",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "WALTHAMSTOW CERAMICS - BABY FOOTPRINT POTTERY PAINTING SESSIONS"
     },
     {
-      "activityId": "65558959-03aa-4a9c-8328-cfd8ab335e59",
-      "detailUrl": "https://www.happity.co.uk/schedules/tta-london-n7-9dp-leaves-colours-nature-painting-workshop-tuesdays-10-00-11-00",
-      "activityName": "TTA - Leaves & Colours: Nature Painting Workshop"
+      "activityId": "b7dd213e-aef6-4700-918a-49a01915b2fe",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "MINI BALLET WITH DANCE STABLES"
+    },
+    {
+      "activityId": "aa9c70c1-055c-4371-9f42-6dfcc6063b00",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "MINI STREET DANCE WITH DANCE STABLES"
+    },
+    {
+      "activityId": "260a2fec-7d70-4b8d-af6a-bd4236176164",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "THE WONDERFUL CALM BABY MASSAGE - INFANT MASSAGE CLASS: ISLINGTON"
+    },
+    {
+      "activityId": "479bd934-19c1-4d80-80e7-1c2d3171dbdb",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "LITTLE TOTS LAURISTON ROAD - PANCAKE CHURCH CHILDREN'S SUNDAY CRAFT'S GROUP"
+    },
+    {
+      "activityId": "22dfc7d0-0bf9-41dc-b4cd-c1c9c8f72a6b",
+      "detailUrl": null,
+      "imageUrl": null,
+      "activityName": "SHANICE POWNALL - INFANT FEEDING SPECIALIST - INFANT FEEDING SUPPORT WITH SHANICE"
     }
   ]
 }

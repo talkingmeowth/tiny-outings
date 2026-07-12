@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" role="img" aria-label="Park illustration">
+  <rect width="800" height="520" fill="#bfe5e4"/><circle cx="648" cy="100" r="56" fill="#ffd56a"/>
+  <path d="M0 330C150 270 235 365 410 314S672 265 800 330v190H0z" fill="#77bb8b"/>
+  <path d="M0 407c166-40 312 38 481-7s222-18 319 21v99H0z" fill="#2f8a64"/>
+  <path d="M132 364V185" stroke="#604434" stroke-width="24" stroke-linecap="round"/><circle cx="132" cy="145" r="78" fill="#4f9b6e"/><circle cx="74" cy="181" r="57" fill="#65ae7e"/><circle cx="190" cy="184" r="61" fill="#65ae7e"/>
+  <path d="M445 360h170l-22-132H467z" fill="#f08c70"/><path d="M433 228h192l-96-88z" fill="#fffaf0"/>
+  <path d="M540 360v-72" stroke="#24413a" stroke-width="18" stroke-linecap="round"/>
+</svg>

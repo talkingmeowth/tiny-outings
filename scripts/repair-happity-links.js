@@ -40,6 +40,7 @@ function readHappityRows(fileName) {
       venue: normalized(row.venue),
       venuePostcode: postcode(row.venue),
       detailUrl: row.detailUrl,
+      imageUrl: row.image || null,
     }));
 }
 
@@ -59,7 +60,7 @@ async function loadActivities(env) {
   const rows = [];
   for (let offset = 0; ; offset += 1000) {
     const response = await fetch(
-      `${env.VITE_SUPABASE_URL}/rest/v1/activities?select=activity_id,activity_name,address,website,source_url&source_name=eq.Happity&limit=1000&offset=${offset}`,
+      `${env.VITE_SUPABASE_URL}/rest/v1/activities?select=activity_id,activity_name,address,website,source_url,image_url,google_photo_url&source_name=eq.Happity&limit=1000&offset=${offset}`,
       { headers: { apikey: env.VITE_SUPABASE_ANON_KEY, Authorization: `Bearer ${env.VITE_SUPABASE_ANON_KEY}` } },
     );
     if (!response.ok) throw new Error(`Could not load Happity activities: ${response.status}`);
@@ -77,13 +78,21 @@ async function main() {
   ];
   const activities = await loadActivities(env);
   const updates = activities
-    .filter((activity) => !String(activity.website || '').includes('happity.co.uk/schedules/'))
     .map((activity) => ({ activity, match: bestMatch(activity, schedules) }))
     .filter((item) => item.match)
-    .map(({ activity, match }) => ({ activityId: activity.activity_id, detailUrl: match.detailUrl, activityName: activity.activity_name }));
+    .filter(({ activity }) =>
+      !String(activity.website || '').includes('happity.co.uk/schedules/')
+      || (!activity.image_url && !activity.google_photo_url),
+    )
+    .map(({ activity, match }) => ({
+      activityId: activity.activity_id,
+      detailUrl: String(activity.website || '').includes('happity.co.uk/schedules/') ? null : match.detailUrl,
+      imageUrl: !activity.image_url && !activity.google_photo_url ? match.imageUrl : null,
+      activityName: activity.activity_name,
+    }));
 
   const sqlText = updates.length
-    ? `with detail_links (activity_id, detail_url) as (\n  values\n    ${updates.map((item) => `(${sql(item.activityId)}::uuid, ${sql(item.detailUrl)}::text)`).join(',\n    ')}\n)\nupdate public.activities as activity\nset website = detail_links.detail_url, updated_at = now()\nfrom detail_links\nwhere activity.activity_id = detail_links.activity_id;\n`
+    ? `with detail_links (activity_id, detail_url, image_url) as (\n  values\n    ${updates.map((item) => `(${sql(item.activityId)}::uuid, ${item.detailUrl ? `${sql(item.detailUrl)}::text` : 'null::text'}, ${item.imageUrl ? `${sql(item.imageUrl)}::text` : 'null::text'})`).join(',\n    ')}\n)\nupdate public.activities as activity\nset\n  website = coalesce(detail_links.detail_url, activity.website),\n  image_url = coalesce(detail_links.image_url, activity.image_url),\n  image_source_url = case when detail_links.image_url is not null then coalesce(detail_links.detail_url, activity.website, activity.source_url) else activity.image_source_url end,\n  updated_at = now()\nfrom detail_links\nwhere activity.activity_id = detail_links.activity_id;\n`
     : '-- No Happity detail-link repairs were found.\n';
   mkdirSync(dirname(outputSql), { recursive: true });
   mkdirSync(dirname(outputAudit), { recursive: true });

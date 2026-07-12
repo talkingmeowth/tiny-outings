@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" role="img" aria-label="Bookshop illustration">
+  <rect width="800" height="520" fill="#fff0c8"/><rect x="88" y="70" width="624" height="380" rx="32" fill="#fffaf0"/>
+  <rect x="136" y="125" width="528" height="26" rx="13" fill="#24413a"/><rect x="136" y="285" width="528" height="26" rx="13" fill="#24413a"/>
+  <g fill="#f08c70"><rect x="154" y="155" width="55" height="130" rx="8"/><rect x="404" y="155" width="48" height="130" rx="8"/></g>
+  <g fill="#2f8a64"><rect x="217" y="155" width="42" height="130" rx="8"/><rect x="460" y="155" width="64" height="130" rx="8"/></g>
+  <g fill="#ffd56a"><rect x="267" y="155" width="72" height="130" rx="8"/><rect x="532" y="155" width="50" height="130" rx="8"/></g>
+  <rect x="590" y="155" width="50" height="130" rx="8" fill="#aee0df"/>
+  <path d="M297 386c45-45 107-45 152 0v39H297z" fill="#aee0df"/><circle cx="374" cy="348" r="38" fill="#ffdfcc"/>
+</svg>

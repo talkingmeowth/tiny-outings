@@ -157,18 +157,24 @@ async function fetchPublishedActivities() {
     'image_url',
     'image_source_url',
   ].join(',');
-  const response = await fetch(
-    `${supabaseUrl}/rest/v1/activities?select=${columns}&public_listing_status=eq.published&order=activity_name.asc`,
-    {
-      headers: {
-        apikey: supabaseAnonKey,
-        Authorization: `Bearer ${supabaseAnonKey}`,
+  const activities = [];
+  const pageSize = 1000;
+  for (let offset = 0; ; offset += pageSize) {
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/activities?select=${columns}&public_listing_status=eq.published&order=activity_name.asc&limit=${pageSize}&offset=${offset}`,
+      {
+        headers: {
+          apikey: supabaseAnonKey,
+          Authorization: `Bearer ${supabaseAnonKey}`,
+        },
       },
-    },
-  );
+    );
 
-  if (!response.ok) throw new Error(`Could not read activities: ${response.status} ${await response.text()}`);
-  return response.json();
+    if (!response.ok) throw new Error(`Could not read activities: ${response.status} ${await response.text()}`);
+    const page = await response.json();
+    activities.push(...page);
+    if (page.length < pageSize) return activities;
+  }
 }
 
 async function searchGooglePlace(activity) {
