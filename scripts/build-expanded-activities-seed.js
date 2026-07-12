@@ -416,36 +416,78 @@ function datesFromFrequency(rawFrequency) {
 }
 
 function parseBestStartRows() {
-  const text = normalizeText(readFileSync(pdfTextPath, 'utf8'));
-  const locationMatches = [...text.matchAll(/Location:\s*/g)];
+  const rawText = readFileSync(pdfTextPath, 'utf8');
+  const lines = rawText
+    .split(/\r?\n/)
+    .map((line) => normalizeText(line))
+    .filter(Boolean);
   const rows = [];
   const seen = new Set();
+  let weekday = null;
+  let area = 'Walthamstow';
 
-  for (let index = 0; index < locationMatches.length; index += 1) {
-    const match = locationMatches[index];
-    const start = match.index;
-    const end = locationMatches[index + 1]?.index ?? text.length;
-    const previous = text.slice(Math.max(0, start - 360), start);
-    const chunk = text.slice(start, Math.min(end, start + 1300));
-    const name = lastKnownName(previous);
+  function headingWeekday(line) {
+    const value = normalizeText(line).toLowerCase();
+    return weekdayNames.find((name) => value === name.toLowerCase()
+      || value.startsWith(name.toLowerCase() + name.toLowerCase())
+      || value.startsWith(name.toLowerCase() + ' ')) || null;
+  }
+
+  function updateArea(line) {
+    const value = normalizeText(line).toLowerCase();
+    if (value.includes('chingford')) area = 'Chingford';
+    else if (value.includes('leytonstone')) area = 'Leytonstone';
+    else if (value.includes('leyton')) area = 'Queens Road';
+    else if (value.includes('walthamstow')) area = 'Walthamstow';
+  }
+
+  function field(group, fieldName) {
+    const index = group.findIndex((line) => line.toLowerCase().startsWith(`${fieldName.toLowerCase()}:`));
+    if (index < 0) return '';
+    const values = [group[index].replace(new RegExp(`^${fieldName}:\\s*`, 'i'), '')];
+    for (let cursor = index + 1; cursor < group.length; cursor += 1) {
+      const line = group[cursor];
+      if (/^(Location|Age|Time|Frequency|Cost|More information):/i.test(line)) break;
+      const nextLines = group.slice(cursor, cursor + 3).join(' ');
+      if (
+        headingWeekday(line)
+        || /^(CHINGFORD|WALTHAMSTOW|LEYTONSTONE|LEYTON)\s*\(/i.test(line)
+        || /sessions are subject|session explainer|see walthamforest|all sessions are free/i.test(line)
+        || lastKnownName(nextLines)
+        || knownBestStartNames.some((name) => normalizeText(nextLines).includes(normalizeText(name)))
+      ) break;
+      values.push(line);
+    }
+    return normalizeText(values.join(' '));
+  }
+
+  function activityNameBefore(locationIndex) {
+    const context = lines.slice(Math.max(0, locationIndex - 8), locationIndex).join(' ');
+    return lastKnownName(context);
+  }
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const foundWeekday = headingWeekday(lines[index]);
+    if (foundWeekday) weekday = foundWeekday;
+    updateArea(lines[index]);
+    if (!/^Location:/i.test(lines[index])) continue;
+
+    const end = lines.findIndex((line, cursor) => cursor > index && /^Location:/i.test(line));
+    const group = lines.slice(index, end < 0 ? Math.min(lines.length, index + 30) : end);
+    const name = activityNameBefore(index);
     if (!name || excludedBestStartNames.has(name)) continue;
 
-    const area = areaForOffset(text, start);
-    const rawLocation = extractField(chunk, 'Location', ['Age', 'Time', 'Frequency', 'Cost', 'More information']);
+    const rawLocation = field(group, 'Location');
     const location = normalizeLocation(rawLocation, area);
-    const rawTime = extractField(chunk, 'Time', ['Frequency', 'Cost', 'More information', 'Age']);
-    const rawFrequency = truncateAtNextKnownName(
-      extractField(chunk, 'Frequency', ['Cost', 'More information']),
-      name,
-    );
+    const rawTime = field(group, 'Time');
+    const rawFrequency = field(group, 'Frequency');
     if (!rawTime || !rawFrequency || !location) continue;
 
-    const rawAge = truncateAtNextKnownName(extractField(chunk, 'Age', ['Time', 'Frequency', 'Cost', 'More information']), name);
-    const rawCost = truncateAtNextKnownName(extractField(chunk, 'Cost', ['More information']), name);
-    const rawMore = truncateAtNextKnownName(extractField(chunk, 'More information', []), name);
+    const rawAge = field(group, 'Age');
+    const rawCost = field(group, 'Cost');
+    const rawMore = field(group, 'More information');
     const address = venueAddresses.get(location) || `${location}, Waltham Forest, London`;
     const { start: startTime, end: endTime } = parseTimeRange(rawTime);
-    const weekday = weekdayForOffset(text, start);
     const specificDates = datesFromFrequency(rawFrequency);
     const isWeekly = rawFrequency.toLowerCase().includes('weekly');
     const isTermTimeOnly = rawFrequency.toLowerCase().includes('term time');
@@ -812,8 +854,8 @@ on conflict (source_url) do update set
   activity_name = excluded.activity_name,
   address = excluded.address,
   postcode = excluded.postcode,
-  lat = excluded.lat,
-  long = excluded.long,
+  lat = coalesce(excluded.lat, public.activities.lat),
+  long = coalesce(excluded.long, public.activities.long),
   category = excluded.category,
   start_time = excluded.start_time,
   end_time = excluded.end_time,
