@@ -290,14 +290,6 @@ function formatDistance(miles) {
   return `${miles.toFixed(1)} mi`;
 }
 
-function formatWalk(minutes) {
-  return Number.isFinite(minutes) ? `${minutes} min walk` : null;
-}
-
-function formatDrive(minutes) {
-  return Number.isFinite(minutes) ? `${minutes} min drive` : null;
-}
-
 function isFlexibleActivity(activity) {
   const category = String(activity.category || '').toLowerCase();
   const name = String(activity.activity_name || '').toLowerCase();
@@ -1579,12 +1571,19 @@ function ActivityCard({
     ? { '--card-photo': `url("${photoUrl}")` }
     : undefined;
   const cost = activityCost(activity);
-  const distance = formatDistance(activity.distance);
-  const driveDistance = formatDistance(activity.driveDistance);
-  const walk = formatWalk(activity.walkMinutes);
-  const drive = formatDrive(activity.driveMinutes);
-  const walkText = distance && walk ? `${distance} - ${walk}` : distance;
-  const driveText = driveDistance && drive ? `${driveDistance} - ${drive}` : driveDistance;
+  const distance = formatDistance(activity.distance ?? activity.driveDistance);
+  // Google routing replaces these conservative London estimates as soon as a
+  // route is available, so every card has a complete travel summary.
+  const walkMinutes = activity.walkMinutes ?? (
+    activity.distance == null ? null : Math.max(1, Math.round(activity.distance * 20))
+  );
+  const driveMinutes = activity.driveMinutes ?? (
+    activity.driveDistance == null && activity.distance == null
+      ? null
+      : Math.max(1, Math.round((activity.driveDistance ?? activity.distance) * 6))
+  );
+  const walk = Number.isFinite(walkMinutes) ? `${walkMinutes} min` : null;
+  const drive = Number.isFinite(driveMinutes) ? `${driveMinutes} min` : null;
   const flexible = isFlexibleActivity(activity);
 
   return (
@@ -1646,8 +1645,9 @@ function ActivityCard({
               <small>{cost}</small>
             </span>
           )}
-          {walkText && <span><strong>Walk</strong><small>{walkText}</small></span>}
-          {driveText && <span><strong>Drive</strong><small>{driveText}</small></span>}
+          {distance && <span><strong>Miles</strong><small>{distance}</small></span>}
+          {walk && <span><strong>Walk</strong><small>{walk}</small></span>}
+          {drive && <span><strong>Drive</strong><small>{drive}</small></span>}
         </div>
       </div>
     </article>
