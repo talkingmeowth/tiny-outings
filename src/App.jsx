@@ -712,7 +712,7 @@ export default function App() {
     [activeSlot, activityById, shortlists],
   );
   const chosenForSlot = useMemo(
-    () => calendarEvents.find(
+    () => calendarEvents.filter(
       (event) => event.planned_date === selectedDate && event.day_window === selectedWindow,
     ),
     [calendarEvents, selectedDate, selectedWindow],
@@ -981,12 +981,11 @@ export default function App() {
       created_at: new Date().toISOString(),
     };
 
-    setCalendarEvents((current) => [
-      ...current.filter(
-        (item) => !(item.planned_date === selectedDate && item.day_window === selectedWindow),
-      ),
-      event,
-    ]);
+    setCalendarEvents((current) => {
+      const existingIndex = current.findIndex((item) => item.local_id === event.local_id);
+      if (existingIndex === -1) return [...current, event];
+      return current.map((item) => (item.local_id === event.local_id ? { ...item, ...event } : item));
+    });
 
     setLocalStatus(activity, status);
     setNotice(`${activity.activity_name} added to your week as ${statusLabels[status].toLowerCase()}.`);
@@ -1667,11 +1666,15 @@ function ShortlistPanel({
         <h2>{selectedWindow} on {formatDay(selectedDate)}</h2>
       </div>
 
-      {chosenForSlot && (
+      {chosenForSlot.length > 0 && (
         <div className="chosen-slot-card">
-          <span>In your week</span>
-          <strong>{chosenForSlot.activity.activity_name}</strong>
-          <small>{statusLabels[chosenForSlot.status]} - {chosenForSlot.visibility}</small>
+          <span>{chosenForSlot.length === 1 ? 'In your week' : `${chosenForSlot.length} in your week`}</span>
+          {chosenForSlot.map((event) => (
+            <div key={event.local_id}>
+              <strong>{event.activity.activity_name}</strong>
+              <small>{statusLabels[event.status]} - {event.visibility}</small>
+            </div>
+          ))}
         </div>
       )}
 
@@ -1717,52 +1720,56 @@ function CalendarScreen({ weekDays, calendarEvents, onOpenActivity, onUpdateEven
           <section key={day} className="calendar-day">
             <h2>{formatDay(day, 'long')}</h2>
             {dayWindows.map((windowName) => {
-              const event = calendarEvents.find(
+              const events = calendarEvents.filter(
                 (item) => item.planned_date === day && item.day_window === windowName,
               );
               return (
                 <div key={`${day}-${windowName}`} className="calendar-slot">
                   <span className="slot-name">{windowName}</span>
-                  {event ? (
-                    <article className="calendar-event">
-                      <button type="button" onClick={() => onOpenActivity(event.activity)}>
-                        <strong>{event.activity.activity_name}</strong>
-                        <span>{isFlexibleActivity(event.activity) ? 'Anytime' : `${event.start_time} to ${event.end_time}`}</span>
-                      </button>
-                      <div className="calendar-controls">
-                        <select
-                          value={event.status}
-                          onChange={(changeEvent) =>
-                            onUpdateEvent(event, { status: changeEvent.target.value })
-                          }
-                        >
-                          {statusOptions.map((status) => (
-                            <option key={status} value={status}>{statusLabels[status]}</option>
-                          ))}
-                        </select>
-                        <select
-                          value={event.visibility}
-                          onChange={(changeEvent) =>
-                            onUpdateEvent(event, { visibility: changeEvent.target.value })
-                          }
-                        >
-                          {visibilityOptions.map((visibility) => (
-                            <option key={visibility} value={visibility}>{visibility}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="export-actions">
-                        <a href={buildGoogleCalendarUrl(event)} target="_blank" rel="noreferrer">
-                          Google
-                        </a>
-                        <button type="button" onClick={() => downloadICS(event)}>
-                          ICS
-                        </button>
-                        <button type="button" onClick={() => onRemoveEvent(event)}>
-                          Remove
-                        </button>
-                      </div>
-                    </article>
+                  {events.length > 0 ? (
+                    <div className="calendar-events">
+                      {events.map((event) => (
+                        <article key={event.local_id} className="calendar-event">
+                          <button type="button" onClick={() => onOpenActivity(event.activity)}>
+                            <strong>{event.activity.activity_name}</strong>
+                            <span>{isFlexibleActivity(event.activity) ? 'Anytime' : `${event.start_time} to ${event.end_time}`}</span>
+                          </button>
+                          <div className="calendar-controls">
+                            <select
+                              value={event.status}
+                              onChange={(changeEvent) =>
+                                onUpdateEvent(event, { status: changeEvent.target.value })
+                              }
+                            >
+                              {statusOptions.map((status) => (
+                                <option key={status} value={status}>{statusLabels[status]}</option>
+                              ))}
+                            </select>
+                            <select
+                              value={event.visibility}
+                              onChange={(changeEvent) =>
+                                onUpdateEvent(event, { visibility: changeEvent.target.value })
+                              }
+                            >
+                              {visibilityOptions.map((visibility) => (
+                                <option key={visibility} value={visibility}>{visibility}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="export-actions">
+                            <a href={buildGoogleCalendarUrl(event)} target="_blank" rel="noreferrer">
+                              Google
+                            </a>
+                            <button type="button" onClick={() => downloadICS(event)}>
+                              ICS
+                            </button>
+                            <button type="button" onClick={() => onRemoveEvent(event)}>
+                              Remove
+                            </button>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
                   ) : (
                     <span className="open-slot">Free</span>
                   )}

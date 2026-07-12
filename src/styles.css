@@ -922,6 +922,11 @@ input[type='range'] {
   font-weight: 800;
 }
 
+.chosen-slot-card > div {
+  display: grid;
+  gap: 3px;
+}
+
 .shortlist-list {
   display: grid;
   gap: 10px;
@@ -1021,6 +1026,11 @@ input[type='range'] {
   background:
     radial-gradient(circle at 100% 0%, rgba(174, 224, 223, 0.36), transparent 9rem),
     rgba(47, 138, 100, 0.08);
+}
+
+.calendar-events {
+  display: grid;
+  gap: 10px;
 }
 
 .calendar-controls {
