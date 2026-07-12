@@ -35,6 +35,12 @@ const sources = [
     output: join(root, 'supabase', 'seed', 'activities_google_places_e10_10_miles.generated.sql'),
     requiresGoogleKey: true,
   },
+  {
+    name: 'local-parks',
+    script: 'build-london-parks.js',
+    output: join(root, 'supabase', 'seed', 'activities_london_parks_20260711.generated.sql'),
+    requiresGoogleKey: true,
+  },
 ];
 
 function printHelp() {

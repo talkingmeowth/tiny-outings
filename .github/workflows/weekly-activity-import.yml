@@ -52,5 +52,6 @@ jobs:
             supabase/seed/activities_eventbrite_london_baby_*.generated.sql
             supabase/seed/activities_fever_london_family_*.generated.sql
             supabase/seed/activities_google_places_e10_10_miles.generated.sql
+            supabase/seed/activities_london_parks_20260711.generated.sql
             supabase/seed/activities_waltham_forest_best_start_live.generated.sql
           if-no-files-found: warn
