@@ -1587,7 +1587,7 @@ function ActivityCard({
 
   return (
     <article
-      className={classNames('swipe-card', isTop && 'is-top', decisionClass)}
+      className={classNames('swipe-card', isTop && 'is-top', !isTop && 'is-stacked', decisionClass)}
       role="button"
       tabIndex={isTop ? 0 : -1}
       aria-label={`Open ${activity.activity_name}`}

@@ -597,8 +597,7 @@ input[type='range'] {
   grid-template-rows: minmax(180px, 0.55fr) 1fr;
   border: 1px solid rgba(36, 52, 47, 0.12);
   border-radius: 38px;
-  background:
-    linear-gradient(180deg, rgba(255, 250, 240, 0.98), rgba(255, 243, 215, 0.92));
+  background: #fffaf0;
   box-shadow: var(--shadow);
   touch-action: pan-y;
   user-select: none;
@@ -608,6 +607,16 @@ input[type='range'] {
 
 .swipe-card.is-top {
   cursor: grab;
+}
+
+/* Keep the deck cue without allowing queued-card copy to bleed through. */
+.swipe-card.is-stacked {
+  pointer-events: none;
+  background: #f8edda;
+}
+
+.swipe-card.is-stacked > * {
+  visibility: hidden;
 }
 
 .swipe-card.is-top:active {
