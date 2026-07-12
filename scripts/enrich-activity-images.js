@@ -40,6 +40,8 @@ const localEnv = readDotEnv('.env.local');
 const supabaseUrl = process.env.VITE_SUPABASE_URL || localEnv.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || localEnv.VITE_SUPABASE_ANON_KEY;
 const googleApiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_PLACES_API_KEY;
+const categoryFilter = process.env.ACTIVITY_IMAGE_CATEGORY || null;
+const sourceNameFilter = process.env.ACTIVITY_IMAGE_SOURCE_NAME || null;
 
 function decodeHtml(value) {
   return String(value || '')
@@ -427,12 +429,19 @@ async function mapWithConcurrency(items, limit, mapper) {
 
 async function main() {
   const force = process.argv.includes('--force');
+  const missingOnly = process.argv.includes('--missing-only');
   const activities = await fetchPublishedActivities();
+  const scopedActivities = activities.filter((activity) => (
+    (!categoryFilter || activity.category === categoryFilter)
+    && (!sourceNameFilter || activity.source_name === sourceNameFilter)
+  ));
   const targets = force
-    ? activities
-    : activities.filter((activity) => !activity.image_url || !activity.google_photo_url);
+    ? scopedActivities
+    : missingOnly
+      ? scopedActivities.filter((activity) => !activity.image_url && !activity.google_photo_url)
+      : scopedActivities.filter((activity) => !activity.image_url || !activity.google_photo_url);
 
-  console.log(`Found ${activities.length} published activities; enriching ${targets.length}.`);
+  console.log(`Found ${activities.length} published activities; ${scopedActivities.length} match scope; enriching ${targets.length}.`);
   console.log(googleApiKey ? 'Google Places key found; Google photos will be tried first.' : 'No Google Places key found; using website images only.');
 
   const enriched = await mapWithConcurrency(targets, googleApiKey ? 3 : 6, async (activity, index) => {

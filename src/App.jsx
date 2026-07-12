@@ -1813,7 +1813,7 @@ function ActivityDetail({
 }) {
   const googleUrl = googleEntryUrl(activity);
   const websiteUrl = activityWebsiteUrl(activity);
-  const photoUrls = activityPhotoUrls(activity);
+  const photoUrl = activityPhotoUrl(activity);
   const photoLabel = activityPhotoLabel(activity);
   const cost = activityCost(activity);
   const flexible = isFlexibleActivity(activity);
@@ -1826,16 +1826,13 @@ function ActivityDetail({
 
       <div className="detail-hero">
         <div className="detail-gallery" aria-label={`${activity.activity_name} photos`}>
-          {photoUrls.length > 0 ? (
-            photoUrls.map((url, index) => (
-              <div
-                key={url}
-                className={classNames('detail-photo', 'has-image', index === 0 && 'is-main')}
-                style={{ '--card-photo': `url("${url}")` }}
-              >
-                <span>{index === 0 ? photoLabel : 'More photos'}</span>
-              </div>
-            ))
+          {photoUrl ? (
+            <div
+              className={classNames('detail-photo', 'has-image', 'is-main')}
+              style={{ '--card-photo': `url("${photoUrl}")` }}
+            >
+              <span>{photoLabel}</span>
+            </div>
           ) : (
             <div className="detail-photo is-main">
               <span>Photo pending</span>
