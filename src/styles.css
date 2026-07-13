@@ -1228,7 +1228,10 @@ input[type='range'] {
 }
 
 .detail-content-card h1 {
-  font-size: clamp(2.2rem, 12vw, 4rem);
+  margin: 0;
+  font-size: clamp(1.55rem, 6.8vw, 2.35rem);
+  line-height: 1.12;
+  overflow-wrap: anywhere;
 }
 
 .detail-description {
@@ -1390,7 +1393,6 @@ input[type='range'] {
   }
 
   .activity-facts,
-  .detail-grid,
   .app-form,
   .calendar-controls {
     grid-template-columns: 1fr;
@@ -1413,6 +1415,12 @@ input[type='range'] {
     min-height: 40px;
     font-size: 0.68rem;
   }
+}
+
+/* Detail facts stay readable side by side on phones; one-column cards made
+   routine start/end/price details needlessly large. */
+.activity-detail-screen .detail-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 /* Mobile-app simplification overrides */
