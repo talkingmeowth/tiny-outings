@@ -4,7 +4,10 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repoRoot = dirname(dirname(fileURLToPath(import.meta.url)));
-const outputSqlPath = join(repoRoot, 'supabase', 'seed', 'activity_image_updates.generated.sql');
+// Allow a targeted enrichment run without overwriting another pending image batch.
+const outputSqlPath = process.env.ACTIVITY_IMAGE_OUTPUT
+  ? join(repoRoot, process.env.ACTIVITY_IMAGE_OUTPUT)
+  : join(repoRoot, 'supabase', 'seed', 'activity_image_updates.generated.sql');
 
 const placeFields = [
   'places.id',

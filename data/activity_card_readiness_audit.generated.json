@@ -1,0 +1,527 @@
+{
+  "generated_at": "2026-07-13T13:58:13.528Z",
+  "checked_date": "2026-07-13",
+  "checked_records": 2663,
+  "card_rendering": {
+    "missing_required_fields": 0,
+    "invalid_coordinates": 0,
+    "overlong_title_or_category": 0,
+    "real_photo_present": 2575,
+    "fallback_illustration_only": 88
+  },
+  "links": {
+    "invalid_or_wrong_source_link": 0
+  },
+  "availability": {
+    "invalid_or_stale": 0
+  },
+  "failures": {
+    "missing_required_fields": [],
+    "invalid_coordinates": [],
+    "overlong_title_or_category": [],
+    "missing_real_photo": [
+      {
+        "activity_id": "042fb677-f300-42bd-91fb-5fcb17cf13ea",
+        "activity_name": "WALTHAMSTOW CERAMICS BABY FOOTPRINT POTTERY PAINTING SESSIONS",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "06de8cd8-86bb-4672-ade9-27c4413e146c",
+        "activity_name": "COSMO PLACE",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "0728b600-25f6-4c09-b1f4-f08f64a27ede",
+        "activity_name": "KIDSLINGO PRESCHOOL FRENCH",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "0cae2ffa-cd7d-4477-9f7f-ed5a9c50b160",
+        "activity_name": "TOTS AND TINYS",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "0e9bd105-bb34-4454-970d-057b7f11b37e",
+        "activity_name": "CUBI CARS CLUB",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "0ef842d5-12e9-4366-b014-9e491302b49e",
+        "activity_name": "SYBOURN PRIMARY SCHOOL STAY AND PLAY SYBOURN PRIMARY SCHOOL",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "0f6d7fae-54e9-4875-83d5-8c222955e459",
+        "activity_name": "ADRENALIN DANCE PRODUCTIONS BREAK DANCE FOR CHILDREN",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "1a76b711-1373-4877-8b36-29ab5801373b",
+        "activity_name": "CONTAKIDS PARENT CHILD DANCE AND CREATIVE PLAY EXPERIENCE",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "1e58735a-f846-4c48-a274-9089a8db6b4d",
+        "activity_name": "Mapledene Sing and Sign Drop-in",
+        "data_source": "other"
+      },
+      {
+        "activity_id": "22dfc7d0-0bf9-41dc-b4cd-c1c9c8f72a6b",
+        "activity_name": "SHANICE POWNALL INFANT FEEDING SPECIALIST INFANT FEEDING SUPPORT WITH SHANICE",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "23af2eb3-baf3-45f9-8b09-2609441ac24e",
+        "activity_name": "ADRENALIN DANCE PRODUCTIONS ROMP AND ROLL ADULT AND TODDLER DANCE IN E5",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "23e65a31-6905-4014-9cd6-9eb813652098",
+        "activity_name": "THE FOOTBALL FUN FACTORY",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "253c78f9-121d-42e9-bf5d-5d2bae86b9eb",
+        "activity_name": "CREATIVE ARTS KIDS BALLET AND CREATIVE DANCE 3 4Y",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "260a2fec-7d70-4b8d-af6a-bd4236176164",
+        "activity_name": "THE WONDERFUL CALM BABY MASSAGE INFANT MASSAGE CLASS ISLINGTON",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "261f1d6a-0023-40c2-9b0a-743fe2dfbad6",
+        "activity_name": "Mapledene Baby Massage Course",
+        "data_source": "other"
+      },
+      {
+        "activity_id": "283496e9-c563-4685-967b-0318f8be5d0c",
+        "activity_name": "WATER BABIES 0 5",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "28e64fe9-8d1d-420e-9097-d8528b4a5cc9",
+        "activity_name": "BRIGHT STAR PERFORMING ARTS SCHOOL",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "2eaee2a8-a32e-477f-8430-3155306255b2",
+        "activity_name": "KIDSLINGO FRENCH CLASSES RECEPTION KS1",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "30123344-c832-4bba-a213-15545ff8f81a",
+        "activity_name": "PRE SCHOOL DISCO 2 5 YEAR OLDS WITH DEEJAVE 10 11AM",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "305fa7dc-47cd-40b8-a193-55fe8edb3f5b",
+        "activity_name": "BRIGHT STAR PERFORMING ARTS SCHOOL",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "31a36dbd-31a1-40be-805b-19d245b23f8a",
+        "activity_name": "PUPSTER AND PALS PUPSTER AND PALS BABIES AND TODDLERS",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "32fbc3d0-59ed-4860-baec-bd8a4c4f3289",
+        "activity_name": "Baby Dance by Wee Movers",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "3310fafe-cce4-464c-bdaf-02b40ce81b1b",
+        "activity_name": "Mapledene Stay and Play with Soft Play",
+        "data_source": "other"
+      },
+      {
+        "activity_id": "37499fef-edeb-4d4a-8d52-d6ac1ef20759",
+        "activity_name": "WATER BABIES 0 5",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "3abbd045-e176-46cc-9183-79653608143d",
+        "activity_name": "JO JINGLES JO JINGLERS",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "3ceca716-5786-489d-80e9-0113577357ea",
+        "activity_name": "GEMMA DEAN LIFE COACHING MINDFUL PARENT HUB",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "3f2bd4f3-f149-4e13-9397-ed9a3ef065d9",
+        "activity_name": "THE FUNNCLUBB BABYBALLERS STRAWBERRY CLASS FOOTBALL",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "4065fea1-5c39-46d1-923e-690f482b192e",
+        "activity_name": "Play Area",
+        "data_source": "google_places"
+      },
+      {
+        "activity_id": "416e9a9f-dc9e-4eea-8869-4655dba6906b",
+        "activity_name": "SHANICE POWNALL INFANT FEEDING SPECIALIST INFANT FEEDING SUPPORT WITH SHANICE",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "41ceda2a-b9bb-4cf1-ad94-01ae2485a6e1",
+        "activity_name": "WATER BABIES 0 5",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "44831cb3-773a-46bb-91e7-1c449164bda9",
+        "activity_name": "MUMMY S DAY OUT MAMA MEET UP WALK",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "4668b711-5aa7-448a-af80-8dc7e13ed617",
+        "activity_name": "SHANICE POWNALL INFANT FEEDING SPECIALIST INFANT FEEDING SUPPORT WITH SHANICE",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "4ef05251-f49d-48db-bc21-8056546a25cd",
+        "activity_name": "MILLFIELD S CHILDREN S CENTRE STAY AND PLAY AT MILLFIELDS",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "50a7fa96-ea0c-4223-b4ee-927db68c7a0f",
+        "activity_name": "MILLFIELD S CHILDREN S CENTRE STAY AND PLAY AT MILLFIELDS",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "527ecaac-d147-4d47-85fb-fc0666b36d8c",
+        "activity_name": "BABY SENSORY YOUNGER BABIES",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "53f45429-c63f-42b8-9879-f4785befbfab",
+        "activity_name": "Playground",
+        "data_source": "google_places"
+      },
+      {
+        "activity_id": "5c18fbcb-5a5e-4aca-a262-ebbb6ba0c2e0",
+        "activity_name": "Mapledene Messy Play with Physical Literacy",
+        "data_source": "other"
+      },
+      {
+        "activity_id": "5f10c38a-1938-4e7f-9ef2-d369463afbfb",
+        "activity_name": "BABY SENSORY OLDER BABIES",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "60b2feb5-8da1-4079-b1f0-8f23f677170b",
+        "activity_name": "Play Area",
+        "data_source": "google_places"
+      },
+      {
+        "activity_id": "61a3f298-2bbc-4215-9fcd-91f4eb84c4cf",
+        "activity_name": "Little Boo Stories Mini Boo Interactive Stories",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "6563ac02-67f8-4447-ba09-64046ce71dde",
+        "activity_name": "Wilton Estate Play Area",
+        "data_source": "google_places"
+      },
+      {
+        "activity_id": "68eb13eb-e428-4ce1-82eb-bb332dbb9fbf",
+        "activity_name": "THE TOY PROJECT PRE SCHOOL STORIES THROUGH ART",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "699b622c-8e08-4f71-a7ca-380174ecc168",
+        "activity_name": "A1 JUDO CLUB JUDO TOTS",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "6a958406-5d76-43a9-9992-c6b04b4da2a7",
+        "activity_name": "The Castle Play Space Stay and Play",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "6c4858ae-55ea-4bf2-b034-5200a3179993",
+        "activity_name": "SHANICE POWNALL INFANT FEEDING SPECIALIST INFANT FEEDING SUPPORT WITH SHANICE",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "6edd5885-e12c-460a-9fde-33e13f3af2be",
+        "activity_name": "DANI GRANT SCHOOL OF DANCE GRADE 1 BALLET CLASS",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "6f6eaf2f-5e06-4898-89ce-10fbf6c95d51",
+        "activity_name": "Playground",
+        "data_source": "google_places"
+      },
+      {
+        "activity_id": "75eab9fa-6c16-41a5-bcfb-c3de66aa21a9",
+        "activity_name": "ADRENALIN DANCE PRODUCTIONS BOP CREATIVE DANCE IN E5",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "77c72dc4-87bc-4879-9d31-b60d1f10a60f",
+        "activity_name": "MILLFIELD S CHILDREN S CENTRE STAY AND PLAY AT MILLFIELDS",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "78ec0175-552a-48c2-b071-f2e468db1095",
+        "activity_name": "Blank street",
+        "data_source": "google_places"
+      },
+      {
+        "activity_id": "800f5888-2167-4c02-9783-fcac052aaa77",
+        "activity_name": "MILLFIELD S CHILDREN S CENTRE STAY AND PLAY AT MILLFIELDS",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "89b37dc5-1d7c-4dfe-be2e-e7eb98673b16",
+        "activity_name": "Boppin Bunnies Pre school Music",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "8d8895e6-b7cb-49fe-8be6-3b8b4dce6051",
+        "activity_name": "PRE SCHOOL DISCO 2 5 YEAR OLDS WITH DEEJAVE 10 11AM",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "9175b612-07b4-428e-9bcf-50e8864bc308",
+        "activity_name": "children's books",
+        "data_source": "google_places"
+      },
+      {
+        "activity_id": "926209cc-91e3-408b-abf5-c49bca906b30",
+        "activity_name": "MONTESSORI BABY AND TODDLER GROUP",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "99c97c4d-1d5b-4977-a54a-a410898db0e5",
+        "activity_name": "BABY SENSORY YOUNGER BABIES",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "9afec450-b0a0-4399-a9e8-0a12d8473f91",
+        "activity_name": "St James Park playground",
+        "data_source": "google_places"
+      },
+      {
+        "activity_id": "a4182cba-b9db-4e8c-bf0e-72c1751b3d4c",
+        "activity_name": "Spot starbucks",
+        "data_source": "google_places"
+      },
+      {
+        "activity_id": "a56d9947-0692-407d-9a87-a5671a6be317",
+        "activity_name": "HER VILLAGE MATERNITY ANTENATAL CLASS THE INFORMED BIRTH PROGRAMME",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "a5cfa858-ba62-471a-b83c-723d8dd14c1b",
+        "activity_name": "A1 JUDO CLUB JUDO TOTS",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "aa9c70c1-055c-4371-9f42-6dfcc6063b00",
+        "activity_name": "MINI STREET DANCE WITH DANCE STABLES",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "acf32363-088d-42bc-987f-31b327905e21",
+        "activity_name": "Dyers Hall Playground",
+        "data_source": "google_places"
+      },
+      {
+        "activity_id": "ad1fa791-f25b-43c0-8968-1b77f36cf6e9",
+        "activity_name": "Mapledene Music and Movement - 2 to 5 years",
+        "data_source": "other"
+      },
+      {
+        "activity_id": "aebba1e3-d615-44a2-9b5b-3f81a5c4c03f",
+        "activity_name": "CREATIVE ARTS KIDS BALLET AND CREATIVE DANCE 5 7Y",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "b09b3447-f54c-486f-b21d-72fafc4a422a",
+        "activity_name": "GRACE CHURCH WANSTEAD GRACE CHURCH TOTS",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "b4eb9f77-0856-4d42-b429-dcb81bf9f3a6",
+        "activity_name": "DANCE STUDIO NIKA",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "b528b6d2-a8b5-41d0-9b2b-fdb07dd36b37",
+        "activity_name": "SHANICE POWNALL INFANT FEEDING SPECIALIST INFANT FEEDING SUPPORT WITH SHANICE",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "b7dd213e-aef6-4700-918a-49a01915b2fe",
+        "activity_name": "MINI BALLET WITH DANCE STABLES",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "ba7b2977-6460-46da-b3a4-dbab2532a3bd",
+        "activity_name": "Playground",
+        "data_source": "google_places"
+      },
+      {
+        "activity_id": "bc419b66-0dfa-4dfd-a523-8979bb99cf1a",
+        "activity_name": "Mapledene Music and Movement - 0 to 2 years",
+        "data_source": "other"
+      },
+      {
+        "activity_id": "c165d1b9-77ef-4598-81c1-39bc7e4d42f4",
+        "activity_name": "ADRENALIN DANCE PRODUCTIONS BREAK DANCE FOR CHILDREN",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "c2f1194c-53f1-48aa-ae35-3226aa9f0348",
+        "activity_name": "Avondale Court Play Area",
+        "data_source": "google_places"
+      },
+      {
+        "activity_id": "ca790bfe-05f5-4491-9b89-0de28c7316a9",
+        "activity_name": "THE TOY PROJECT PRE SCHOOL STORIES THROUGH ART",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "cbbc047b-c8ec-4689-836b-23138ca82217",
+        "activity_name": "DANCE STABLES JUNIOR BALLET 6 12 YEAR OLDS",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "d2f08095-c7aa-4f7d-bd73-f195cbc7c3b9",
+        "activity_name": "NUMBER TRAIN",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "dbd02590-2d80-4457-8843-962937d7fa29",
+        "activity_name": "JO JINGLES BABY JINGLES",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "e3381038-3a86-4458-8f3c-1def3a577506",
+        "activity_name": "PRE SCHOOL DISCO 2 5 YEAR OLDS WITH DEEJAVE 10 11AM",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "e3dbd48b-96b9-4699-a7e9-7f7246facd01",
+        "activity_name": "Carpenters Play Area",
+        "data_source": "google_places"
+      },
+      {
+        "activity_id": "e413250b-76f1-476d-abb4-eb9fbbf6d842",
+        "activity_name": "Playground",
+        "data_source": "google_places"
+      },
+      {
+        "activity_id": "e72038f0-e2b0-4185-b7ee-5751483c5d60",
+        "activity_name": "SHANICE POWNALL INFANT FEEDING SPECIALIST INFANT FEEDING SUPPORT WITH SHANICE",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "e7f2e656-bd4d-417a-83ba-d9f20ff2ef4a",
+        "activity_name": "CREATIVE ARTS KIDS BALLET AND CREATIVE DANCE 5 7Y",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "ebfddbc1-8fb8-48e6-8b72-c74dcaf6b8ce",
+        "activity_name": "WATER BABIES 0 5",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "eedf9442-0dde-4915-8765-8d0b23ff6df3",
+        "activity_name": "NEWHAM CHINESE SCHOOL",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "f0cb5f2d-293b-49fa-856a-1de0aef71ed6",
+        "activity_name": "East West Bank Nature Reserve",
+        "data_source": "google_places"
+      },
+      {
+        "activity_id": "f635ea7a-aac7-4599-91bf-70be7b9e3e96",
+        "activity_name": "CREATIVE ARTS KIDS BALLET AND CREATIVE DANCE 5 7Y",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "f665a72e-2b1c-42d9-9d4d-ebfb98a7a401",
+        "activity_name": "A1 JUDO CLUB PARENT and CHILD JUDO TOTS CLASS 2 5 YEAR OLDS",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "fa0917ec-d5d0-4054-b866-be5ad23ab6e0",
+        "activity_name": "MILLFIELD S CHILDREN S CENTRE STAY AND PLAY AT MILLFIELDS",
+        "data_source": "happity"
+      },
+      {
+        "activity_id": "fb6b4bc4-ff41-4122-b879-0b70cf3e2dd6",
+        "activity_name": "MILLFIELD S CHILDREN S CENTRE 4 WEEK BABY MASSAGE COURSE",
+        "data_source": "happity"
+      }
+    ],
+    "links": [],
+    "availability": []
+  },
+  "network": {
+    "unique_website_urls": 2513,
+    "website_statuses": {
+      "source_blocked_403": 56,
+      "reachable": 936,
+      "source_blocked_429": 1486,
+      "network_error": 6,
+      "http_404": 19,
+      "http_403": 1,
+      "http_520": 1,
+      "http_307": 3,
+      "timeout": 2,
+      "http_500": 2,
+      "http_409": 1
+    },
+    "unique_image_urls": 1392,
+    "image_statuses": {
+      "reachable": 1157,
+      "google_photo_reference": 234,
+      "invalid_url": 1
+    },
+    "broken_websites": [
+      "https://beeyondcafe.com/",
+      "https://uk.westfield.com/stratfordcity/stores/all-stores/biodiversity-playground/60181",
+      "https://blackcathackney.com/",
+      "http://www.stmartin-in-the-fields.org/cafe-in-the-crypt/cafe-in-the-courtyard/",
+      "https://www.newhambooks.co.uk/",
+      "https://www.newham.gov.uk/Pages/ServiceChild/Find-your-local-park.aspx",
+      "https://www.walthamforest.gov.uk/regeneration-and-growth/regeneration-projects-and-developments/regeneration-highams-park/cheney-row?gmb",
+      "http://hoxtonbooks.co.uk/",
+      "http://www.islington.gov.uk/services/parks-environment/parks/your_parks/greenspace_az/greenspace_h/Pages/highbury_fields.aspx",
+      "http://www.islington.gov.uk/services/parks-environment/parks/your_parks/greenspace_az/greenspace_b/Pages/bingfield_park.aspx",
+      "https://www.marchpanebooks.com/%20%20%20%20email%20us%20at:%20shop@marchpanebooks.com",
+      "http://www.eastlondonbookshop.com/",
+      "http://lef-beautifulbooks.co.uk/",
+      "https://www.tolpuddlecafe.co.uk/?utm_source=referral&utm_medium=gmb&utm_campaign=gmb",
+      "http://www.barnesbookshop.com/",
+      "https://www.younghackney.org/organisation/hackney-marsh-adventure-playground",
+      "http://www.hackney.gov.uk/clapton-square.htm",
+      "https://bills-website.co.uk/restaurants/covent-garden/?utm_source=LocalGoogle&utm_medium=Organic",
+      "https://woodlandcafelondon.com/",
+      "https://victoriahouseco.com/",
+      "https://goo.gl/maps/XXXX",
+      "https://www.whufc.com/fans/memorialgarden",
+      "http://www.hackney.gov.uk/west-hackney-recreation-ground.htm",
+      "http://www.islington.gov.uk/services/parks-environment/parks/your_parks/greenspace_az/greenspace_j/Pages/joseph_grimaldi.aspx",
+      "https://hackney.gov.uk/parks-a-z",
+      "http://www.hackney.gov.uk/butterfield-green.htm",
+      "https://www.clissoldpark.com/facilities/",
+      "https://www.bistrolovage.com/",
+      "https://www.lbhf.gov.uk/sports-and-parks/parks-and-open-spaces/bishops-park",
+      "https://bills-website.co.uk/restaurants/stratford/?utm_source=LocalGoogle&utm_medium=Organic",
+      "http://www.burleyfisherbooks.com/",
+      "http://www.vagabond.london/",
+      "https://www.thesunflower.cafe/",
+      "https://www.abneybooks.com/",
+      "http://www.kids.org.uk/Event/hayward-adventure-playground"
+    ],
+    "broken_images": []
+  }
+}

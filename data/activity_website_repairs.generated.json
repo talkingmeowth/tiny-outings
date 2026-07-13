@@ -1,0 +1,18 @@
+{
+  "generated_at": "2026-07-13T13:56:44.920Z",
+  "broken_urls_checked": 36,
+  "repairs": [
+    {
+      "activityId": "1a76b711-1373-4877-8b36-29ab5801373b",
+      "activityName": "CONTAKIDS PARENT CHILD DANCE AND CREATIVE PLAY EXPERIENCE",
+      "website": "https://www.londonfieldsfitness.com/",
+      "googlePlaceUri": "https://maps.google.com/?cid=14851819592347585528&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA"
+    },
+    {
+      "activityId": "7853f204-f1e2-4030-af5e-7a4ac62f831e",
+      "activityName": "Hackney Museum family visit",
+      "website": "https://hackney-museum.hackney.gov.uk/",
+      "googlePlaceUri": "https://maps.google.com/?cid=438563270895334297&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA"
+    }
+  ]
+}
