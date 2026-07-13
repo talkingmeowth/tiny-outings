@@ -4,7 +4,7 @@ import { supabase } from './supabaseClient';
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
 // Reset outdated swipe/filter state without touching planned calendar entries.
-const planningStorageVersion = '2026-07-13-source-filter-audit';
+const planningStorageVersion = '2026-07-13-happity-schedule-validation';
 const statusOptions = ['booked', 'tentative'];
 const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const activitySelectColumns = [
@@ -239,7 +239,9 @@ function normalizeActivity(activity) {
     activity_id: String(activity.activity_id),
     start_time: String(activity.start_time || '09:00').slice(0, 5),
     end_time: String(activity.end_time || '10:00').slice(0, 5),
-    time_window: activity.time_window || toWindow(activity.start_time),
+    // A source import can carry an old derived window. The visible card and
+    // its swipe slot must always follow the actual scheduled start time.
+    time_window: toWindow(activity.start_time),
     category: activity.category || activity.google_primary_type || 'parent friendly',
     lat: numericOrNull(activity.lat),
     long: numericOrNull(activity.long),

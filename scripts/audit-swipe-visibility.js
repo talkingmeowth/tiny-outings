@@ -59,7 +59,7 @@ async function fetchSourceActivities(url, key, source) {
   const rows = [];
   for (let offset = 0; ; offset += 1000) {
     const params = new URLSearchParams({
-      select: 'activity_id,activity_name,data_source,category,description,age_suitability,start_time,available_days_of_week,days_of_week,available_dates,activity_date,availability_start_date,availability_end_date,availability_type',
+      select: 'activity_id,activity_name,data_source,category,description,age_suitability,start_time,end_time,time_window,available_days_of_week,days_of_week,available_dates,activity_date,availability_start_date,availability_end_date,availability_type',
       public_listing_status: 'eq.published',
       data_source: `eq.${source}`,
       order: 'activity_id.asc',
@@ -91,6 +91,23 @@ for (const source of sources) {
   const babyClassRows = slotRows.filter(isBabyClass);
   console.log(`${source}: ${rows.length} published, ${slotRows.length} in slot, ${babyClassRows.length} match Baby classes`);
 }
+
+const happityRows = allRows.filter((row) => row.data_source === 'happity');
+const validWeekdays = new Set(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']);
+const scheduleIssues = happityRows.filter((row) => {
+  const days = row.available_days_of_week?.length ? row.available_days_of_week : row.days_of_week || [];
+  const invalidDay = days.some((day) => !validWeekdays.has(canonicalWeekday(day)));
+  const invalidTime = !/^([01]\d|2[0-3]):[0-5]\d/.test(String(row.start_time || ''))
+    || !/^([01]\d|2[0-3]):[0-5]\d/.test(String(row.end_time || ''));
+  const mismatchedWindow = row.time_window && row.time_window !== timeWindow(row);
+  const noSchedule = !row.activity_date && !row.available_dates?.length && !days.length;
+  return invalidDay || invalidTime || String(row.end_time) <= String(row.start_time) || mismatchedWindow || noSchedule;
+});
+
+if (scheduleIssues.length) {
+  throw new Error(`Happity schedule audit failed for ${scheduleIssues.length} records.`);
+}
+console.log(`PASS: all ${happityRows.length} Happity records have valid days, times, and swipe windows.`);
 
 const zipZap = allRows.find((row) => row.data_source === 'happity'
   && row.activity_name.toLowerCase() === 'zip zap babies'
