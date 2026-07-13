@@ -1661,7 +1661,6 @@ function ActivityCard({
         <p className="card-description">
           {activity.description || 'Tap for the latest details.'}
         </p>
-        {activity.address && <p className="card-address">{activity.address}</p>}
 
         <div className="card-summary">
           {flexible ? (
@@ -1900,7 +1899,6 @@ function ActivityDetail({
               <small>{formatAvailability(activity)}</small>
             </span>
           )}
-          <span><strong>Reviews</strong><small>{activity.google_user_rating_count || activity.number_of_reviews || 0}</small></span>
           <span><strong>Age</strong><small>{activity.age_suitability || 'Under 5s'}</small></span>
         </div>
 
