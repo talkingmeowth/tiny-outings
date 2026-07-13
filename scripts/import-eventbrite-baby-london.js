@@ -13,9 +13,6 @@ const pageConcurrency = Math.max(1, Number.parseInt(process.env.EVENTBRITE_PAGE_
 const pageDelayMs = Math.max(0, Number.parseInt(process.env.EVENTBRITE_PAGE_DELAY_MS || '1800', 10));
 const detailConcurrency = Math.max(1, Number.parseInt(process.env.EVENTBRITE_DETAIL_CONCURRENCY || '1', 10));
 const detailDelayMs = Math.max(0, Number.parseInt(process.env.EVENTBRITE_DETAIL_DELAY_MS || '1000', 10));
-const googleApiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_PLACES_API_KEY;
-// Weekly imports require a verified venue so the app's distance filters remain accurate.
-const enrichGoogle = process.env.EVENTBRITE_ENRICH_GOOGLE !== '0' && Boolean(googleApiKey);
 
 function readDotEnv(name) {
   try {
@@ -33,6 +30,12 @@ function readDotEnv(name) {
 const localEnv = readDotEnv('.env.local');
 const supabaseUrl = process.env.VITE_SUPABASE_URL || localEnv.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || localEnv.VITE_SUPABASE_ANON_KEY;
+const googleApiKey = process.env.GOOGLE_MAPS_API_KEY
+  || process.env.GOOGLE_PLACES_API_KEY
+  || localEnv.GOOGLE_MAPS_API_KEY
+  || localEnv.VITE_GOOGLE_MAPS_API_KEY;
+// Weekly imports require a verified venue so the app's distance filters remain accurate.
+const enrichGoogle = process.env.EVENTBRITE_ENRICH_GOOGLE !== '0' && Boolean(googleApiKey);
 
 function sql(value) {
   if (value === null || value === undefined || value === '') return 'null';
@@ -48,9 +51,31 @@ function cleanText(value) {
   return String(value || '').replace(/\s+/g, ' ').trim();
 }
 
+function canonicalEventbriteUrl(value) {
+  try {
+    const url = new URL(String(value || ''));
+    if (!/(^|\.)eventbrite\.co\.uk$/i.test(url.hostname)) return null;
+    url.protocol = 'https:';
+    url.hostname = 'www.eventbrite.co.uk';
+    url.search = '';
+    url.hash = '';
+    url.pathname = url.pathname.replace(/\/+$/, '');
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
 function plainEventName(value) {
   return cleanText(value).normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
     .replaceAll('&', ' and ').replace(/[^A-Za-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function isBabyRelatedEvent(event) {
+  const text = cleanText(`${event.name || ''} ${event.description || ''}`).toLowerCase();
+  const babyOrParentSignal = /\b(baby|babies|infant|newborn|toddler|under[- ]?5|mum|mom|mother|dad|parent|postnatal|postpartum|maternity|pram|buggy|nappy|bach to baby|babywearing|breastfeed|rhyme|story ?time|sensory|play ?group|stay and play|soft play)\b/.test(text);
+  const childActivitySignal = /\b(family\s+(?:rave|concert|cinema|theatre|show|workshop|craft)|children'?s?\s+(?:theatre|show|workshop|craft|music|dance)|kids?\s+(?:theatre|show|workshop|craft|music|dance)|puppet\s+(?:show|theatre))\b/.test(text);
+  return babyOrParentSignal || childActivitySignal;
 }
 
 function postcode(value) {
@@ -89,11 +114,26 @@ function categoryForEvent(event) {
 
 function eventJsonLd(html) {
   const scripts = [...html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+  const findEvent = (value) => {
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        const event = findEvent(item);
+        if (event) return event;
+      }
+      return null;
+    }
+    if (!value || typeof value !== 'object') return null;
+    const types = Array.isArray(value['@type']) ? value['@type'] : [value['@type']];
+    if (types.some((type) => String(type || '').toLowerCase() === 'event')) return value;
+    for (const nested of Object.values(value)) {
+      const event = findEvent(nested);
+      if (event) return event;
+    }
+    return null;
+  };
   for (const script of scripts) {
     try {
-      const value = JSON.parse(script[1]);
-      const values = Array.isArray(value) ? value : [value];
-      const event = values.find((item) => String(item?.['@type'] || '').endsWith('Event'));
+      const event = findEvent(JSON.parse(script[1]));
       if (event) return event;
     } catch {
       // Ignore unrelated or malformed structured data.
@@ -122,7 +162,9 @@ async function fetchHtml(url) {
 }
 
 function eventUrls(html) {
-  return [...new Set([...html.matchAll(/https:\/\/www\.eventbrite\.co\.uk\/e\/[^"'<>\s?]+/g)].map((match) => match[0]))];
+  return [...new Set([...html.matchAll(/https:\/\/www\.eventbrite\.co\.uk\/e\/[^"'<>\s?]+/g)]
+    .map((match) => canonicalEventbriteUrl(match[0]))
+    .filter(Boolean))];
 }
 
 function pageCount(html) {
@@ -176,12 +218,17 @@ async function existingSourceUrls() {
   const urls = new Set();
   for (let offset = 0; ; offset += 1000) {
     const response = await fetch(
-      `${supabaseUrl}/rest/v1/activities?select=source_url&public_listing_status=eq.published&source_url=not.is.null&limit=1000&offset=${offset}`,
+      `${supabaseUrl}/rest/v1/activities?select=source_url,website&limit=1000&offset=${offset}`,
       { headers: { apikey: supabaseAnonKey, Authorization: `Bearer ${supabaseAnonKey}` } },
     );
     if (!response.ok) throw new Error(`Could not read activities: ${response.status}`);
     const page = await response.json();
-    page.forEach((row) => urls.add(row.source_url));
+    page.forEach((row) => {
+      [row.source_url, row.website].forEach((value) => {
+        const url = canonicalEventbriteUrl(value);
+        if (url) urls.add(url);
+      });
+    });
     if (page.length < 1000) return urls;
   }
 }
@@ -194,9 +241,9 @@ function toRow(event, place) {
   const end = event.endDate ? new Date(event.endDate) : new Date(start.getTime() + 60 * 60 * 1000);
   const offer = Array.isArray(event.offers) ? event.offers[0] : event.offers;
   const lowPrice = Number(offer?.lowPrice);
-  const cost = Number.isFinite(lowPrice) ? `£${lowPrice.toFixed(2)} per ticket` : 'Check Eventbrite';
+  const cost = Number.isFinite(lowPrice) ? `GBP ${lowPrice.toFixed(2)} per ticket` : 'Check Eventbrite';
   const address = place?.formattedAddress || eventAddress;
-  const eventUrl = event.url;
+  const eventUrl = canonicalEventbriteUrl(event.url) || event.url;
   return {
     activity_name: plainEventName(event.name),
     address,
@@ -264,6 +311,9 @@ function rowSql(row) {
 }
 
 function buildSql(rows) {
+  if (!rows.length) {
+    return `-- Generated by scripts/import-eventbrite-baby-london.js\n-- Source: ${listingUrl}\n-- No net-new Eventbrite baby listings were found.\n`;
+  }
   return `-- Generated by scripts/import-eventbrite-baby-london.js\n-- Source: ${listingUrl}\n\ninsert into public.activities (\n  ${columns.join(',\n  ')}\n)\nvalues\n${rows.map((row) => `(${rowSql(row)})`).join(',\n')}\non conflict (source_url) do nothing;\n`;
 }
 
@@ -287,34 +337,53 @@ async function main() {
   });
   const urls = [...new Set(pages.flatMap((page) => page.urls))];
   const existing = await existingSourceUrls();
+  const newUrls = urls.filter((url) => !existing.has(url));
   const minimumDate = new Date();
   minimumDate.setHours(0, 0, 0, 0);
-  const audit = await mapWithConcurrency(urls, detailConcurrency, async (url) => {
+  const audit = [
+    ...urls.filter((url) => existing.has(url)).map((url) => ({ url, status: 'existing', reason: 'Already in activities table' })),
+    ...await mapWithConcurrency(newUrls, detailConcurrency, async (url) => {
     try {
       const event = eventJsonLd(await fetchHtml(url));
       await delay(detailDelayMs);
       if (!event) return { url, status: 'skipped', reason: 'No event structured data' };
+      const eventUrl = canonicalEventbriteUrl(event.url) || url;
+      if (existing.has(eventUrl)) return { url, name: event.name, status: 'existing', reason: 'Already in activities table' };
       const start = new Date(event.startDate);
       const address = cleanText(`${event.location?.address?.streetAddress || ''}, ${event.location?.address?.addressLocality || ''}`);
       if (event.eventStatus?.includes('EventCancelled') || Number.isNaN(start.valueOf()) || start < minimumDate) {
         return { url, name: event.name, status: 'skipped', reason: 'Past or cancelled event' };
       }
+      if (!isBabyRelatedEvent(event)) return { url, name: event.name, status: 'skipped', reason: 'Not baby related' };
       if (!/london/i.test(address)) return { url, name: event.name, status: 'skipped', reason: 'Outside London' };
       const place = await googlePlace(`${event.location?.name || ''}, ${address}`, postcode(address));
       if (!place?.location) {
         return { url, name: event.name, status: 'skipped', reason: 'No verified Google Places coordinate' };
       }
-      return { url, name: event.name, status: existing.has(event.url) ? 'existing' : 'ready', event, place };
+      return { url: eventUrl, name: event.name, status: 'ready', event: { ...event, url: eventUrl }, place };
     } catch (error) {
       return { url, status: 'error', reason: error.message };
     }
+  }),
+  ];
+  // Directory pages can expose the same Eventbrite event through more than one
+  // card. Keep the first verified detail record for each canonical event URL.
+  const readyEventUrls = new Set(existing);
+  const deduplicatedAudit = audit.map((item) => {
+    if (item.status !== 'ready') return item;
+    const eventUrl = canonicalEventbriteUrl(item.event?.url) || item.url;
+    if (readyEventUrls.has(eventUrl)) {
+      return { ...item, status: 'duplicate', reason: 'Duplicate Eventbrite URL discovered' };
+    }
+    readyEventUrls.add(eventUrl);
+    return item;
   });
-  const rows = audit.filter((item) => item.status === 'ready').map((item) => toRow(item.event, item.place));
+  const rows = deduplicatedAudit.filter((item) => item.status === 'ready').map((item) => toRow(item.event, item.place));
   rows.sort((left, right) => left.activity_date.localeCompare(right.activity_date) || left.start_time.localeCompare(right.start_time));
   mkdirSync(dirname(outputSql), { recursive: true });
   mkdirSync(dirname(outputAudit), { recursive: true });
   writeFileSync(outputSql, buildSql(rows));
-  const auditRows = audit.map(({ event, place, ...item }) => ({
+  const auditRows = deduplicatedAudit.map(({ event, place, ...item }) => ({
     ...item,
     event: event ? { name: event.name, startDate: event.startDate, location: event.location } : null,
     google_place_id: place?.id || null,
@@ -325,6 +394,9 @@ async function main() {
     pages_scanned: pageNumbers.length,
     page_range: `${requestedStartPage}-${lastPage}`,
     pages_available: availablePages,
+    cards_discovered: urls.length,
+    cards_already_in_database: urls.length - newUrls.length,
+    cards_queued_for_enrichment: newUrls.length,
     google_enrichment: enrichGoogle,
     page_errors: pages.filter((page) => page.error).map(({ page, error }) => ({ page, error })),
     audit: auditRows,
