@@ -4,7 +4,7 @@ import { supabase } from './supabaseClient';
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
 // Reset outdated swipe/filter state without touching planned calendar entries.
-const planningStorageVersion = '2026-07-13-happity-schedule-validation';
+const planningStorageVersion = '2026-07-13-event-swipe-validation';
 const statusOptions = ['booked', 'tentative'];
 const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const activitySelectColumns = [
@@ -613,7 +613,9 @@ export default function App() {
       weekStart: stored.weekStart || defaults.weekStart,
       // Categories always begin broad. Parents can narrow them for the current session.
       interests: defaults.interests,
-      includeEvents: stored.includeEvents !== false,
+      // Events start on for every fresh app version. Older cached filters could
+      // leave a populated events directory invisible after an import.
+      includeEvents: true,
     };
   });
   const [userLocation, setUserLocation] = useState(null);

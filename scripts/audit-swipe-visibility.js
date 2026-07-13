@@ -93,6 +93,7 @@ for (const source of sources) {
 }
 
 const happityRows = allRows.filter((row) => row.data_source === 'happity');
+const eventRows = allRows.filter((row) => isEventSource(row));
 const validWeekdays = new Set(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']);
 const scheduleIssues = happityRows.filter((row) => {
   const days = row.available_days_of_week?.length ? row.available_days_of_week : row.days_of_week || [];
@@ -109,13 +110,38 @@ if (scheduleIssues.length) {
 }
 console.log(`PASS: all ${happityRows.length} Happity records have valid days, times, and swipe windows.`);
 
+const eventScheduleIssues = eventRows.flatMap((row) => {
+  const explicitDates = Array.isArray(row.available_dates)
+    ? row.available_dates.map((date) => String(date).slice(0, 10))
+    : [];
+  const dates = [...new Set([row.activity_date ? String(row.activity_date).slice(0, 10) : null, ...explicitDates].filter(Boolean))];
+  const days = row.available_days_of_week?.length ? row.available_days_of_week : row.days_of_week || [];
+  const issues = [];
+  if (!dates.length && !days.length && !row.availability_start_date && !row.availability_end_date) issues.push('no_availability');
+  if (!/^([01]\d|2[0-3]):[0-5]\d/.test(String(row.start_time || ''))
+    || !/^([01]\d|2[0-3]):[0-5]\d/.test(String(row.end_time || ''))
+    || String(row.end_time) <= String(row.start_time)) issues.push('invalid_time_range');
+  if (row.time_window && row.time_window !== timeWindow(row)) issues.push('time_window_mismatch');
+  for (const date of dates) {
+    if (!isAvailableOn(row, date)) issues.push(`not_visible_on_${date}`);
+    const weekday = canonicalWeekday(weekdayName(date));
+    if (days.length && !days.some((day) => canonicalWeekday(day) === weekday)) issues.push(`weekday_mismatch_${date}`);
+  }
+  return issues.map((issue) => ({ activity_id: row.activity_id, activity_name: row.activity_name, issue }));
+});
+
+if (eventScheduleIssues.length) {
+  throw new Error(`Event schedule audit failed for ${eventScheduleIssues.length} checks: ${JSON.stringify(eventScheduleIssues.slice(0, 5))}`);
+}
+console.log(`PASS: all ${eventRows.length} Eventbrite and Fever listings are visible on their stored dates and time slots.`);
+
 const zipZap = allRows.find((row) => row.data_source === 'happity'
   && row.activity_name.toLowerCase() === 'zip zap babies'
   && row.available_days_of_week?.some((day) => canonicalWeekday(day) === 'thursday')
   && String(row.start_time).startsWith('11:00'));
 
-if (!zipZap || !isAvailableOn(zipZap, targetDate) || timeWindow(zipZap) !== targetWindow || !isBabyClass(zipZap)) {
+if (weekdayName(targetDate) === 'Thursday' && targetWindow === 'morning' && (!zipZap || !isAvailableOn(zipZap, targetDate) || timeWindow(zipZap) !== targetWindow || !isBabyClass(zipZap))) {
   throw new Error('Zip Zap Babies failed the Thursday morning visibility audit.');
 }
 
-console.log(`PASS: ${zipZap.activity_name} is visible as a Thursday morning Baby classes result.`);
+if (weekdayName(targetDate) === 'Thursday' && targetWindow === 'morning') console.log(`PASS: ${zipZap.activity_name} is visible as a Thursday morning Baby classes result.`);
