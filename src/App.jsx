@@ -4,7 +4,7 @@ import { supabase } from './supabaseClient';
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
 // Reset outdated swipe/filter state without touching planned calendar entries.
-const planningStorageVersion = '2026-07-12-events-visibility';
+const planningStorageVersion = '2026-07-13-happity-swipe-visibility';
 const statusOptions = ['booked', 'tentative'];
 const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const activitySelectColumns = [
@@ -500,6 +500,15 @@ function isEventSource(activity) {
   ].filter(Boolean).join(' '));
 }
 
+function isHappityListing(activity) {
+  return /happity/i.test([
+    activity.data_source,
+    activity.source_name,
+    activity.source_url,
+    activity.website,
+  ].filter(Boolean).join(' '));
+}
+
 function isEventListing(activity) {
   // Fever and Eventbrite listings are events even when their publisher has
   // not supplied a machine-readable date yet. Dated entries are still
@@ -689,8 +698,13 @@ export default function App() {
   const slotActivities = useMemo(
     () => filteredActivities
       .filter((activity) => isFlexibleActivity(activity) || activity.time_window === selectedWindow)
-      // Dated events should not be hidden behind everyday cafes and parks.
-      .sort((left, right) => Number(isEventListing(right)) - Number(isEventListing(left))),
+      // Ticketed events lead the deck, followed by the weekly Happity classes
+      // that match this exact day and time. General places follow afterwards.
+      .sort((left, right) => (
+        Number(isEventListing(right)) - Number(isEventListing(left))
+        || Number(isHappityListing(right)) - Number(isHappityListing(left))
+        || String(left.start_time).localeCompare(String(right.start_time))
+      )),
     [filteredActivities, selectedWindow],
   );
   const swipedIds = useMemo(
@@ -1146,6 +1160,7 @@ export default function App() {
             selectedWindow={selectedWindow}
             setSelectedWindow={setSelectedWindow}
             deckActivities={deckActivities}
+            slotActivities={slotActivities}
             shortlist={currentShortlist}
             chosenForSlot={chosenForSlot}
             statuses={statuses}
@@ -1407,6 +1422,7 @@ function SwipeScreen({
   selectedWindow,
   setSelectedWindow,
   deckActivities,
+  slotActivities,
   shortlist,
   chosenForSlot,
   statuses,
@@ -1473,8 +1489,10 @@ function SwipeScreen({
         )}
         {!loading && hasActivities && deckActivities.length === 0 && (
           <EmptyDeck
-            title="All caught up"
-            message="You have swiped through this day and time. Pick from your saved ideas, tap Start over, or change the day/time above."
+            title={slotActivities.length > 0 ? 'All caught up' : 'Nothing scheduled here'}
+            message={slotActivities.length > 0
+              ? 'You have swiped through this day and time. Pick from your saved ideas, tap Start over, or change the day/time above.'
+              : 'Try another day or time. Weekly Happity classes appear only in their scheduled slot.'}
           />
         )}
         {!loading && deckActivities.slice(0, 1).map((activity) => {
@@ -1585,6 +1603,7 @@ function ActivityCard({
   const walk = Number.isFinite(walkMinutes) ? `${walkMinutes} min` : null;
   const drive = Number.isFinite(driveMinutes) ? `${driveMinutes} min` : null;
   const flexible = isFlexibleActivity(activity);
+  const isHappity = isHappityListing(activity);
 
   return (
     <article
@@ -1622,7 +1641,11 @@ function ActivityCard({
       <div className="card-content">
         <div className="card-kicker">
           <span>{activity.category}</span>
-          <StatusPill status={status || 'tentative'} ghost={!status} />
+          {isHappity && !status ? (
+            <span className="status-pill is-ghost">Happity</span>
+          ) : (
+            <StatusPill status={status || 'tentative'} ghost={!status} />
+          )}
         </div>
         <h2>{activity.activity_name}</h2>
         <p className="card-description">
