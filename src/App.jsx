@@ -204,6 +204,13 @@ function weekdayName(dateISO) {
   return new Intl.DateTimeFormat('en-GB', { weekday: 'long' }).format(new Date(`${dateISO}T12:00:00`));
 }
 
+function normalizedWeekday(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/s$/, '');
+}
+
 function formatWeekRange(weekStart) {
   return `${formatDay(weekStart)} to ${formatDay(addDaysISO(weekStart, 6))}`;
 }
@@ -481,7 +488,10 @@ function isActivityAvailableOn(activity, dateISO) {
     && !availableDays?.length
   ) return false;
 
-  if (availableDays?.length) return availableDays.includes(weekday);
+  if (availableDays?.length) {
+    const normalizedTargetDay = normalizedWeekday(weekday);
+    return availableDays.some((day) => normalizedWeekday(day) === normalizedTargetDay);
+  }
   return true;
 }
 
