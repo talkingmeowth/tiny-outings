@@ -13,6 +13,11 @@ const auditPath = join(outputDirectory, `${runDate}.json`);
 
 const sources = [
   {
+    name: 'happity',
+    script: 'import-happity-schedules.js',
+    output: join(root, 'supabase', 'seed', 'activities_happity_schedules.generated.sql'),
+  },
+  {
     name: 'waltham-forest-best-start',
     script: 'import-waltham-forest-best-start.js',
     output: join(root, 'supabase', 'seed', 'activities_waltham_forest_best_start_live.generated.sql'),

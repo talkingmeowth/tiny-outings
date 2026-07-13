@@ -1,0 +1,21 @@
+[
+  {
+    "name": "ZIP ZAP BABIES",
+    "detailUrl": "https://www.happity.co.uk/schedules/zip-zap-london-zip-zap-leyton-score-centre-zip-zap-babies",
+    "venue": "Score Center, 2 Coronation Square, London E10 5UN",
+    "borough": "Waltham Forest",
+    "category": "Music & singing",
+    "start": "11:00",
+    "end": "11:45",
+    "days": ["Thursdays"],
+    "age": "0 months - 18 months",
+    "availability": "Term time only",
+    "cost": "GBP 4.50 - GBP 54.00",
+    "description": "Weekly interactive music, drama and sensory classes for babies and their carers.",
+    "lat": 51.5596529,
+    "long": -0.0135752,
+    "googlePlaceId": "ChIJ51TM4NEddkgRSgtaiFrXmC0",
+    "googlePlaceUri": "https://maps.google.com/?cid=3285612712001407818",
+    "website": "https://www.zipzapkids.com/leyton"
+  }
+]
