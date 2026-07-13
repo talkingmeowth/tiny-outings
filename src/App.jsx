@@ -41,6 +41,7 @@ const activitySelectColumns = [
   'source_url',
   'source_name',
   'data_source',
+  'plan_filters',
   'google_primary_type',
   'google_place_id',
   'google_place_uri',
@@ -65,17 +66,6 @@ const activityInterestOptions = [
   'Parks',
   'Days out',
 ];
-
-const activityInterestCategories = {
-  'Baby classes': [
-    'Baby yoga', 'Baby massage', 'Baby sensory', 'Music & singing', 'Baby signing',
-    'Baby swimming', 'Postnatal fitness', 'Baby dance & movement', 'Developmental play',
-  ],
-  'Play & learn': ['Stay & play', 'Story & rhyme time', 'Arts & crafts', 'Soft play', 'Family hubs'],
-  'Food & socials': ['Child-friendly cafes', 'Bookshops', 'Parent meet-ups', 'Feeding & postnatal support'],
-  Parks: ['Parks & outdoor play'],
-  'Days out': ['Museums & culture', 'Baby & toddler cinema', 'Family activities'],
-};
 
 let routesLibraryPromise;
 
@@ -253,6 +243,7 @@ function normalizeActivity(activity) {
     available_days_of_week: Array.isArray(activity.available_days_of_week)
       ? activity.available_days_of_week
       : [],
+    plan_filters: Array.isArray(activity.plan_filters) ? activity.plan_filters : [],
     available_dates: Array.isArray(activity.available_dates)
       ? activity.available_dates.map((date) => String(date).slice(0, 10))
       : [],
@@ -499,24 +490,7 @@ function isActivityAvailableOn(activity, dateISO) {
 
 function activityMatchesInterests(activity, selectedCategories, allCategoriesSelected) {
   if (allCategoriesSelected) return true;
-  const category = String(activity.category || '');
-  const activityText = [
-    category,
-    activity.activity_name,
-    activity.description,
-    activity.age_suitability,
-  ].filter(Boolean).join(' ').toLowerCase();
-  const semanticMatchers = {
-    'Baby classes': /baby|toddler|sensory|music|sing|sign|yoga|massage|swim|dance|pilates|postnatal|developmental|class/,
-    'Play & learn': /stay and play|stay & play|playgroup|soft play|story|rhyme|craft|family hub|sensory room/,
-    'Food & socials': /cafe|coffee|brunch|bakery|bookshop|meetup|feeding|breastfeed|postnatal support/,
-    Parks: /park|playground|garden|outdoor|nature|walk/,
-    'Days out': /museum|cinema|theatre|concert|farm|zoo|aquarium|family activit|day out/,
-  };
-  return [...selectedCategories].some((interest) => (
-    activityInterestCategories[interest]?.includes(category)
-    || semanticMatchers[interest]?.test(activityText)
-  ));
+  return activity.plan_filters?.some((filter) => selectedCategories.has(filter));
 }
 
 function isEventSource(activity) {
@@ -675,8 +649,8 @@ export default function App() {
     () => activitiesWithDistance.filter((activity) => {
       // Events are an independent tag: when it is the only selection, do not
       // also require an activity category match.
-      const interestMatch = eventsOnly
-        ? isEventListing(activity)
+      const interestMatch = isEventSource(activity)
+        ? deferredFilters.includeEvents
         : activityMatchesInterests(activity, selectedCategorySet, allCategoriesSelected);
       const eventMatch = eventsOnly
         ? true

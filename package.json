@@ -24,6 +24,7 @@
     "activities:repair-happity-links": "node scripts/repair-happity-links.js",
     "activities:happity": "node scripts/import-happity-schedules.js",
     "activities:audit-swipe": "node scripts/audit-swipe-visibility.js",
+    "activities:audit-plan-filters": "node scripts/audit-activity-plan-filters.js",
     "activities:audit-cards": "node scripts/audit-activity-card-readiness.js",
     "activities:repair-websites": "node scripts/repair-broken-activity-websites.js",
     "activities:weekly": "node scripts/run-weekly-activity-import.js",
