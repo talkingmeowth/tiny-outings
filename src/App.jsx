@@ -4,7 +4,7 @@ import { supabase } from './supabaseClient';
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
 // Reset outdated swipe/filter state without touching planned calendar entries.
-const planningStorageVersion = '2026-07-13-happity-swipe-visibility';
+const planningStorageVersion = '2026-07-13-source-filter-audit';
 const statusOptions = ['booked', 'tentative'];
 const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const activitySelectColumns = [
@@ -498,7 +498,23 @@ function isActivityAvailableOn(activity, dateISO) {
 function activityMatchesInterests(activity, selectedCategories, allCategoriesSelected) {
   if (allCategoriesSelected) return true;
   const category = String(activity.category || '');
-  return [...selectedCategories].some((interest) => activityInterestCategories[interest]?.includes(category));
+  const activityText = [
+    category,
+    activity.activity_name,
+    activity.description,
+    activity.age_suitability,
+  ].filter(Boolean).join(' ').toLowerCase();
+  const semanticMatchers = {
+    'Baby classes': /baby|toddler|sensory|music|sing|sign|yoga|massage|swim|dance|pilates|postnatal|developmental|class/,
+    'Play & learn': /stay and play|stay & play|playgroup|soft play|story|rhyme|craft|family hub|sensory room/,
+    'Food & socials': /cafe|coffee|brunch|bakery|bookshop|meetup|feeding|breastfeed|postnatal support/,
+    Parks: /park|playground|garden|outdoor|nature|walk/,
+    'Days out': /museum|cinema|theatre|concert|farm|zoo|aquarium|family activit|day out/,
+  };
+  return [...selectedCategories].some((interest) => (
+    activityInterestCategories[interest]?.includes(category)
+    || semanticMatchers[interest]?.test(activityText)
+  ));
 }
 
 function isEventSource(activity) {
