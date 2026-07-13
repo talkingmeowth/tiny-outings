@@ -6,7 +6,6 @@ const storagePrefix = 'tiny-outings';
 // Reset outdated swipe/filter state without touching planned calendar entries.
 const planningStorageVersion = '2026-07-13-event-swipe-validation';
 const statusOptions = ['booked', 'tentative'];
-const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const activitySelectColumns = [
   'activity_id',
   'activity_name',
@@ -66,51 +65,6 @@ const activityInterestOptions = [
   'Parks',
   'Days out',
 ];
-
-let routesLibraryPromise;
-
-function loadRoutesLibrary() {
-  if (!googleMapsApiKey || typeof window === 'undefined') return null;
-  if (window.google?.maps?.importLibrary) return window.google.maps.importLibrary('routes');
-  if (routesLibraryPromise) return routesLibraryPromise;
-
-  routesLibraryPromise = new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(googleMapsApiKey)}&v=weekly`;
-    script.async = true;
-    script.onload = async () => {
-      try {
-        resolve(await window.google.maps.importLibrary('routes'));
-      } catch (error) {
-        reject(error);
-      }
-    };
-    script.onerror = () => reject(new Error('Google Maps could not load.'));
-    document.head.append(script);
-  });
-
-  return routesLibraryPromise;
-}
-
-async function fetchTravelRoute(origin, activity, travelMode) {
-  const routesLibrary = await loadRoutesLibrary();
-  if (!routesLibrary || activity.lat == null || activity.long == null) return null;
-
-  const { Route } = routesLibrary;
-  const { routes } = await Route.computeRoutes({
-    origin: { lat: origin.lat, lng: origin.long },
-    destination: { lat: activity.lat, lng: activity.long },
-    travelMode,
-    fields: ['distanceMeters', 'durationMillis'],
-  });
-  const route = routes?.[0];
-  if (!route?.distanceMeters || !route?.durationMillis) return null;
-
-  return {
-    distance: Number(route.distanceMeters) / 1609.344,
-    minutes: Math.max(1, Math.round(Number(route.durationMillis) / 60000)),
-  };
-}
 
 function defaultFilters() {
   return {
@@ -403,14 +357,7 @@ function isUsablePhotoUrl(url) {
   return ![
     'image.thum.io',
     's.wordpress.com/mshots',
-    'maps.googleapis.com/maps/api/place/photo',
   ].some((blocked) => value.includes(blocked));
-}
-
-function googlePhotoMediaUrl(photoReference) {
-  const value = String(photoReference || '');
-  if (!value.startsWith('places/') || !googleMapsApiKey) return value || null;
-  return `https://places.googleapis.com/v1/${encodeURI(value)}/media?maxWidthPx=1200&key=${encodeURIComponent(googleMapsApiKey)}`;
 }
 
 function activityPhotoUrls(activity) {
@@ -423,7 +370,6 @@ function activityPhotoUrls(activity) {
         ? '/images/family-cafe-placeholder.svg'
         : '/images/family-outing-placeholder.svg';
   const candidates = [
-    googlePhotoMediaUrl(activity.google_photo_url),
     activity.image_url,
     activity.photo_url,
     fallbackImage,
@@ -622,7 +568,6 @@ export default function App() {
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [returnScreen, setReturnScreen] = useState('swipe');
   const [dragState, setDragState] = useState({ activityId: null, startX: null, offsetX: 0 });
-  const [travelRoutes, setTravelRoutes] = useState({});
   // Keep Plan controls responsive while the directory catches up with a changed filter.
   const deferredFilters = useDeferredValue(filters);
   const selectedCategorySet = useMemo(
@@ -650,14 +595,9 @@ export default function App() {
   const activitiesWithDistance = useMemo(
     () => allActivities.map((activity) => ({
       ...activity,
-      distance: travelRoutes[activity.activity_id]?.walking?.distance ?? (
-        milesBetween(userLocation, { lat: activity.lat, long: activity.long })
-      ),
-      walkMinutes: travelRoutes[activity.activity_id]?.walking?.minutes ?? null,
-      driveDistance: travelRoutes[activity.activity_id]?.driving?.distance ?? null,
-      driveMinutes: travelRoutes[activity.activity_id]?.driving?.minutes ?? null,
+      distance: milesBetween(userLocation, { lat: activity.lat, long: activity.long }),
     })),
-    [allActivities, userLocation, travelRoutes],
+    [allActivities, userLocation],
   );
 
   const publishedActivityCount = useMemo(
@@ -750,13 +690,6 @@ export default function App() {
     ),
     [calendarEvents, selectedDate, selectedWindow],
   );
-  const routeCandidates = useMemo(
-    () => [...deckActivities.slice(0, 3), selectedActivity]
-      .filter((activity) => activity?.lat != null && activity?.long != null)
-      .filter((activity, index, items) => items.findIndex((item) => item.activity_id === activity.activity_id) === index),
-    [deckActivities, selectedActivity],
-  );
-
   useEffect(() => saveStored('filters', filters), [filters]);
   useEffect(() => saveStored('swipes', swipes), [swipes]);
   useEffect(() => saveStored('shortlists', shortlists), [shortlists]);
@@ -782,45 +715,6 @@ export default function App() {
       document.body.scrollTop = 0;
     });
   }, [activeScreen]);
-
-  useEffect(() => {
-    setTravelRoutes({});
-  }, [userLocation?.lat, userLocation?.long]);
-
-  useEffect(() => {
-    if (!googleMapsApiKey || !userLocation || !routeCandidates.length) return undefined;
-    let cancelled = false;
-    const missingRoutes = routeCandidates.filter((activity) => !travelRoutes[activity.activity_id]);
-    if (!missingRoutes.length) return undefined;
-
-    Promise.all(
-      missingRoutes.map(async (activity) => ({
-        activityId: activity.activity_id,
-        routes: await Promise.all([
-          fetchTravelRoute(userLocation, activity, 'WALKING'),
-          fetchTravelRoute(userLocation, activity, 'DRIVING'),
-        ]),
-      })),
-    )
-      .then((results) => {
-        if (cancelled) return;
-        setTravelRoutes((current) => {
-          const next = { ...current };
-          for (const result of results) {
-            const [walking, driving] = result.routes;
-            if (walking || driving) next[result.activityId] = { walking, driving };
-          }
-          return next;
-        });
-      })
-      .catch(() => {
-        // A card without a route simply omits travel until the next attempt.
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [routeCandidates, userLocation, travelRoutes]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1612,17 +1506,10 @@ function ActivityCard({
     ? { '--card-photo': `url("${photoUrl}")` }
     : undefined;
   const cost = activityCost(activity);
-  const distance = formatDistance(activity.distance ?? activity.driveDistance);
-  // Google routing replaces these conservative London estimates as soon as a
-  // route is available, so every card has a complete travel summary.
-  const walkMinutes = activity.walkMinutes ?? (
-    activity.distance == null ? null : Math.max(1, Math.round(activity.distance * 20))
-  );
-  const driveMinutes = activity.driveMinutes ?? (
-    activity.driveDistance == null && activity.distance == null
-      ? null
-      : Math.max(1, Math.round((activity.driveDistance ?? activity.distance) * 6))
-  );
+  const distance = formatDistance(activity.distance);
+  // Travel estimates use the local straight-line distance, without an external routing API.
+  const walkMinutes = activity.distance == null ? null : Math.max(1, Math.round(activity.distance * 20));
+  const driveMinutes = activity.distance == null ? null : Math.max(1, Math.round(activity.distance * 6));
   const walk = Number.isFinite(walkMinutes) ? `${walkMinutes} min` : null;
   const drive = Number.isFinite(driveMinutes) ? `${driveMinutes} min` : null;
   const flexible = isFlexibleActivity(activity);
