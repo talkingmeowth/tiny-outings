@@ -511,6 +511,25 @@ function isHappityListing(activity) {
   ].filter(Boolean).join(' '));
 }
 
+function activitySourceLabel(activity) {
+  const source = String(activity.data_source || '').trim().toLowerCase();
+  const searchableSource = [
+    source,
+    activity.source_name,
+    activity.source_url,
+    activity.website,
+  ].filter(Boolean).join(' ').toLowerCase();
+
+  if (searchableSource.includes('happity')) return 'Happity';
+  if (searchableSource.includes('eventbrite')) return 'Eventbrite';
+  if (searchableSource.includes('fever')) return 'Fever';
+  if (searchableSource.includes('better start') || searchableSource.includes('best start')) return 'Better Start';
+  if (searchableSource.includes('walthamforest.gov.uk')) return 'Waltham Forest';
+  if (source === 'google_places' || searchableSource.includes('google.com/maps')) return 'Google Places';
+  if (source === 'manual') return 'Community pick';
+  return activity.source_name || 'Tiny Outings';
+}
+
 function isEventListing(activity) {
   // Fever and Eventbrite listings are events even when their publisher has
   // not supplied a machine-readable date yet. Dated entries are still
@@ -1607,7 +1626,7 @@ function ActivityCard({
   const walk = Number.isFinite(walkMinutes) ? `${walkMinutes} min` : null;
   const drive = Number.isFinite(driveMinutes) ? `${driveMinutes} min` : null;
   const flexible = isFlexibleActivity(activity);
-  const isHappity = isHappityListing(activity);
+  const sourceLabel = activitySourceLabel(activity);
 
   return (
     <article
@@ -1645,10 +1664,10 @@ function ActivityCard({
       <div className="card-content">
         <div className="card-kicker">
           <span>{activity.category}</span>
-          {isHappity && !status ? (
-            <span className="status-pill is-ghost">Happity</span>
+          {!status ? (
+            <span className="status-pill is-ghost">{sourceLabel}</span>
           ) : (
-            <StatusPill status={status || 'tentative'} ghost={!status} />
+            <StatusPill status={status} />
           )}
         </div>
         <h2>{activity.activity_name}</h2>
@@ -1936,10 +1955,10 @@ function ActivityDetail({
   );
 }
 
-function StatusPill({ status, ghost = false }) {
+function StatusPill({ status }) {
   return (
-    <span className={classNames('status-pill', `status-${status}`, ghost && 'is-ghost')}>
-      {ghost ? 'New' : statusLabels[status]}
+    <span className={classNames('status-pill', `status-${status}`)}>
+      {statusLabels[status]}
     </span>
   );
 }
