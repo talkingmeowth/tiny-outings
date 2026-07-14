@@ -210,7 +210,7 @@ function normalizeActivity(activity) {
       : null,
     availability_type: activity.availability_type || 'recurring',
     cost,
-    image_url: activity.image_url || activity.google_photo_url || activity.photo_url || null,
+    image_url: activity.image_url || activity.photo_url || null,
     image_source_url: activity.image_source_url || activity.website || activity.source_url || null,
     public_listing_status: activity.public_listing_status || 'published',
   };
@@ -384,7 +384,6 @@ function activityPhotoUrl(activity) {
 
 function activityPhotoLabel(activity) {
   const photoUrl = activityPhotoUrl(activity);
-  if (photoUrl && (photoUrl === activity.google_photo_url || String(activity.google_photo_url || '').startsWith('places/'))) return 'Google Places photo';
   if (photoUrl && (photoUrl === activity.image_url || photoUrl === activity.photo_url)) return 'Activity photo';
   if (String(photoUrl).includes('-placeholder.svg')) return 'Activity illustration';
   if (photoUrl) return 'Website preview';
