@@ -100,10 +100,20 @@ function isGoodActivityImageUrl(imageUrl) {
   ].some((blocked) => value.includes(blocked));
 }
 
-function imageCandidateScore(imageUrl, context = '') {
+function isCafe(activity) {
+  return /cafe|coffee|food|lunch/i.test(activity.category || '');
+}
+
+function imageCandidateScore(imageUrl, context = '', activity = {}) {
   const value = `${imageUrl} ${context}`.toLowerCase();
   let score = 0;
-  if (/(interior|inside|venue|cafe|coffee|restaurant|food|gallery|play|studio|class|space|room|facility)/.test(value)) score += 8;
+  if (isCafe(activity)) {
+    // Cafe cards should show the place first, then what families can eat there.
+    if (/(interior|inside|venue|dining|seating|space|room|restaurant|cafe)/.test(value)) score += 40;
+    if (/(food|dish|cake|pastry|brunch|bakery|coffee|drink|menu)/.test(value)) score += 20;
+  } else if (/(interior|inside|venue|cafe|coffee|restaurant|food|gallery|play|studio|class|space|room|facility)/.test(value)) {
+    score += 8;
+  }
   if (/(hero|banner|cover|default|social-share)/.test(value)) score -= 2;
   if (/(logo|brand|wordmark|icon|avatar|badge)/.test(value)) score -= 20;
   return score;
@@ -117,6 +127,7 @@ function sqlString(value) {
 function websiteLinksForActivity(activity) {
   return [...new Set([
     activity.organiser_website,
+    activity.website,
     activity.source_url,
   ].filter((link) => link && !/google\./i.test(link)))];
 }
@@ -187,11 +198,11 @@ function imageFromJsonLd(html, baseUrl) {
   return null;
 }
 
-function imageFromHtml(html, baseUrl) {
+function imageFromHtml(html, baseUrl, activity) {
   const candidates = [];
   const addCandidate = (value, context = '') => {
     const imageUrl = value ? absoluteUrl(value, baseUrl) : null;
-    if (isGoodActivityImageUrl(imageUrl)) candidates.push({ imageUrl, score: imageCandidateScore(imageUrl, context) });
+    if (isGoodActivityImageUrl(imageUrl)) candidates.push({ imageUrl, score: imageCandidateScore(imageUrl, context, activity) });
   };
   const metaTags = html.match(/<meta\s+[^>]*>/gi) || [];
   const imageMetaNames = ['og:image', 'og:image:url', 'twitter:image', 'twitter:image:src'];
@@ -207,10 +218,10 @@ function imageFromHtml(html, baseUrl) {
   const linkedImage = html.match(/<link\s+[^>]*rel=["'][^"']*image_src[^"']*["'][^>]*>/i)?.[0];
   const linkedHref = linkedImage ? htmlAttr(linkedImage, 'href') : null;
   const linkedUrl = linkedHref ? absoluteUrl(linkedHref, baseUrl) : null;
-  if (isGoodActivityImageUrl(linkedUrl)) candidates.push({ imageUrl: linkedUrl, score: imageCandidateScore(linkedUrl, 'image source') });
+  if (isGoodActivityImageUrl(linkedUrl)) candidates.push({ imageUrl: linkedUrl, score: imageCandidateScore(linkedUrl, 'image source', activity) });
 
   const jsonLdImage = imageFromJsonLd(html, baseUrl);
-  if (isGoodActivityImageUrl(jsonLdImage)) candidates.push({ imageUrl: jsonLdImage, score: imageCandidateScore(jsonLdImage, 'structured data') });
+  if (isGoodActivityImageUrl(jsonLdImage)) candidates.push({ imageUrl: jsonLdImage, score: imageCandidateScore(jsonLdImage, 'structured data', activity) });
 
   const imageTags = html.match(/<img\s+[^>]*>/gi) || [];
   for (const tag of imageTags) {
@@ -246,7 +257,7 @@ async function fetchWebsiteImage(activity) {
       if (!contentType.includes('text/html')) continue;
 
       const html = await response.text();
-      const imageUrl = imageFromHtml(html, response.url || parsed.toString());
+      const imageUrl = imageFromHtml(html, response.url || parsed.toString(), activity);
       if (imageUrl) return { imageUrl, imageSourceUrl: response.url || parsed.toString() };
     } catch {
       // Try the next candidate URL.
