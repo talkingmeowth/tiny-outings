@@ -17,6 +17,7 @@ const activitySelectColumns = [
   'end_time',
   'google_link',
   'website',
+  'organiser_website',
   'child_friendly_score',
   'app_rating',
   'number_of_reviews',

@@ -114,7 +114,7 @@ function sqlString(value) {
 }
 
 function bestLinkForActivity(activity) {
-  return activity.website || activity.source_url || activity.google_link || activity.google_place_uri || null;
+  return activity.organiser_website || activity.website || activity.source_url || activity.google_link || activity.google_place_uri || null;
 }
 
 function googleSearchQuery(activity) {
@@ -153,6 +153,7 @@ async function fetchPublishedActivities() {
     'category',
     'source_name',
     'website',
+    'organiser_website',
     'source_url',
     'google_link',
     'google_place_id',
