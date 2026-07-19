@@ -331,3 +331,10 @@ set
   updated_at = now()
 where source_name = 'Happity'
   and source_url like 'https://www.happity.co.uk/schedules/young-actors-theatre-%';
+
+update public.activities
+set
+  organiser_website = 'https://thelittledanceacademy.com/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/the-little-dance-academy-%';
