@@ -99,3 +99,24 @@ set
   updated_at = now()
 where source_name = 'Happity'
   and source_url like 'https://www.happity.co.uk/schedules/acs-dance-centre-%';
+
+update public.activities
+set
+  organiser_website = 'https://www.monkeymusic.co.uk/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/monkey-music-%';
+
+update public.activities
+set
+  organiser_website = 'https://www.olivekanedance.com/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/olive-kane-dance-%';
+
+update public.activities
+set
+  organiser_website = 'https://bongalong.co.uk/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/bongalong-%';
