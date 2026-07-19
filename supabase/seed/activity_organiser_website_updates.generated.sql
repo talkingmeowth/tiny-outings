@@ -219,3 +219,31 @@ set
   updated_at = now()
 where source_name = 'Happity'
   and source_url like 'https://www.happity.co.uk/schedules/adventure-babies-%';
+
+update public.activities
+set
+  organiser_website = 'https://www.babysensory.com/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/baby-sensory-%';
+
+update public.activities
+set
+  organiser_website = 'https://babyballet.co.uk/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/baby-ballet-%';
+
+update public.activities
+set
+  organiser_website = 'https://singandsign.co.uk/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/sing-and-sign-%';
+
+update public.activities
+set
+  organiser_website = 'https://www.tumbletots.co.uk/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/tumble-tots-%';
