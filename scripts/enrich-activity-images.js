@@ -53,6 +53,8 @@ function absoluteUrl(value, baseUrl) {
   try {
     const url = new URL(decodeHtml(value), baseUrl);
     if (!['http:', 'https:'].includes(url.protocol)) return null;
+    // The app is served over HTTPS, so insecure image URLs can be blocked on mobile.
+    if (url.protocol === 'http:') url.protocol = 'https:';
     return url.toString();
   } catch {
     return null;

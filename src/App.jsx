@@ -370,6 +370,10 @@ function isUsablePhotoUrl(url) {
   ].some((blocked) => value.includes(blocked));
 }
 
+function securePhotoUrl(url) {
+  return String(url || '').replace(/^http:\/\//i, 'https://');
+}
+
 function activityFallbackImage(activity) {
   const category = String(activity.category || '').toLowerCase();
   return category.includes('park')
@@ -387,7 +391,7 @@ function activityPhotoUrls(activity) {
     activity.image_url,
     activity.photo_url,
     fallbackImage,
-  ].filter(isUsablePhotoUrl);
+  ].map(securePhotoUrl).filter(isUsablePhotoUrl);
 
   return [...new Set(candidates)];
 }
