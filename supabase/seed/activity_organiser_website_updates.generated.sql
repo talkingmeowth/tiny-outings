@@ -85,3 +85,17 @@ set
 where source_name = 'Happity'
   and source_url like 'https://www.happity.co.uk/schedules/baby-sensory-%'
   and borough = 'Hackney';
+
+update public.activities
+set
+  organiser_website = 'https://alittledramatic.co.uk/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/a-little-dramatic-%';
+
+update public.activities
+set
+  organiser_website = 'https://www.acsdance.uk/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/acs-dance-centre-%';
