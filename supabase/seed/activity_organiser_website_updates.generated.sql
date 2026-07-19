@@ -177,3 +177,24 @@ set
   updated_at = now()
 where source_name = 'Happity'
   and source_url like 'https://www.happity.co.uk/schedules/the-castle-play-space-cic-%';
+
+update public.activities
+set
+  organiser_website = 'https://www.rainforestsoftplay.co.uk/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/rainforest-%';
+
+update public.activities
+set
+  organiser_website = 'https://www.soccerdays.co.uk/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/soccerdays-%';
+
+update public.activities
+set
+  organiser_website = 'https://www.kiddikicks.co.uk/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/kiddikicks-%';
