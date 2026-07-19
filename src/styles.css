@@ -1515,6 +1515,10 @@ input[type='range'] {
   text-transform: none;
 }
 
+.age-grid .filter-chip {
+  text-transform: none;
+}
+
 .distance-toggle {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

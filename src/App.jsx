@@ -67,6 +67,14 @@ const activityInterestOptions = [
   'Days out',
 ];
 
+const ageFilterOptions = [
+  { value: 'all', label: 'Any age' },
+  { value: 'baby', label: 'Baby', minMonths: 0, maxMonths: 12 },
+  { value: 'toddler', label: 'Toddler', minMonths: 12, maxMonths: 36 },
+  { value: 'preschool', label: 'Preschool', minMonths: 36, maxMonths: 60 },
+  { value: 'five-plus', label: '5+', minMonths: 60, maxMonths: 216 },
+];
+
 function defaultFilters() {
   return {
     distanceMode: 'radius',
@@ -75,6 +83,7 @@ function defaultFilters() {
     driveMinutes: 25,
     weekStart: startOfWeekISO(todayISO()),
     interests: [...activityInterestOptions],
+    ageRange: 'all',
     includeEvents: true,
   };
 }
@@ -451,6 +460,44 @@ function activityMatchesInterests(activity, selectedCategories, allCategoriesSel
   return activity.plan_filters?.some((filter) => selectedCategories.has(filter));
 }
 
+function ageEndpointInMonths(value) {
+  const years = [...String(value || '').matchAll(/(\d+)\s*(?:year|years|yr|yrs)/gi)]
+    .reduce((total, match) => total + Number(match[1]) * 12, 0);
+  const months = [...String(value || '').matchAll(/(\d+)\s*(?:month|months|mo|mos)/gi)]
+    .reduce((total, match) => total + Number(match[1]), 0);
+  const total = years + months;
+  return total > 0 || /\b0\s*(?:month|months|mo|mos)\b/i.test(value) ? total : null;
+}
+
+function activityAgeRange(activity) {
+  const value = String(activity.age_suitability || '').toLowerCase();
+  if (!value || /all ages|all parents|famil(?:y|ies)|babies and young children|under 5s/.test(value)) {
+    return { minMonths: 0, maxMonths: 216 };
+  }
+  const underMatch = value.match(/under\s+(\d+)\s*(year|years|month|months|yr|yrs|mo|mos)?/i);
+  if (underMatch) {
+    const unit = underMatch[2] || 'years';
+    return { minMonths: 0, maxMonths: Number(underMatch[1]) * (/month|mo/i.test(unit) ? 1 : 12) };
+  }
+  if (value.includes('+')) {
+    const minMonths = ageEndpointInMonths(value);
+    return minMonths == null ? null : { minMonths, maxMonths: 216 };
+  }
+  const [minimumText, maximumText] = value.split(/\s*(?:-|to)\s*/i);
+  const minMonths = ageEndpointInMonths(minimumText);
+  const maxMonths = maximumText ? ageEndpointInMonths(maximumText) : null;
+  if (minMonths == null) return null;
+  return { minMonths, maxMonths: maxMonths ?? 216 };
+}
+
+function activityMatchesAge(activity, ageRange) {
+  if (ageRange === 'all') return true;
+  const selected = ageFilterOptions.find((option) => option.value === ageRange);
+  const activityRange = activityAgeRange(activity);
+  if (!selected || !activityRange) return true;
+  return activityRange.minMonths <= selected.maxMonths && activityRange.maxMonths >= selected.minMonths;
+}
+
 function isEventSource(activity) {
   return /eventbrite|fever/i.test([
     activity.data_source,
@@ -564,6 +611,9 @@ export default function App() {
       weekStart: stored.weekStart || defaults.weekStart,
       // Categories always begin broad. Parents can narrow them for the current session.
       interests: defaults.interests,
+      ageRange: ageFilterOptions.some((option) => option.value === stored.ageRange)
+        ? stored.ageRange
+        : defaults.ageRange,
       // Events start on for every fresh app version. Older cached filters could
       // leave a populated events directory invisible after an import.
       includeEvents: true,
@@ -628,9 +678,12 @@ export default function App() {
         : deferredFilters.includeEvents
           ? (!isEventSource(activity) || isEventListing(activity))
           : !isEventSource(activity);
-      return activity.public_listing_status === 'published' && interestMatch && eventMatch;
+      return activity.public_listing_status === 'published'
+        && interestMatch
+        && eventMatch
+        && activityMatchesAge(activity, deferredFilters.ageRange);
     }),
-    [activitiesWithDistance, selectedCategorySet, allCategoriesSelected, deferredFilters.includeEvents, eventsOnly],
+    [activitiesWithDistance, selectedCategorySet, allCategoriesSelected, deferredFilters.includeEvents, deferredFilters.ageRange, eventsOnly],
   );
   const distanceMatchedActivities = useMemo(
     () => !userLocation
@@ -1232,6 +1285,23 @@ function StartScreen({
             >
               Events
             </button>
+          </div>
+        </div>
+
+        <div className="field-group">
+          <span>Child's age</span>
+          <p>Show activities that suit their stage.</p>
+          <div className="chip-grid age-grid" role="group" aria-label="Child age filter">
+            {ageFilterOptions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                className={classNames('filter-chip', filters.ageRange === option.value && 'is-on')}
+                onClick={() => setFilters((current) => ({ ...current, ageRange: option.value }))}
+              >
+                {option.label}
+              </button>
+            ))}
           </div>
         </div>
 
