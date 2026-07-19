@@ -79,6 +79,10 @@ function isGoodActivityImageUrl(imageUrl) {
     'favicon',
     'icon',
     'logo',
+    'brand',
+    'wordmark',
+    'header',
+    'footer',
     'sprite',
     'avatar',
     'placeholder',
@@ -96,6 +100,15 @@ function isGoodActivityImageUrl(imageUrl) {
   ].some((blocked) => value.includes(blocked));
 }
 
+function imageCandidateScore(imageUrl, context = '') {
+  const value = `${imageUrl} ${context}`.toLowerCase();
+  let score = 0;
+  if (/(interior|inside|venue|cafe|coffee|restaurant|food|gallery|play|studio|class|space|room|facility)/.test(value)) score += 8;
+  if (/(hero|banner|cover|default|social-share)/.test(value)) score -= 2;
+  if (/(logo|brand|wordmark|icon|avatar|badge)/.test(value)) score -= 20;
+  return score;
+}
+
 function sqlString(value) {
   if (value === null || value === undefined || value === '') return 'null';
   return `'${String(value).replaceAll("'", "''")}'`;
@@ -103,7 +116,6 @@ function sqlString(value) {
 
 function websiteLinksForActivity(activity) {
   return [...new Set([
-    activity.website,
     activity.organiser_website,
     activity.source_url,
   ].filter((link) => link && !/google\./i.test(link)))];
@@ -176,6 +188,11 @@ function imageFromJsonLd(html, baseUrl) {
 }
 
 function imageFromHtml(html, baseUrl) {
+  const candidates = [];
+  const addCandidate = (value, context = '') => {
+    const imageUrl = value ? absoluteUrl(value, baseUrl) : null;
+    if (isGoodActivityImageUrl(imageUrl)) candidates.push({ imageUrl, score: imageCandidateScore(imageUrl, context) });
+  };
   const metaTags = html.match(/<meta\s+[^>]*>/gi) || [];
   const imageMetaNames = ['og:image', 'og:image:url', 'twitter:image', 'twitter:image:src'];
 
@@ -183,18 +200,17 @@ function imageFromHtml(html, baseUrl) {
     const name = (htmlAttr(tag, 'property') || htmlAttr(tag, 'name') || '').toLowerCase();
     const content = htmlAttr(tag, 'content');
     if (content && imageMetaNames.includes(name)) {
-      const imageUrl = absoluteUrl(content, baseUrl);
-      if (isGoodActivityImageUrl(imageUrl)) return imageUrl;
+      addCandidate(content, name);
     }
   }
 
   const linkedImage = html.match(/<link\s+[^>]*rel=["'][^"']*image_src[^"']*["'][^>]*>/i)?.[0];
   const linkedHref = linkedImage ? htmlAttr(linkedImage, 'href') : null;
   const linkedUrl = linkedHref ? absoluteUrl(linkedHref, baseUrl) : null;
-  if (isGoodActivityImageUrl(linkedUrl)) return linkedUrl;
+  if (isGoodActivityImageUrl(linkedUrl)) candidates.push({ imageUrl: linkedUrl, score: imageCandidateScore(linkedUrl, 'image source') });
 
   const jsonLdImage = imageFromJsonLd(html, baseUrl);
-  if (isGoodActivityImageUrl(jsonLdImage)) return jsonLdImage;
+  if (isGoodActivityImageUrl(jsonLdImage)) candidates.push({ imageUrl: jsonLdImage, score: imageCandidateScore(jsonLdImage, 'structured data') });
 
   const imageTags = html.match(/<img\s+[^>]*>/gi) || [];
   for (const tag of imageTags) {
@@ -203,16 +219,14 @@ function imageFromHtml(html, baseUrl) {
       htmlAttr(tag, 'data-src') ||
       htmlAttr(tag, 'data-lazy-src') ||
       htmlAttr(tag, 'data-original');
-    const imageUrl = rawSrc ? absoluteUrl(rawSrc, baseUrl) : null;
-    if (!isGoodActivityImageUrl(imageUrl)) continue;
-    return imageUrl;
+    addCandidate(rawSrc, `${htmlAttr(tag, 'alt') || ''} ${htmlAttr(tag, 'class') || ''}`);
   }
 
-  return null;
+  return candidates.sort((a, b) => b.score - a.score)[0]?.imageUrl || null;
 }
 
 async function fetchWebsiteImage(activity) {
-  // The public activity page comes first; an organiser page is the fallback.
+  // Prefer the organiser's own image; the listing page is the fallback.
   for (const link of websiteLinksForActivity(activity)) {
     try {
       const parsed = new URL(link);
@@ -348,7 +362,7 @@ async function main() {
       : scopedActivities.filter((activity) => !activity.image_url || !activity.google_photo_url);
 
   console.log(`Found ${activities.length} published activities; ${scopedActivities.length} match scope; enriching ${targets.length}.`);
-  console.log('Images are read from the activity website, then the verified organiser website.');
+  console.log('Images are read from the verified organiser website, then the activity listing.');
 
   const enriched = await mapWithConcurrency(targets, websiteOnly ? 10 : 6, async (activity, index) => {
     if (websiteOnly) {

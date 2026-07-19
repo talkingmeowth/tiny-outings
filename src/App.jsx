@@ -1551,11 +1551,8 @@ function ActivityCard({
       <div className="card-content">
         <div className="card-kicker">
           <span>{activity.category}</span>
-          {!status ? (
-            <span className="status-pill is-ghost">{sourceLabel}</span>
-          ) : (
-            <StatusPill status={status} />
-          )}
+          <span className="status-pill is-ghost">{sourceLabel}</span>
+          {status && <StatusPill status={status} />}
         </div>
         <h2>{activity.activity_name}</h2>
         <p className="card-description">
