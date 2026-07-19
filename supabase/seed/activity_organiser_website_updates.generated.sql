@@ -120,3 +120,24 @@ set
   updated_at = now()
 where source_name = 'Happity'
   and source_url like 'https://www.happity.co.uk/schedules/bongalong-%';
+
+update public.activities
+set
+  organiser_website = 'https://www.fefefanclub.co.uk/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/fe-fe-fanclub-%';
+
+update public.activities
+set
+  organiser_website = 'https://www.thepetiteperformers.com/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/petite-performers-%';
+
+update public.activities
+set
+  organiser_website = 'https://littlestrikers.co.uk/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/little-strikers-%';
