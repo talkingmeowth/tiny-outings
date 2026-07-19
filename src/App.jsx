@@ -361,15 +361,19 @@ function isUsablePhotoUrl(url) {
   ].some((blocked) => value.includes(blocked));
 }
 
-function activityPhotoUrls(activity) {
+function activityFallbackImage(activity) {
   const category = String(activity.category || '').toLowerCase();
-  const fallbackImage = category.includes('park')
+  return category.includes('park')
     ? '/images/park-placeholder.svg'
     : category.includes('book')
       ? '/images/bookshop-placeholder.svg'
       : category.includes('cafe')
         ? '/images/family-cafe-placeholder.svg'
         : '/images/family-outing-placeholder.svg';
+}
+
+function activityPhotoUrls(activity) {
+  const fallbackImage = activityFallbackImage(activity);
   const candidates = [
     activity.image_url,
     activity.photo_url,
@@ -381,6 +385,14 @@ function activityPhotoUrls(activity) {
 
 function activityPhotoUrl(activity) {
   return activityPhotoUrls(activity)[0] || null;
+}
+
+function activityImageStyle(activity) {
+  const photoUrl = activityPhotoUrl(activity);
+  return {
+    '--card-photo': `url("${photoUrl}")`,
+    '--fallback-photo': `url("${activityFallbackImage(activity)}")`,
+  };
 }
 
 function activityPhotoLabel(activity) {
@@ -1502,9 +1514,7 @@ function ActivityCard({
   const stackOffset = stackIndex * 12;
   const photoUrl = activityPhotoUrl(activity);
   const photoLabel = activityPhotoLabel(activity);
-  const imageStyle = photoUrl
-    ? { '--card-photo': `url("${photoUrl}")` }
-    : undefined;
+  const imageStyle = activityImageStyle(activity);
   const cost = activityCost(activity);
   const distance = formatDistance(activity.distance);
   // Travel estimates use the local straight-line distance, without an external routing API.
@@ -1758,7 +1768,7 @@ function ActivityDetail({
           {photoUrl ? (
             <div
               className={classNames('detail-photo', 'has-image', 'is-main')}
-              style={{ '--card-photo': `url("${photoUrl}")` }}
+              style={activityImageStyle(activity)}
             >
               <span>{photoLabel}</span>
             </div>
