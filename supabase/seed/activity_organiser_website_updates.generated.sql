@@ -359,3 +359,24 @@ set
   updated_at = now()
 where source_name = 'Happity'
   and source_url like 'https://www.happity.co.uk/schedules/wentworth-children-s-centre-%';
+
+update public.activities
+set
+  organiser_website = 'https://bringyourbaby.org/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/bring-your-baby-%';
+
+update public.activities
+set
+  organiser_website = 'https://www.littleboostories.com/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/little-boo-stories-%';
+
+update public.activities
+set
+  organiser_website = 'https://education.hackney.gov.uk/school/millfields-childrens-centre',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/millfield-s-children-s-centre-%';
