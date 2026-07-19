@@ -303,3 +303,31 @@ set
   updated_at = now()
 where source_name = 'Happity'
   and source_url like 'https://www.happity.co.uk/schedules/hackney-ballet-%';
+
+update public.activities
+set
+  organiser_website = 'https://www.cbcd.bbk.ac.uk/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/birkbeck-babylab-toddlerlab-%';
+
+update public.activities
+set
+  organiser_website = 'https://www.bachtobaby.com/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/bach-to-baby-%';
+
+update public.activities
+set
+  organiser_website = 'https://discover.org.uk/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/discover-children-s-story-centre-%';
+
+update public.activities
+set
+  organiser_website = 'https://www.youngactors.org.uk/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/young-actors-theatre-%';
