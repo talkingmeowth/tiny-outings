@@ -6,8 +6,9 @@ import { fileURLToPath } from 'node:url';
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const outputPath = join(root, 'supabase', 'seed', 'activity_organiser_website_search_updates.generated.sql');
 const auditPath = join(root, 'data', 'activity_organiser_website_search_audit.generated.json');
-const minimumConfidence = Number(process.env.ORGANISER_WEBSITE_MIN_CONFIDENCE || 80);
+const minimumConfidence = Number(process.env.ORGANISER_WEBSITE_MIN_CONFIDENCE || 0);
 const limit = Number(process.env.ORGANISER_WEBSITE_LIMIT || 0);
+const model = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
 
 function readEnv() {
   return Object.fromEntries(readFileSync(join(root, '.env.local'), 'utf8').replace(/^\uFEFF/, '')
@@ -67,9 +68,10 @@ async function findOrganiserWebsite(activity, apiKey) {
     'Use web search. Do not return Happity, Eventbrite, Fever, Google Maps, or a directory listing unless no other result exists.',
     'Return JSON only: {"official_website":"https://... or null","confidence":0-100,"evidence_url":"https://... or null"}.',
   ].join('\n');
-  const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent', {
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+    signal: AbortSignal.timeout(90_000),
     body: JSON.stringify({
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       tools: [{ google_search: {} }],

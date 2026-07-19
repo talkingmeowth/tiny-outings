@@ -541,3 +541,10 @@ set
   updated_at = now()
 where source_name = 'Happity'
   and source_url like 'https://www.happity.co.uk/schedules/boxx-london-boxx-%';
+
+update public.activities
+set
+  organiser_website = 'https://www.pint-sizedplayhouse.com/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/pint-sized-playhouse-%';
