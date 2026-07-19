@@ -162,3 +162,18 @@ set
   updated_at = now()
 where source_name = 'Happity'
   and source_url like 'https://www.happity.co.uk/schedules/the-together-project-%';
+
+-- Independently verified provider links from the public web.
+update public.activities
+set
+  organiser_website = 'https://www.babbu.co.uk/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/babbu-%';
+
+update public.activities
+set
+  organiser_website = 'https://linktr.ee/thecastleplayspace',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/the-castle-play-space-cic-%';
