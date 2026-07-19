@@ -34,6 +34,7 @@ const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || localEnv.VITE_SUPA
 const categoryFilter = process.env.ACTIVITY_IMAGE_CATEGORY || null;
 const sourceNameFilter = process.env.ACTIVITY_IMAGE_SOURCE_NAME || null;
 const organiserWebsiteFilter = process.env.ACTIVITY_IMAGE_ORGANISER_WEBSITE || null;
+const verbose = process.env.ACTIVITY_IMAGE_VERBOSE === 'true';
 
 function decodeHtml(value) {
   return String(value || '')
@@ -115,6 +116,8 @@ function isCafe(activity) {
 function imageCandidateScore(imageUrl, context = '', activity = {}) {
   const value = `${imageUrl} ${context}`.toLowerCase();
   let score = 0;
+  if (/(original|full[-_]?size|large|hero|feature|gallery)/.test(value)) score += 10;
+  if (/(thumbnail|thumb|small|150x150|300x300|400x400)/.test(value)) score -= 8;
   if (isCafe(activity)) {
     // Cafe cards should show the place first, then what families can eat there.
     if (/(interior|inside|venue|dining|seating|space|room|restaurant|cafe)/.test(value)) score += 40;
@@ -134,9 +137,9 @@ function sqlString(value) {
 
 function websiteLinksForActivity(activity) {
   return [...new Set([
-    activity.organiser_website,
     activity.website,
     activity.source_url,
+    activity.organiser_website,
   ].filter((link) => link && !/google\./i.test(link)))];
 }
 
@@ -245,7 +248,7 @@ function imageFromHtml(html, baseUrl, activity) {
 }
 
 async function fetchWebsiteImage(activity) {
-  // Prefer the organiser's own image; the listing page is the fallback.
+  // Use the activity listing image before falling back to its organiser.
   for (const link of websiteLinksForActivity(activity)) {
     try {
       const parsed = new URL(link);
@@ -382,7 +385,7 @@ async function main() {
       : scopedActivities.filter((activity) => !activity.image_url || !activity.google_photo_url);
 
   console.log(`Found ${activities.length} published activities; ${scopedActivities.length} match scope; enriching ${targets.length}.`);
-  console.log('Images are read from the verified organiser website, then the activity listing.');
+  console.log('Images are read from the activity listing, then the verified organiser website.');
 
   const enriched = await mapWithConcurrency(targets, websiteOnly ? 10 : 6, async (activity, index) => {
     if (websiteOnly) {
@@ -410,11 +413,11 @@ async function main() {
           imageUrl: null,
           imageSourceUrl: null,
         };
-      console.log(`${index + 1}/${targets.length} ${result.source}: ${activity.activity_name}`);
+      if (verbose) console.log(`${index + 1}/${targets.length} ${result.source}: ${activity.activity_name}`);
       return result;
     }
     const result = await enrichActivity(activity);
-    console.log(`${index + 1}/${targets.length} ${result.source}: ${activity.activity_name}`);
+    if (verbose) console.log(`${index + 1}/${targets.length} ${result.source}: ${activity.activity_name}`);
     return result;
   });
 
@@ -424,7 +427,7 @@ async function main() {
     `-- Generated at ${new Date().toISOString()}`,
     websiteOnly
       ? '-- Applies website images only and clears legacy Google Places photo values.'
-      : '-- Applies images found on the activity website, then the organiser website.',
+      : '-- Applies images found on the activity listing, then the organiser website.',
     bulkUpdateSql(usable, websiteOnly),
     '',
   ].join('\n\n');
