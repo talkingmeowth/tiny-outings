@@ -513,3 +513,10 @@ set
   updated_at = now()
 where source_name = 'Happity'
   and source_url like 'https://www.happity.co.uk/schedules/pause-yoga-studio-%';
+
+update public.activities
+set
+  organiser_website = 'https://blossombabies.classforkids.io/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/blossom-babies-%';
