@@ -33,6 +33,7 @@ const supabaseUrl = process.env.VITE_SUPABASE_URL || localEnv.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || localEnv.VITE_SUPABASE_ANON_KEY;
 const categoryFilter = process.env.ACTIVITY_IMAGE_CATEGORY || null;
 const sourceNameFilter = process.env.ACTIVITY_IMAGE_SOURCE_NAME || null;
+const organiserWebsiteFilter = process.env.ACTIVITY_IMAGE_ORGANISER_WEBSITE || null;
 
 function decodeHtml(value) {
   return String(value || '')
@@ -97,6 +98,13 @@ function isGoodActivityImageUrl(imageUrl) {
     'apple-touch',
     'loading',
     'spinner',
+    'facebook.com/tr',
+    'facebook.net/tr',
+    'doubleclick.net',
+    'google-analytics.com',
+    'tracking-pixel',
+    '/pixel.',
+    'pixel.gif',
   ].some((blocked) => value.includes(blocked));
 }
 
@@ -363,6 +371,7 @@ async function main() {
   const scopedActivities = activities.filter((activity) => (
     (!categoryFilter || activity.category === categoryFilter)
     && (!sourceNameFilter || activity.source_name === sourceNameFilter)
+    && (!organiserWebsiteFilter || activity.organiser_website === organiserWebsiteFilter)
   ));
   const targets = websiteOnly
     ? scopedActivities
