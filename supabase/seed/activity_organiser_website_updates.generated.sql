@@ -275,3 +275,31 @@ set
   updated_at = now()
 where source_name = 'Happity'
   and source_url like 'https://www.happity.co.uk/schedules/moon-women-s-health-%';
+
+update public.activities
+set
+  organiser_website = 'https://zipzapkids.com/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/zip-zap-%';
+
+update public.activities
+set
+  organiser_website = 'https://tennis-time.co.uk/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/tennis-time-%';
+
+update public.activities
+set
+  organiser_website = 'https://musicalminiatures.co.uk/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/musical-miniatures-%';
+
+update public.activities
+set
+  organiser_website = 'https://www.hackneyballet.com/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/hackney-ballet-%';
