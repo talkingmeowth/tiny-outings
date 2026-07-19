@@ -63,3 +63,25 @@ set
   updated_at = now()
 where source_name = 'Happity'
   and source_url like 'https://www.happity.co.uk/schedules/perform-%';
+
+update public.activities
+set
+  organiser_website = 'https://musictreeuk.com/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/music-tree-%';
+
+update public.activities
+set
+  organiser_website = 'https://www.minimozart.com/',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/mini-mozart-%';
+
+update public.activities
+set
+  organiser_website = 'https://www.babysensory.com/hackney',
+  updated_at = now()
+where source_name = 'Happity'
+  and source_url like 'https://www.happity.co.uk/schedules/baby-sensory-%'
+  and borough = 'Hackney';
