@@ -9,17 +9,6 @@ const outputSqlPath = process.env.ACTIVITY_IMAGE_OUTPUT
   ? join(repoRoot, process.env.ACTIVITY_IMAGE_OUTPUT)
   : join(repoRoot, 'supabase', 'seed', 'activity_image_updates.generated.sql');
 
-const placeFields = [
-  'places.id',
-  'places.displayName',
-  'places.formattedAddress',
-  'places.googleMapsUri',
-  'places.websiteUri',
-  'places.photos',
-  'places.rating',
-  'places.userRatingCount',
-].join(',');
-
 function readDotEnv(fileName) {
   try {
     return Object.fromEntries(
@@ -42,7 +31,6 @@ function readDotEnv(fileName) {
 const localEnv = readDotEnv('.env.local');
 const supabaseUrl = process.env.VITE_SUPABASE_URL || localEnv.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || localEnv.VITE_SUPABASE_ANON_KEY;
-const googleApiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_PLACES_API_KEY;
 const categoryFilter = process.env.ACTIVITY_IMAGE_CATEGORY || null;
 const sourceNameFilter = process.env.ACTIVITY_IMAGE_SOURCE_NAME || null;
 
@@ -113,31 +101,12 @@ function sqlString(value) {
   return `'${String(value).replaceAll("'", "''")}'`;
 }
 
-function bestLinkForActivity(activity) {
-  return activity.organiser_website || activity.website || activity.source_url || activity.google_link || activity.google_place_uri || null;
-}
-
-function googleSearchQuery(activity) {
-  return [
-    activity.activity_name,
-    activity.address,
-    activity.borough,
-    'London',
-  ].filter(Boolean).join(', ');
-}
-
-async function fetchJson(url, options = {}) {
-  const response = await fetch(url, {
-    ...options,
-    signal: AbortSignal.timeout(options.timeoutMs || 12000),
-  });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`${response.status} ${text.slice(0, 220)}`);
-  }
-
-  return response.json();
+function websiteLinksForActivity(activity) {
+  return [...new Set([
+    activity.website,
+    activity.organiser_website,
+    activity.source_url,
+  ].filter((link) => link && !/google\./i.test(link)))];
 }
 
 async function fetchPublishedActivities() {
@@ -181,61 +150,6 @@ async function fetchPublishedActivities() {
     const page = await response.json();
     activities.push(...page);
     if (page.length < pageSize) return activities;
-  }
-}
-
-async function searchGooglePlace(activity) {
-  if (!googleApiKey) return null;
-
-  try {
-    const body = await fetchJson('https://places.googleapis.com/v1/places:searchText', {
-      method: 'POST',
-      timeoutMs: 15000,
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Goog-Api-Key': googleApiKey,
-        'X-Goog-FieldMask': placeFields,
-      },
-      body: JSON.stringify({
-        textQuery: googleSearchQuery(activity),
-        languageCode: 'en-GB',
-        regionCode: 'GB',
-        locationBias: {
-          circle: {
-            center: {
-              latitude: Number(activity.lat) || 51.56,
-              longitude: Number(activity.long) || -0.04,
-            },
-            radius: 12000,
-          },
-        },
-      }),
-    });
-    return body.places?.[0] || null;
-  } catch (error) {
-    console.warn(`Google lookup failed for ${activity.activity_name}: ${error.message}`);
-    return null;
-  }
-}
-
-async function fetchGooglePhotoUrl(place) {
-  const photoName = place?.photos?.[0]?.name;
-  if (!googleApiKey || !photoName) return null;
-
-  try {
-    const body = await fetchJson(
-      `https://places.googleapis.com/v1/${photoName}/media?maxWidthPx=1200&skipHttpRedirect=true`,
-      {
-        timeoutMs: 15000,
-        headers: {
-          'X-Goog-Api-Key': googleApiKey,
-        },
-      },
-    );
-    return body.photoUri || null;
-  } catch (error) {
-    console.warn(`Google photo failed for ${place.displayName?.text || place.id}: ${error.message}`);
-    return null;
   }
 }
 
@@ -298,63 +212,47 @@ function imageFromHtml(html, baseUrl) {
 }
 
 async function fetchWebsiteImage(activity) {
-  const link = bestLinkForActivity(activity);
-  if (!link) return null;
+  // The public activity page comes first; an organiser page is the fallback.
+  for (const link of websiteLinksForActivity(activity)) {
+    try {
+      const parsed = new URL(link);
+      if (!['http:', 'https:'].includes(parsed.protocol)) continue;
 
-  try {
-    const parsed = new URL(link);
-    if (!['http:', 'https:'].includes(parsed.protocol)) return null;
-    if (/google\./i.test(parsed.hostname)) return null;
+      const response = await fetch(parsed.toString(), {
+        redirect: 'follow',
+        signal: AbortSignal.timeout(12000),
+        headers: {
+          'User-Agent': 'Tiny Outings activity image bot (+https://tiny-outings)',
+          Accept: 'text/html,application/xhtml+xml',
+        },
+      });
 
-    const response = await fetch(parsed.toString(), {
-      redirect: 'follow',
-      signal: AbortSignal.timeout(12000),
-      headers: {
-        'User-Agent': 'Tiny Outings activity image bot (+https://tiny-outings)',
-        Accept: 'text/html,application/xhtml+xml',
-      },
-    });
+      if (!response.ok) continue;
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('text/html')) continue;
 
-    if (!response.ok) return null;
-    const contentType = response.headers.get('content-type') || '';
-    if (!contentType.includes('text/html')) return null;
-
-    const html = await response.text();
-    const imageUrl = imageFromHtml(html, response.url || parsed.toString());
-    return imageUrl ? { imageUrl, imageSourceUrl: response.url || parsed.toString() } : null;
-  } catch {
-    return null;
+      const html = await response.text();
+      const imageUrl = imageFromHtml(html, response.url || parsed.toString());
+      if (imageUrl) return { imageUrl, imageSourceUrl: response.url || parsed.toString() };
+    } catch {
+      // Try the next candidate URL.
+    }
   }
+
+  return null;
 }
 
 async function enrichActivity(activity) {
-  const place = await searchGooglePlace(activity);
-  const googlePhotoUrl = await fetchGooglePhotoUrl(place);
-
-  if (googlePhotoUrl) {
-    return {
-      activity,
-      source: 'google',
-      googlePlaceId: place.id || activity.google_place_id,
-      googlePlaceUri: place.googleMapsUri || activity.google_place_uri,
-      googlePhotoUrl,
-      googleRating: place.rating ?? activity.google_rating,
-      googleUserRatingCount: place.userRatingCount ?? activity.google_user_rating_count,
-      imageUrl: googlePhotoUrl,
-      imageSourceUrl: place.googleMapsUri || activity.google_place_uri || bestLinkForActivity(activity),
-    };
-  }
-
   const websiteImage = await fetchWebsiteImage(activity);
   if (websiteImage?.imageUrl) {
     return {
       activity,
       source: 'website',
-      googlePlaceId: place?.id || activity.google_place_id,
-      googlePlaceUri: place?.googleMapsUri || activity.google_place_uri,
-      googlePhotoUrl: activity.google_photo_url,
-      googleRating: place?.rating ?? activity.google_rating,
-      googleUserRatingCount: place?.userRatingCount ?? activity.google_user_rating_count,
+      googlePlaceId: activity.google_place_id,
+      googlePlaceUri: activity.google_place_uri,
+      googlePhotoUrl: null,
+      googleRating: activity.google_rating,
+      googleUserRatingCount: activity.google_user_rating_count,
       imageUrl: websiteImage.imageUrl,
       imageSourceUrl: websiteImage.imageSourceUrl,
     };
@@ -363,11 +261,11 @@ async function enrichActivity(activity) {
   return {
     activity,
     source: 'missing',
-    googlePlaceId: place?.id || activity.google_place_id,
-    googlePlaceUri: place?.googleMapsUri || activity.google_place_uri,
-    googlePhotoUrl: activity.google_photo_url,
-    googleRating: place?.rating ?? activity.google_rating,
-    googleUserRatingCount: place?.userRatingCount ?? activity.google_user_rating_count,
+    googlePlaceId: activity.google_place_id,
+    googlePlaceUri: activity.google_place_uri,
+    googlePhotoUrl: null,
+    googleRating: activity.google_rating,
+    googleUserRatingCount: activity.google_user_rating_count,
     imageUrl: null,
     imageSourceUrl: null,
   };
@@ -450,13 +348,9 @@ async function main() {
       : scopedActivities.filter((activity) => !activity.image_url || !activity.google_photo_url);
 
   console.log(`Found ${activities.length} published activities; ${scopedActivities.length} match scope; enriching ${targets.length}.`);
-  console.log(websiteOnly
-    ? 'Website-only mode: Google image values will be cleared.'
-    : googleApiKey
-      ? 'Google Places key found; Google photos will be tried first.'
-      : 'No Google Places key found; using website images only.');
+  console.log('Images are read from the activity website, then the verified organiser website.');
 
-  const enriched = await mapWithConcurrency(targets, websiteOnly ? 10 : googleApiKey ? 3 : 6, async (activity, index) => {
+  const enriched = await mapWithConcurrency(targets, websiteOnly ? 10 : 6, async (activity, index) => {
     if (websiteOnly) {
       const websiteImage = await fetchWebsiteImage(activity);
       const result = websiteImage?.imageUrl
@@ -490,20 +384,14 @@ async function main() {
     return result;
   });
 
-  const usable = enriched.filter(
-    (result) =>
-      result.googlePlaceId ||
-      result.googlePlaceUri ||
-      result.googlePhotoUrl ||
-      result.imageUrl,
-  );
+  const usable = enriched.filter((result) => result.imageUrl);
   const sql = [
     '-- Generated by scripts/enrich-activity-images.js',
     `-- Generated at ${new Date().toISOString()}`,
     websiteOnly
-      ? '-- Applies website images only and clears Google Places photo values.'
-      : '-- Applies Google Places image metadata first, with website image fallbacks.',
-    bulkUpdateSql(websiteOnly ? enriched : usable, websiteOnly),
+      ? '-- Applies website images only and clears legacy Google Places photo values.'
+      : '-- Applies images found on the activity website, then the organiser website.',
+    bulkUpdateSql(usable, websiteOnly),
     '',
   ].join('\n\n');
 
