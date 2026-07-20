@@ -108,6 +108,7 @@ function isGoodActivityImageUrl(imageUrl) {
     'tracking-pixel',
     '/pixel.',
     'pixel.gif',
+    '.svg',
   ].some((blocked) => value.includes(blocked));
 }
 
