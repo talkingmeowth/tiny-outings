@@ -36,6 +36,26 @@ const sourceNameFilter = process.env.ACTIVITY_IMAGE_SOURCE_NAME || null;
 const organiserWebsiteFilter = process.env.ACTIVITY_IMAGE_ORGANISER_WEBSITE || null;
 const verbose = process.env.ACTIVITY_IMAGE_VERBOSE === 'true';
 
+// These official programme images are more representative than the generic
+// home-page, ticketing, or language-selector assets returned by their sites.
+const curatedImageOverrides = [
+  {
+    matches: (activity) => activity.activity_id === '2b2dca17-6b73-47c6-9582-183c2008b7d1',
+    imageUrl: 'https://museumofbrands.com/wp-content/uploads/2023/07/Time_Tunnel_Thumbnail_Back.jpg',
+    imageSourceUrl: 'https://museumofbrands.com/',
+  },
+  {
+    matches: (activity) => activity.organiser_website === 'https://www.babysensory.com/',
+    imageUrl: 'https://www.babysensory.com/content/S636384802478713118/small_638977732371574607_31.png',
+    imageSourceUrl: 'https://www.babysensory.com/',
+  },
+  {
+    matches: (activity) => activity.organiser_website === 'https://www.toddlersense.com/',
+    imageUrl: 'https://www.toddlersense.com/content/S638966730360474635/small_638967475217443297_9.png',
+    imageSourceUrl: 'https://www.toddlersense.com/',
+  },
+];
+
 function decodeHtml(value) {
   return String(value || '')
     .replaceAll('&amp;', '&')
@@ -178,6 +198,10 @@ function websiteLinksForActivity(activity) {
   ].filter((link) => link && !/google\./i.test(link)))];
 }
 
+function curatedImageForActivity(activity) {
+  return curatedImageOverrides.find((override) => override.matches(activity)) || null;
+}
+
 async function fetchPublishedActivities() {
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY.');
@@ -302,6 +326,9 @@ function imageFromHtml(html, baseUrl, activity) {
 }
 
 async function fetchWebsiteImage(activity) {
+  const curatedImage = curatedImageForActivity(activity);
+  if (curatedImage) return curatedImage;
+
   // The organiser's site is the best source of an activity-relevant image.
   // The listing page is only used when no suitable organiser image is available.
   for (const link of websiteLinksForActivity(activity)) {
