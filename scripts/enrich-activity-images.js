@@ -54,6 +54,11 @@ const curatedImageOverrides = [
     imageUrl: 'https://www.toddlersense.com/content/S638966730360474635/small_638967475217443297_9.png',
     imageSourceUrl: 'https://www.toddlersense.com/',
   },
+  {
+    matches: (activity) => /missionbodyfit/i.test(activity.activity_name || ''),
+    imageUrl: 'https://www.missionbodyfit.com/quality_auto/904bc3_7b3f1a027f224e269e4201875204e9ad~mv2.jpg',
+    imageSourceUrl: 'https://www.missionbodyfit.com/',
+  },
 ];
 
 function decodeHtml(value) {

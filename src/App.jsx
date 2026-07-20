@@ -400,20 +400,36 @@ function activityPhotoUrl(activity) {
   return activityPhotoUrls(activity)[0] || null;
 }
 
-function activityImageStyle(activity) {
-  const photoUrl = activityPhotoUrl(activity);
-  return {
-    '--card-photo': `url("${photoUrl}")`,
-    '--fallback-photo': `url("${activityFallbackImage(activity)}")`,
-  };
-}
-
 function activityPhotoLabel(activity) {
   const photoUrl = activityPhotoUrl(activity);
   if (photoUrl && (photoUrl === activity.image_url || photoUrl === activity.photo_url)) return 'Activity photo';
   if (String(photoUrl).includes('-placeholder.svg')) return 'Activity illustration';
   if (photoUrl) return 'Website preview';
   return 'Photo pending';
+}
+
+function ActivityPhoto({ activity, className }) {
+  const photoUrl = activityPhotoUrl(activity);
+  const fallbackImage = activityFallbackImage(activity);
+  const photoLabel = activityPhotoLabel(activity);
+
+  return (
+    <div className={classNames(className, 'has-image')}>
+      <img
+        className="activity-photo-image"
+        src={photoUrl || fallbackImage}
+        alt=""
+        aria-hidden="true"
+        onError={(event) => {
+          // A bad remote image must never leave the card blank on a mobile connection.
+          if (event.currentTarget.dataset.usedFallback === 'true') return;
+          event.currentTarget.dataset.usedFallback = 'true';
+          event.currentTarget.src = fallbackImage;
+        }}
+      />
+      <span>{photoLabel}</span>
+    </div>
+  );
 }
 
 function activityCost(activity) {
@@ -1586,9 +1602,6 @@ function ActivityCard({
 }) {
   const rotate = offset / 22;
   const stackOffset = stackIndex * 12;
-  const photoUrl = activityPhotoUrl(activity);
-  const photoLabel = activityPhotoLabel(activity);
-  const imageStyle = activityImageStyle(activity);
   const cost = activityCost(activity);
   const distance = formatDistance(activity.distance);
   // Travel estimates use the local straight-line distance, without an external routing API.
@@ -1625,12 +1638,7 @@ function ActivityCard({
       <span className="decision-stamp yes">Save</span>
       <span className="decision-stamp no">Skip</span>
 
-      <div
-        className={classNames('card-photo', photoUrl && 'has-image')}
-        style={imageStyle}
-      >
-        <span>{photoLabel}</span>
-      </div>
+      <ActivityPhoto activity={activity} className="card-photo" />
 
       <div className="card-content">
         <div className="card-kicker">
@@ -1826,8 +1834,6 @@ function ActivityDetail({
 }) {
   const googleUrl = googleEntryUrl(activity);
   const websiteUrl = activityWebsiteUrl(activity);
-  const photoUrl = activityPhotoUrl(activity);
-  const photoLabel = activityPhotoLabel(activity);
   const cost = activityCost(activity);
   const flexible = isFlexibleActivity(activity);
 
@@ -1839,18 +1845,7 @@ function ActivityDetail({
 
       <div className="detail-hero">
         <div className="detail-gallery" aria-label={`${activity.activity_name} photos`}>
-          {photoUrl ? (
-            <div
-              className={classNames('detail-photo', 'has-image', 'is-main')}
-              style={activityImageStyle(activity)}
-            >
-              <span>{photoLabel}</span>
-            </div>
-          ) : (
-            <div className="detail-photo is-main">
-              <span>Photo pending</span>
-            </div>
-          )}
+          <ActivityPhoto activity={activity} className="detail-photo is-main" />
         </div>
       </div>
 
