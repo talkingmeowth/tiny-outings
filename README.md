@@ -106,7 +106,13 @@ The table includes the requested core fields:
 
 It also includes MVP-supporting fields for filtering and provenance: `borough`, `postcode`, `days_of_week`, `recurrence_rule`, `time_window`, `location`, `source_url`, and search indexes.
 
-Google-enriched activities can also store `google_place_id`, `google_place_uri`, `google_photo_url`, `google_rating`, `google_user_rating_count`, `google_primary_type`, `google_opening_hours`, and `google_summary`. Cards prefer `google_photo_url`, then `image_url`, then a website-derived preview.
+Google-enriched activities can also store `google_place_id`, `google_place_uri`, `google_photo_url`, `google_rating`, `google_user_rating_count`, `google_primary_type`, `google_opening_hours`, and `google_summary`. Cards use the audited `image_url` field and fall back to a category illustration when no suitable website image is available.
+
+## Activity Image Extractor
+
+`npm.cmd run activities:images` is the single activity-image extractor and audit. It reads published activities from Supabase, prefers a relevant image from `organiser_website`, then falls back to `website` and `source_url` listing pages. It upgrades HTTP image links to HTTPS, rejects logos, icons, SVGs, tracking pixels, app-download graphics, and other interface assets, and scores candidates for relevance, resolution, and cafe interiors or food.
+
+The command writes an idempotent SQL file to `supabase/seed/activity_image_updates.generated.sql`. Review and apply that SQL to Supabase after each run. Use `npm.cmd run activities:images:missing` to only fill activities that do not yet have a website image.
 
 Availability is stored with:
 
