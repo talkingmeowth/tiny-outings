@@ -109,6 +109,16 @@ function isGoodActivityImageUrl(imageUrl) {
     '/pixel.',
     'pixel.gif',
     '.svg',
+    'google-play',
+    'google_play',
+    'app-store',
+    'app_store',
+    'download-button',
+    'cookie',
+    'consent',
+    'newsletter',
+    'payment',
+    'checkout',
   ].some((blocked) => value.includes(blocked));
 }
 
@@ -121,6 +131,17 @@ function imageCandidateScore(imageUrl, context = '', activity = {}) {
   let score = 0;
   if (/(original|full[-_]?size|large|hero|feature|gallery)/.test(value)) score += 10;
   if (/(thumbnail|thumb|small|150x150|300x300|400x400)/.test(value)) score -= 8;
+  const width = Number(context.match(/\bwidth=(\d+)/i)?.[1] || 0);
+  const height = Number(context.match(/\bheight=(\d+)/i)?.[1] || 0);
+  if (width * height >= 180000) score += 8;
+  if (width > 0 && height > 0 && width * height < 12000) score -= 12;
+
+  const activityTerms = String(activity.activity_name || '')
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((term) => term.length >= 4 && !['with', 'from', 'this', 'that', 'class', 'activity', 'london', 'family', 'years'].includes(term));
+  const matchingTerms = activityTerms.filter((term) => value.includes(term));
+  score += Math.min(matchingTerms.length, 3) * 8;
   if (isCafe(activity)) {
     // Cafe cards should show the place first, then what families can eat there.
     if (/(interior|inside|venue|dining|seating|space|room|restaurant|cafe)/.test(value)) score += 40;
@@ -240,11 +261,27 @@ function imageFromHtml(html, baseUrl, activity) {
   const imageTags = html.match(/<img\s+[^>]*>/gi) || [];
   for (const tag of imageTags) {
     const rawSrc =
-      htmlAttr(tag, 'src') ||
+      htmlAttr(tag, 'data-lazyload') ||
       htmlAttr(tag, 'data-src') ||
       htmlAttr(tag, 'data-lazy-src') ||
-      htmlAttr(tag, 'data-original');
-    addCandidate(rawSrc, `${htmlAttr(tag, 'alt') || ''} ${htmlAttr(tag, 'class') || ''}`);
+      htmlAttr(tag, 'data-original') ||
+      htmlAttr(tag, 'src');
+    const srcset = htmlAttr(tag, 'srcset') || htmlAttr(tag, 'data-srcset');
+    const largestSrcsetImage = srcset
+      ?.split(',')
+      .map((entry) => {
+        const [url, size] = entry.trim().split(/\s+/);
+        return { url, width: Number(size?.replace(/\D/g, '') || 0) };
+      })
+      .sort((left, right) => right.width - left.width)[0]?.url;
+    const context = [
+      htmlAttr(tag, 'alt') || '',
+      htmlAttr(tag, 'title') || '',
+      htmlAttr(tag, 'class') || '',
+      `width=${htmlAttr(tag, 'width') || ''}`,
+      `height=${htmlAttr(tag, 'height') || ''}`,
+    ].join(' ');
+    addCandidate(largestSrcsetImage || rawSrc, context);
   }
 
   return candidates.sort((a, b) => b.score - a.score)[0]?.imageUrl || null;
