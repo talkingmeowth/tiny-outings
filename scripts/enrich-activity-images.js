@@ -87,6 +87,10 @@ function isGoodActivityImageUrl(imageUrl) {
     'wordmark',
     'header',
     'footer',
+    '/flags/',
+    'site-flag',
+    'country-selector',
+    'language-selector',
     'sprite',
     'avatar',
     'placeholder',
@@ -130,7 +134,8 @@ function imageCandidateScore(imageUrl, context = '', activity = {}) {
   const value = `${imageUrl} ${context}`.toLowerCase();
   let score = 0;
   if (/(original|full[-_]?size|large|hero|feature|gallery)/.test(value)) score += 10;
-  if (/(thumbnail|thumb|small|150x150|300x300|400x400)/.test(value)) score -= 8;
+  if (/(thumbnail|thumb|150x150|300x300|400x400)/.test(value)) score -= 8;
+  if (/\.gif(?:[?#]|$)/.test(value)) score -= 16;
   const width = Number(context.match(/\bwidth=(\d+)/i)?.[1] || 0);
   const height = Number(context.match(/\bheight=(\d+)/i)?.[1] || 0);
   if (width * height >= 180000) score += 8;
@@ -142,6 +147,12 @@ function imageCandidateScore(imageUrl, context = '', activity = {}) {
     .filter((term) => term.length >= 4 && !['with', 'from', 'this', 'that', 'class', 'activity', 'london', 'family', 'years'].includes(term));
   const matchingTerms = activityTerms.filter((term) => value.includes(term));
   score += Math.min(matchingTerms.length, 3) * 8;
+  const categoryTerms = String(activity.category || '')
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((term) => term.length >= 4 && !['family', 'activities', 'outdoor'].includes(term));
+  const matchingCategoryTerms = categoryTerms.filter((term) => value.includes(term));
+  score += Math.min(matchingCategoryTerms.length, 2) * 10;
   if (isCafe(activity)) {
     // Cafe cards should show the place first, then what families can eat there.
     if (/(interior|inside|venue|dining|seating|space|room|restaurant|cafe)/.test(value)) score += 40;
@@ -237,7 +248,10 @@ function imageFromHtml(html, baseUrl, activity) {
   const candidates = [];
   const addCandidate = (value, context = '') => {
     const imageUrl = value ? absoluteUrl(value, baseUrl) : null;
-    if (isGoodActivityImageUrl(imageUrl)) candidates.push({ imageUrl, score: imageCandidateScore(imageUrl, context, activity) });
+    const isInterfaceAsset = /(site-flag|country-selector|language-selector|flag-icon)/i.test(context);
+    if (isGoodActivityImageUrl(imageUrl) && !isInterfaceAsset) {
+      candidates.push({ imageUrl, score: imageCandidateScore(imageUrl, context, activity) });
+    }
   };
   const metaTags = html.match(/<meta\s+[^>]*>/gi) || [];
   const imageMetaNames = ['og:image', 'og:image:url', 'twitter:image', 'twitter:image:src'];
@@ -406,7 +420,7 @@ set
   image_url = null,
   image_source_url = null,
   updated_at = now()
-where coalesce(image_url, '') ~* '(favicon|icon|logo|wordmark|sprite|avatar|placeholder|apple-touch|facebook[.]com/tr|facebook[.]net/tr|doubleclick|google-analytics|tracking-pixel|/pixel[.]|pixel[.]gif|[.]svg(?:[?#]|$)|google-play|google_play|app-store|app_store|download-button|cookie|consent|newsletter|payment|checkout)';`;
+where coalesce(image_url, '') ~* '(favicon|icon|logo|wordmark|sprite|avatar|placeholder|apple-touch|/flags/|site-flag|country-selector|language-selector|facebook[.]com/tr|facebook[.]net/tr|doubleclick|google-analytics|tracking-pixel|/pixel[.]|pixel[.]gif|[.]svg(?:[?#]|$)|google-play|google_play|app-store|app_store|download-button|cookie|consent|newsletter|payment|checkout)';`;
 }
 
 async function mapWithConcurrency(items, limit, mapper) {
