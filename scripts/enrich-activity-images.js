@@ -43,6 +43,13 @@ const verbose = process.env.ACTIVITY_IMAGE_VERBOSE === 'true';
 // home-page, ticketing, or language-selector assets returned by their sites.
 const curatedImageOverrides = [
   {
+    // The site's older social preview returns a 404. This live Wix gallery
+    // image is a clear, current food photo from Unity Cafe's own website.
+    matches: (activity) => activity.activity_id === '2ff4ba86-ec3d-4409-ad63-58ce925ceeb5',
+    imageUrl: 'https://static.wixstatic.com/media/b07a26_c699c85de5b340ef81377783a1fae040~mv2.jpg/v1/crop/x_10,y_0,w_2028,h_2047/fill/w_634,h_640,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/IMG_3803_edited_edited.jpg',
+    imageSourceUrl: 'https://www.unitycafe.co.uk/',
+  },
+  {
     matches: (activity) => activity.activity_id === '2b2dca17-6b73-47c6-9582-183c2008b7d1',
     imageUrl: 'https://museumofbrands.com/wp-content/uploads/2023/07/Time_Tunnel_Thumbnail_Back.jpg',
     imageSourceUrl: 'https://museumofbrands.com/',
@@ -174,6 +181,10 @@ function isGoodActivityImageUrl(imageUrl) {
     'apple-touch',
     'loading',
     'spinner',
+    'pixelated',
+    'low-res',
+    'lowres',
+    'blurry',
     'facebook.com/tr',
     'facebook.net/tr',
     'facebook.png',
@@ -218,14 +229,42 @@ function isCafe(activity) {
   return /cafe|coffee|food|lunch/i.test(activity.category || '');
 }
 
+function dimensionsFromImageContext(imageUrl, context = '') {
+  const contextWidth = Number(context.match(/\bwidth=(\d+)/i)?.[1] || 0);
+  const contextHeight = Number(context.match(/\bheight=(\d+)/i)?.[1] || 0);
+  const wixDimensions = [...String(imageUrl).matchAll(/(?:(?:\/|,)w_|[?&]w(?:idth)?=)(\d+).*?(?:(?:\/|,)h_|[?&]h(?:eight)?=)(\d+)/gi)]
+    .map((match) => ({ width: Number(match[1]), height: Number(match[2]) }));
+  return {
+    width: Math.max(contextWidth, ...wixDimensions.map((size) => size.width), 0),
+    height: Math.max(contextHeight, ...wixDimensions.map((size) => size.height), 0),
+  };
+}
+
+function isSocialMediaIconCandidate(imageUrl, context = '') {
+  return /(facebook|instagram|twitter|tiktok|linkedin|pinterest|youtube|social[-_ ]?(?:icon|link|media))/i
+    .test(`${imageUrl} ${context}`);
+}
+
+function isClearCafeLogoCandidate(imageUrl, context = '', activity = {}) {
+  if (!isCafe(activity) || isSocialMediaIconCandidate(imageUrl, context)) return false;
+  if (!/(?:logo|brand|wordmark)/i.test(`${imageUrl} ${context}`)) return false;
+  if (!/\.(?:png|jpe?g|webp|avif)(?:[?#]|$)/i.test(imageUrl)) return false;
+  const nameTerms = String(activity.activity_name || '')
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((term) => term.length >= 4 && !['cafe', 'coffee', 'restaurant', 'bakery', 'shop']);
+  if (!nameTerms.some((term) => `${imageUrl} ${context}`.toLowerCase().includes(term))) return false;
+  const { width, height } = dimensionsFromImageContext(imageUrl, context);
+  return width === 0 || height === 0 || (width >= 180 && height >= 120);
+}
+
 function imageCandidateScore(imageUrl, context = '', activity = {}) {
   const value = `${imageUrl} ${context}`.toLowerCase();
   let score = 0;
   if (/(original|full[-_]?size|large|hero|feature|gallery)/.test(value)) score += 10;
   if (/(thumbnail|thumb|150x150|300x300|400x400)/.test(value)) score -= 8;
   if (/\.gif(?:[?#]|$)/.test(value)) score -= 16;
-  const width = Number(context.match(/\bwidth=(\d+)/i)?.[1] || 0);
-  const height = Number(context.match(/\bheight=(\d+)/i)?.[1] || 0);
+  const { width, height } = dimensionsFromImageContext(imageUrl, context);
   if (width * height >= 180000) score += 8;
   if (width > 0 && height > 0 && width * height < 12000) score -= 12;
   const queryDimensions = [...value.matchAll(/[?&](?:w|width|h|height)=(\d+)/g)].map((match) => Number(match[1]));
@@ -245,9 +284,11 @@ function imageCandidateScore(imageUrl, context = '', activity = {}) {
   const matchingCategoryTerms = categoryTerms.filter((term) => value.includes(term));
   score += Math.min(matchingCategoryTerms.length, 2) * 10;
   if (isCafe(activity)) {
-    // Cafe cards should show the place first, then what families can eat there.
-    if (/(interior|inside|venue|dining|seating|space|room|restaurant|cafe)/.test(value)) score += 60;
-    if (/(food|dish|cake|pastry|brunch|bakery|coffee|drink|menu)/.test(value)) score += 30;
+    // Cafe cards should show the place first, then food, then a clear brand
+    // logo. The large gaps make this ordering deterministic for each page.
+    if (/(interior|inside|venue|dining|seating|space|room|restaurant|cafe)/.test(value)) score += 600;
+    else if (/(food|dish|cake|pastry|brunch|bakery|coffee|drink|menu)/.test(value)) score += 400;
+    else if (isClearCafeLogoCandidate(imageUrl, context, activity)) score += 200;
     if (/(og:image|twitter:image|social-share|open-graph|default|banner)/.test(value)) score -= 18;
   } else if (/(interior|inside|venue|cafe|coffee|restaurant|food|gallery|play|studio|class|space|room|facility)/.test(value)) {
     score += 30;
@@ -393,7 +434,8 @@ function imageFromHtml(html, baseUrl, activity) {
   const addCandidate = (value, context = '') => {
     const imageUrl = value ? normaliseFeverImageUrl(absoluteUrl(value, baseUrl), activity) : null;
     const isInterfaceAsset = /(site-flag|country-selector|language-selector|flag-icon)/i.test(context);
-    if (isGoodActivityImageUrl(imageUrl) && !isInterfaceAsset) {
+    const isClearCafeLogo = isClearCafeLogoCandidate(imageUrl, context, activity);
+    if ((isGoodActivityImageUrl(imageUrl) || isClearCafeLogo) && !isInterfaceAsset && !isSocialMediaIconCandidate(imageUrl, context)) {
       const sourceBonus = /happity\.co\.uk/i.test(baseUrl) && /\/uploads\/company\/banner\//i.test(imageUrl)
         ? 80
         : 0;
@@ -414,10 +456,14 @@ function imageFromHtml(html, baseUrl, activity) {
   const linkedImage = html.match(/<link\s+[^>]*rel=["'][^"']*image_src[^"']*["'][^>]*>/i)?.[0];
   const linkedHref = linkedImage ? htmlAttr(linkedImage, 'href') : null;
   const linkedUrl = linkedHref ? absoluteUrl(linkedHref, baseUrl) : null;
-  if (isGoodActivityImageUrl(linkedUrl)) candidates.push({ imageUrl: linkedUrl, score: imageCandidateScore(linkedUrl, 'image source', activity) });
+  if (isGoodActivityImageUrl(linkedUrl) || isClearCafeLogoCandidate(linkedUrl, 'image source', activity)) {
+    candidates.push({ imageUrl: linkedUrl, score: imageCandidateScore(linkedUrl, 'image source', activity) });
+  }
 
   const jsonLdImage = imageFromJsonLd(html, baseUrl);
-  if (isGoodActivityImageUrl(jsonLdImage)) candidates.push({ imageUrl: jsonLdImage, score: imageCandidateScore(jsonLdImage, 'structured data', activity) });
+  if (isGoodActivityImageUrl(jsonLdImage) || isClearCafeLogoCandidate(jsonLdImage, 'structured data', activity)) {
+    candidates.push({ imageUrl: jsonLdImage, score: imageCandidateScore(jsonLdImage, 'structured data', activity) });
+  }
 
   const imageTags = html.match(/<img\s+[^>]*>/gi) || [];
   for (const tag of imageTags) {
