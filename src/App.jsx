@@ -276,6 +276,8 @@ function isFlexibleActivity(activity) {
   const name = String(activity.activity_name || '').toLowerCase();
   const dailyDays = activity.available_days_of_week?.length === 7 || activity.days_of_week?.length === 7;
   return (
+    !activity.start_time ||
+    !activity.end_time ||
     category.includes('park') ||
     name.includes('park') ||
     activity.availability_type === 'daily' ||
