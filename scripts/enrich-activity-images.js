@@ -53,6 +53,13 @@ const curatedImageOverrides = [
     imageSourceUrl: 'https://www.missionbodyfit.com/',
   },
   {
+    // Happity supplies the activity's crisp, official class graphic. The
+    // organiser page only exposes a deliberately blurred Wix thumbnail.
+    matches: (activity) => activity.activity_id === '477dd3bf-03df-4e1d-b156-29f8cf562dd0',
+    imageUrl: 'https://happity-production.s3.amazonaws.com/uploads/company/logo/11560/event_Baby_Yoga_at_LUFC_logo.png?v=1757943347',
+    imageSourceUrl: 'https://www.happity.co.uk/schedules/baby-yoga-at-lufc-london-leytonstone-united-free-church-baby-yoga-at-lufc',
+  },
+  {
     // Happity supplies a real Bongalong class photo. The organiser page exposes
     // a Twitter social asset, which is not suitable for an activity card.
     matches: (activity) => /bongalong/i.test(activity.activity_name || ''),
