@@ -60,6 +60,13 @@ const curatedImageOverrides = [
     imageSourceUrl: 'https://www.happity.co.uk/schedules/baby-yoga-at-lufc-london-leytonstone-united-free-church-baby-yoga-at-lufc',
   },
   {
+    // Happity's provider banner is a real Wee Movers class photo. The
+    // organiser's blue plane artwork does not represent the activity.
+    matches: (activity) => /wee movers/i.test(activity.activity_name || ''),
+    imageUrl: 'https://happity-production.s3.amazonaws.com/uploads/company/banner/9625/Wee_Movers_banner.jpg?v=1715716435',
+    imageSourceUrl: 'https://www.happity.co.uk/schedules/wee-movers-london-crate-walthamstow-wee-movers-preschool-creative-dance',
+  },
+  {
     // Happity supplies a real Bongalong class photo. The organiser page exposes
     // a Twitter social asset, which is not suitable for an activity card.
     matches: (activity) => /bongalong/i.test(activity.activity_name || ''),
@@ -232,8 +239,14 @@ function imageCandidateScore(imageUrl, context = '', activity = {}) {
     if (/(food|dish|cake|pastry|brunch|bakery|coffee|drink|menu)/.test(value)) score += 30;
     if (/(og:image|twitter:image|social-share|open-graph|default|banner)/.test(value)) score -= 18;
   } else if (/(interior|inside|venue|cafe|coffee|restaurant|food|gallery|play|studio|class|space|room|facility)/.test(value)) {
-    score += 8;
+    score += 30;
   }
+  // Across all importers, real activities and venues are more useful than
+  // decorative graphics. These terms can come from an image's URL, alt text,
+  // CSS classes, or metadata supplied by the source website.
+  if (/(people|person|parent|mum|mom|dad|baby|toddler|child|children|kid|family|group|class|session|workshop|performance|dance|yoga)/.test(value)) score += 35;
+  if (/(photo|photograph|gallery|interior|inside|venue|space|studio|room|food|dish|cake|pastry|coffee)/.test(value)) score += 25;
+  if (/(graphic|illustration|drawing|cartoon|animation|plane|poster|flyer|template|stock)/.test(value)) score -= 45;
   if (/(hero|banner|cover|default|social-share)/.test(value)) score -= 6;
   if (/(logo|brand|wordmark|icon|avatar|badge)/.test(value)) score -= 20;
   return score;
@@ -366,7 +379,10 @@ function imageFromHtml(html, baseUrl, activity) {
     const imageUrl = value ? normaliseFeverImageUrl(absoluteUrl(value, baseUrl), activity) : null;
     const isInterfaceAsset = /(site-flag|country-selector|language-selector|flag-icon)/i.test(context);
     if (isGoodActivityImageUrl(imageUrl) && !isInterfaceAsset) {
-      candidates.push({ imageUrl, score: imageCandidateScore(imageUrl, context, activity) });
+      const sourceBonus = /happity\.co\.uk/i.test(baseUrl) && /\/uploads\/company\/banner\//i.test(imageUrl)
+        ? 80
+        : 0;
+      candidates.push({ imageUrl, score: imageCandidateScore(imageUrl, context, activity) + sourceBonus });
     }
   };
   const metaTags = html.match(/<meta\s+[^>]*>/gi) || [];
@@ -421,15 +437,16 @@ function imageFromHtml(html, baseUrl, activity) {
     addCandidate(match[1].trim().replace(/^['"]|['"]$/g, ''), 'background image venue photo');
   }
 
-  return candidates.sort((a, b) => b.score - a.score)[0]?.imageUrl || null;
+  return candidates.sort((a, b) => b.score - a.score)[0] || null;
 }
 
 async function fetchWebsiteImage(activity) {
   const curatedImage = curatedImageForActivity(activity);
   if (curatedImage) return curatedImage;
 
-  // The organiser's site is the best source of an activity-relevant image.
-  // The listing page is only used when no suitable organiser image is available.
+  // Compare both official organiser and listing sources. This avoids letting a
+  // usable but generic logo or graphic beat a stronger session or venue photo.
+  const candidates = [];
   for (const link of websiteLinksForActivity(activity)) {
     try {
       const parsed = new URL(link);
@@ -450,15 +467,19 @@ async function fetchWebsiteImage(activity) {
 
       const html = await response.text();
       const feverImage = feverListingImageFromHtml(html, response.url || parsed.toString(), activity);
-      if (feverImage) return { imageUrl: feverImage, imageSourceUrl: response.url || parsed.toString() };
-      const imageUrl = imageFromHtml(html, response.url || parsed.toString(), activity);
-      if (imageUrl) return { imageUrl, imageSourceUrl: response.url || parsed.toString() };
+      if (feverImage) {
+        candidates.push({ imageUrl: feverImage, imageSourceUrl: response.url || parsed.toString(), score: 90 });
+      }
+      const imageCandidate = imageFromHtml(html, response.url || parsed.toString(), activity);
+      if (imageCandidate) {
+        candidates.push({ ...imageCandidate, imageSourceUrl: response.url || parsed.toString() });
+      }
     } catch {
       // Try the next candidate URL.
     }
   }
 
-  return null;
+  return candidates.sort((left, right) => right.score - left.score)[0] || null;
 }
 
 async function enrichActivity(activity) {
