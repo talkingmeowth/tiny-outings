@@ -376,6 +376,18 @@ function googleEntryUrl(activity) {
   )}`;
 }
 
+function googleMapEmbedUrl(activity) {
+  const latitude = numericOrNull(activity.lat);
+  const longitude = numericOrNull(activity.long);
+  const query = latitude != null && longitude != null
+    ? `${latitude},${longitude}`
+    : `${activity.activity_name || ''} ${activity.address || ''}`.trim();
+
+  if (!query) return null;
+  // This public iframe URL does not use a Google Maps Platform API key.
+  return `https://www.google.com/maps?q=${encodeURIComponent(query)}&z=15&output=embed`;
+}
+
 function activityWebsiteUrl(activity) {
   return activity.website || activity.source_url || activity.google_place_uri || activity.google_link || googleEntryUrl(activity);
 }
@@ -1852,6 +1864,7 @@ function ActivityDetail({
   onClose,
 }) {
   const googleUrl = googleEntryUrl(activity);
+  const mapEmbedUrl = googleMapEmbedUrl(activity);
   const websiteUrl = activityWebsiteUrl(activity);
   const organiserWebsiteUrl = activity.organiser_website || null;
   const cost = activityCost(activity);
@@ -1897,6 +1910,19 @@ function ActivityDetail({
           )}
           <span><strong>Age</strong><small>{activity.age_suitability || 'Under 5s'}</small></span>
         </div>
+
+        {mapEmbedUrl && (
+          <figure className="detail-map">
+            <iframe
+              title={`Map for ${activity.activity_name}`}
+              src={mapEmbedUrl}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
+            />
+            <figcaption>Map preview</figcaption>
+          </figure>
+        )}
 
         <div className="external-links detail-links">
           <a href={websiteUrl} target="_blank" rel="noreferrer">Website</a>
