@@ -1,0 +1,985 @@
+{
+  "the mill community centre 7 11 coppermill lane london greater london e17 7ha": null,
+  "370 grove green rd london e11 4aj": {
+    "lat": 51.5663072,
+    "long": 0.0024738,
+    "display_name": "Grove Green Road, Leytonstone, London Borough of Waltham Forest, Greater London, England, E11 4AJ, United Kingdom"
+  },
+  "nightingale ln london e11 2hd": null,
+  "1a jewel rd london e17 4qu": {
+    "lat": 51.5881572,
+    "long": -0.021086,
+    "display_name": "Quaker Meeting House, 1a, Jewel Road, Higham Hill, Hale End, London Borough of Waltham Forest, Greater London, England, E17 4QU, United Kingdom"
+  },
+  "gracepoint 161 169 essex road london greater london n1 2sn": null,
+  "victoria park rd london e9 7hd": null,
+  "n4 library 26 blackstock road london greater london n4 2dw": {
+    "lat": 51.5637663,
+    "long": -0.1036784,
+    "display_name": "N4 Library, 26, Blackstock Road, Brownswood Park, Stoke Newington, London Borough of Hackney, Greater London, England, N4 2DW, United Kingdom"
+  },
+  "bridge rd london e17 8hg": {
+    "lat": 51.5711946,
+    "long": -0.0309358,
+    "display_name": "Bridge Road, Leyton, London Borough of Waltham Forest, Greater London, England, E17 8HG, United Kingdom"
+  },
+  "6 8 somers rd london e17 6rx": null,
+  "ste 7 islington house 313 314 upper st london n1 2xq": null,
+  "st michael and all angels hall landsdowne drive london london e8 3er": null,
+  "71 73 stoke newington church st london n16 0as": null,
+  "51 cambridge park london e11 2pr": null,
+  "475 roman rd bow london e3 5lx": null,
+  "forest ln london e7 9bb": {
+    "lat": 51.5491713,
+    "long": 0.0218552,
+    "display_name": "Forest Lane, Forest Gate, London Borough of Newham, Greater London, England, E7 9BB, United Kingdom"
+  },
+  "northchurch terrace london n1 4da": null,
+  "8 10 penny brookes st east village london e20 1bn": null,
+  "laycock st london n1 1lp": null,
+  "345 romford rd london e7 8aa": null,
+  "42 crouch hill finsbury park london n4 4by": null,
+  "lauriston rd london e9 7ey": {
+    "lat": 51.5397478,
+    "long": -0.0457766,
+    "display_name": "Lauriston Road, Victoria Park Village, Hackney, London Borough of Hackney, Greater London, England, E9 7EY, United Kingdom"
+  },
+  "green lanes london n16 9hj": null,
+  "13c amwell st london ec1r 1ul": null,
+  "16 northwold rd london n16 7hr": {
+    "lat": 51.5627976,
+    "long": -0.0719883,
+    "display_name": "Tower Theatre, 16, Northwold Road, Upper Clapton, West Hackney, London Borough of Hackney, Greater London, England, N16 7HR, United Kingdom"
+  },
+  "community ln hilldrop rd london n7 0je": null,
+  "crate sjs 35 st james st london e17 7fy": null,
+  "51 barnsbury st london n1 1tp": {
+    "lat": 51.5407467,
+    "long": -0.1059211,
+    "display_name": "51, Barnsbury Street, Canonbury, Angel, Highbury, London Borough of Islington, Greater London, England, N1 1TP, United Kingdom"
+  },
+  "freedom fighters arts redvers street london greater london n1 6ne": null,
+  "4 murrain rd finsbury park london n4 2bn": null,
+  "st georges church crayford rd london n7 0nd": null,
+  "24 white lion st london n1 9pd": {
+    "lat": 51.5326221,
+    "long": -0.1084756,
+    "display_name": "Claremont Project, 24-27, White Lion Street, Pentonville, Angel, Barnsbury, London Borough of Islington, Greater London, England, N1 9PD, United Kingdom"
+  },
+  "8 church end london e17 9rj": null,
+  "wanstead pl london e11 2sw": {
+    "lat": 51.5784325,
+    "long": 0.0247817,
+    "display_name": "Wanstead Place, 45, Wanstead Place, Wanstead, London Borough of Redbridge, Greater London, England, E11 2SW, United Kingdom"
+  },
+  "round chapel old school rooms 2 powerscroft road london e5 0pu": {
+    "lat": 51.5524959,
+    "long": -0.0519159,
+    "display_name": "Round Chapel Old School Rooms, 2, Powerscroft Road, Lower Clapton, Clapton, London Borough of Hackney, Greater London, England, E5 0PU, United Kingdom"
+  },
+  "wanstead quaker meeting house bush road london greater london e11 3au": {
+    "lat": 51.5694728,
+    "long": 0.0198512,
+    "display_name": "Wanstead Quaker Meeting House, Bush Road, Wanstead, London Borough of Redbridge, Greater London, England, E11 3AU, United Kingdom"
+  },
+  "the hub cafe london greater london e9 7dd": null,
+  "knebworth pilates studio 9 stevenage road knebworth hertfordshire sg3 6an": null,
+  "camden therapy centre camden high street london greater london nw1 0ne": null,
+  "churchfields london e18 2rb": null,
+  "east ham leisure centre 324 barking rd london e6 2rt": {
+    "lat": 51.5323394,
+    "long": 0.0564485,
+    "display_name": "East Ham Leisure Centre, 324, Barking Road, Plashet, East Ham, Greater London, England, E6 2RT, United Kingdom"
+  },
+  "58 orford rd london e17 9qu": null,
+  "prideaux house 10 church cres london e9 7dl": {
+    "lat": 51.5409101,
+    "long": -0.0455077,
+    "display_name": "Prideaux House, 10, Church Crescent, Victoria Park Village, Hackney, London Borough of Hackney, Greater London, England, E9 7DL, United Kingdom"
+  },
+  "161 chingford mount rd london e4 8lt": {
+    "lat": 51.6122992,
+    "long": -0.017943,
+    "display_name": "Chingford Mount Road, Royston Parade, Highams Park, London Borough of Waltham Forest, Greater London, England, E4 8LT, United Kingdom"
+  },
+  "121 122 upper st london n1 1qp": null,
+  "navigator square archway london n19 3td": {
+    "lat": 51.5660185,
+    "long": -0.1350612,
+    "display_name": "Archway Tavern, 1, B519, Archway, London Borough of Islington, Greater London, England, N19 3TD, United Kingdom"
+  },
+  "risinghill st london n1 9sy": null,
+  "taramga studio 4 6 hooker s rd london e17 6dp": null,
+  "noel rd london n1 8bd": null,
+  "upper st london n1 2tx": null,
+  "units 1 28 echo building e bay ln london e15 2sj": null,
+  "wanstead house community association london e11 2nt": {
+    "lat": 51.5742425,
+    "long": 0.0291432,
+    "display_name": "Wanstead House Community Association, The Green, Wanstead, London Borough of Redbridge, Greater London, England, E11 2NT, United Kingdom"
+  },
+  "72 hollybush hill london e11 1pe": {
+    "lat": 51.5833745,
+    "long": 0.0201793,
+    "display_name": "Hollybush Hill, Snaresbrook, London Borough of Redbridge, Greater London, England, E11 1PE, United Kingdom"
+  },
+  "3 spratt hall rd london e11 2rq": {
+    "lat": 51.5773608,
+    "long": 0.0210633,
+    "display_name": "Spratt Hall Road, Snaresbrook, London Borough of Redbridge, Greater London, England, E11 2RQ, United Kingdom"
+  },
+  "79 nightingale ln london e11 2ey": null,
+  "32 george ln london e18 1lw": null,
+  "good shepherd studios 15a davies ln bushwood london e11 3dr": null,
+  "crate walthamstow selborne road london greater london e17 7jr": null,
+  "344 grove green rd london e11 4ea": {
+    "lat": 51.5658052,
+    "long": 0.0021683,
+    "display_name": "Heathcote & Star, 344, Grove Green Road, Leytonstone, London Borough of Waltham Forest, Greater London, England, E11 4EA, United Kingdom"
+  },
+  "high rd woodford woodford green ig8 9la": null,
+  "shern hall methodist church 173 shernhall street walthamstow london e17 9hx": null,
+  "the old church stoke newington church street london greater london n16 9es": {
+    "lat": 51.5613862,
+    "long": -0.0847055,
+    "display_name": "The Old Church, Stoke Newington Church Street, Stoke Newington, London Borough of Hackney, Greater London, England, N16 9ES, United Kingdom"
+  },
+  "98 gibbins rd london e15 2hu": {
+    "lat": 51.540076,
+    "long": -0.0044654,
+    "display_name": "Carpenters & Dockland Centre, 98, Gibbins Road, Mill Meads, Stratford, London Borough of Newham, Greater London, England, E15 2HU, United Kingdom"
+  },
+  "leytonstone united free church 55 wallwood road london greater london e11 1ay": {
+    "lat": 51.5703685,
+    "long": 0.0024458,
+    "display_name": "Leytonstone United Free Church, 55, Wallwood Road, Leytonstone, London Borough of Waltham Forest, Greater London, England, E11 1AY, United Kingdom"
+  },
+  "elizabeth house 2 hurlock street london greater london n5 1ed": {
+    "lat": 51.5598038,
+    "long": -0.0991077,
+    "display_name": "Elizabeth House Community Centre, 2, Hurlock Street, Finsbury Park, London Borough of Islington, Greater London, England, N5 1ED, United Kingdom"
+  },
+  "mae 96 george ln london e18 1ad": null,
+  "42 packington st london n1 8rd": null,
+  "2 patshull rd london nw5 2lb": null,
+  "the social leytonstone ex servicemen s club 2 harvey road leytonstone greater london e11 3db": null,
+  "unit 2 303 holloway rd london n7 8hs": null,
+  "2 tiltman pl finsbury park london n7 7en": null,
+  "st joan of arc community centre kelross rd london n5 2qn": null,
+  "21 23 mildmay park london n1 4na": {
+    "lat": 51.5476252,
+    "long": -0.0843936,
+    "display_name": "Mildmay Library, 21-23, Mildmay Park, Islington, London Borough of Islington, Greater London, England, N1 4NA, United Kingdom"
+  },
+  "183 stoke newington church st london n16 0ul": {
+    "lat": 51.5610686,
+    "long": -0.0830227,
+    "display_name": "Another Studio, 183, Stoke Newington Church Street, Stoke Newington, London Borough of Hackney, Greater London, England, N16 0UL, United Kingdom"
+  },
+  "st johns centre 85 pitfield st london n1 6np": null,
+  "93 junction rd archway london n19 5qx": {
+    "lat": 51.5627521,
+    "long": -0.1357372,
+    "display_name": "93, Junction Road, Archway, London Borough of Islington, Greater London, England, N19 5QX, United Kingdom"
+  },
+  "the parish church of christ church highbury with st john and st saviour 155 highbury grove london greater london n5 1sa": null,
+  "sutton house london e9 6jq": {
+    "lat": 51.548458,
+    "long": -0.0504538,
+    "display_name": "Sutton House, 2 & 4, Homerton High Street, Lower Clapton, Hackney, London Borough of Hackney, Greater London, England, E9 6JQ, United Kingdom"
+  },
+  "186 hoe st london e17 4qh": {
+    "lat": 51.5859102,
+    "long": -0.0205321,
+    "display_name": "Soho Theatre Walthamstow, 186, Hoe Street, Leyton, London Borough of Waltham Forest, Greater London, England, E17 4QH, United Kingdom"
+  },
+  "fernbank children s centre 1a fountayne road london n16 7ea": null,
+  "n19 4nf islinghton studios g9 159 163 london greater london n19 4nf": null,
+  "33 torrington square london wc1e 7jl": {
+    "lat": 51.5224618,
+    "long": -0.129989,
+    "display_name": "Torrington Square, Bloomsbury, London Borough of Camden, Greater London, England, WC1E 7JL, United Kingdom"
+  },
+  "london e9 7dd": null,
+  "n1c centre plimsoll building handyside street london n1c 4bq": null,
+  "129 cavendish rd london e4 9ng": {
+    "lat": 51.6055131,
+    "long": -0.0065999,
+    "display_name": "Cavendish Road, Highams Park, London Borough of Waltham Forest, Greater London, England, E4 9NG, United Kingdom"
+  },
+  "14th walthamstow scout group 205a wood street london e17 3nu": null,
+  "205a wood st london e17 3nu": null,
+  "magpie cl london e7 9de": {
+    "lat": 51.5493523,
+    "long": 0.0166768,
+    "display_name": "Magpie Close, Forest Gate, London Borough of Newham, Greater London, England, E7 9DE, United Kingdom"
+  },
+  "640 high rd leytonstone bushwood london e11 3aa": null,
+  "2 crouch end hill london n8 8aa": {
+    "lat": 51.5782929,
+    "long": -0.1242398,
+    "display_name": "King's Head, 2, Crouch End Hill, Crouch Hall Park, Crouch End, London Borough of Haringey, Greater London, England, N8 8AA, United Kingdom"
+  },
+  "stoke newington high st london n16 0lh": {
+    "lat": 51.5626867,
+    "long": -0.0734552,
+    "display_name": "Stoke Newington High Street, Upper Clapton, West Hackney, London Borough of Hackney, Greater London, England, N16 0LH, United Kingdom"
+  },
+  "london e8 4dy uk": null,
+  "175 stoke newington high st london n16 0lh": {
+    "lat": 51.5621443,
+    "long": -0.0739483,
+    "display_name": "The Three Crowns, 175, Stoke Newington High Street, Upper Clapton, West Hackney, London Borough of Hackney, Greater London, England, N16 0LH, United Kingdom"
+  },
+  "ground floor shop 63 chetwynd rd london nw5 1bx": null,
+  "277 camden rd london n7 0jn": {
+    "lat": 51.5526731,
+    "long": -0.1246346,
+    "display_name": "Camden Road, Holloway, London Borough of Islington, Greater London, England, N7 0JN, United Kingdom"
+  },
+  "101 orford rd london e17 9qr": null,
+  "2 fieldway cres london n5 1pf": {
+    "lat": 51.5493829,
+    "long": -0.1072862,
+    "display_name": "Fieldway Crescent, Highbury, London Borough of Islington, Greater London, England, N5 1PF, United Kingdom"
+  },
+  "66 albert rd romford rm1 2pp": {
+    "lat": 51.5738881,
+    "long": 0.1900997,
+    "display_name": "Albert Road, Rush Green, London Borough of Havering, Greater London, England, RM1 2PP, United Kingdom"
+  },
+  "47 martello st london e8 3pe": {
+    "lat": 51.542653,
+    "long": -0.0577948,
+    "display_name": "47, Martello Street, Hackney, London Borough of Hackney, Greater London, England, E8 3PE, United Kingdom"
+  },
+  "finsbury library 245 saint john street london greater london ec1v 4nb": null,
+  "claremont project 4 white lion st london n1 9pd": null,
+  "cook with kasper billet road walthamstow walthamstow middlesex e17 5dx": null,
+  "clissold rd london n16 9ex": {
+    "lat": 51.558527,
+    "long": -0.0846273,
+    "display_name": "Clissold Road, Stoke Newington, London Borough of Hackney, Greater London, England, N16 9EX, United Kingdom"
+  },
+  "downs park rd lower clapton london e5 8np": {
+    "lat": 51.5522952,
+    "long": -0.0610437,
+    "display_name": "Downs Park Road, Lower Clapton, Shacklewell, London Borough of Hackney, Greater London, England, E5 8NP, United Kingdom"
+  },
+  "st bartholomew s church barking road london greater london e6 3ba": null,
+  "spirelight studios islington 2 parkhurst rd london n7 0sf": null,
+  "thornhill rd london n1 1hx": {
+    "lat": 51.5406903,
+    "long": -0.109399,
+    "display_name": "Thornhill Road, Angel, Barnsbury, London Borough of Islington, Greater London, England, N1 1HX, United Kingdom"
+  },
+  "unit 14 stratford centre 54a broadway london e15 1ng": null,
+  "gurney rd london e15 1sh": null,
+  "islington studios 159 163 marlborough rd london n19 4nf": null,
+  "emmanuel holloway 145 hornsey road london greater london n7 6du": {
+    "lat": 51.5590361,
+    "long": -0.1142176,
+    "display_name": "Emmanuel, 145, Hornsey Road, Lower Holloway, Holloway, London Borough of Islington, Greater London, England, N7 6DU, United Kingdom"
+  },
+  "estorick collection of modern italian art 39a canonbury square london greater london n1 2an": null,
+  "fe fe fanclub unit 1 6f esther anne place islington square london greater london n1 1wl": null,
+  "starr studio 2 16 bayford street london greater london e8 3se": null,
+  "fix east village studio 11 penny brookes street london greater london e20 1bn": null,
+  "yerbury rd archway london n19 4rs": null,
+  "ainslie wood off royston avenue chingford london greater london e4 9eg": null,
+  "form 8 broadway market mews london greater london e8 4ts": null,
+  "parliament hill nw5 1na gordon house road london greater london nw5 1na": null,
+  "the highams park woodford green woodford green greater london ig8 9ra": null,
+  "222 hornsey rd london n7 7ll": {
+    "lat": 51.5595583,
+    "long": -0.1143541,
+    "display_name": "Hornsey Road, Holloway, London Borough of Islington, Greater London, England, N7 7LL, United Kingdom"
+  },
+  "jim tonic at the print house 133 high street london greater london e15 2rb": {
+    "lat": 51.5324525,
+    "long": -0.0088622,
+    "display_name": "Jim & Tonic at The Print House, 133, High Street, Three Mills, Mill Meads, Stratford, London Borough of Newham, Greater London, England, E15 2RB, United Kingdom"
+  },
+  "the ramsay scout centre 319 holloway road london greater london n7 9fu": null,
+  "walthamstow school for girls church hill london greater london e17 9rz": null,
+  "123 grove hill london e18 2hy": null,
+  "277a upper st london n1 2tz": {
+    "lat": 51.5403675,
+    "long": -0.1021227,
+    "display_name": "New Unity @Upper Street, 277A, Upper Street, Canonbury, Angel, Islington, London Borough of Islington, Greater London, England, N1 2TZ, United Kingdom"
+  },
+  "pagoda london e3 5sx": null,
+  "9 brydges rd london e15 1na": {
+    "lat": 51.5500728,
+    "long": 0.0013091,
+    "display_name": "9, Brydges Road, Stratford New Town, Maryland, London Borough of Newham, Greater London, England, E15 1NA, United Kingdom"
+  },
+  "1 grangewood st london e6 1ez": null,
+  "all saints church london e4 9qz": null,
+  "earlham grove london e7 9ab": null,
+  "330 hornsey rd finsbury park london n7 7he": {
+    "lat": 51.5633094,
+    "long": -0.1182081,
+    "display_name": "Hornsey Road, Holloway, London Borough of Islington, Greater London, England, N7 7HE, United Kingdom"
+  },
+  "118 high rd london e18 2qs": null,
+  "15 aubert park london n5 1tl": {
+    "lat": 51.5555602,
+    "long": -0.1005527,
+    "display_name": "Aubert Park, Taverner Square, Highbury, London Borough of Islington, Greater London, England, N5 1TL, United Kingdom"
+  },
+  "highbury roundhouse youth community centre 71 ronalds rd london n5 1xb": null,
+  "140 tilbury rd london e10 6re": {
+    "lat": 51.5706141,
+    "long": -0.0099946,
+    "display_name": "Tun, 140, Tilbury Road, Leyton, London Borough of Waltham Forest, Greater London, England, E10 6RE, United Kingdom"
+  },
+  "laburnum st london e2 8ba": null,
+  "three colts tavern 199 cambridge heath road london greater london e2 0el": {
+    "lat": 51.5246889,
+    "long": -0.0551062,
+    "display_name": "Three Colts Tavern, 199, Cambridge Heath Road, Bethnal Green, London Borough of Tower Hamlets, Greater London, England, E2 0EL, United Kingdom"
+  },
+  "hemingford rd london n1 1df": null,
+  "18 brookscroft rd london e17 4lh": null,
+  "150 seymour rd london e10 7lx": {
+    "lat": 51.5661734,
+    "long": -0.0255695,
+    "display_name": "Sodexo at Lammas School, 150, Seymour Road, Leyton, London Borough of Waltham Forest, Greater London, England, E10 7LX, United Kingdom"
+  },
+  "wanstead methodist church hermon hill london e11 2ar": null,
+  "ivy street family centre 54 ivy street london n1 5je": null,
+  "1 priestley way london e17 6al": {
+    "lat": 51.5906099,
+    "long": -0.0415502,
+    "display_name": "Big Penny Social, 1, Priestley Way, Forest Estate, Higham Hill, Walthamstow, Greater London, England, E17 6AL, United Kingdom"
+  },
+  "the factory fitness and dance centre 407 hornsey road london greater london n19 4dx": null,
+  "st saviour s church hanley rd finsbury park london n4 3dq": {
+    "lat": 51.5697251,
+    "long": -0.1173336,
+    "display_name": "St Saviour's Parish Church, 79, Hanley Road, Finsbury Park, London Borough of Islington, Greater London, England, N4 3DQ, United Kingdom"
+  },
+  "laura pl lower clapton london e5 0rb": null,
+  "archway 435 avenue rd london e7 0jn": null,
+  "st george in the east crypt west 14 cannon st rd london e1 0bh": {
+    "lat": 51.5099132,
+    "long": -0.0598357,
+    "display_name": "Green Gables Montessori Nursery, 14, Cannon Street Road, St. George in the East, Wapping, London Borough of Tower Hamlets, Greater London, England, E1 0BH, United Kingdom"
+  },
+  "london fields lido london fields west side london greater london e8 3eu": {
+    "lat": 51.5426959,
+    "long": -0.0614313,
+    "display_name": "London Fields Lido, London Fields West Side, Hackney, London Borough of Hackney, Greater London, England, E8 3EU, United Kingdom"
+  },
+  "ainsworth rd london e9 7lp": {
+    "lat": 51.5396756,
+    "long": -0.0507183,
+    "display_name": "Ainsworth Road, Victoria Park Village, Hackney, London Borough of Hackney, Greater London, England, E9 7LP, United Kingdom"
+  },
+  "137 mare st london e8 3rh": {
+    "lat": 51.5386686,
+    "long": -0.0572989,
+    "display_name": "The London Fields, 137, Mare Street, Hackney, London Borough of Hackney, Greater London, England, E8 3RH, United Kingdom"
+  },
+  "8 glyn rd enfield en3 4jl": {
+    "lat": 51.649158,
+    "long": -0.0480246,
+    "display_name": "Glyn Road, Enfield Highway, Ponders End, London Borough of Enfield, Greater London, England, EN3 4JL, United Kingdom"
+  },
+  "st paul s church st pauls church st paul s old ford 84 st stephen s rd bow london e3 5jl": null,
+  "6a howard rd london n16 8px": null,
+  "101 dalston ln london e8 1nh": {
+    "lat": 51.548259,
+    "long": -0.0678145,
+    "display_name": "Dalston Lane, Lower Clapton, Shacklewell, London Borough of Hackney, Greater London, England, E8 1NH, United Kingdom"
+  },
+  "st michael all angels walthamstow northcote road northcote road london greater london e17 6pq": null,
+  "old bethnal green rd london e2 6pr": null,
+  "oxford house bethnal green derbyshire street london greater london e2 6hg": {
+    "lat": 51.5264127,
+    "long": -0.0611929,
+    "display_name": "Oxford House, Derbyshire Street, Spitalfields, Bethnal Green, London Borough of Tower Hamlets, Greater London, England, E2 6HG, United Kingdom"
+  },
+  "45 upper walthamstow rd london e17 3qg": {
+    "lat": 51.5881803,
+    "long": 0.0031326,
+    "display_name": "Forest View Care Home, 45, Upper Walthamstow Road, Wood Street, Upper Walthamstow, Hale End, London Borough of Waltham Forest, Greater London, England, E17 3QG, United Kingdom"
+  },
+  "orford house 73 orford rd london e17 9qr": null,
+  "king s house 242 pentonville rd london n1 9jy": {
+    "lat": 51.5312122,
+    "long": -0.1197275,
+    "display_name": "King's House, 242, Pentonville Road, Pentonville, Angel, Barnsbury, London Borough of Islington, Greater London, England, N1 9JY, United Kingdom"
+  },
+  "janson rd london e15 1tg": null,
+  "at the junction of balden rd croftdown rd harborne birmingham in b17 8rd": null,
+  "kingshold rd london e9 7jf": null,
+  "19 aberfeldy sq aberfeldy village london e14 0xa": {
+    "lat": 51.5123779,
+    "long": -0.0046991,
+    "display_name": "The Aberfeldy Practice, 19, Aberfeldy Square, Aberfeldy Village, Blackwall, London Borough of Tower Hamlets, Greater London, England, E14 0XA, United Kingdom"
+  },
+  "31 carleton rd london n7 0hj": null,
+  "mainyard studios london e9 5ln": {
+    "lat": 51.5443467,
+    "long": -0.0229013,
+    "display_name": "Mainyard Studios, 90-94, Wallis Road, East Wick, Hackney Wick, London Borough of Hackney, Greater London, England, E9 5LN, United Kingdom"
+  },
+  "dane pl bow london e3 5ej": {
+    "lat": 51.5320075,
+    "long": -0.0334501,
+    "display_name": "Dane Place, Old Ford, Bow, London Borough of Tower Hamlets, Greater London, England, E3 5EJ, United Kingdom"
+  },
+  "st mary s centre stoke newington church st london n16 9es": null,
+  "209 high rd london e18 2pa": null,
+  "225 225a brecknock rd london n19 5aa": {
+    "lat": 51.5566885,
+    "long": -0.1382205,
+    "display_name": "Brecknock Road, Tufnell Park, London Borough of Islington, Greater London, England, N19 5AA, United Kingdom"
+  },
+  "oban cl london e13 8sj": null,
+  "14 deanery rd london e15 4lp": {
+    "lat": 51.5429807,
+    "long": 0.0075514,
+    "display_name": "14, Deanery Road, Stratford New Town, Stratford, London Borough of Newham, Greater London, England, E15 4LP, United Kingdom"
+  },
+  "189 romford rd london e15 4jf": {
+    "lat": 51.5448449,
+    "long": 0.0151681,
+    "display_name": "Atherton Leisure Centre, 189, Romford Road, Stratford, London Borough of Newham, Greater London, England, E15 4JF, United Kingdom"
+  },
+  "community centre 627 barking rd london e13 9ez": {
+    "lat": 51.5283026,
+    "long": 0.0326063,
+    "display_name": "Barking Road Community Centre, 627-633, Barking Road, Plaistow, London Borough of Newham, Greater London, England, E13 9EZ, United Kingdom"
+  },
+  "2 tandy pl london e20 3as": null,
+  "434 forest rd london e17 4py": {
+    "lat": 51.5906137,
+    "long": -0.0211959,
+    "display_name": "The Salvation Army - Walthamstow, 434, Forest Road, Higham Hill, Highams Park, Walthamstow, Greater London, England, E17 4PY, United Kingdom"
+  },
+  "14 castlehaven rd london nw1 8ra": {
+    "lat": 51.5428595,
+    "long": -0.1442796,
+    "display_name": "Castlehaven Road, Maitland Park, Kentish Town, London Borough of Camden, Greater London, England, NW1 8RA, United Kingdom"
+  },
+  "116 weymouth terrace london e2 8lr": {
+    "lat": 51.5333073,
+    "long": -0.0722657,
+    "display_name": "Weymouth Terrace, De Beauvoir Town, Haggerston, London Borough of Hackney, Greater London, England, E2 8LR, United Kingdom"
+  },
+  "chatsworth rd lower clapton london e5 0ar": null,
+  "ashley rd london n19 3ad": null,
+  "winton primary school islington 62 68 killick st london n1 9az": null,
+  "145 chatsworth rd lower clapton london e5 0la": {
+    "lat": 51.5570737,
+    "long": -0.0466787,
+    "display_name": "Millfields Coffee, 145, Chatsworth Road, Clapton Park, Homerton, London Borough of Hackney, Greater London, England, E5 0LA, United Kingdom"
+  },
+  "higham hill park hecham cl london e17 5qt": null,
+  "2 crawley rd london e10 6rj": {
+    "lat": 51.566684,
+    "long": -0.011656,
+    "display_name": "Crawley Road, Leyton, London Borough of Waltham Forest, Greater London, England, E10 6RJ, United Kingdom"
+  },
+  "wiseman house site 34 shernhall st london e17 9rt": null,
+  "15 woodbine pl london e11 2rh": {
+    "lat": 51.5767389,
+    "long": 0.0267421,
+    "display_name": "Bambini, 15, Woodbine Place, Wanstead, London Borough of Redbridge, Greater London, England, E11 2RH, United Kingdom"
+  },
+  "be well york hall 5 old ford road london london e2 9pj": null,
+  "calthorpe community garden 258 274 gray s inn rd london wc1x 8lh": null,
+  "london e17 8jz": null,
+  "14 sebastian st london ec1v 0jg": null,
+  "62 rosebery ave london ec1r 4tn": null,
+  "44 vanbrugh park greater blackheath london se3 7jq": {
+    "lat": 51.4767829,
+    "long": 0.018748,
+    "display_name": "44, Vanbrugh Park, Blackheath Royal Standard, Blackheath, Royal Borough of Greenwich, Greater London, England, SE3 7JQ, United Kingdom"
+  },
+  "231 lower clapton rd lower clapton london e5 8eh": null,
+  "wesleyan pl london nw5 1ln": null,
+  "hargrave hall hargrave rd archway london n19 5sp": null,
+  "our lady of good council 24 bouverie rd london n16 0aj": null,
+  "hillside children s centre 1 leatherhead close london greater london n16 5qr": null,
+  "homerton row london e9 6ea": null,
+  "bethnal green montessori school st peter s north community centre 1 marian place london london e2 9ax": null,
+  "highgate newtown community partners 30 bertram street london greater london n19 5dq": null,
+  "prebend st london n1 8pq": null,
+  "6 hooker s rd london e17 6dp": {
+    "lat": 51.5896044,
+    "long": -0.0408255,
+    "display_name": "Yonder The Studio, 4-6, Hookers Road, Higham Hill, London Borough of Waltham Forest, Greater London, England, E17 6DP, United Kingdom"
+  },
+  "unit 5 3 5 shelford pl london n16 9hs": null,
+  "pause 478 high road leyton london e10 6qa": null,
+  "mainyard studio s 691 high road leyton london greater london e10 6ra": null,
+  "166 copenhagen st london n1 0st": null,
+  "6 church ln bushwood london e11 1hg": null,
+  "152 billet rd london e17 5dt": {
+    "lat": 51.5995827,
+    "long": -0.0262327,
+    "display_name": "Billet Road, Higham Hill, Highams Park, London Borough of Waltham Forest, Greater London, England, E17 5DT, United Kingdom"
+  },
+  "cavendish school 31 inverness street london greater london nw1 7hb": null,
+  "3 new rd london e4 9eu": null,
+  "mudra yoga london 2 shelford place london greater london n16 9hs": null,
+  "ledian gardens upper street leeds maidstone kent me17 1rz": null,
+  "queen elizabeth olympic park london greater london e20 2aq": {
+    "lat": 51.5396692,
+    "long": -0.0109649,
+    "display_name": "Queen Elizabeth Olympic Park, Lower Ground, Stratford, London Borough of Newham, Greater London, England, E20 2AQ, United Kingdom"
+  },
+  "the meeting point 155a boundary road london greater london e17 8ng": {
+    "lat": 51.5741583,
+    "long": -0.0217352,
+    "display_name": "The Meeting Point, 155A, Boundary Road, Leyton, Walthamstow, Greater London, England, E17 8NG, United Kingdom"
+  },
+  "166 goswell rd london ec1v 7dt": {
+    "lat": 51.5258559,
+    "long": -0.0995809,
+    "display_name": "The Old Ivy House, 166, Goswell Road, St Luke's, Angel, Islington, London Borough of Islington, Greater London, England, EC1V 7DT, United Kingdom"
+  },
+  "opposite 22 whistler st london n5 1nh": null,
+  "st peter st paul catholic primary school compton street london greater london ec1v 0eu": null,
+  "f45 camden 39 plender street basement centro 1 london united kingdom nw1 0dt": null,
+  "1 3 brevet parade honour lea ave chobham manor london e20 1lf": null,
+  "saint silas church pentonville penton street london greater london n1 9ul": null,
+  "leytonstone high road methodist church 578 high road leytonstone london greater london e11 3da": null,
+  "44 queen square london wc1n 3ah": null,
+  "1 paul st london e15 4qb": {
+    "lat": 51.5372576,
+    "long": 0.002236,
+    "display_name": "The Salvation Army - Stratford & East Ham, 1, Paul Street, Mill Meads, Stratford, London Borough of Newham, Greater London, England, E15 4QB, United Kingdom"
+  },
+  "east ham library 328 barking road london greater london e6 2rt": {
+    "lat": 51.5331063,
+    "long": 0.0570855,
+    "display_name": "East Ham Library, 328, Barking Road, Beckton, East Ham, Greater London, England, E6 2RT, United Kingdom"
+  },
+  "shipman youth zone 340 prince regent ln london london e16 3jh": {
+    "lat": 51.5124333,
+    "long": 0.03142,
+    "display_name": "Shipman Youth Zone, 340, Prince Regent Lane, Custom House, Silvertown, London Borough of Newham, Greater London, England, E16 3JH, United Kingdom"
+  },
+  "191 drayton park london n5 1ph": {
+    "lat": 51.5581118,
+    "long": -0.1067659,
+    "display_name": "Islington Ecology Centre, 191, Drayton Park, Finsbury Park, London Borough of Islington, Greater London, England, N5 1PH, United Kingdom"
+  },
+  "st johns school saint johns school 30 conewood st london n5 1dl": null,
+  "woodville rd mayville estate london n16 8na": null,
+  "london e7 0ju": null,
+  "manor gardens london n7 6jx": null,
+  "335 337 old st london ec1v 9ll": {
+    "lat": 51.5274939,
+    "long": -0.0794564,
+    "display_name": "Courthouse Hotel Shoreditch, 335-337, Old Street, Shoreditch, London Borough of Hackney, Greater London, England, EC1V 9LL, United Kingdom"
+  },
+  "otley rd eldwick bingley bd16 3eq": null,
+  "297 haggerston rd london e8 4en": {
+    "lat": 51.5403936,
+    "long": -0.0757672,
+    "display_name": "Koala & Bean Caffé, 297, Haggerston Road, De Beauvoir Town, Dalston, London Borough of Hackney, Greater London, England, E8 4EN, United Kingdom"
+  },
+  "leyton sports ground 485 high rd london e10 6py": null,
+  "marsh ln london e10 7bl": {
+    "lat": 51.5650838,
+    "long": -0.0229207,
+    "display_name": "Marsh Lane, Leyton, London Borough of Waltham Forest, Greater London, England, E10 7BL, United Kingdom"
+  },
+  "352 mare st london e8 1hr": {
+    "lat": 51.5474009,
+    "long": -0.0546004,
+    "display_name": "Hackney Style Council, 352, Mare Street, Lower Clapton, Hackney, London Borough of Hackney, Greater London, England, E8 1HR, United Kingdom"
+  },
+  "st barnabas homerton high st london e9 6dl": {
+    "lat": 51.5488597,
+    "long": -0.0426174,
+    "display_name": "St Barnabas, Homerton High Street, Clapton Park, Homerton, London Borough of Hackney, Greater London, England, E9 6DL, United Kingdom"
+  },
+  "pause leyton 478 high road leyton london e10 6qa": null,
+  "the wilds northgate rd barking ig11 0an": {
+    "lat": 51.5254201,
+    "long": 0.1246706,
+    "display_name": "The Wilds, Northgate Road, Scrattons Farm, Barking, Greater London, England, IG11 0AN, United Kingdom"
+  },
+  "colebrooke row london n1 8af": {
+    "lat": 51.535225,
+    "long": -0.1017302,
+    "display_name": "Colebrooke Row, Angel, Islington, London Borough of Islington, Greater London, England, N1 8AF, United Kingdom"
+  },
+  "highgate road chapel chetwynd rd london nw5 1bu": {
+    "lat": 51.5569892,
+    "long": -0.1455342,
+    "display_name": "Highgate Road Chapel, Chetwynd Road, The Arches, Maitland Park, Dartmouth Park, London Borough of Camden, Greater London, England, NW5 1BU, United Kingdom"
+  },
+  "the brian gillman endeavour hut foxdene cl london e18 1bh": null,
+  "matilda st london n1 0lb": null,
+  "17 busby pl london nw5 2sp": {
+    "lat": 51.5485671,
+    "long": -0.13243,
+    "display_name": "Kentish Town Community Centre, 17, Busby Place, Kentish Town, London Borough of Camden, Greater London, England, NW5 2SP, United Kingdom"
+  },
+  "george downing estate cazenove rd london n16 6be": null,
+  "1 norman st london ec1v 3aa": {
+    "lat": 51.5265652,
+    "long": -0.0946975,
+    "display_name": "Ironmonger Row Baths, 1, Norman Street, St Luke's, Angel, Finsbury, London Borough of Islington, Greater London, England, EC1V 3AA, United Kingdom"
+  },
+  "conewood st london n5 1dl": {
+    "lat": 51.5580054,
+    "long": -0.100163,
+    "display_name": "Conewood Street, Taverner Square, Finsbury Park, London Borough of Islington, Greater London, England, N5 1DL, United Kingdom"
+  },
+  "186 grove rd old ford london e3 5tg": {
+    "lat": 51.5317496,
+    "long": -0.0403367,
+    "display_name": "Victoria Park Baptist Church, 186, Grove Road, Globe Town, Old Ford, Mile End, London Borough of Tower Hamlets, Greater London, England, E3 5TG, United Kingdom"
+  },
+  "queen s dr finsbury park london n4 2hq": null,
+  "golden lane estate community centre golden lane estate london ec1y 0sa": null,
+  "35 emerald st london wc1n 3qw": null,
+  "round chapel old school rooms 2 powerscroft road london greater london e5 0pu": {
+    "lat": 51.5524959,
+    "long": -0.0519159,
+    "display_name": "Round Chapel Old School Rooms, 2, Powerscroft Road, Lower Clapton, Clapton, London Borough of Hackney, Greater London, England, E5 0PU, United Kingdom"
+  },
+  "23 exmouth market london ec1r 4qb": null,
+  "crayford rd london n7 0nd": null,
+  "48b bouverie rd london n16 0aj": null,
+  "359 city rd london ec1v 1lr": {
+    "lat": 51.5310749,
+    "long": -0.1027217,
+    "display_name": "City Road, St Luke's, Angel, Islington, London Borough of Islington, Greater London, England, EC1V 1LR, United Kingdom"
+  },
+  "sol centre yoga and sauna 216 fairbridge road london n19 3ht": null,
+  "royal victoria dock western gateway london e16 1fa": null,
+  "derby rd london e18 2pu": null,
+  "rocket padel wellness suite 2 the drive ilford ig1 3ps": null,
+  "shacklewell ln london e8 2ey": null,
+  "kayani ave woodberry down london n4 2hf": null,
+  "43 hoxton st london n1 6qn": {
+    "lat": 51.5285798,
+    "long": -0.0806628,
+    "display_name": "St Monica's Catholic Primary School, 43, Hoxton Street, Shoreditch, London Borough of Hackney, Greater London, England, N1 6QN, United Kingdom"
+  },
+  "the woodside primary academy barrett road walthamstow london e17 3nd": null,
+  "hamlyn house highgate hl archway london n19 5ph": null,
+  "seven sisters neath sa10 9ba": null,
+  "313 billet rd london e17 5px": {
+    "lat": 51.5983306,
+    "long": -0.039952,
+    "display_name": "Higham Hill Joint Services Centre, 313, Billet Road, Higham Hill, Walthamstow, Greater London, England, E17 5PX, United Kingdom"
+  },
+  "475 liverpool rd london n7 8pg": null,
+  "acland burghley school 93 burghley rd london nw5 1uj": null,
+  "pitchford st london e15 4rz": null,
+  "forest approach woodford woodford green ig8 9bw": {
+    "lat": 51.6028574,
+    "long": 0.0209568,
+    "display_name": "Forest Approach, Woodford Green, London Borough of Redbridge, Greater London, England, IG8 9BW, United Kingdom"
+  },
+  "93 stroud green rd finsbury park london n4 3px": null,
+  "the canvas 27 old ford rd london e2 9pj": {
+    "lat": 51.5299072,
+    "long": -0.054156,
+    "display_name": "The Canvas, 27, Old Ford Road, Globe Town, Bethnal Green, London Borough of Tower Hamlets, Greater London, England, E2 9PJ, United Kingdom"
+  },
+  "360 victoria park rd london e9 7bt": {
+    "lat": 51.5416438,
+    "long": -0.0376728,
+    "display_name": "People's Park Tavern, 360, Victoria Park Road, Hackney, London Borough of Hackney, Greater London, England, E9 7BT, United Kingdom"
+  },
+  "61 leswin rd london n16 7nx": {
+    "lat": 51.5599625,
+    "long": -0.0730045,
+    "display_name": "Leswin Road, Upper Clapton, West Hackney, London Borough of Hackney, Greater London, England, N16 7NX, United Kingdom"
+  },
+  "fleeming rd london e17 5et": {
+    "lat": 51.5942872,
+    "long": -0.0242488,
+    "display_name": "Fleeming Road, Higham Hill, Highams Park, London Borough of Waltham Forest, Greater London, England, E17 5ET, United Kingdom"
+  },
+  "waterloo gardens bethnal green london e2 9hp": {
+    "lat": 51.5341931,
+    "long": -0.0523741,
+    "display_name": "Waterloo Gardens, Bethnal Green, London Borough of Tower Hamlets, Greater London, England, E2 9HP, United Kingdom"
+  },
+  "3 eastfields ave london sw18 1gn": {
+    "lat": 51.46199,
+    "long": -0.1975159,
+    "display_name": "Three Riverside, 3, Eastfields Avenue, Wandsworth Riverside Quarter, Wandsworth, London Borough of Wandsworth, Greater London, England, SW18 1GN, United Kingdom"
+  },
+  "lauriston rd london e9 7eu": {
+    "lat": 51.5415027,
+    "long": -0.0480721,
+    "display_name": "Lauriston Road, Victoria Park Village, Hackney, London Borough of Hackney, Greater London, England, E9 7EU, United Kingdom"
+  },
+  "saint joseph s roman catholic church 68 grange park rd london e10 5es": null,
+  "4 greenleaf rd london e17 6qq": {
+    "lat": 51.5878089,
+    "long": -0.0215012,
+    "display_name": "Greenleaf Road Baptist Church, 4, Greenleaf Road, Higham Hill, Leyton, London Borough of Waltham Forest, Greater London, England, E17 6QQ, United Kingdom"
+  },
+  "408 barking rd london e13 8hj": {
+    "lat": 51.5225405,
+    "long": 0.0236508,
+    "display_name": "Cornerstone, 408, Barking Road, Plaistow, London Borough of Newham, Greater London, England, E13 8HJ, United Kingdom"
+  },
+  "212 camden rd london nw1 9by": null,
+  "oakhurst gardens london e17 3py": null,
+  "fields 1 13 triangle rd london e8 3rp": null,
+  "haggerston park queensbridge rd london e2 8np": null,
+  "wordsworth rd london n16 8dd": null,
+  "stadium close london e4 8es": null,
+  "65 blackhorse rd london e17 7as": {
+    "lat": 51.5838093,
+    "long": -0.0373511,
+    "display_name": "Blackhorse Road, Leyton, London Borough of Waltham Forest, Greater London, England, E17 7AS, United Kingdom"
+  },
+  "115 117 essex rd london n1 2sl": {
+    "lat": 51.538834,
+    "long": -0.0987381,
+    "display_name": "Essex Road, Angel, Islington, London Borough of Islington, Greater London, England, N1 2SL, United Kingdom"
+  },
+  "unit 1 cinema ls 17 city n pl finsbury park london n4 3fu": null,
+  "108 highbury new park london n5 2dr": {
+    "lat": 51.5545862,
+    "long": -0.0919159,
+    "display_name": "St Augustine's, 108, Highbury New Park, Taverner Square, Highbury, London Borough of Islington, Greater London, England, N5 2DR, United Kingdom"
+  },
+  "poplar union 2 cotall st london e14 6tl": {
+    "lat": 51.5156099,
+    "long": -0.0231861,
+    "display_name": "Poplar Union, 2, Cotall Street, Bromley-by-Bow, Poplar, London Borough of Tower Hamlets, Greater London, England, E14 6TL, United Kingdom"
+  },
+  "82 winchester rd london e4 9jp": null,
+  "approach rd bethnal green london e2 9ly": {
+    "lat": 51.5311612,
+    "long": -0.051511,
+    "display_name": "Approach Road, Globe Town, Bethnal Green, London Borough of Tower Hamlets, Greater London, England, E2 9LY, United Kingdom"
+  },
+  "studio 1 14 hatherley mews london e17 4qp": null,
+  "7 grove cres london e18 2jr": {
+    "lat": 51.5944385,
+    "long": 0.0190505,
+    "display_name": "Grove Crescent, South Woodford, London Borough of Redbridge, Greater London, England, E18 2JR, United Kingdom"
+  },
+  "18 woodford new rd london e17 3pp": {
+    "lat": 51.5871237,
+    "long": 0.0068026,
+    "display_name": "Woodford New Road, Upper Walthamstow, Hale End, London Borough of Waltham Forest, Greater London, England, E17 3PP, United Kingdom"
+  },
+  "newbery house northampton st london n1 2hx": {
+    "lat": 51.5415558,
+    "long": -0.0960818,
+    "display_name": "Newbery House, Northampton Street, Canonbury, Angel, Islington, London Borough of Islington, Greater London, England, N1 2HX, United Kingdom"
+  },
+  "114 high rd london e18 2qs": {
+    "lat": 51.5973929,
+    "long": 0.021767,
+    "display_name": "South Woodford Health Centre, 114, High Road, South Woodford, London Borough of Redbridge, Greater London, England, E18 2QS, United Kingdom"
+  },
+  "231 cambridge heath rd london e2 0el": {
+    "lat": 51.5253332,
+    "long": -0.0554864,
+    "display_name": "Backyard Comedy Club, 231, Cambridge Heath Road, Bethnal Green, London Borough of Tower Hamlets, Greater London, England, E2 0EL, United Kingdom"
+  },
+  "52 drayton park london n5 1pj": {
+    "lat": 51.5519753,
+    "long": -0.1061923,
+    "display_name": "Drayton Park, Highbury, London Borough of Islington, Greater London, England, N5 1PJ, United Kingdom"
+  },
+  "unit 8 bayford business centre bayford st london e8 3se": null,
+  "339 acton mews london e8 4ea": {
+    "lat": 51.5367945,
+    "long": -0.0756849,
+    "display_name": "TripSpace Projects, 339, Acton Mews, De Beauvoir Town, Haggerston, London Borough of Hackney, Greater London, England, E8 4EA, United Kingdom"
+  },
+  "bakers row london e15 3nf": {
+    "lat": 51.5330279,
+    "long": 0.0045324,
+    "display_name": "Bakers Row, Mill Meads, West Ham, London Borough of Newham, Greater London, England, E15 3NF, United Kingdom"
+  },
+  "springfield london e5 9ef": null,
+  "highbury cres london n5 1ar": null,
+  "4 burnside ave london e4 8yj": {
+    "lat": 51.6080403,
+    "long": -0.0239034,
+    "display_name": "Salisbury Manor Primary School, 4, Burnside Avenue, South Chingford, Chingford, London Borough of Waltham Forest, Greater London, England, E4 8YJ, United Kingdom"
+  },
+  "anderson rd london e9 6hb": null,
+  "flying sycamores forest school coppermill fields london greater london e17 7hg": null,
+  "frampton park baptist church frampton park road london greater london e9 7pq": {
+    "lat": 51.541565,
+    "long": -0.052118,
+    "display_name": "Frampton Park Baptist Church, Frampton Park Road, Victoria Park Village, Hackney, London Borough of Hackney, Greater London, England, E9 7PQ, United Kingdom"
+  },
+  "prebend st london n1 8ph": null,
+  "blundell st london n7 9bh": null,
+  "the drive london e17 3bn": null,
+  "hartlip village hall the street sittingbourne kent me9 7tl": null,
+  "32 34 osier way london e10 5sb": {
+    "lat": 51.5601375,
+    "long": -0.0162072,
+    "display_name": "Artworks East, 32-34, Osier Way, Leyton, London Borough of Waltham Forest, Greater London, England, E10 5SB, United Kingdom"
+  },
+  "228 chingford mount rd greater chingford mount london e4 8jl": {
+    "lat": 51.6164225,
+    "long": -0.017416,
+    "display_name": "Chingford Mount Road, Chingford Mount, Highams Park, London Borough of Waltham Forest, Greater London, England, E4 8JL, United Kingdom"
+  },
+  "11 priory ct london e17 5nb": null,
+  "214 stoke newington high st london n16 7hu": {
+    "lat": 51.5628273,
+    "long": -0.0732736,
+    "display_name": "Wander, 214, Stoke Newington High Street, Upper Clapton, West Hackney, London Borough of Hackney, Greater London, England, N16 7HU, United Kingdom"
+  },
+  "patrick coman house 245 st john st london ec1v 4nb": null,
+  "st augustine s hall cadogan terrace london e9 5eg": {
+    "lat": 51.5443329,
+    "long": -0.0325581,
+    "display_name": "Victoria Park Harriers and Tower Hamlets Athletics Club, Cadogan Terrace, Hackney Wick, London Borough of Hackney, Greater London, England, E9 5EG, United Kingdom"
+  },
+  "30 goswell rd barbican london ec1m 7aa": {
+    "lat": 51.5226862,
+    "long": -0.0976043,
+    "display_name": "Ultima Hair Design, 30, Goswell Road, West Smithfield, Barbican, City of London, Greater London, England, EC1M 7AA, United Kingdom"
+  },
+  "finsbury park london n4 1bh": null,
+  "19a cobble ln london n1 1sf": {
+    "lat": 51.5431902,
+    "long": -0.1052794,
+    "display_name": "19A, Cobble Lane, Canonbury, Highbury, London Borough of Islington, Greater London, England, N1 1SF, United Kingdom"
+  },
+  "goodinge community centre london n7 9gz": null,
+  "6 8 greenleaf rd london e17 6qq": {
+    "lat": 51.5876472,
+    "long": -0.0217241,
+    "display_name": "Greenleaf Road, Higham Hill, Leyton, London Borough of Waltham Forest, Greater London, England, E17 6QQ, United Kingdom"
+  },
+  "shoreditch park london n1 5dr united kingdom london england n1 5dr": null,
+  "highbury fields tennis courts highbury terrace framfield road london greater london n5 1uu": null,
+  "eastway london e9 5ja": null,
+  "st mark s church 1a moray road london greater london n4 3ld": null,
+  "st luke s community centre 85 tarling rd london e16 1hn": null,
+  "the body people fitness aerial dance studio 9 copper street london greater london e20 3aw": null,
+  "the forest tavern 173 forest ln london london e7 9bb": null,
+  "lloyd park forest road london greater london e17 4pp": null,
+  "wanstead flats e11 3bw bushwood london greater london e11 3bw": null,
+  "the fence farringdon 67 69 cowcross street london greater london ec1m 6bp": null,
+  "peter paine performance centre rosebery avenue boston lincolnshire pe12 7qr": null,
+  "highbury fields bandstand 42 highbury place london greater london n5 1ql": null,
+  "10 cynthia st 10 cynthia street london greater london n1 9jf": null,
+  "167 old st london ec1v 9nh": null,
+  "the pembury tavern 90 amhurst road london greater london e8 1jh": null,
+  "five points courtyard 61 mare street hackney london e8 4rg": null,
+  "bread street kitchen bar rooftop stratford 9 endeavour square london greater london e20 1jn": null,
+  "daubeney childrens centre daubeney road london greater london e5 0eg": null,
+  "1st and 2nd floor 3 drayton park london greater london n5 1nu": null,
+  "the old dairy 1 3 crouch hill crouch end london n4 4ap": null,
+  "arch 436 london e7 0la": null,
+  "98b st paul st london n1 7df": null,
+  "1 tapper walk london n1c 4aq": null,
+  "63 cambridge park london e11 2pr": null,
+  "20 chelmsford rd london e11 1bs": {
+    "lat": 51.5682835,
+    "long": 0.0041803,
+    "display_name": "Chelmsford Road, Leytonstone, London Borough of Waltham Forest, Greater London, England, E11 1BS, United Kingdom"
+  },
+  "little sisters of the poor 77 manor road london greater london n16 5bl": null,
+  "37 muriel st london n1 0th": {
+    "lat": 51.534943,
+    "long": -0.114822,
+    "display_name": "Muriel Street, Pentonville, Angel, Barnsbury, London Borough of Islington, Greater London, England, N1 0TH, United Kingdom"
+  },
+  "16 ivimey st london e2 6lr": null,
+  "73 butchers rd london e16 1ph": {
+    "lat": 51.5144227,
+    "long": 0.0231127,
+    "display_name": "Summerdale Court, 73, Butchers Road, Custom House, Canning Town, London Borough of Newham, Greater London, England, E16 1PH, United Kingdom"
+  },
+  "westgate house romford rd london e7 9hy": {
+    "lat": 51.5442907,
+    "long": 0.0171747,
+    "display_name": "Westgate House Care Home, 178, Romford Road, Forest Gate, London Borough of Newham, Greater London, England, E7 9HY, United Kingdom"
+  },
+  "4 pentonville rd london n1 9hf": {
+    "lat": 51.5321222,
+    "long": -0.107073,
+    "display_name": "Mayvn Cafe, 4, Pentonville Road, Pentonville, Angel, Clerkenwell, London Borough of Islington, Greater London, England, N1 9HF, United Kingdom"
+  },
+  "hornsey rd london n19 3ql": {
+    "lat": 51.5690533,
+    "long": -0.1237914,
+    "display_name": "Hornsey Road, Archway, London Borough of Islington, Greater London, England, N19 3QL, United Kingdom"
+  },
+  "17 canonbury rd london n1 2ht": null,
+  "185 hermon hill london e18 1qq": {
+    "lat": 51.5892889,
+    "long": 0.0303907,
+    "display_name": "Holy Trinity, 185, Hermon Hill, South Woodford, London Borough of Redbridge, Greater London, England, E18 1QQ, United Kingdom"
+  },
+  "the vicarage 38 dyson rd london e15 4jx": null,
+  "200 cambridge heath rd bethnal green london e2 9pa": null,
+  "18a orford rd london e17 9ln": null,
+  "4 the brewery romford roc dr romford rm1 1au": null,
+  "hartlake road granard house london e9 5bn": null,
+  "49 city rd london ec1y 1au": {
+    "lat": 51.5237449,
+    "long": -0.086575,
+    "display_name": "Wesley's Chapel, 49, City Road, Finsbury, London Borough of Islington, Greater London, England, EC1Y 1AU, United Kingdom"
+  },
+  "107 bridgeman rd london n1 1bd": {
+    "lat": 51.5407607,
+    "long": -0.1162468,
+    "display_name": "West Library, 107, Bridgeman Road, Angel, Barnsbury, London Borough of Islington, Greater London, England, N1 1BD, United Kingdom"
+  },
+  "14 allen rd london n16 8sd": {
+    "lat": 51.5549776,
+    "long": -0.0804117,
+    "display_name": "Minihome Nursery, 14, Allen Road, Stoke Newington, London Borough of Hackney, Greater London, England, N16 8SD, United Kingdom"
+  },
+  "64 barnsbury rd london n1 0es": {
+    "lat": 51.5359307,
+    "long": -0.1107486,
+    "display_name": "Church in the Corner, 64, Barnsbury Road, Pentonville, Angel, Barnsbury, London Borough of Islington, Greater London, England, N1 0ES, United Kingdom"
+  },
+  "barnsbury rd london n1 0es": {
+    "lat": 51.5372063,
+    "long": -0.1107129,
+    "display_name": "Barnsbury Road, Pentonville, Angel, Barnsbury, London Borough of Islington, Greater London, England, N1 0ES, United Kingdom"
+  },
+  "31 goldsmith rd london e10 5ez": {
+    "lat": 51.5647046,
+    "long": -0.0151516,
+    "display_name": "31, Goldsmith Road, Leyton, London Borough of Waltham Forest, Greater London, England, E10 5EZ, United Kingdom"
+  },
+  "st james hall 42 packington st london n1 8pf": null,
+  "score center 2 coronation square london e10 5un": null,
+  "2 perth rd london e10 7pb": null,
+  "whittington park 563 holloway rd london greater london n19 4dq": null,
+  "alliston house church hill rd london e17 3ex": {
+    "lat": 51.5875748,
+    "long": -0.0087407,
+    "display_name": "Alliston House, Church Hill Road, Walthamstow Village, Upper Walthamstow, Leyton, London Borough of Waltham Forest, Greater London, England, E17 3EX, United Kingdom"
+  },
+  "highbury fields london n5 1al": null,
+  "aberfeldy st aberfeldy village london e14 0pt": null,
+  "18 club row london e2 7ey": {
+    "lat": 51.5248593,
+    "long": -0.0743609,
+    "display_name": "Club Row, Boundary Estate, Spitalfields, Whitechapel, London Borough of Tower Hamlets, Greater London, England, E2 7EY, United Kingdom"
+  },
+  "north road london n7 9dp": {
+    "lat": 51.5497043,
+    "long": -0.1193319,
+    "display_name": "North Road, Lower Holloway, Holloway, London Borough of Islington, Greater London, England, N7 9DP, United Kingdom"
+  },
+  "switchboard studios 2 crawley road uplands business park uplands entrance b blackhorse ln london greater london e17 5qj": null,
+  "172 arlington rd london nw1 7hl": null
+}
