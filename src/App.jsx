@@ -449,18 +449,9 @@ function activityPhotoUrl(activity) {
   return activityPhotoUrls(activity)[0] || null;
 }
 
-function activityPhotoLabel(activity) {
-  const photoUrl = activityPhotoUrl(activity);
-  if (photoUrl && (photoUrl === activity.image_url || photoUrl === activity.photo_url)) return 'Activity photo';
-  if (String(photoUrl).includes('-placeholder.svg')) return 'Activity illustration';
-  if (photoUrl) return 'Website preview';
-  return 'Photo pending';
-}
-
 function ActivityPhoto({ activity, className }) {
   const photoUrl = activityPhotoUrl(activity);
   const fallbackImage = activityFallbackImage(activity);
-  const photoLabel = activityPhotoLabel(activity);
 
   return (
     <div className={classNames(className, 'has-image')}>
@@ -476,7 +467,6 @@ function ActivityPhoto({ activity, className }) {
           event.currentTarget.src = fallbackImage;
         }}
       />
-      <span>{photoLabel}</span>
     </div>
   );
 }
