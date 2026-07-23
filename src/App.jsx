@@ -273,6 +273,27 @@ function isFlexibleActivity(activity) {
   );
 }
 
+function activityMatchesWindow(activity, window) {
+  if (isFlexibleActivity(activity)) return true;
+
+  const minutes = (time) => {
+    const [hours = '0', minutesPart = '0'] = String(time || '').split(':');
+    return Number(hours) * 60 + Number(minutesPart);
+  };
+  const windows = {
+    morning: [0, 12 * 60],
+    afternoon: [12 * 60, 17 * 60],
+    evening: [17 * 60, 24 * 60],
+  };
+  const [windowStart, windowEnd] = windows[window] || windows.morning;
+  const start = minutes(activity.start_time);
+  const end = minutes(activity.end_time);
+
+  // Consolidated listings can span multiple session times, so include them in
+  // every planning window that overlaps their earliest-to-latest range.
+  return start < windowEnd && end > windowStart;
+}
+
 function isTermTimeOnly(activity) {
   const availability = [
     activity.availability_notes,
@@ -779,7 +800,7 @@ export default function App() {
   );
   const slotActivities = useMemo(
     () => filteredActivities
-      .filter((activity) => isFlexibleActivity(activity) || activity.time_window === selectedWindow)
+      .filter((activity) => activityMatchesWindow(activity, selectedWindow))
       // Ticketed events lead the deck, followed by the weekly Happity classes
       // that match this exact day and time. General places follow afterwards.
       .sort((left, right) => (
