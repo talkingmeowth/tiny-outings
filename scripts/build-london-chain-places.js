@@ -24,6 +24,7 @@ const searches = [
   { query: 'bookshop', category: 'Bookshops', type: 'bookshop' },
   { query: "children's bookshop", category: 'Bookshops', type: 'bookshop' },
 ];
+const unsuitableCafePrimaryTypes = new Set(['bar', 'pub', 'night_club', 'casino', 'liquor_store']);
 const discoveryMask = 'places.id';
 const detailsMask = [
   'id', 'displayName', 'formattedAddress', 'location', 'googleMapsUri', 'websiteUri',
@@ -166,6 +167,9 @@ function toRow(place, discovery) {
   const address = place.formattedAddress || 'London';
   const hours = availability(place.regularOpeningHours);
   const isCafe = discovery.types.has('cafe');
+  // A family-focused search can still return adult-led venues. Do not label
+  // those results as child-friendly cafes in future imports.
+  if (isCafe && unsuitableCafePrimaryTypes.has(place.primaryType)) return null;
   const rating = Number(place.rating || 0) || null;
   const reviewCount = Number(place.userRatingCount || 0);
   // Avoid promoting low-quality cafes while retaining unrated family venues for manual review.
