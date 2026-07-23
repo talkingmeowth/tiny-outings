@@ -1,0 +1,241 @@
+{
+  "generic_records": 31,
+  "repaired_records": 8,
+  "unresolved_records": 23,
+  "updates": [
+    {
+      "activityId": "8307371a-99b3-45a8-b0df-07f86d2d81f7",
+      "detailUrl": "https://www.happity.co.uk/schedules/mums-art-club-london-the-quaker-meeting-house-mums-art-club",
+      "activityName": "Mums Art Club",
+      "method": "existing-detail-link"
+    },
+    {
+      "activityId": "32fbc3d0-59ed-4860-baec-bd8a4c4f3289",
+      "detailUrl": "https://www.happity.co.uk/schedules/wee-movers-london-good-shepherd-studios-baby-dance-by-wee-movers",
+      "activityName": "Baby Dance by Wee Movers",
+      "method": "title-venue-time-match"
+    },
+    {
+      "activityId": "02c0e686-a0b5-402e-94d7-5fb6eed1e07d",
+      "detailUrl": "https://www.happity.co.uk/schedules/monkey-music-london-st-mary-s-church-rock-n-roll-wednesdays-11-30-12-00",
+      "activityName": "Monkey Music Rock n Roll",
+      "method": "title-venue-time-match"
+    },
+    {
+      "activityId": "0d8c0d48-f0d0-4f5d-971f-1f177c8d52da",
+      "detailUrl": "https://www.happity.co.uk/schedules/monkey-music-london-st-mary-s-church-rock-n-roll",
+      "activityName": "Monkey Music Rock n Roll",
+      "method": "title-venue-time-match"
+    },
+    {
+      "activityId": "02b81d99-5488-42e3-a191-21498db9896f",
+      "detailUrl": "https://www.happity.co.uk/schedules/music-tree-london-music-tree-first-steps-in-music-18-36-thursdays-10-15-11-00",
+      "activityName": "Music Tree First Steps in Music 18 36",
+      "method": "title-venue-time-match"
+    },
+    {
+      "activityId": "cc1cfc66-86cd-4066-9da0-ac1f602f5d4e",
+      "detailUrl": "https://www.happity.co.uk/schedules/singing-mamas-london-cornerstone-cafe-london-singing-mamas-newham",
+      "activityName": "Singing Mamas Newham",
+      "method": "existing-detail-link"
+    },
+    {
+      "activityId": "65558959-03aa-4a9c-8328-cfd8ab335e59",
+      "detailUrl": "https://www.happity.co.uk/schedules/tta-london-n7-9dp-leaves-colours-nature-painting-workshop-tuesdays-10-00-11-00",
+      "activityName": "TTA Leaves and Colours Nature Painting Workshop",
+      "method": "existing-detail-link"
+    },
+    {
+      "activityId": "452013e8-8a4b-4687-b05b-caf05779f8cc",
+      "detailUrl": "https://www.happity.co.uk/schedules/tumble-tots-wanstead-wanstead-house-community-association-2-3-year-olds",
+      "activityName": "Tumble Tots 2 3 Year Olds",
+      "method": "title-venue-time-match"
+    }
+  ],
+  "unresolved": [
+    {
+      "activity_id": "6a958406-5d76-43a9-9992-c6b04b4da2a7",
+      "activity_name": "The Castle Play Space Stay and Play",
+      "address": "370 Grove Green Rd, London E11 4AJ",
+      "start_time": "09:30:00",
+      "website": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#castle-play-space-stay-and-play-wed-0930",
+      "source_url": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#castle-play-space-stay-and-play-wed-0930"
+    },
+    {
+      "activity_id": "84f478f6-3f88-45a4-82cb-d73e1f92261e",
+      "activity_name": "Little Movers Gym Open Gym",
+      "address": "Gracepoint 161-169 Essex Road, London, Greater London, N1 2SN",
+      "start_time": "09:30:00",
+      "website": "https://www.happity.co.uk/hackney/baby-toddler-classes#little-movers-gym-open-gym-gracepoint-mon-0930",
+      "source_url": "https://www.happity.co.uk/hackney/baby-toddler-classes#little-movers-gym-open-gym-gracepoint-mon-0930"
+    },
+    {
+      "activity_id": "8acd47e9-b537-4370-9816-09b1fdf38164",
+      "activity_name": "Monkey Music Jiggety Jig",
+      "address": "St George in the East Crypt West, 14 Cannon St Rd, London E1 0BH",
+      "start_time": "09:45:00",
+      "website": "https://www.happity.co.uk/newham/baby-toddler-classes#monkey-music-jiggety-jig-st-george-east-tue-0945",
+      "source_url": "https://www.happity.co.uk/newham/baby-toddler-classes#monkey-music-jiggety-jig-st-george-east-tue-0945"
+    },
+    {
+      "activity_id": "ad17374a-9492-464d-ba3b-073f55862e14",
+      "activity_name": "Lisa Gilbert Academy Pre school Acro Gymnastics",
+      "address": "Oxford House Bethnal Green Derbyshire Street, London, Greater London, E2 6HG",
+      "start_time": "09:45:00",
+      "website": "https://www.happity.co.uk/hackney/baby-toddler-classes#lisa-gilbert-preschool-acro-gymnastics-mon-0945",
+      "source_url": "https://www.happity.co.uk/hackney/baby-toddler-classes#lisa-gilbert-preschool-acro-gymnastics-mon-0945"
+    },
+    {
+      "activity_id": "61a3f298-2bbc-4215-9fcd-91f4eb84c4cf",
+      "activity_name": "Little Boo Stories Mini Boo Interactive Stories",
+      "address": "The Parish Church of Christ Church Highbury with St. John and St. Saviour 155 Highbury Grove, London, Greater London, N5 1SA",
+      "start_time": "10:00:00",
+      "website": "https://www.happity.co.uk/hackney/baby-toddler-classes#little-boo-stories-mini-boo-christ-church-highbury-mon-1000",
+      "source_url": "https://www.happity.co.uk/hackney/baby-toddler-classes#little-boo-stories-mini-boo-christ-church-highbury-mon-1000"
+    },
+    {
+      "activity_id": "c27c9b2a-7940-4983-a59e-f10af63fb677",
+      "activity_name": "Mini Mozart Baby Class",
+      "address": "Upper St, London N1 2TX",
+      "start_time": "10:25:00",
+      "website": "https://www.happity.co.uk/islington/baby-toddler-classes#mini-mozart-baby-class-st-marys-wed-1025",
+      "source_url": "https://www.happity.co.uk/islington/baby-toddler-classes#mini-mozart-baby-class-st-marys-wed-1025"
+    },
+    {
+      "activity_id": "89b37dc5-1d7c-4dfe-be2e-e7eb98673b16",
+      "activity_name": "Boppin Bunnies Pre school Music",
+      "address": "44 Vanbrugh Park, Greater, Blackheath, London SE3 7JQ",
+      "start_time": "09:45:00",
+      "website": "https://www.happity.co.uk/newham/baby-toddler-classes#boppin-bunnies-preschool-music-royal-standard-tue-0945",
+      "source_url": "https://www.happity.co.uk/newham/baby-toddler-classes#boppin-bunnies-preschool-music-royal-standard-tue-0945"
+    },
+    {
+      "activity_id": "dfb9f029-c89e-4900-929b-f62bda381651",
+      "activity_name": "Juniorstrikers Baby Strikers Football",
+      "address": "London E9 7DD",
+      "start_time": "09:40:00",
+      "website": "https://www.happity.co.uk/newham/baby-toddler-classes#juniorstrikers-baby-strikers-victoria-park-tue-0940",
+      "source_url": "https://www.happity.co.uk/newham/baby-toddler-classes#juniorstrikers-baby-strikers-victoria-park-tue-0940"
+    },
+    {
+      "activity_id": "f14cb658-364c-4eef-9c7f-be8d1d9fb8b6",
+      "activity_name": "Mother and More Baby Massage and Baby Yoga Stage 1",
+      "address": "Pause 478 High Road , Leyton, London, E10 6QA",
+      "start_time": "13:00:00",
+      "website": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#mother-and-more-stage-1-pause-wed-1300",
+      "source_url": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#mother-and-more-stage-1-pause-wed-1300"
+    },
+    {
+      "activity_id": "d69ff8a0-d8e9-4906-964e-5dca845f3b84",
+      "activity_name": "Minis",
+      "address": "St Paul's Church, St Pauls Church, St Paul’s Old Ford, 84 St Stephen's Rd, Bow, London E3 5JL",
+      "start_time": "10:00:00",
+      "website": "https://www.happity.co.uk/hackney/baby-toddler-classes#minis-st-paul-old-ford-mon-1000",
+      "source_url": "https://www.happity.co.uk/hackney/baby-toddler-classes#minis-st-paul-old-ford-mon-1000"
+    },
+    {
+      "activity_id": "938a5260-c338-4ef7-bcb1-3f830404d2cb",
+      "activity_name": "Music Tree First Steps in Music 0 18",
+      "address": "51 Barnsbury St, London N1 1TP",
+      "start_time": "11:00:00",
+      "website": "https://www.happity.co.uk/islington/baby-toddler-classes#music-tree-first-steps-0-18-wed-1100",
+      "source_url": "https://www.happity.co.uk/islington/baby-toddler-classes#music-tree-first-steps-0-18-wed-1100"
+    },
+    {
+      "activity_id": "0c9d1cdf-c339-429b-bf3f-b0590f5036eb",
+      "activity_name": "Mother and More Baby Massage and Baby Yoga Stage 2",
+      "address": "1-3 Brevet Parade, Honour Lea Ave, Chobham Manor, London E20 1LF",
+      "start_time": "12:15:00",
+      "website": "https://www.happity.co.uk/newham/baby-toddler-classes#mother-and-more-stage-2-chobham-manor-tue-1215",
+      "source_url": "https://www.happity.co.uk/newham/baby-toddler-classes#mother-and-more-stage-2-chobham-manor-tue-1215"
+    },
+    {
+      "activity_id": "e7e6c03c-bd10-4818-8e9f-d0d6f40eb3c6",
+      "activity_name": "Sense Stories by Kids at Play",
+      "address": "The Ramsay Scout Centre 319 Holloway Road, London, Greater London, N7 9FU",
+      "start_time": "11:45:00",
+      "website": "https://www.happity.co.uk/islington/baby-toddler-classes#sense-stories-ramsay-scout-centre-wed-1145",
+      "source_url": "https://www.happity.co.uk/islington/baby-toddler-classes#sense-stories-ramsay-scout-centre-wed-1145"
+    },
+    {
+      "activity_id": "aa673217-63f0-4a7b-a93b-66227a871b42",
+      "activity_name": "Sense Stories by Kids at Play 0 6 Months Sensory Class",
+      "address": "The Ramsay Scout Centre 319 Holloway Road, London, Greater London, N7 9FU",
+      "start_time": "10:30:00",
+      "website": "https://www.happity.co.uk/islington/baby-toddler-classes#sense-stories-0-6-ramsay-scout-centre-wed-1030",
+      "source_url": "https://www.happity.co.uk/islington/baby-toddler-classes#sense-stories-0-6-ramsay-scout-centre-wed-1030"
+    },
+    {
+      "activity_id": "68ed68dd-1f24-45a6-b22b-84e27bb52276",
+      "activity_name": "Sing and Sign Stage 1 Baby Signing Music Class",
+      "address": "Upper St, London N1 2TX",
+      "start_time": "10:00:00",
+      "website": "https://www.happity.co.uk/hackney/baby-toddler-classes#sing-and-sign-stage-1-st-marys-neighbourhood-mon-1000",
+      "source_url": "https://www.happity.co.uk/hackney/baby-toddler-classes#sing-and-sign-stage-1-st-marys-neighbourhood-mon-1000"
+    },
+    {
+      "activity_id": "1711b152-5a19-4368-9055-ddf0b8787db2",
+      "activity_name": "Sing and Sign Stage Two",
+      "address": "Saint Joseph's Roman Catholic Church, 68 Grange Park Rd, London E10 5ES",
+      "start_time": "10:15:00",
+      "website": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#sing-and-sign-stage-two-st-josephs-wed-1015",
+      "source_url": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#sing-and-sign-stage-two-st-josephs-wed-1015"
+    },
+    {
+      "activity_id": "98f90426-165d-4ef5-a81f-7dcedb56fdef",
+      "activity_name": "Blossom Babies Blossom Toddler",
+      "address": "Poplar Union, 2 Cotall St, London E14 6TL",
+      "start_time": "10:00:00",
+      "website": "https://www.happity.co.uk/newham/baby-toddler-classes#blossom-babies-blossom-toddler-poplar-union-tue-1000",
+      "source_url": "https://www.happity.co.uk/newham/baby-toddler-classes#blossom-babies-blossom-toddler-poplar-union-tue-1000"
+    },
+    {
+      "activity_id": "d392d154-e4c4-44a0-b994-9c0b50d09fc1",
+      "activity_name": "Bongalong Under Ones Trial Session",
+      "address": "129 Cavendish Rd, London E4 9NG",
+      "start_time": "11:00:00",
+      "website": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#bongalong-under-ones-highams-park-wed-1100",
+      "source_url": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#bongalong-under-ones-highams-park-wed-1100"
+    },
+    {
+      "activity_id": "f3180475-3bc7-4956-8dc6-fcad8b6c34cb",
+      "activity_name": "Flying Sycamores Forest School Good Shepherd Studios",
+      "address": "Good Shepherd Studios, 15A Davies Ln, Bushwood, London E11 3DR",
+      "start_time": "10:00:00",
+      "website": "https://www.happity.co.uk/newham/baby-toddler-classes#flying-sycamores-good-shepherd-tue-1000",
+      "source_url": "https://www.happity.co.uk/newham/baby-toddler-classes#flying-sycamores-good-shepherd-tue-1000"
+    },
+    {
+      "activity_id": "0fe267ff-4435-4f2d-be0b-22b01d228da8",
+      "activity_name": "Thula Mama Singing With Babies",
+      "address": "6 Hooker's Rd, London E17 6DP",
+      "start_time": "10:00:00",
+      "website": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#thula-mama-yonder-studio-wed-1000",
+      "source_url": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#thula-mama-yonder-studio-wed-1000"
+    },
+    {
+      "activity_id": "7baaec93-0e58-462d-b7ff-cdb38c4d53e5",
+      "activity_name": "Tick Tock Music",
+      "address": "17 Canonbury Rd, London N1 2HT",
+      "start_time": "09:45:00",
+      "website": "https://www.happity.co.uk/hackney/baby-toddler-classes#tick-tock-music-st-stephens-canonbury-mon-0945",
+      "source_url": "https://www.happity.co.uk/hackney/baby-toddler-classes#tick-tock-music-st-stephens-canonbury-mon-0945"
+    },
+    {
+      "activity_id": "684ff48b-09db-470f-af80-2ca967ca1962",
+      "activity_name": "Zip Zap Toddlers",
+      "address": "The Old Church Stoke Newington Church Street, London, Greater London, N16 9ES",
+      "start_time": "10:00:00",
+      "website": "https://www.happity.co.uk/hackney/baby-toddler-classes#zip-zap-toddlers-st-marys-stoke-newington-mon-1000",
+      "source_url": "https://www.happity.co.uk/hackney/baby-toddler-classes#zip-zap-toddlers-st-marys-stoke-newington-mon-1000"
+    },
+    {
+      "activity_id": "13e5721b-0be3-4d4b-a456-06d66f5a9942",
+      "activity_name": "Walthamstow Toy Library Sensory Room Session",
+      "address": "6-8 Somers Rd, London E17 6RX",
+      "start_time": "09:30:00",
+      "website": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#walthamstow-toy-library-sensory-room-wed-0930",
+      "source_url": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#walthamstow-toy-library-sensory-room-wed-0930"
+    }
+  ]
+}
