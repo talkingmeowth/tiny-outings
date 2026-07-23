@@ -132,6 +132,10 @@ function isGoodActivityImageUrl(imageUrl) {
     'spinner',
     'facebook.com/tr',
     'facebook.net/tr',
+    'facebook.png',
+    'facebook.jpg',
+    'facebook.jpeg',
+    'facebook.webp',
     'doubleclick.net',
     'google-analytics.com',
     'tracking-pixel',
@@ -143,6 +147,10 @@ function isGoodActivityImageUrl(imageUrl) {
     'app-store',
     'app_store',
     'download-button',
+    '/small_',
+    '150x150',
+    '200x200',
+    's200x200',
     'cookie',
     'consent',
     'newsletter',
@@ -492,7 +500,7 @@ set
   image_url = null,
   image_source_url = null,
   updated_at = now()
-where coalesce(image_url, '') ~* '(favicon|icon|logo|wordmark|sprite|avatar|placeholder|apple-touch|/flags/|site-flag|country-selector|language-selector|facebook[.]com/tr|facebook[.]net/tr|doubleclick|google-analytics|tracking-pixel|/pixel[.]|pixel[.]gif|[.]svg(?:[?#]|$)|google-play|google_play|app-store|app_store|download-button|cookie|consent|newsletter|payment|checkout)';`;
+where coalesce(image_url, '') ~* '(favicon|icon|logo|wordmark|sprite|avatar|placeholder|apple-touch|/flags/|site-flag|country-selector|language-selector|facebook[.]com/tr|facebook[.]net/tr|facebook[.](png|jpg|jpeg|webp)|doubleclick|google-analytics|tracking-pixel|/pixel[.]|pixel[.]gif|[.]svg(?:[?#]|$)|google-play|google_play|app-store|app_store|download-button|/small_|150x150|200x200|s200x200|cookie|consent|newsletter|payment|checkout)';`;
 }
 
 async function mapWithConcurrency(items, limit, mapper) {

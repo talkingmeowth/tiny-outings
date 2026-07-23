@@ -4,7 +4,7 @@ import { supabase } from './supabaseClient';
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
 // Reset outdated swipe/filter state without touching planned calendar entries.
-const planningStorageVersion = '2026-07-13-event-swipe-validation';
+const planningStorageVersion = '2026-07-23-card-category-filters';
 const statusOptions = ['booked', 'tentative'];
 const activitySelectColumns = [
   'activity_id',
@@ -60,11 +60,28 @@ const emptyLinkForm = {
 };
 
 const activityInterestOptions = [
-  'Baby classes',
-  'Play & learn',
-  'Food & socials',
-  'Parks',
-  'Days out',
+  'Child-friendly cafes',
+  'Family activities',
+  'Parks & outdoor play',
+  'Music & singing',
+  'Stay & play',
+  'Baby dance & movement',
+  'Bookshops',
+  'Baby yoga',
+  'Baby sensory',
+  'Arts & crafts',
+  'Postnatal fitness',
+  'Story & rhyme time',
+  'Parent meet-ups',
+  'Baby massage',
+  'Developmental play',
+  'Feeding & postnatal support',
+  'Baby signing',
+  'Museums & culture',
+  'Baby & toddler cinema',
+  'Family hubs',
+  'Baby swimming',
+  'Soft play',
 ];
 
 const ageFilterOptions = [
@@ -477,7 +494,7 @@ function isActivityAvailableOn(activity, dateISO) {
 
 function activityMatchesInterests(activity, selectedCategories, allCategoriesSelected) {
   if (allCategoriesSelected) return true;
-  return activity.plan_filters?.some((filter) => selectedCategories.has(filter));
+  return selectedCategories.has(activity.category);
 }
 
 function ageEndpointInMonths(value) {
