@@ -196,11 +196,34 @@ function sqlString(value) {
 }
 
 function websiteLinksForActivity(activity) {
-  return [...new Set([
+  const links = [
     activity.organiser_website,
     activity.website,
     activity.source_url,
-  ].filter((link) => link && !/google\./i.test(link)))];
+  ].filter((link) => link && !/google\./i.test(link));
+
+  // Fever's listing page contains the activity-specific image, while an
+  // organiser home page often only has generic brand artwork.
+  if (activity.source_name === 'Fever London family listings') {
+    return [...new Set([activity.website, activity.source_url, activity.organiser_website]
+      .filter((link) => link && !/google\./i.test(link)))];
+  }
+
+  return [...new Set(links)];
+}
+
+function normaliseFeverImageUrl(imageUrl, activity) {
+  if (activity?.source_name !== 'Fever London family listings') return imageUrl;
+
+  try {
+    const parsed = new URL(imageUrl);
+    const photoPathIndex = parsed.pathname.indexOf('/fever2/plan/photo/');
+    if (!parsed.hostname.endsWith('feverup.com') || photoPathIndex === -1) return imageUrl;
+    const photoPath = parsed.pathname.slice(photoPathIndex + 1);
+    return `https://applications-media.feverup.com/image/upload/f_auto,w_720,h_720/${photoPath}`;
+  } catch {
+    return imageUrl;
+  }
 }
 
 function curatedImageForActivity(activity) {
@@ -273,10 +296,25 @@ function imageFromJsonLd(html, baseUrl) {
   return null;
 }
 
+function feverListingImageFromHtml(html, baseUrl, activity) {
+  if (activity.source_name !== 'Fever London family listings') return null;
+
+  const metaTags = html.match(/<meta\s+[^>]*>/gi) || [];
+  for (const tag of metaTags) {
+    const name = (htmlAttr(tag, 'property') || htmlAttr(tag, 'name') || '').toLowerCase();
+    const content = htmlAttr(tag, 'content');
+    if (!['og:image', 'og:image:url', 'twitter:image', 'twitter:image:src'].includes(name)) continue;
+    const imageUrl = content ? normaliseFeverImageUrl(absoluteUrl(content, baseUrl), activity) : null;
+    if (isGoodActivityImageUrl(imageUrl)) return imageUrl;
+  }
+
+  return null;
+}
+
 function imageFromHtml(html, baseUrl, activity) {
   const candidates = [];
   const addCandidate = (value, context = '') => {
-    const imageUrl = value ? absoluteUrl(value, baseUrl) : null;
+    const imageUrl = value ? normaliseFeverImageUrl(absoluteUrl(value, baseUrl), activity) : null;
     const isInterfaceAsset = /(site-flag|country-selector|language-selector|flag-icon)/i.test(context);
     if (isGoodActivityImageUrl(imageUrl) && !isInterfaceAsset) {
       candidates.push({ imageUrl, score: imageCandidateScore(imageUrl, context, activity) });
@@ -355,6 +393,8 @@ async function fetchWebsiteImage(activity) {
       if (!contentType.includes('text/html')) continue;
 
       const html = await response.text();
+      const feverImage = feverListingImageFromHtml(html, response.url || parsed.toString(), activity);
+      if (feverImage) return { imageUrl: feverImage, imageSourceUrl: response.url || parsed.toString() };
       const imageUrl = imageFromHtml(html, response.url || parsed.toString(), activity);
       if (imageUrl) return { imageUrl, imageSourceUrl: response.url || parsed.toString() };
     } catch {

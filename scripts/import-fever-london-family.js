@@ -181,6 +181,31 @@ function ageSuitability(description) {
   return match ? match[1].trim() : 'Families and children';
 }
 
+function htmlAttr(tag, name) {
+  return tag.match(new RegExp(`\\b${name}\\s*=\\s*["']([^"']+)["']`, 'i'))?.[1] || null;
+}
+
+function feverImageUrl(product, html) {
+  const metaTags = String(html || '').match(/<meta\s+[^>]*>/gi) || [];
+  for (const tag of metaTags) {
+    const name = (htmlAttr(tag, 'property') || htmlAttr(tag, 'name') || '').toLowerCase();
+    const content = htmlAttr(tag, 'content');
+    if (content && ['og:image', 'og:image:url', 'twitter:image', 'twitter:image:src'].includes(name)) return content.replaceAll('&amp;', '&');
+  }
+
+  const imageUrl = product.image?.contentUrl || product.image?.url || null;
+  if (!imageUrl) return null;
+
+  try {
+    const parsed = new URL(imageUrl);
+    const photoPathIndex = parsed.pathname.indexOf('/fever2/plan/photo/');
+    if (!parsed.hostname.endsWith('feverup.com') || photoPathIndex === -1) return imageUrl;
+    return `https://applications-media.feverup.com/image/upload/f_auto,w_720,h_720/${parsed.pathname.slice(photoPathIndex + 1)}`;
+  } catch {
+    return imageUrl;
+  }
+}
+
 function rowFor(product, url, html) {
   const offer = Array.isArray(product.offers) ? product.offers[0] : product.offers;
   const hours = feverWeeklyHours(html);
@@ -219,7 +244,7 @@ function rowFor(product, url, html) {
     booking_required: true,
     source_name: 'Fever London family listings',
     source_url: url,
-    image_url: product.image?.contentUrl || null,
+    image_url: feverImageUrl(product, html),
     image_source_url: url,
     activity_date: calendarDates.length === 1 ? calendarDates[0] : null,
     available_dates: calendarDates,
