@@ -89,6 +89,17 @@ const curatedImageOverrides = [
   },
 ];
 
+// A small, explicit set of recognisable cafe brands can fall back to their
+// official app icon when a specific branch page does not publish a usable
+// venue photo. This is deliberately used only after website extraction fails.
+const cafeBrandLogoFallbacks = [
+  {
+    matches: (activity) => isCafe(activity) && /\bstarbucks\b/i.test(activity.activity_name || ''),
+    imageUrl: 'https://www.starbucks.co.uk/assets/app/icons/apple-icon.png',
+    imageSourceUrl: 'https://www.starbucks.co.uk/',
+  },
+];
+
 function decodeHtml(value) {
   return String(value || '')
     .replaceAll('&amp;', '&')
@@ -292,6 +303,10 @@ function curatedImageForActivity(activity) {
   return curatedImageOverrides.find((override) => override.matches(activity)) || null;
 }
 
+function cafeBrandLogoForActivity(activity) {
+  return cafeBrandLogoFallbacks.find((fallback) => fallback.matches(activity)) || null;
+}
+
 async function fetchPublishedActivities() {
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY.');
@@ -479,7 +494,7 @@ async function fetchWebsiteImage(activity) {
     }
   }
 
-  return candidates.sort((left, right) => right.score - left.score)[0] || null;
+  return candidates.sort((left, right) => right.score - left.score)[0] || cafeBrandLogoForActivity(activity);
 }
 
 async function enrichActivity(activity) {
