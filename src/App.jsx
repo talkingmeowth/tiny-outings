@@ -1835,7 +1835,6 @@ function ActivityDetail({
   const googleUrl = googleEntryUrl(activity);
   const websiteUrl = activityWebsiteUrl(activity);
   const organiserWebsiteUrl = activity.organiser_website || null;
-  const hasSeparateOrganiserWebsite = organiserWebsiteUrl && organiserWebsiteUrl !== websiteUrl;
   const cost = activityCost(activity);
   const flexible = isFlexibleActivity(activity);
 
@@ -1882,7 +1881,7 @@ function ActivityDetail({
 
         <div className="external-links detail-links">
           <a href={websiteUrl} target="_blank" rel="noreferrer">Website</a>
-          {hasSeparateOrganiserWebsite && (
+          {organiserWebsiteUrl && (
             <a href={organiserWebsiteUrl} target="_blank" rel="noreferrer">Organiser site</a>
           )}
           <a href={googleUrl} target="_blank" rel="noreferrer">Google Places</a>
