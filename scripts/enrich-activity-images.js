@@ -52,6 +52,13 @@ const curatedImageOverrides = [
     imageUrl: 'https://www.missionbodyfit.com/quality_auto/904bc3_7b3f1a027f224e269e4201875204e9ad~mv2.jpg',
     imageSourceUrl: 'https://www.missionbodyfit.com/',
   },
+  {
+    // The organiser uses Linktree as its web address. Its Open Graph image is
+    // generic, so retain a real activity flyer from the linked public gallery.
+    matches: (activity) => /the castle play space/i.test(activity.activity_name || ''),
+    imageUrl: 'https://scontent-lhr11-1.xx.fbcdn.net/v/t39.30808-6/564184670_122129102828956554_8342545195573448851_n.jpg?stp=dst-jpg_tt6&cstp=mx1080x1350&ctp=s1080x1350&_nc_cat=100&ccb=1-7&_nc_sid=833d8c&_nc_ohc=5FPs8AH0oXsQ7kNvwH-hNuz&_nc_oc=AdruFEVl8qG2z_J66mvY8EkqwJTbmz6SVrlvjDHbWhwRnisDuLfYWBZmqULhZgxyP3M&_nc_zt=23&_nc_ht=scontent-lhr11-1.xx&_nc_gid=jWdhh78EPM49PdhWDgY2Qw&_nc_ss=7b289&oh=00_AQDe6pUezqAA54sFdD6FBh9AWwiWwIpHRGV9s_WjD47zIA&oe=6A68634A',
+    imageSourceUrl: 'https://www.facebook.com/people/The-Castle-Play-Space-CIC/61578696630205/',
+  },
 ];
 
 function decodeHtml(value) {
