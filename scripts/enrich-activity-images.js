@@ -43,6 +43,13 @@ const verbose = process.env.ACTIVITY_IMAGE_VERBOSE === 'true';
 // home-page, ticketing, or language-selector assets returned by their sites.
 const curatedImageOverrides = [
   {
+    // This location page has a dedicated, clear bakery photo. The generic
+    // charity image elsewhere on the page does not identify this branch.
+    matches: (activity) => activity.activity_id === '857cb8d8-d5f5-4af3-855c-e56d7a528926',
+    imageUrl: 'https://gails.com/cdn/shop/files/Westfield_Stratford.jpg?v=1775730617',
+    imageSourceUrl: 'https://gails.com/pages/westfield-stratford',
+  },
+  {
     // The site's older social preview returns a 404. This live Wix gallery
     // image is a clear, current food photo from Unity Cafe's own website.
     matches: (activity) => activity.activity_id === '2ff4ba86-ec3d-4409-ad63-58ce925ceeb5',
