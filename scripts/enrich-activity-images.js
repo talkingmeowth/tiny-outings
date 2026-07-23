@@ -53,6 +53,13 @@ const curatedImageOverrides = [
     imageSourceUrl: 'https://www.missionbodyfit.com/',
   },
   {
+    // Happity supplies a real Bongalong class photo. The organiser page exposes
+    // a Twitter social asset, which is not suitable for an activity card.
+    matches: (activity) => /bongalong/i.test(activity.activity_name || ''),
+    imageUrl: 'https://happity-production.s3.amazonaws.com/uploads/company/banner/433/Bongalong_banner.jpg?v=1681409656',
+    imageSourceUrl: 'https://www.happity.co.uk/schedules/bongalong-london-the-quaker-meeting-house-under-ones-trial-session-fridays-11-00-11-45',
+  },
+  {
     // The organiser's Shopify storefront rate-limits image crawlers. Happity
     // provides this official programme graphic for the corresponding class.
     matches: (activity) => /treasure me kids/i.test(activity.activity_name || '') && /baby massage/i.test(activity.activity_name || ''),
@@ -100,6 +107,9 @@ function isGoodActivityImageUrl(imageUrl) {
     const parsed = new URL(imageUrl);
     const path = parsed.pathname.toLowerCase();
     const basename = path.split('/').pop() || '';
+    if (/^(?:facebook|twitter)[0-9_-]*\.(?:png|jpe?g|webp)$/.test(basename)) {
+      return false;
+    }
     if (
       parsed.hostname.includes('walthamforest.gov.uk') &&
       path.includes('/sites/default/files/2026-06/') &&
@@ -145,6 +155,10 @@ function isGoodActivityImageUrl(imageUrl) {
     'facebook.jpg',
     'facebook.jpeg',
     'facebook.webp',
+    'twitter.png',
+    'twitter.jpg',
+    'twitter.jpeg',
+    'twitter.webp',
     'doubleclick.net',
     'google-analytics.com',
     'tracking-pixel',
@@ -527,10 +541,10 @@ set
   image_url = null,
   image_source_url = null,
   updated_at = now()
-where coalesce(image_url, '') ~* '(favicon|icon|logo|wordmark|strapline|sprite|avatar|placeholder|apple-touch|/flags/|site-flag|country-selector|language-selector|facebook[.]com/tr|facebook[.]net/tr|facebook[.](png|jpg|jpeg|webp)|doubleclick|google-analytics|tracking-pixel|/pixel[.]|pixel[.]gif|[.]svg(?:[?#]|$)|google-play|google_play|app-store|app_store|download-button|/small_|150x150|200x200|s200x200|cookie|consent|newsletter|payment|checkout)'
+where coalesce(image_url, '') ~* '(favicon|icon|logo|wordmark|strapline|sprite|avatar|placeholder|apple-touch|/flags/|site-flag|country-selector|language-selector|facebook[.]com/tr|facebook[.]net/tr|facebook[.](png|jpg|jpeg|webp)|twitter[0-9_-]*[.](png|jpg|jpeg|webp)|doubleclick|google-analytics|tracking-pixel|/pixel[.]|pixel[.]gif|[.]svg(?:[?#]|$)|google-play|google_play|app-store|app_store|download-button|/small_|150x150|200x200|s200x200|cookie|consent|newsletter|payment|checkout)'
   and (
     coalesce(image_source_url, '') !~* 'happity[.]co[.]uk'
-    or coalesce(image_url, '') ~* '(facebook[.]com/tr|facebook[.]net/tr|facebook[.](png|jpg|jpeg|webp)|/small_|150x150|200x200|s200x200)'
+    or coalesce(image_url, '') ~* '(facebook[.]com/tr|facebook[.]net/tr|facebook[.](png|jpg|jpeg|webp)|twitter[0-9_-]*[.](png|jpg|jpeg|webp)|/small_|150x150|200x200|s200x200)'
   );`;
 }
 
