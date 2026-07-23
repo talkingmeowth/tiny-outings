@@ -53,6 +53,13 @@ const curatedImageOverrides = [
     imageSourceUrl: 'https://www.missionbodyfit.com/',
   },
   {
+    // The organiser's Shopify storefront rate-limits image crawlers. Happity
+    // provides this official programme graphic for the corresponding class.
+    matches: (activity) => /treasure me kids/i.test(activity.activity_name || '') && /baby massage/i.test(activity.activity_name || ''),
+    imageUrl: 'https://happity-production.s3.amazonaws.com/uploads/company/logo/10558/event_Treasure_Me_Kids_London_logo.jpeg?v=1775354189',
+    imageSourceUrl: 'https://www.happity.co.uk/schedules/treasure-me-kids-london-london-walthamstow-toy-library-baby-massage-course-by-treasure-me-kids-london',
+  },
+  {
     // The organiser uses Linktree as its web address. Its Open Graph image is
     // generic, so retain a real activity flyer from the linked public gallery.
     matches: (activity) => /the castle play space/i.test(activity.activity_name || ''),
