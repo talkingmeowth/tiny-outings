@@ -742,7 +742,14 @@ input[type='range'] {
   min-width: 0;
 }
 
-.card-kicker > span {
+.card-tags {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 6px;
+}
+
+.card-tags > span:first-child:not(.status-pill) {
   overflow: hidden;
   color: var(--coral-dark);
   font-size: 0.78rem;
@@ -751,6 +758,18 @@ input[type='range'] {
   text-transform: uppercase;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.term-time-badge {
+  flex: 0 0 auto;
+  padding: 5px 7px;
+  border-radius: 999px;
+  color: var(--green-dark);
+  background: rgba(220, 237, 200, 0.86);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .card-content h2 {

@@ -273,6 +273,15 @@ function isFlexibleActivity(activity) {
   );
 }
 
+function isTermTimeOnly(activity) {
+  const availability = [
+    activity.availability_notes,
+    activity.schedule_notes,
+    activity.availability_type,
+  ].filter(Boolean).join(' ').toLowerCase();
+  return /term[\s-]?time/.test(availability) && !/all year|year round/.test(availability);
+}
+
 function shouldShowAvailability(activity) {
   return !isFlexibleActivity(activity) && formatAvailability(activity) !== 'Open dates vary';
 }
@@ -1644,6 +1653,7 @@ function ActivityCard({
   const drive = Number.isFinite(driveMinutes) ? `${driveMinutes} min` : null;
   const flexible = isFlexibleActivity(activity);
   const sourceLabel = activitySourceLabel(activity);
+  const termTimeOnly = isTermTimeOnly(activity);
 
   return (
     <article
@@ -1675,9 +1685,14 @@ function ActivityCard({
 
       <div className="card-content">
         <div className="card-kicker">
-          <span>{activityPlanLabel(activity)}</span>
-          <span className="status-pill is-ghost">{sourceLabel}</span>
-          {status && <StatusPill status={status} />}
+          <div className="card-tags">
+            <span>{activityPlanLabel(activity)}</span>
+            {termTimeOnly && <span className="term-time-badge">Term time</span>}
+          </div>
+          <div className="card-tags">
+            <span className="status-pill is-ghost">{sourceLabel}</span>
+            {status && <StatusPill status={status} />}
+          </div>
         </div>
         <h2>{activity.activity_name}</h2>
         <p className="card-description">
