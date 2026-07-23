@@ -4,7 +4,7 @@ import { supabase } from './supabaseClient';
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
 // Reset outdated swipe/filter state without touching planned calendar entries.
-const planningStorageVersion = '2026-07-23-card-category-filters';
+const planningStorageVersion = '2026-07-23-source-and-category-filters';
 const statusOptions = ['booked', 'tentative'];
 const activitySelectColumns = [
   'activity_id',
@@ -60,28 +60,16 @@ const emptyLinkForm = {
 };
 
 const activityInterestOptions = [
-  'Child-friendly cafes',
-  'Family activities',
+  'Cafes & food',
   'Parks & outdoor play',
   'Music & singing',
   'Stay & play',
-  'Baby dance & movement',
-  'Bookshops',
-  'Baby yoga',
-  'Baby sensory',
-  'Arts & crafts',
-  'Postnatal fitness',
-  'Story & rhyme time',
-  'Parent meet-ups',
-  'Baby massage',
-  'Developmental play',
-  'Feeding & postnatal support',
-  'Baby signing',
+  'Movement & dance',
+  'Sensory & development',
+  'Stories, books & crafts',
   'Museums & culture',
-  'Baby & toddler cinema',
-  'Family hubs',
-  'Baby swimming',
-  'Soft play',
+  'Family events & cinema',
+  'Parent support & meet-ups',
 ];
 
 const ageFilterOptions = [
@@ -100,8 +88,8 @@ function defaultFilters() {
     driveMinutes: 25,
     weekStart: startOfWeekISO(todayISO()),
     interests: [...activityInterestOptions],
+    source: 'all',
     ageRange: 'all',
-    includeEvents: true,
   };
 }
 
@@ -508,7 +496,24 @@ function isActivityAvailableOn(activity, dateISO) {
 
 function activityMatchesInterests(activity, selectedCategories, allCategoriesSelected) {
   if (allCategoriesSelected) return true;
-  return selectedCategories.has(activity.category);
+  return selectedCategories.has(activityPlanLabel(activity));
+}
+
+function activityPlanLabel(activity) {
+  const category = String(activity.category || '').toLowerCase();
+  const filters = Array.isArray(activity.plan_filters) ? activity.plan_filters.join(' ').toLowerCase() : '';
+  const value = `${category} ${filters}`;
+
+  if (/cafe|coffee|food|lunch|bakery/.test(value)) return 'Cafes & food';
+  if (/park|outdoor/.test(value)) return 'Parks & outdoor play';
+  if (/music|sing/.test(value)) return 'Music & singing';
+  if (/stay|soft play|family hub|play centre/.test(value)) return 'Stay & play';
+  if (/dance|movement|yoga|swim|fitness/.test(value)) return 'Movement & dance';
+  if (/sensory|development|massage|signing/.test(value)) return 'Sensory & development';
+  if (/story|rhyme|book|craft|art/.test(value)) return 'Stories, books & crafts';
+  if (/museum|culture/.test(value)) return 'Museums & culture';
+  if (/support|feeding|postnatal|meet.?up/.test(value)) return 'Parent support & meet-ups';
+  return 'Family events & cinema';
 }
 
 function ageEndpointInMonths(value) {
@@ -662,12 +667,10 @@ export default function App() {
       weekStart: stored.weekStart || defaults.weekStart,
       // Categories always begin broad. Parents can narrow them for the current session.
       interests: defaults.interests,
+      source: stored.source || defaults.source,
       ageRange: ageFilterOptions.some((option) => option.value === stored.ageRange)
         ? stored.ageRange
         : defaults.ageRange,
-      // Events start on for every fresh app version. Older cached filters could
-      // leave a populated events directory invisible after an import.
-      includeEvents: true,
     };
   });
   const [userLocation, setUserLocation] = useState(null);
@@ -688,7 +691,6 @@ export default function App() {
     [deferredFilters.interests],
   );
   const allCategoriesSelected = selectedCategorySet.size === activityInterestOptions.length;
-  const eventsOnly = deferredFilters.includeEvents && selectedCategorySet.size === 0;
 
   const weekDays = useMemo(
     () => Array.from({ length: 7 }, (_, index) => addDaysISO(filters.weekStart, index)),
@@ -717,24 +719,18 @@ export default function App() {
     () => allActivities.filter((activity) => activity.public_listing_status === 'published').length,
     [allActivities],
   );
+  const sourceOptions = useMemo(
+    () => [...new Set(allActivities.map(activitySourceLabel))].sort((left, right) => left.localeCompare(right)),
+    [allActivities],
+  );
   const baseFilteredActivities = useMemo(
     () => activitiesWithDistance.filter((activity) => {
-      // Events are an independent tag: when it is the only selection, do not
-      // also require an activity category match.
-      const interestMatch = isEventSource(activity)
-        ? deferredFilters.includeEvents
-        : activityMatchesInterests(activity, selectedCategorySet, allCategoriesSelected);
-      const eventMatch = eventsOnly
-        ? true
-        : deferredFilters.includeEvents
-          ? (!isEventSource(activity) || isEventListing(activity))
-          : !isEventSource(activity);
       return activity.public_listing_status === 'published'
-        && interestMatch
-        && eventMatch
+        && activityMatchesInterests(activity, selectedCategorySet, allCategoriesSelected)
+        && (deferredFilters.source === 'all' || activitySourceLabel(activity) === deferredFilters.source)
         && activityMatchesAge(activity, deferredFilters.ageRange);
     }),
-    [activitiesWithDistance, selectedCategorySet, allCategoriesSelected, deferredFilters.includeEvents, deferredFilters.ageRange, eventsOnly],
+    [activitiesWithDistance, selectedCategorySet, allCategoriesSelected, deferredFilters.ageRange, deferredFilters.source],
   );
   const distanceMatchedActivities = useMemo(
     () => !userLocation
@@ -1170,6 +1166,7 @@ export default function App() {
           <StartScreen
             filters={filters}
             setFilters={setFilters}
+            sourceOptions={sourceOptions}
             locationStatus={locationStatus}
             userLocation={userLocation}
             usingDistanceFallback={usingDistanceFallback}
@@ -1249,6 +1246,7 @@ export default function App() {
 function StartScreen({
   filters,
   setFilters,
+  sourceOptions,
   locationStatus,
   userLocation,
   usingDistanceFallback,
@@ -1329,15 +1327,19 @@ function StartScreen({
                 {interest}
               </button>
             ))}
-            <button
-              type="button"
-              className={classNames('filter-chip', filters.includeEvents && 'is-on')}
-              onClick={() => setFilters((current) => ({ ...current, includeEvents: !current.includeEvents }))}
-            >
-              Events
-            </button>
           </div>
         </div>
+
+        <label className="field-group source-filter">
+          <span>Source</span>
+          <select
+            value={filters.source}
+            onChange={(event) => setFilters((current) => ({ ...current, source: event.target.value }))}
+          >
+            <option value="all">All sources</option>
+            {sourceOptions.map((source) => <option key={source} value={source}>{source}</option>)}
+          </select>
+        </label>
 
         <div className="field-group">
           <span>Child's age</span>
@@ -1673,7 +1675,7 @@ function ActivityCard({
 
       <div className="card-content">
         <div className="card-kicker">
-          <span>{activity.category}</span>
+          <span>{activityPlanLabel(activity)}</span>
           <span className="status-pill is-ghost">{sourceLabel}</span>
           {status && <StatusPill status={status} />}
         </div>
@@ -1743,7 +1745,7 @@ function ShortlistPanel({
             <article key={activity.activity_id} className="shortlist-card">
               <button type="button" onClick={() => onOpenActivity(activity)}>
                 <strong>{activity.activity_name}</strong>
-                <span>{isFlexibleActivity(activity) ? 'Anytime' : `${activity.start_time} to ${activity.end_time}`} - {activity.category}</span>
+                <span>{isFlexibleActivity(activity) ? 'Anytime' : `${activity.start_time} to ${activity.end_time}`} - {activityPlanLabel(activity)}</span>
               </button>
               <div className="shortlist-actions">
                 <button type="button" onClick={() => onChoose(activity, 'tentative')}>
@@ -1883,7 +1885,7 @@ function ActivityDetail({
       </div>
 
       <div className="detail-content-card">
-        <p className="eyebrow">{activity.category}</p>
+        <p className="eyebrow">{activityPlanLabel(activity)}</p>
         <h1>{activity.activity_name}</h1>
         <p className="detail-description">
           {activity.description || 'Description coming soon. Check the links for the latest details.'}

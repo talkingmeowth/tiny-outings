@@ -394,6 +394,7 @@ p {
 }
 
 .field-group > label,
+.source-filter > span,
 .range-card span,
 .app-form label span,
 .review-card label span {
@@ -1051,6 +1052,7 @@ input[type='range'] {
 }
 
 .calendar-controls select,
+.source-filter select,
 .app-form input,
 .app-form select,
 .app-form textarea,
