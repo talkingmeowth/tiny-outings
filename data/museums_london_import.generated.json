@@ -1,0 +1,20 @@
+{
+  "generated_at": "2026-07-23T15:16:55.182Z",
+  "source_url": "https://www.museumslondon.org/list-of-museums-in-london",
+  "child_friendly_source_url": "https://www.museumslondon.org/child-friendly-museums",
+  "candidates": 53,
+  "imported": 43,
+  "excluded": [
+    "Battle of Britain Bunker",
+    "Bentley Priory Museum",
+    "City of London Police Museum",
+    "Firepower, The Royal Artillery Museum",
+    "HMS Belfast",
+    "Imperial War Museum",
+    "Museum of London",
+    "National Maritime Museum",
+    "The National Army Museum",
+    "Tower of London"
+  ],
+  "errors": []
+}
