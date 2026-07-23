@@ -19,6 +19,7 @@
     "activities:fever-family": "node scripts/import-fever-london-family.js",
     "activities:museums-london": "node scripts/import-museums-london.js",
     "activities:timeout-kids": "node scripts/import-timeout-london-kids.js",
+    "activities:loopla-london": "node scripts/import-loopla-london.js",
     "activities:fever-availability": "node scripts/enrich-fever-availability.js",
     "activities:normalize-event-names": "node scripts/normalize-event-names.js",
     "activities:london-chains": "node scripts/build-london-chain-places.js",
