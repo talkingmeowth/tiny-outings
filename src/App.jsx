@@ -583,21 +583,19 @@ function isHappityListing(activity) {
 
 function activitySourceLabel(activity) {
   const source = String(activity.data_source || '').trim().toLowerCase();
-  const searchableSource = [
-    source,
-    activity.source_name,
-    activity.source_url,
-    activity.website,
-  ].filter(Boolean).join(' ').toLowerCase();
+  const sourceName = String(activity.source_name || '').toLowerCase();
+  const searchableSource = `${source} ${sourceName} ${activity.source_url || ''}`.toLowerCase();
 
   if (searchableSource.includes('happity')) return 'Happity';
+  if (searchableSource.includes('timeout.com') || sourceName.includes('time out')) return 'Time Out London';
+  if (searchableSource.includes('loopla')) return 'Loopla';
+  if (sourceName.includes('museums london')) return 'Museums London';
   if (searchableSource.includes('eventbrite')) return 'Eventbrite';
   if (searchableSource.includes('fever')) return 'Fever';
-  if (searchableSource.includes('better start') || searchableSource.includes('best start')) return 'Better Start';
-  if (searchableSource.includes('walthamforest.gov.uk')) return 'Waltham Forest';
-  if (source === 'google_places' || searchableSource.includes('google.com/maps')) return 'Google Places';
-  if (source === 'manual') return 'Community pick';
-  return activity.source_name || 'Tiny Outings';
+  if (searchableSource.includes('better start') || searchableSource.includes('best start')) return 'Better Start for Life';
+  if (source === 'google places' || source === 'google_places' || sourceName.includes('google places')) return 'Google Places';
+  if (source === 'local directory' || sourceName.includes('directory')) return 'Local directory';
+  return 'Other';
 }
 
 function isEventListing(activity) {
