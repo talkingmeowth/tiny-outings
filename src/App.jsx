@@ -4,7 +4,7 @@ import { supabase } from './supabaseClient';
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
 // Reset outdated swipe/filter state without touching planned calendar entries.
-const planningStorageVersion = '2026-07-23-source-and-category-filters';
+const planningStorageVersion = '2026-07-24-seven-plan-categories';
 const statusOptions = ['booked', 'tentative'];
 const activitySelectColumns = [
   'activity_id',
@@ -77,14 +77,11 @@ const maxPhotoBytes = 8 * 1024 * 1024;
 const activityInterestOptions = [
   'Cafes & food',
   'Parks & outdoor play',
-  'Music & singing',
   'Stay & play',
-  'Movement & dance',
-  'Sensory & development',
-  'Stories, books & crafts',
+  'Classes & clubs',
+  'Movement & wellbeing',
   'Museums & culture',
-  'Family events & cinema',
-  'Parent support & meet-ups',
+  'Bookshops',
 ];
 
 const ageFilterOptions = [
@@ -547,14 +544,11 @@ function activityPlanLabel(activity) {
 
   if (/cafe|coffee|food|lunch|bakery/.test(value)) return 'Cafes & food';
   if (/park|outdoor/.test(value)) return 'Parks & outdoor play';
-  if (/music|sing/.test(value)) return 'Music & singing';
+  if (/bookshop|book shop|bookstore|book store/.test(value)) return 'Bookshops';
   if (/stay|soft play|family hub|play centre/.test(value)) return 'Stay & play';
-  if (/dance|movement|yoga|swim|fitness/.test(value)) return 'Movement & dance';
-  if (/sensory|development|massage|signing/.test(value)) return 'Sensory & development';
-  if (/story|rhyme|book|craft|art/.test(value)) return 'Stories, books & crafts';
+  if (/dance|movement|yoga|swim|fitness/.test(value)) return 'Movement & wellbeing';
   if (/museum|culture/.test(value)) return 'Museums & culture';
-  if (/support|feeding|postnatal|meet.?up/.test(value)) return 'Parent support & meet-ups';
-  return 'Family events & cinema';
+  return 'Classes & clubs';
 }
 
 function ageEndpointInMonths(value) {
