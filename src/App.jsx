@@ -434,6 +434,18 @@ function activityWebsiteUrl(activity) {
   return activity.website || activity.source_url || activity.google_place_uri || activity.google_link || googleEntryUrl(activity);
 }
 
+function isGooglePlacesUrl(value) {
+  try {
+    const host = new URL(value).hostname.toLowerCase();
+    return host === 'maps.app.goo.gl'
+      || host.endsWith('.google.com')
+      || host === 'google.com'
+      || host.endsWith('.google.co.uk');
+  } catch {
+    return false;
+  }
+}
+
 function isUsablePhotoUrl(url) {
   if (!url) return false;
   const value = String(url);
@@ -1185,7 +1197,7 @@ export default function App() {
     event.preventDefault();
     const websiteLink = linkForm.website.trim();
     const googlePlacesLink = linkForm.google_places_link.trim();
-    const link = googlePlacesLink || websiteLink;
+    const link = websiteLink || googlePlacesLink;
     const submittedName = linkForm.activity_name.trim();
 
     if (!link) {
@@ -1199,17 +1211,36 @@ export default function App() {
     }
 
     setLoading(true);
-    const { data, error } = await supabase.functions.invoke('activity-link-autofill', {
-      body: { link, websiteLink: websiteLink || null, googlePlacesLink: googlePlacesLink || null, activityName: submittedName || null },
-    });
+    let enriched;
+    if (!websiteLink && isGooglePlacesUrl(googlePlacesLink)) {
+      if (!submittedName) {
+        setNotice('Add an activity name with a Google Places link.');
+        setLoading(false);
+        return;
+      }
+      // Google Maps blocks public page scraping. Save a reviewable draft and
+      // retain the supplied place URL instead of treating it as a website.
+      enriched = {
+        activity_name: submittedName,
+        address: 'Address to review',
+        category: linkForm.category || 'Classes & clubs',
+        website: null,
+        google_link: googlePlacesLink,
+        google_place_uri: googlePlacesLink,
+      };
+    } else {
+      const { data, error } = await supabase.functions.invoke('activity-link-autofill', {
+        body: { link, websiteLink: websiteLink || null, googlePlacesLink: googlePlacesLink || null, activityName: submittedName || null },
+      });
 
-    if (error) {
-      setNotice(`That link could not be read yet: ${error.message}`);
-      setLoading(false);
-      return;
+      if (error) {
+        setNotice(`That link could not be read yet: ${error.message}`);
+        setLoading(false);
+        return;
+      }
+      enriched = data?.activity || data;
     }
 
-    const enriched = data?.activity || data;
     if (!enriched?.activity_name || !enriched?.address) {
       setNotice('That link needs more detail. Try the place listing link.');
       setLoading(false);
@@ -2068,6 +2099,7 @@ function AddActivityScreen({ form, setForm, onSubmit, loading }) {
             onChange={(event) => setForm((current) => ({ ...current, google_places_link: event.target.value }))}
             placeholder="https://maps.google.com/..."
           />
+          <small>Paste a shared Google Maps or Google Places link.</small>
         </label>
 
         <label className="wide photo-upload-field">
