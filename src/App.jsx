@@ -621,10 +621,8 @@ function activitySourceLabel(activity) {
 
   if (searchableSource.includes('happity')) return 'Happity';
   if (searchableSource.includes('timeout.com') || sourceName.includes('time out')) return 'Time Out London';
-  if (searchableSource.includes('loopla')) return 'Loopla';
+  if (searchableSource.includes('loopla') || searchableSource.includes('eventbrite') || searchableSource.includes('fever')) return 'Events';
   if (sourceName.includes('museums london')) return 'Museums London';
-  if (searchableSource.includes('eventbrite')) return 'Eventbrite';
-  if (searchableSource.includes('fever')) return 'Fever';
   if (searchableSource.includes('better start') || searchableSource.includes('best start')) return 'Better Start for Life';
   if (source === 'google places' || source === 'google_places' || sourceName.includes('google places')) return 'Google Places';
   if (source === 'local directory' || sourceName.includes('directory')) return 'Local directory';
