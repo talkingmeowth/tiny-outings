@@ -36,7 +36,7 @@ Deno.serve(async () => {
           })
           if (!upload || upload.error) continue
           const imageUrl = supabase.storage.from('activity-images').getPublicUrl(path).data.publicUrl
-          await supabase.from('activities').update({ image_url: imageUrl, image_source_url: source, updated_at: new Date().toISOString() }).eq('activity_id', row.activity_id)
+          await supabase.from('activities').update({ image_url: imageUrl, scraped_image_url: imageUrl, image_source_url: source, updated_at: new Date().toISOString() }).eq('activity_id', row.activity_id)
           results.push({ id: row.activity_id, status: 'updated' })
           updated = true
           break
