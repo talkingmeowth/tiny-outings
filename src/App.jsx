@@ -35,6 +35,7 @@ const activitySelectColumns = [
   'time_window',
   'description',
   'cost',
+  'scraped_image_url',
   'image_url',
   'google_photo_url',
   'image_source_url',
@@ -236,6 +237,7 @@ function normalizeActivity(activity) {
       : null,
     availability_type: activity.availability_type || 'recurring',
     cost,
+    scraped_image_url: activity.scraped_image_url || null,
     image_url: activity.image_url || activity.photo_url || null,
     image_source_url: activity.image_source_url || activity.website || activity.source_url || null,
     public_listing_status: activity.public_listing_status || 'published',
@@ -448,6 +450,7 @@ function activityFallbackImage(activity) {
 function activityPhotoUrls(activity) {
   const fallbackImage = activityFallbackImage(activity);
   const candidates = [
+    activity.scraped_image_url,
     activity.image_url,
     activity.photo_url,
     fallbackImage,
