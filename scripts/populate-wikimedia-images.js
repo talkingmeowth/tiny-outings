@@ -127,6 +127,45 @@ function isAmbiguousParkCategory(categoryName) {
   return meaningfulTokens.length === 1 && ['central', 'acton'].includes(meaningfulTokens[0]);
 }
 
+function parkSearchNames(activity) {
+  const activityName = String(activity.activity_name || '').trim();
+  const placeName = activityName
+    .replace(/\b(play areas?|playground|splash pad|adventure playground|woodland playground|picnic field|lakes?)\b.*$/i, '')
+    .trim();
+  return [...new Set([activityName, placeName].filter(Boolean))];
+}
+
+function isSpecificParkPlace(placeName) {
+  const genericTerms = new Set(['park', 'garden', 'gardens', 'playground', 'woods', 'open', 'space', 'recreation', 'ground']);
+  return normalise(placeName).split(' ').filter((token) => !genericTerms.has(token)).length >= 2;
+}
+
+async function parkSearchImage(activity) {
+  // Some Commons files have no category. For a specific multi-word place such
+  // as London Fields, a filename containing that exact place name is a safe
+  // fallback. One-word places remain category-only to avoid global matches.
+  const postcodeDistrict = String(activity.address || '').match(/\b([A-Z]{1,2}\d{1,2})\s*\d[A-Z]{2}\b/i)?.[1]?.toLowerCase();
+  if (!postcodeDistrict) return null;
+  for (const placeName of parkSearchNames(activity)) {
+    if (!isSpecificParkPlace(placeName)) continue;
+    const payload = await commonsRequest({
+      generator: 'search', gsrsearch: placeName, gsrnamespace: '6', gsrlimit: '10',
+      prop: 'imageinfo', iiprop: 'url', iiurlwidth: '640',
+    });
+    const normalisedPlace = normalise(placeName);
+    const page = Object.values(payload?.query?.pages || {}).find((item) => {
+      const title = normalise(item.title);
+      return isUsableCommonsImage(item)
+        && title.includes(normalisedPlace)
+        && title.includes(postcodeDistrict)
+        && /park|playground|play area|field|garden|wood|lake/.test(title)
+        && item.imageinfo?.[0]?.thumburl;
+    });
+    if (page) return mobileThumbnail(page.imageinfo[0].thumburl);
+  }
+  return null;
+}
+
 async function parkCategoryImage(activity) {
   // Generic park names occur worldwide. A named Commons category is the
   // reliable source for a park photo, so skip the image when none exists.
@@ -152,7 +191,7 @@ async function parkCategoryImage(activity) {
     const imageUrl = image?.query?.pages?.[0]?.imageinfo?.[0]?.thumburl || null;
     if (imageUrl) return mobileThumbnail(imageUrl);
   }
-  return null;
+  return parkSearchImage(activity);
 }
 
 async function searchWikimedia(activity) {
