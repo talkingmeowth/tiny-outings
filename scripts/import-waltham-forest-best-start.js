@@ -2,6 +2,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { normaliseWalthamForestEventImageUrl } from './lib/activity-import-policy.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const siteRoot = 'https://www.walthamforest.gov.uk';
@@ -271,7 +272,9 @@ function parseEvent(url, html, place, occurrences) {
     booking_required: /\bbook(?:ing|ed)?\b|appointment|referral/i.test(description),
     source_name: 'Waltham Forest Best Start in Life events',
     source_url: url,
-    image_url: occurrences.find((occurrence) => occurrence.image)?.image || metaContent(html, 'og:image'),
+    image_url: normaliseWalthamForestEventImageUrl(
+      occurrences.find((occurrence) => occurrence.image)?.image || metaContent(html, 'og:image'),
+    ),
     image_source_url: url,
     google_place_id: place.id,
     google_place_uri: place.googleMapsUri || null,

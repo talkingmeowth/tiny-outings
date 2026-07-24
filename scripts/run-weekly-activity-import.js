@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const runDate = process.env.ACTIVITY_IMPORT_RUN_DATE || new Date().toISOString().slice(0, 10);
 const applyChanges = process.argv.includes('--apply');
+const skipImageCuration = process.argv.includes('--skip-image-curation');
 const helpRequested = process.argv.includes('--help') || process.argv.includes('-h');
 const outputDirectory = join(root, 'data', 'weekly-imports');
 const auditPath = join(outputDirectory, `${runDate}.json`);
@@ -57,14 +58,20 @@ const sources = [
     output: join(root, 'supabase', 'seed', 'activities_high_rated_family_cafes_20260711.generated.sql'),
     requiresGoogleKey: true,
   },
+  {
+    name: 'image-curation',
+    script: 'enrich-activity-images.js',
+    args: ['--audit'],
+    output: join(root, 'supabase', 'seed', 'activity_image_updates.generated.sql'),
+  },
 ];
 
 function printHelp() {
-  console.log(`Usage: node scripts/run-weekly-activity-import.js [--apply]
+  console.log(`Usage: node scripts/run-weekly-activity-import.js [--apply] [--skip-image-curation]
 
-Runs the Eventbrite, Fever, and Google Places discovery scripts and writes an
-audit report under data/weekly-imports. With --apply, the generated idempotent
-SQL is applied to DATABASE_URL using psql.
+Runs the directory importers followed by image curation and writes an audit
+report under data/weekly-imports. With --apply, the generated idempotent SQL is
+applied to DATABASE_URL using psql.
 
 Required for --apply:
   DATABASE_URL                 Supabase Postgres connection string
@@ -79,12 +86,15 @@ distance and travel calculations in the mobile app.`);
 }
 
 function runSource(source) {
+  if (source.name === 'image-curation' && skipImageCuration) {
+    return { name: source.name, status: 'skipped', reason: 'Skipped with --skip-image-curation.' };
+  }
   if (source.requiresGoogleKey && !(process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_PLACES_API_KEY)) {
     return { name: source.name, status: 'skipped', reason: 'Google Places API key is not configured.' };
   }
 
   const startedAt = new Date().toISOString();
-  const result = spawnSync(process.execPath, [join(root, 'scripts', source.script)], {
+  const result = spawnSync(process.execPath, [join(root, 'scripts', source.script), ...(source.args || [])], {
     cwd: root,
     encoding: 'utf8',
     env: { ...process.env, ACTIVITY_IMPORT_RUN_DATE: runDate },
@@ -101,9 +111,9 @@ function runSource(source) {
   };
 }
 
-function hasInsertRows(filePath) {
+function hasDatabaseChanges(filePath) {
   if (!existsSync(filePath)) return false;
-  return /\bvalues\s*\r?\n\s*\(/i.test(readFileSync(filePath, 'utf8'));
+  return /\b(?:insert|update|delete)\s+(?:into\s+)?public\.activities\b/i.test(readFileSync(filePath, 'utf8'));
 }
 
 function applySql(filePath) {
@@ -132,7 +142,7 @@ if (applyChanges && !process.env.DATABASE_URL) {
 if (applyChanges && failed.length === 0) {
   for (const source of sources) {
     const result = results.find((item) => item.name === source.name);
-    if (result?.status !== 'generated' || !hasInsertRows(source.output)) continue;
+    if (result?.status !== 'generated' || !hasDatabaseChanges(source.output)) continue;
     try {
       applySql(source.output);
       result.applied = true;

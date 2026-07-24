@@ -2,6 +2,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isFamilyCafePlace } from './lib/activity-import-policy.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const outputSql = join(root, 'supabase', 'seed', 'activities_high_rated_family_cafes_20260711.generated.sql');
@@ -24,8 +25,6 @@ const namedBakeries = [
   'Jolene Bakery Hornsey Road',
   'SUBA Walthamstow',
 ];
-// Exclude venues manually reviewed as unsuitable for the family directory.
-const excludedPlaceIds = new Set(['ChIJy8yEC48ddkgRlogHHcXa_Ew']);
 const radiusMeters = 2500;
 const discoveryMask = 'places.id';
 const detailsMask = [
@@ -281,11 +280,10 @@ async function main() {
 
   const rows = [];
   for (const [id, discovery] of discovered) {
-    if (excludedPlaceIds.has(id)) continue;
     if (existing.ids.has(id)) continue;
     const place = await details(id);
     const area = areas.find((item) => distanceMeters(item.center, place.location) <= radiusMeters);
-    if (!area || !isCafeOrBakery(place) || (!discovery.named && !isHighRated(place))) continue;
+    if (!area || !isCafeOrBakery(place) || !isFamilyCafePlace(place) || (!discovery.named && !isHighRated(place))) continue;
     if (!discovery.named && place.goodForChildren !== true && ![...discovery.terms].some((term) => term.includes('family friendly'))) continue;
     const existingKey = `${normalized(place.displayName?.text)}|${postcode(place.formattedAddress) || ''}`;
     if (existing.venueKeys.has(existingKey)) continue;

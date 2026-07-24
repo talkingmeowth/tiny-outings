@@ -2,6 +2,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isFamilyCafePlace } from './lib/activity-import-policy.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const outputSql = join(root, 'supabase', 'seed', 'activities_google_places_e10_10_miles.generated.sql');
@@ -163,6 +164,7 @@ async function photoUrl(name) {
 async function activity(place, center) {
   if (!place.id || !place.location || place.businessStatus === 'CLOSED_PERMANENTLY') return null;
   if (distanceMeters(center, place.location) > radiusMeters) return null;
+  if (category(place) === 'child friendly cafe' && !isFamilyCafePlace(place)) return null;
   const hours = availability(place.regularOpeningHours);
   const image = await photoUrl(Array.isArray(place.photos) ? place.photos[0]?.name : null);
   const address = place.formattedAddress || '';

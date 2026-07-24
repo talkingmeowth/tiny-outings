@@ -78,12 +78,12 @@ The generated records use the existing activities fields. Google opening hours p
 
 ## Weekly Directory Refresh
 
-Run `npm.cmd run activities:weekly` to discover net-new Eventbrite, Fever, and
-Google Places listings and generate reviewable SQL. Add `:apply` to insert the
-results directly into Supabase with `DATABASE_URL` configured. The repository
-also contains a Monday GitHub Actions workflow; see
+Run `npm.cmd run activities:weekly` to discover net-new listings and generate
+reviewable SQL. It includes image curation after importing, so new cards use
+the same representative-image rules as existing records. Add `:apply` to
+insert the results directly into Supabase with `DATABASE_URL` configured; see
 [`docs/weekly-activity-imports.md`](docs/weekly-activity-imports.md) for the
-required secrets and exact setup.
+local setup and safeguards.
 
 ## Activity Table Notes
 

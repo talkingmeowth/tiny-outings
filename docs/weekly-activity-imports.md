@@ -1,7 +1,9 @@
 # Weekly Activity Imports
 
-The directory can be refreshed weekly with the Waltham Forest Best Start in
-Life, Eventbrite, Fever, local parks, quality cafes and bakeries, and official Google Places importers. Each importer writes SQL using the activity
+The directory can be refreshed weekly with Happity, Waltham Forest Best Start
+in Life, Eventbrite, Fever, local parks, quality cafes and bakeries, and
+official Google Places importers. A final image-curation step applies the same
+source and image-quality rules used for the live cards. Each importer writes SQL using the activity
 table's existing conflict keys, so a repeated run only adds new source URLs or
 updates an existing Google Place/Fever listing. Listings without a verified
 latitude and longitude stay out of the published directory, preserving accurate
@@ -29,28 +31,9 @@ npm.cmd run activities:weekly
 ```
 
 Every run writes `data/weekly-imports/YYYY-MM-DD.json`. Generated SQL remains
-under `supabase/seed/` and can be inspected before applying.
-
-## Scheduled GitHub Run
-
-The workflow at `.github/workflows/weekly-activity-import.yml` runs every
-Monday at 06:15 UTC and can also be started from the **Actions** tab with
-**Run workflow**.
-
-Create these repository secrets in GitHub at **Settings > Secrets and variables
-> Actions**:
-
-- `SUPABASE_URL`: your project URL.
-- `SUPABASE_ANON_KEY`: your public/anon key, used only to read existing source
-  URLs for deduplication.
-- `SUPABASE_DB_URL`: a Supabase Postgres connection string with permission to
-  insert into `public.activities`.
-- `GOOGLE_MAPS_API_KEY`: a restricted server-side key with Places API (New) and
-  Geocoding API enabled.
-
-The workflow uploads an audit and the generated SQL as an Actions artifact. It
-does not deploy a new APK: the mobile app reads the activities table directly,
-so newly imported records become available as soon as the SQL completes.
+under `supabase/seed/` and can be inspected before applying. Add
+`--skip-image-curation` only when you deliberately need a faster import without
+refreshing card images.
 
 ## Safety Rules
 
@@ -59,5 +42,11 @@ so newly imported records become available as soon as the SQL completes.
   skipped rather than guessed.
 - Eventbrite inserts use the listing URL as the duplicate key.
 - Fever inserts update by listing URL; Google Places inserts update by place ID.
+- Google cafe importers consistently exclude adult-led venue types and manually
+  reviewed unsuitable family listings.
+- Park imports deliberately omit website, organiser, and image-source links;
+  cards use their map link and the in-app park illustration instead.
+- Happity schedule snapshots preserve their activity-specific image before a
+  generic historic venue image.
 - Listing pages are requested sequentially with delays to avoid aggressive
   scraping. Check source terms and API billing before increasing limits.

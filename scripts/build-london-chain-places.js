@@ -2,6 +2,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isFamilyCafePlace } from './lib/activity-import-policy.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const outputSql = join(root, 'supabase', 'seed', 'activities_london_cafe_expansion_20260711.generated.sql');
@@ -24,7 +25,6 @@ const searches = [
   { query: 'bookshop', category: 'Bookshops', type: 'bookshop' },
   { query: "children's bookshop", category: 'Bookshops', type: 'bookshop' },
 ];
-const unsuitableCafePrimaryTypes = new Set(['bar', 'pub', 'night_club', 'casino', 'liquor_store']);
 const discoveryMask = 'places.id';
 const detailsMask = [
   'id', 'displayName', 'formattedAddress', 'location', 'googleMapsUri', 'websiteUri',
@@ -169,7 +169,7 @@ function toRow(place, discovery) {
   const isCafe = discovery.types.has('cafe');
   // A family-focused search can still return adult-led venues. Do not label
   // those results as child-friendly cafes in future imports.
-  if (isCafe && unsuitableCafePrimaryTypes.has(place.primaryType)) return null;
+  if (isCafe && !isFamilyCafePlace(place)) return null;
   const rating = Number(place.rating || 0) || null;
   const reviewCount = Number(place.userRatingCount || 0);
   // Avoid promoting low-quality cafes while retaining unrated family venues for manual review.
