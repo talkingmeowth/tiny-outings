@@ -13,6 +13,7 @@
     "activities:google-e10": "node scripts/build-google-places-e10.js",
     "activities:images": "node scripts/enrich-activity-images.js --audit",
     "activities:images:missing": "node scripts/enrich-activity-images.js --missing-only",
+    "activities:images:wikimedia": "node scripts/populate-wikimedia-images.js",
     "activities:locations": "node scripts/enrich-activity-locations.js",
     "activities:family-cafes": "node scripts/build-high-rated-family-cafes.js",
     "activities:eventbrite-baby": "node scripts/import-eventbrite-baby-london.js",
