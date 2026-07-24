@@ -16,6 +16,7 @@
     "activities:images:wikimedia": "node scripts/populate-wikimedia-images.js",
     "activities:images:wikimedia:parks": "node scripts/populate-wikimedia-images.js --parks-only",
     "activities:images:wikimedia:repair": "node scripts/repair-wikimedia-image-urls.js",
+    "activities:images:wikimedia:osm": "node scripts/enrich-wikimedia-from-osm.js",
     "activities:locations": "node scripts/enrich-activity-locations.js",
     "activities:family-cafes": "node scripts/build-high-rated-family-cafes.js",
     "activities:eventbrite-baby": "node scripts/import-eventbrite-baby-london.js",
