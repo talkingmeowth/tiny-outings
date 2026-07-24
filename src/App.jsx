@@ -36,6 +36,9 @@ const activitySelectColumns = [
   'description',
   'cost',
   'scraped_image_url',
+  'wikimedia_image_url',
+  'website_image_url',
+  'listing_image_url',
   'image_url',
   'google_photo_url',
   'image_source_url',
@@ -238,6 +241,9 @@ function normalizeActivity(activity) {
     availability_type: activity.availability_type || 'recurring',
     cost,
     scraped_image_url: activity.scraped_image_url || null,
+    wikimedia_image_url: activity.wikimedia_image_url || null,
+    website_image_url: activity.website_image_url || null,
+    listing_image_url: activity.listing_image_url || null,
     image_url: activity.image_url || activity.photo_url || null,
     image_source_url: activity.image_source_url || activity.website || activity.source_url || null,
     public_listing_status: activity.public_listing_status || 'published',
@@ -451,8 +457,9 @@ function activityPhotoUrls(activity) {
   const fallbackImage = activityFallbackImage(activity);
   const candidates = [
     activity.scraped_image_url,
-    activity.image_url,
-    activity.photo_url,
+    activity.wikimedia_image_url,
+    activity.website_image_url,
+    activity.listing_image_url,
     fallbackImage,
   ].map(securePhotoUrl).filter(isUsablePhotoUrl);
 
