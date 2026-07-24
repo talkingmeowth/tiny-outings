@@ -52,7 +52,7 @@ async function getActivities(env) {
   const rows = [];
   for (let offset = 0; ; offset += 1000) {
     const url = new URL('/rest/v1/activities', env.VITE_SUPABASE_URL);
-    url.searchParams.set('select', 'activity_id,activity_name,address,borough,wikimedia_image_url');
+    url.searchParams.set('select', 'activity_id,activity_name,address,borough,category,wikimedia_image_url');
     url.searchParams.set('wikimedia_image_url', 'is.null');
     url.searchParams.set('order', 'activity_name.asc');
     url.searchParams.set('limit', '1000');
@@ -65,22 +65,52 @@ async function getActivities(env) {
   }
 }
 
-async function searchWikimedia(activity) {
-  // Full street addresses over-constrain Commons' text search. The name is
-  // the searchable entity; the address remains part of the confidence check.
-  const query = activity.activity_name;
+async function commonsRequest(params) {
   const url = new URL(API);
-  Object.entries({
-    action: 'query', format: 'json', formatversion: '2', generator: 'search', gsrsearch: query,
-    gsrnamespace: '6', gsrlimit: '5', prop: 'imageinfo', iiprop: 'url', iiurlwidth: '1200', origin: '*',
-  }).forEach(([key, value]) => url.searchParams.set(key, value));
+  Object.entries({ action: 'query', format: 'json', formatversion: '2', origin: '*', ...params })
+    .forEach(([key, value]) => url.searchParams.set(key, value));
   const response = await fetch(url, {
     headers: { 'User-Agent': USER_AGENT },
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   }).catch(() => null);
-  if (!response) return null;
-  if (!response.ok) return null;
-  const payload = await response.json();
+  return response?.ok ? response.json() : null;
+}
+
+function isParkActivity(activity) {
+  return /park|playground|garden|open space|recreation ground|wood/.test(String(activity.category || '').toLowerCase());
+}
+
+async function parkCategoryImage(activity) {
+  // Generic park names occur worldwide. A named Commons category is the
+  // reliable source for a park photo, so skip the image when none exists.
+  const category = await commonsRequest({
+    list: 'categorymembers',
+    cmtitle: `Category:${activity.activity_name}`,
+    cmtype: 'file',
+    cmlimit: '20',
+  });
+  const members = category?.query?.categorymembers || [];
+  const activityName = normalise(activity.activity_name);
+  const member = members.find((item) => normalise(item.title).includes(activityName));
+  if (!member) return null;
+  const image = await commonsRequest({
+    titles: member.title,
+    prop: 'imageinfo',
+    iiprop: 'url',
+    iiurlwidth: '1200',
+  });
+  return image?.query?.pages?.[0]?.imageinfo?.[0]?.thumburl || null;
+}
+
+async function searchWikimedia(activity) {
+  if (isParkActivity(activity)) return parkCategoryImage(activity);
+  // Full street addresses over-constrain Commons' text search. The name is
+  // the searchable entity; the address remains part of the confidence check.
+  const query = activity.activity_name;
+  const payload = await commonsRequest({
+    generator: 'search', gsrsearch: query, gsrnamespace: '6', gsrlimit: '5',
+    prop: 'imageinfo', iiprop: 'url', iiurlwidth: '1200',
+  }).catch(() => null);
   const pages = payload?.query?.pages || [];
   const ranked = pages
     .map((page) => ({ page, score: confidence(activity, page) }))
