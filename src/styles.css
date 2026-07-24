@@ -1377,6 +1377,48 @@ input[type='range'] {
   overflow-wrap: anywhere;
 }
 
+.week-export-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(36, 52, 47, 0.12);
+  border-radius: 22px;
+  background: rgba(255, 250, 240, 0.88);
+}
+
+.week-export-card div {
+  display: grid;
+  gap: 3px;
+}
+
+.week-export-card strong {
+  color: var(--green-dark);
+  font-size: 0.9rem;
+}
+
+.week-export-card small {
+  color: rgba(36, 52, 47, 0.68);
+  font-size: 0.76rem;
+}
+
+.week-export-card button {
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 15px;
+  padding: 10px 12px;
+  color: #fffdf6;
+  background: var(--green);
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.week-export-card button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 .detail-description {
   color: var(--ink);
   font-size: 1rem;

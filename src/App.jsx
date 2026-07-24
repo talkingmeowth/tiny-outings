@@ -365,14 +365,9 @@ function cleanICS(value) {
     .replaceAll(';', '\\;');
 }
 
-function buildICS(event) {
+function buildICSEvent(event, created) {
   const activity = event.activity;
-  const created = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
   return [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//Tiny Outings//Parent Planner//EN',
-    'CALSCALE:GREGORIAN',
     'BEGIN:VEVENT',
     `UID:${event.local_id}@tiny-outings`,
     `DTSTAMP:${created}`,
@@ -382,16 +377,27 @@ function buildICS(event) {
     `DESCRIPTION:${cleanICS(activity.description || 'Planned in Tiny Outings')}`,
     `LOCATION:${cleanICS(activity.address)}`,
     'END:VEVENT',
+  ];
+}
+
+function buildICS(events) {
+  const created = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  return [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Tiny Outings//Parent Planner//EN',
+    'CALSCALE:GREGORIAN',
+    ...events.flatMap((event) => buildICSEvent(event, created)),
     'END:VCALENDAR',
   ].join('\r\n');
 }
 
-function downloadICS(event) {
-  const blob = new Blob([buildICS(event)], { type: 'text/calendar;charset=utf-8' });
+function downloadICS(events, filename) {
+  const blob = new Blob([buildICS(events)], { type: 'text/calendar;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `${event.planned_date}-${event.day_window}-tiny-outings.ics`;
+  link.download = filename;
   link.click();
   URL.revokeObjectURL(url);
 }
@@ -1929,12 +1935,28 @@ function ShortlistPanel({
 }
 
 function CalendarScreen({ weekDays, calendarEvents, onOpenActivity, onUpdateEvent, onRemoveEvent }) {
+  const weekEvents = calendarEvents.filter((event) => weekDays.includes(event.planned_date));
+
   return (
     <section className="app-screen calendar-screen">
       <div className="screen-title compact">
         <span className="eyebrow">Week</span>
         <h1>Your plan</h1>
         <p>Booked and maybe plans.</p>
+      </div>
+
+      <div className="week-export-card">
+        <div>
+          <strong>Take your week with you</strong>
+          <small>{weekEvents.length ? `${weekEvents.length} plans ready to import.` : 'Add plans to export them.'}</small>
+        </div>
+        <button
+          type="button"
+          disabled={weekEvents.length === 0}
+          onClick={() => downloadICS(weekEvents, `tiny-outings-week-${weekDays[0]}.ics`)}
+        >
+          Export for Google Calendar
+        </button>
       </div>
 
       <div className="calendar-list">
@@ -1972,7 +1994,7 @@ function CalendarScreen({ weekDays, calendarEvents, onOpenActivity, onUpdateEven
                             <a href={buildGoogleCalendarUrl(event)} target="_blank" rel="noreferrer">
                               Google
                             </a>
-                            <button type="button" onClick={() => downloadICS(event)}>
+                            <button type="button" onClick={() => downloadICS([event], `${event.planned_date}-${event.day_window}-tiny-outings.ics`)}>
                               ICS
                             </button>
                             <button type="button" onClick={() => onRemoveEvent(event)}>
