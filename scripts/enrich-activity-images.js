@@ -43,6 +43,13 @@ const verbose = process.env.ACTIVITY_IMAGE_VERBOSE === 'true';
 // home-page, ticketing, or language-selector assets returned by their sites.
 const curatedImageOverrides = [
   {
+    // Bill's Stratford has dedicated venue photography. Use the bright dining
+    // room rather than generic food photography from the national homepage.
+    matches: (activity) => activity.activity_id === 'e1456f1a-7f22-48b8-83eb-67836067423f',
+    imageUrl: 'https://cdn.bills-website.co.uk/wp-content/uploads/2026/03/Stratford-1_resized.jpg',
+    imageSourceUrl: 'https://bills-website.co.uk/restaurants/stratford/',
+  },
+  {
     // This location page has a dedicated, clear bakery photo. The generic
     // charity image elsewhere on the page does not identify this branch.
     matches: (activity) => activity.activity_id === '857cb8d8-d5f5-4af3-855c-e56d7a528926',
