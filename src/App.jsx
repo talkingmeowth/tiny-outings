@@ -63,6 +63,7 @@ const emptyLinkForm = {
   activity_name: '',
   category: '',
   website: '',
+  google_places_link: '',
   photos: [],
 };
 
@@ -638,7 +639,7 @@ function isEventListing(activity) {
   return isEventSource(activity);
 }
 
-function buildSubmittedPayload(enriched, link) {
+function buildSubmittedPayload(enriched, submissionLink, websiteLink, googlePlacesLink) {
   const appRating = numericOrNull(enriched.app_rating ?? enriched.google_rating);
   const reviewCount = Number(enriched.number_of_reviews ?? enriched.google_user_rating_count ?? 0);
   const payload = {
@@ -649,20 +650,20 @@ function buildSubmittedPayload(enriched, link) {
     category: enriched.category || enriched.google_primary_type || 'parent friendly',
     start_time: enriched.start_time || '09:00',
     end_time: enriched.end_time || '10:00',
-    google_link: enriched.google_link || enriched.google_place_uri || link,
-    website: enriched.website || null,
+    google_link: googlePlacesLink || enriched.google_link || enriched.google_place_uri || null,
+    website: enriched.website || websiteLink || null,
     child_friendly_score: numericOrNull(enriched.child_friendly_score),
     app_rating: appRating,
     number_of_reviews: Number.isFinite(reviewCount) ? reviewCount : 0,
     age_suitability: enriched.age_suitability || 'Under 5s',
     description: enriched.description || null,
     cost: enriched.cost || null,
-    source_name: 'Google Places link submission',
-    source_url: link,
+    source_name: googlePlacesLink ? 'Google Places link submission' : 'Website link submission',
+    source_url: submissionLink,
     public_listing_status: 'draft',
     submitted_by_user_id: null,
     google_place_id: enriched.google_place_id || null,
-    google_place_uri: enriched.google_place_uri || enriched.google_link || null,
+    google_place_uri: googlePlacesLink || enriched.google_place_uri || enriched.google_link || null,
     google_photo_url: enriched.google_photo_url || null,
     google_rating: numericOrNull(enriched.google_rating),
     google_user_rating_count: Number(enriched.google_user_rating_count ?? reviewCount ?? 0),
@@ -670,7 +671,7 @@ function buildSubmittedPayload(enriched, link) {
     google_opening_hours: enriched.google_opening_hours || null,
     google_summary: enriched.google_summary || null,
     image_url: enriched.image_url || enriched.google_photo_url || null,
-    image_source_url: enriched.image_source_url || enriched.website || enriched.google_place_uri || link,
+    image_source_url: enriched.image_source_url || enriched.website || googlePlacesLink || websiteLink || submissionLink,
     activity_date: enriched.activity_date || null,
     available_dates: enriched.available_dates || [],
     availability_start_date: enriched.availability_start_date || null,
@@ -1182,11 +1183,13 @@ export default function App() {
 
   async function submitActivityLink(event) {
     event.preventDefault();
-    const link = linkForm.website.trim();
+    const websiteLink = linkForm.website.trim();
+    const googlePlacesLink = linkForm.google_places_link.trim();
+    const link = googlePlacesLink || websiteLink;
     const submittedName = linkForm.activity_name.trim();
 
     if (!link) {
-      setNotice('Add the activity website first.');
+      setNotice('Add a website or Google Places link first.');
       return;
     }
 
@@ -1197,7 +1200,7 @@ export default function App() {
 
     setLoading(true);
     const { data, error } = await supabase.functions.invoke('activity-link-autofill', {
-      body: { link, activityName: submittedName || null },
+      body: { link, websiteLink: websiteLink || null, googlePlacesLink: googlePlacesLink || null, activityName: submittedName || null },
     });
 
     if (error) {
@@ -1215,7 +1218,7 @@ export default function App() {
 
     const activityId = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const payload = {
-      ...buildSubmittedPayload(enriched, link),
+      ...buildSubmittedPayload(enriched, link, websiteLink, googlePlacesLink),
       activity_id: activityId,
       activity_name: submittedName || enriched.activity_name,
       category: linkForm.category || enriched.category || enriched.google_primary_type || 'Classes & clubs',
@@ -2051,11 +2054,19 @@ function AddActivityScreen({ form, setForm, onSubmit, loading }) {
         <label className="wide">
           <span>Website</span>
           <input
-            required
             type="url"
             value={form.website}
             onChange={(event) => setForm((current) => ({ ...current, website: event.target.value }))}
-            placeholder="https://..."
+            placeholder="https://activity-website..."
+          />
+        </label>
+        <label className="wide">
+          <span>Google Places link</span>
+          <input
+            type="url"
+            value={form.google_places_link}
+            onChange={(event) => setForm((current) => ({ ...current, google_places_link: event.target.value }))}
+            placeholder="https://maps.google.com/..."
           />
         </label>
 
