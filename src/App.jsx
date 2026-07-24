@@ -61,6 +61,7 @@ const statusLabels = {
 
 const emptyLinkForm = {
   activity_name: '',
+  category: '',
   website: '',
   photos: [],
 };
@@ -1211,6 +1212,7 @@ export default function App() {
       ...buildSubmittedPayload(enriched, link),
       activity_id: activityId,
       activity_name: submittedName || enriched.activity_name,
+      category: linkForm.category || enriched.category || enriched.google_primary_type || 'Classes & clubs',
     };
     const { error: insertError } = await supabase.from('activities').insert(payload);
     if (insertError) {
@@ -2010,6 +2012,19 @@ function AddActivityScreen({ form, setForm, onSubmit, loading }) {
             onChange={(event) => setForm((current) => ({ ...current, activity_name: event.target.value }))}
             placeholder="e.g. Saturday stay and play"
           />
+        </label>
+        <label className="wide">
+          <span>Category</span>
+          <select
+            required
+            value={form.category}
+            onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))}
+          >
+            <option value="">Choose a category</option>
+            {activityInterestOptions.map((category) => (
+              <option key={category} value={category}>{category}</option>
+            ))}
+          </select>
         </label>
         <label className="wide">
           <span>Website</span>
