@@ -43,6 +43,13 @@ const verbose = process.env.ACTIVITY_IMAGE_VERBOSE === 'true';
 // home-page, ticketing, or language-selector assets returned by their sites.
 const curatedImageOverrides = [
   {
+    // Yardarm's homepage provides this clear venue photo with the bakery
+    // counter and food, which is more useful than its small brand logo.
+    matches: (activity) => activity.activity_id === 'f336d652-a7dd-4087-a56a-d50b1ac00196',
+    imageUrl: 'https://yardarm.london/cdn/shop/files/Yardarm_Interior_02_2048x2048.jpg?v=1613795930',
+    imageSourceUrl: 'https://www.yardarm.london/',
+  },
+  {
     // Bill's Stratford has dedicated venue photography. Use the bright dining
     // room rather than generic food photography from the national homepage.
     matches: (activity) => activity.activity_id === 'e1456f1a-7f22-48b8-83eb-67836067423f',
