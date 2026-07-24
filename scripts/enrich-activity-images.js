@@ -361,6 +361,16 @@ function normaliseFeverImageUrl(imageUrl, activity) {
   }
 }
 
+function normaliseWalthamForestImageUrl(imageUrl) {
+  if (!imageUrl || !/walthamforest\.gov\.uk/i.test(imageUrl)) return imageUrl;
+  // Event pages initially render their main artwork using this small style,
+  // while a full-size version of the same file is available for the card.
+  return imageUrl.replace(
+    '/styles/x_small_3_2_546_x_364_/public/',
+    '/styles/large_3_2_2x/public/',
+  );
+}
+
 function curatedImageForActivity(activity) {
   return curatedImageOverrides.find((override) => override.matches(activity)) || null;
 }
@@ -452,15 +462,17 @@ function feverListingImageFromHtml(html, baseUrl, activity) {
 
 function imageFromHtml(html, baseUrl, activity) {
   const candidates = [];
-  const addCandidate = (value, context = '') => {
-    const imageUrl = value ? normaliseFeverImageUrl(absoluteUrl(value, baseUrl), activity) : null;
+  const addCandidate = (value, context = '', scoreBonus = 0) => {
+    const imageUrl = value
+      ? normaliseWalthamForestImageUrl(normaliseFeverImageUrl(absoluteUrl(value, baseUrl), activity))
+      : null;
     const isInterfaceAsset = /(site-flag|country-selector|language-selector|flag-icon)/i.test(context);
     const isClearCafeLogo = isClearCafeLogoCandidate(imageUrl, context, activity);
     if ((isGoodActivityImageUrl(imageUrl) || isClearCafeLogo) && !isInterfaceAsset && !isSocialMediaIconCandidate(imageUrl, context)) {
       const sourceBonus = /happity\.co\.uk/i.test(baseUrl) && /\/uploads\/company\/banner\//i.test(imageUrl)
         ? 80
         : 0;
-      candidates.push({ imageUrl, score: imageCandidateScore(imageUrl, context, activity) + sourceBonus });
+      candidates.push({ imageUrl, score: imageCandidateScore(imageUrl, context, activity) + sourceBonus + scoreBonus });
     }
   };
   const metaTags = html.match(/<meta\s+[^>]*>/gi) || [];
@@ -487,6 +499,8 @@ function imageFromHtml(html, baseUrl, activity) {
   }
 
   const imageTags = html.match(/<img\s+[^>]*>/gi) || [];
+  const isWalthamForestEventPage = /walthamforest\.gov\.uk\/events\//i.test(baseUrl);
+  let hasWalthamForestPrimaryImage = false;
   for (const tag of imageTags) {
     const rawSrc =
       htmlAttr(tag, 'data-lazyload') ||
@@ -509,7 +523,17 @@ function imageFromHtml(html, baseUrl, activity) {
       `width=${htmlAttr(tag, 'width') || ''}`,
       `height=${htmlAttr(tag, 'height') || ''}`,
     ].join(' ');
-    addCandidate(largestSrcsetImage || rawSrc, context);
+    const previousCandidateCount = candidates.length;
+    // These event pages place the activity artwork before related-content
+    // tiles. Prefer that first usable image over later generic promotions.
+    addCandidate(
+      largestSrcsetImage || rawSrc,
+      context,
+      isWalthamForestEventPage && !hasWalthamForestPrimaryImage ? 1000 : 0,
+    );
+    if (isWalthamForestEventPage && candidates.length > previousCandidateCount) {
+      hasWalthamForestPrimaryImage = true;
+    }
   }
 
   // Many modern sites place their best photography in CSS backgrounds rather
