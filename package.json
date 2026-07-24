@@ -39,7 +39,7 @@
     "android:add": "npx cap add android",
     "android:sync": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/sync-android.ps1",
     "android:open": "npx cap open android",
-    "android:apk": "npm run android:sync && cd android && gradlew.bat assembleDebug",
+    "android:apk": "npm run android:sync && cd android && gradlew.bat assembleDebug && cd .. && node scripts/package-release-apk.js",
     "android:bundle": "npm run android:sync && cd android && gradlew.bat bundleRelease"
   },
   "dependencies": {
