@@ -90,32 +90,74 @@ function isParkActivity(activity) {
 function isUsableCommonsImage(member) {
   const title = normalise(member?.title || '');
   // Commons categories sometimes include media icons or files from another
-  // place with the same name. Never use those as an activity-card photo.
-  return !/file type icon|fileicon| icon | logo | flag | denbighshire/.test(` ${title} `);
+  // place with the same name, or artwork and exhibition graphics. Never use
+  // those as an activity-card photo.
+  return !/file type icons?|fileicon| icon | logo | flag | denbighshire|wrexham|wrecsam|painting|exhibition|poster|illustration| nyc | ogg | mp3 | webm /.test(` ${title} `);
+}
+
+function mobileThumbnail(imageUrl) {
+  // Commons occasionally returns a 960px image even when a 640px thumbnail
+  // is requested. Its thumbnail URLs accept a smaller width directly.
+  if (!imageUrl) return null;
+  if (/\/\d+px-/.test(imageUrl)) return imageUrl.replace(/\/\d+px-/, '/640px-');
+  const match = imageUrl.match(/^(https:\/\/upload\.wikimedia\.org\/wikipedia\/commons)\/([^/]+)\/([^/]+)\/([^/]+)$/);
+  if (!match) return imageUrl;
+  const [, host, hashOne, hashTwo, filename] = match;
+  return `${host}/thumb/${hashOne}/${hashTwo}/${filename}/640px-${filename}`;
+}
+
+function parkCategoryNames(activity) {
+  const activityName = String(activity.activity_name || '').trim();
+  const names = [activityName];
+  // Listings often describe a feature within a park (for example, "Clissold
+  // Park splash pad"). Commons stores those photos in the parent park's
+  // category, not under the full listing title.
+  const parentMatch = activityName.match(/^(.+?\b(?:park|gardens?|playground|woods?|open space|recreation ground))\b/i);
+  const parentName = parentMatch?.[1]?.trim();
+  const specificTokens = significantTokens(parentName).filter((token) => ![
+    'park', 'garden', 'gardens', 'playground', 'woods', 'open', 'space',
+    'recreation', 'ground',
+  ].includes(token));
+  if (parentName && parentName !== activityName && specificTokens.length >= 1) names.push(parentName);
+  return [...new Set(names)];
+}
+
+function isAmbiguousParkCategory(categoryName) {
+  // Commons categories for these place names point to parks outside London.
+  // Do not guess: a missing image is better than a misleading one.
+  const meaningfulTokens = significantTokens(categoryName).filter((token) => ![
+    'park', 'garden', 'gardens', 'playground', 'woods', 'open', 'space',
+    'recreation', 'ground',
+  ].includes(token));
+  return meaningfulTokens.length === 1 && ['central', 'acton'].includes(meaningfulTokens[0]);
 }
 
 async function parkCategoryImage(activity) {
   // Generic park names occur worldwide. A named Commons category is the
   // reliable source for a park photo, so skip the image when none exists.
-  const category = await commonsRequest({
-    list: 'categorymembers',
-    cmtitle: `Category:${activity.activity_name}`,
-    cmtype: 'file',
-    cmlimit: '20',
-  });
-  const members = category?.query?.categorymembers || [];
-  const activityName = normalise(activity.activity_name);
-  const member = members.find((item) => (
-    normalise(item.title).includes(activityName) && isUsableCommonsImage(item)
-  ));
-  if (!member) return null;
-  const image = await commonsRequest({
-    titles: member.title,
-    prop: 'imageinfo',
-    iiprop: 'url',
-    iiurlwidth: '640',
-  });
-  return image?.query?.pages?.[0]?.imageinfo?.[0]?.thumburl || null;
+  for (const categoryName of parkCategoryNames(activity)) {
+    if (isAmbiguousParkCategory(categoryName)) continue;
+    const category = await commonsRequest({
+      list: 'categorymembers',
+      cmtitle: `Category:${categoryName}`,
+      cmtype: 'file',
+      cmlimit: '20',
+    });
+    const members = category?.query?.categorymembers || [];
+    const normalisedCategory = normalise(categoryName);
+    const usableMembers = members.filter(isUsableCommonsImage);
+    const member = usableMembers.find((item) => normalise(item.title).includes(normalisedCategory)) || usableMembers[0];
+    if (!member) continue;
+    const image = await commonsRequest({
+      titles: member.title,
+      prop: 'imageinfo',
+      iiprop: 'url',
+      iiurlwidth: '640',
+    });
+    const imageUrl = image?.query?.pages?.[0]?.imageinfo?.[0]?.thumburl || null;
+    if (imageUrl) return mobileThumbnail(imageUrl);
+  }
+  return null;
 }
 
 async function searchWikimedia(activity) {
@@ -132,7 +174,7 @@ async function searchWikimedia(activity) {
     .map((page) => ({ page, score: confidence(activity, page) }))
     .filter(({ page, score }) => score >= 0.75 && page.imageinfo?.[0]?.thumburl)
     .sort((a, b) => b.score - a.score);
-  return ranked[0]?.page.imageinfo[0].thumburl || null;
+  return mobileThumbnail(ranked[0]?.page.imageinfo[0].thumburl);
 }
 
 function sql(value) {
