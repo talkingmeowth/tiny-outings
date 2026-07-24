@@ -57,6 +57,54 @@ function metaValue(html: string, names: string[]) {
   return null;
 }
 
+function structuredNodes(html: string) {
+  const nodes: Record<string, unknown>[] = [];
+  const scripts = html.match(/<script\s+[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi) || [];
+  for (const script of scripts) {
+    try {
+      const parsed = JSON.parse(script.replace(/^<script[^>]*>/i, '').replace(/<\/script>$/i, '').trim());
+      const values = Array.isArray(parsed) ? parsed : [parsed, ...(Array.isArray(parsed?.['@graph']) ? parsed['@graph'] : [])];
+      values.filter((value) => value && typeof value === 'object').forEach((value) => nodes.push(value));
+    } catch {
+      // Invalid JSON-LD is common. Metadata remains a useful fallback.
+    }
+  }
+  return nodes;
+}
+
+function textValue(value: unknown) {
+  if (Array.isArray(value)) return textValue(value[0]);
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function structuredAddress(value: unknown) {
+  if (typeof value === 'string') return value.trim();
+  if (!value || typeof value !== 'object') return '';
+  const address = value as Record<string, unknown>;
+  return [address.streetAddress, address.addressLocality, address.addressRegion, address.postalCode]
+    .map(textValue)
+    .filter(Boolean)
+    .join(', ');
+}
+
+function structuredListing(html: string) {
+  const node = structuredNodes(html).find((item) => {
+    const type = textValue(item['@type']).toLowerCase();
+    return /event|localbusiness|organization|place/.test(type);
+  }) || {};
+  const geo = node.geo && typeof node.geo === 'object' ? node.geo as Record<string, unknown> : {};
+  return {
+    name: textValue(node.name),
+    description: textValue(node.description),
+    image: textValue(node.image),
+    address: structuredAddress(node.address),
+    latitude: Number(textValue(geo.latitude)) || null,
+    longitude: Number(textValue(geo.longitude)) || null,
+    openingHours: textValue(node.openingHours),
+    price: textValue(node.priceRange),
+  };
+}
+
 function inferCategory(value: string) {
   const text = value.toLowerCase();
   if (text.includes('cafe') || text.includes('coffee')) return 'coffee';
@@ -77,7 +125,7 @@ function inferBorough(value: string) {
   return null;
 }
 
-async function extractWebsiteMetadata(link: string) {
+async function extractWebsiteMetadata(link: string, providedName?: string | null) {
   const response = await fetch(link, {
     redirect: 'follow',
     headers: {
@@ -91,20 +139,23 @@ async function extractWebsiteMetadata(link: string) {
   }
 
   const html = await response.text();
-  const title = metaValue(html, ['og:title', 'twitter:title'])
+  const structured = structuredListing(html);
+  const title = providedName?.trim()
+    || structured.name
+    || metaValue(html, ['og:title', 'twitter:title'])
     || html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.replace(/\s+/g, ' ').trim()
     || new URL(response.url || link).hostname.replace(/^www\./, '');
-  const description = metaValue(html, ['og:description', 'twitter:description', 'description']);
-  const imageValue = metaValue(html, ['og:image', 'og:image:url', 'twitter:image', 'twitter:image:src']);
+  const description = structured.description || metaValue(html, ['og:description', 'twitter:description', 'description']);
+  const imageValue = structured.image || metaValue(html, ['og:image', 'og:image:url', 'twitter:image', 'twitter:image:src']);
   const imageUrl = imageValue ? absoluteUrl(imageValue, response.url || link) : null;
-  const address = metaValue(html, ['place:location:address', 'og:street-address']) || '';
+  const address = structured.address || metaValue(html, ['place:location:address', 'og:street-address']) || 'Address needs review';
   const combinedText = `${title} ${description || ''} ${address} ${response.url || link}`;
 
   return {
     activity_name: title,
     address,
-    lat: null,
-    long: null,
+    lat: structured.latitude,
+    long: structured.longitude,
     category: inferCategory(combinedText),
     start_time: '09:00',
     end_time: '10:00',
@@ -116,6 +167,8 @@ async function extractWebsiteMetadata(link: string) {
     age_suitability: 'Under 5s',
     borough: inferBorough(combinedText),
     description,
+    cost: structured.price || null,
+    schedule_notes: structured.openingHours || null,
     source_url: response.url || link,
     google_place_id: null,
     google_place_uri: null,
@@ -135,11 +188,11 @@ Deno.serve(async (request) => {
   if (request.method !== 'POST') return jsonResponse({ error: 'POST a JSON body with a link.' }, 405);
 
   try {
-    const { link } = await request.json();
+    const { link, activityName } = await request.json();
     if (!link || typeof link !== 'string') return jsonResponse({ error: 'Missing link.' }, 400);
 
     const resolvedLink = await resolveRedirects(link.trim());
-    const activity = await extractWebsiteMetadata(resolvedLink);
+    const activity = await extractWebsiteMetadata(resolvedLink, typeof activityName === 'string' ? activityName : null);
     return jsonResponse({ activity });
   } catch (error) {
     return jsonResponse(

@@ -56,8 +56,19 @@ const statusLabels = {
 };
 
 const emptyLinkForm = {
-  activity_link: '',
+  activity_name: '',
+  website: '',
+  photos: [],
 };
+
+const emptyReviewForm = {
+  rating: 5,
+  comments: '',
+  photos: [],
+};
+
+const maxUploadedPhotos = 5;
+const maxPhotoBytes = 8 * 1024 * 1024;
 
 const activityInterestOptions = [
   'Cafes & food',
@@ -663,6 +674,19 @@ function buildSubmittedPayload(enriched, link) {
   return payload;
 }
 
+function acceptedPhotoFiles(fileList) {
+  return Array.from(fileList || [])
+    .filter((file) => ['image/jpeg', 'image/png', 'image/webp'].includes(file.type))
+    .filter((file) => file.size <= maxPhotoBytes)
+    .slice(0, maxUploadedPhotos);
+}
+
+function activityPhotoPath(activityId, file) {
+  const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+  const id = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return `${activityId}/${id}.${extension}`;
+}
+
 export default function App() {
   useState(() => {
     clearOldPlanningCache();
@@ -702,7 +726,7 @@ export default function App() {
   const [statuses, setStatuses] = useState(() => loadStored('statuses', {}));
   const [calendarEvents, setCalendarEvents] = useState(() => loadStored('calendar-events', []));
   const [linkForm, setLinkForm] = useState(emptyLinkForm);
-  const [reviewForm, setReviewForm] = useState({ rating: 5, comments: '', photo_url: '' });
+  const [reviewForm, setReviewForm] = useState(emptyReviewForm);
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [returnScreen, setReturnScreen] = useState('swipe');
   const [dragState, setDragState] = useState({ activityId: null, startX: null, offsetX: 0 });
@@ -1085,12 +1109,41 @@ export default function App() {
     setActiveScreen(returnScreen);
   }
 
+  async function uploadActivityPhotos(activityId, files, caption = null, sourceUrl = null) {
+    const uploads = acceptedPhotoFiles(files);
+    if (!uploads.length) return [];
+
+    const uploadedPhotos = [];
+    for (const file of uploads) {
+      const path = activityPhotoPath(activityId, file);
+      const { error: uploadError } = await supabase.storage
+        .from('activity-photos')
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from('activity-photos').getPublicUrl(path);
+      uploadedPhotos.push({
+        activity_id: activityId,
+        user_id: null,
+        photo_url: data.publicUrl,
+        caption: caption || null,
+        source_provider: 'user_upload',
+        source_url: sourceUrl || null,
+      });
+    }
+
+    const { error: photoError } = await supabase.from('activity_photos').insert(uploadedPhotos);
+    if (photoError) throw photoError;
+    return uploadedPhotos;
+  }
+
   async function submitActivityLink(event) {
     event.preventDefault();
-    const link = linkForm.activity_link.trim();
+    const link = linkForm.website.trim();
+    const submittedName = linkForm.activity_name.trim();
 
     if (!link) {
-      setNotice('Paste a place or activity link first.');
+      setNotice('Add the activity website first.');
       return;
     }
 
@@ -1101,7 +1154,7 @@ export default function App() {
 
     setLoading(true);
     const { data, error } = await supabase.functions.invoke('activity-link-autofill', {
-      body: { link },
+      body: { link, activityName: submittedName || null },
     });
 
     if (error) {
@@ -1117,16 +1170,29 @@ export default function App() {
       return;
     }
 
-    const payload = buildSubmittedPayload(enriched, link);
+    const activityId = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const payload = {
+      ...buildSubmittedPayload(enriched, link),
+      activity_id: activityId,
+      activity_name: submittedName || enriched.activity_name,
+    };
     const { error: insertError } = await supabase.from('activities').insert(payload);
-
-    setLoading(false);
     if (insertError) {
+      setLoading(false);
       setNotice(`The activity details were found, but could not be saved: ${insertError.message}`);
       return;
     }
 
+    try {
+      await uploadActivityPhotos(activityId, linkForm.photos, null, link);
+    } catch (photoError) {
+      setLoading(false);
+      setNotice(`Activity added, but the photos could not be saved: ${photoError.message}`);
+      return;
+    }
+
     setLinkForm(emptyLinkForm);
+    setLoading(false);
     setNotice(`${payload.activity_name} was added for review.`);
   }
 
@@ -1149,15 +1215,17 @@ export default function App() {
         }),
       );
     }
-    if (reviewForm.photo_url.trim()) {
-      tasks.push(
-        supabase.from('activity_photos').insert({
-          activity_id: selectedActivity.activity_id,
-          user_id: null,
-          photo_url: reviewForm.photo_url.trim(),
-          source_provider: 'user_upload',
-        }),
+    let uploadedPhotos;
+    try {
+      uploadedPhotos = await uploadActivityPhotos(
+        selectedActivity.activity_id,
+        reviewForm.photos,
+        reviewForm.comments.trim() || null,
+        selectedActivity.website || selectedActivity.source_url || null,
       );
+    } catch (photoError) {
+      setNotice(`Photo could not be saved: ${photoError.message}`);
+      return;
     }
 
     const results = await Promise.all(tasks);
@@ -1167,8 +1235,8 @@ export default function App() {
       return;
     }
 
-    setReviewForm({ rating: 5, comments: '', photo_url: '' });
-    setNotice('Review saved.');
+    setReviewForm(emptyReviewForm);
+    setNotice(uploadedPhotos.length ? 'Review and photo saved.' : 'Review saved.');
   }
 
   return (
@@ -1890,18 +1958,41 @@ function AddActivityScreen({ form, setForm, onSubmit, loading }) {
       <div className="screen-title compact">
         <span className="eyebrow">Add</span>
         <h1>Add a spot.</h1>
-        <p>Paste a link. We fill the rest.</p>
+        <p>Share the basics. We fill the rest.</p>
       </div>
 
       <form className="app-form link-only-form" onSubmit={onSubmit}>
         <label className="wide">
-          <span>Place or activity link</span>
+          <span>Activity name</span>
+          <input
+            value={form.activity_name}
+            onChange={(event) => setForm((current) => ({ ...current, activity_name: event.target.value }))}
+            placeholder="e.g. Saturday stay and play"
+          />
+        </label>
+        <label className="wide">
+          <span>Website</span>
           <input
             required
-            value={form.activity_link}
-            onChange={(event) => setForm({ activity_link: event.target.value })}
+            type="url"
+            value={form.website}
+            onChange={(event) => setForm((current) => ({ ...current, website: event.target.value }))}
             placeholder="https://..."
           />
+        </label>
+
+        <label className="wide photo-upload-field">
+          <span>Photos</span>
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            multiple
+            onChange={(event) => setForm((current) => ({
+              ...current,
+              photos: acceptedPhotoFiles(event.target.files),
+            }))}
+          />
+          <small>{form.photos.length ? `${form.photos.length} ready to upload` : 'Up to 5 JPG, PNG, or WebP images'}</small>
         </label>
 
         <button className="primary-action wide" type="submit" disabled={loading}>
@@ -2010,12 +2101,17 @@ function ActivityDetail({
           />
         </label>
         <label>
-          <span>Photo URL</span>
+          <span>Photos</span>
           <input
-            value={reviewForm.photo_url}
-            onChange={(event) => setReviewForm((current) => ({ ...current, photo_url: event.target.value }))}
-            placeholder="https://..."
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            multiple
+            onChange={(event) => setReviewForm((current) => ({
+              ...current,
+              photos: acceptedPhotoFiles(event.target.files),
+            }))}
           />
+          <small>{reviewForm.photos.length ? `${reviewForm.photos.length} ready to upload` : 'Up to 5 images'}</small>
         </label>
         <button className="primary-action" type="submit">Save</button>
       </form>
