@@ -1337,6 +1337,29 @@ input[type='range'] {
   min-height: 320px;
 }
 
+.activity-detail-screen .detail-photo.user-photo {
+  min-height: 260px;
+  padding: 16px;
+}
+
+.detail-photo.user-photo figcaption {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  color: #fffdf6;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.25;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
+}
+
+.gallery-loading {
+  margin: -4px 14px 2px;
+  color: rgba(36, 52, 47, 0.65);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
 .detail-content-card {
   display: grid;
   gap: 14px;

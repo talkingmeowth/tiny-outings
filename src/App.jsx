@@ -732,6 +732,8 @@ export default function App() {
   const [linkForm, setLinkForm] = useState(emptyLinkForm);
   const [reviewForm, setReviewForm] = useState(emptyReviewForm);
   const [selectedActivity, setSelectedActivity] = useState(null);
+  const [activityPhotos, setActivityPhotos] = useState([]);
+  const [activityPhotosLoading, setActivityPhotosLoading] = useState(false);
   const [returnScreen, setReturnScreen] = useState('swipe');
   const [dragState, setDragState] = useState({ activityId: null, startX: null, offsetX: 0 });
   // Keep Plan controls responsive while the directory catches up with a changed filter.
@@ -924,6 +926,36 @@ export default function App() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadActivityPhotos() {
+      if (!selectedActivity?.activity_id || !supabase) {
+        setActivityPhotos([]);
+        setActivityPhotosLoading(false);
+        return;
+      }
+
+      setActivityPhotosLoading(true);
+      const { data, error } = await supabase
+        .from('activity_photos')
+        .select('photo_id,photo_url,caption,created_at,source_provider')
+        .eq('activity_id', selectedActivity.activity_id)
+        .eq('source_provider', 'user_upload')
+        .order('created_at', { ascending: false });
+
+      if (!cancelled) {
+        setActivityPhotos(error ? [] : (data || []));
+        setActivityPhotosLoading(false);
+      }
+    }
+
+    loadActivityPhotos();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedActivity?.activity_id]);
 
   function requestLocation() {
     if (!navigator.geolocation) {
@@ -1240,6 +1272,9 @@ export default function App() {
     }
 
     setReviewForm(emptyReviewForm);
+    if (uploadedPhotos.length) {
+      setActivityPhotos((current) => [...uploadedPhotos, ...current]);
+    }
     setNotice(uploadedPhotos.length ? 'Review and photo saved.' : 'Review saved.');
   }
 
@@ -1328,6 +1363,8 @@ export default function App() {
         {activeScreen === 'activity' && selectedActivity && (
           <ActivityDetail
             activity={selectedActivity}
+            userPhotos={activityPhotos}
+            userPhotosLoading={activityPhotosLoading}
             reviewForm={reviewForm}
             setReviewForm={setReviewForm}
             submitReview={submitReview}
@@ -2009,6 +2046,8 @@ function AddActivityScreen({ form, setForm, onSubmit, loading }) {
 
 function ActivityDetail({
   activity,
+  userPhotos,
+  userPhotosLoading,
   reviewForm,
   setReviewForm,
   submitReview,
@@ -2030,7 +2069,14 @@ function ActivityDetail({
       <div className="detail-hero">
         <div className="detail-gallery" aria-label={`${activity.activity_name} photos`}>
           <ActivityPhoto activity={activity} className="detail-photo is-main" />
+          {userPhotos.map((photo) => (
+            <figure className="detail-photo user-photo" key={photo.photo_id || photo.photo_url}>
+              <img className="activity-photo-image" src={securePhotoUrl(photo.photo_url)} alt={photo.caption || `Photo of ${activity.activity_name}`} />
+              <figcaption>{photo.caption || 'Parent photo'}</figcaption>
+            </figure>
+          ))}
         </div>
+        {userPhotosLoading && <p className="gallery-loading">Loading parent photos...</p>}
       </div>
 
       <div className="detail-content-card">
