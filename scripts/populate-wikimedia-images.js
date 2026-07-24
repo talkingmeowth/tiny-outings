@@ -96,14 +96,9 @@ function isUsableCommonsImage(member) {
 }
 
 function mobileThumbnail(imageUrl) {
-  // Commons occasionally returns a 960px image even when a 640px thumbnail
-  // is requested. Its thumbnail URLs accept a smaller width directly.
-  if (!imageUrl) return null;
-  if (/\/\d+px-/.test(imageUrl)) return imageUrl.replace(/\/\d+px-/, '/640px-');
-  const match = imageUrl.match(/^(https:\/\/upload\.wikimedia\.org\/wikipedia\/commons)\/([^/]+)\/([^/]+)\/([^/]+)$/);
-  if (!match) return imageUrl;
-  const [, host, hashOne, hashTwo, filename] = match;
-  return `${host}/thumb/${hashOne}/${hashTwo}/${filename}/640px-${filename}`;
+  // Commons may use a different path label (for example 960px) for a
+  // 640px-rendered thumbnail. Preserve the API-issued URL exactly.
+  return imageUrl || null;
 }
 
 function parkCategoryNames(activity) {
