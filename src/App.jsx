@@ -485,6 +485,8 @@ function ActivityPhoto({ activity, className }) {
         src={photoUrl || fallbackImage}
         alt=""
         aria-hidden="true"
+        loading="lazy"
+        decoding="async"
         onError={(event) => {
           // A bad remote image must never leave the card blank on a mobile connection.
           if (event.currentTarget.dataset.usedFallback === 'true') return;
