@@ -88,7 +88,7 @@ function defaultFilters() {
     driveMinutes: 25,
     weekStart: startOfWeekISO(todayISO()),
     interests: [...activityInterestOptions],
-    source: 'all',
+    source: [],
     ageRange: 'all',
   };
 }
@@ -685,7 +685,11 @@ export default function App() {
       weekStart: stored.weekStart || defaults.weekStart,
       // Categories always begin broad. Parents can narrow them for the current session.
       interests: defaults.interests,
-      source: stored.source || defaults.source,
+      source: Array.isArray(stored.source)
+        ? stored.source
+        : stored.source && stored.source !== 'all'
+          ? [stored.source]
+          : defaults.source,
       ageRange: ageFilterOptions.some((option) => option.value === stored.ageRange)
         ? stored.ageRange
         : defaults.ageRange,
@@ -709,6 +713,10 @@ export default function App() {
     [deferredFilters.interests],
   );
   const allCategoriesSelected = selectedCategorySet.size === activityInterestOptions.length;
+  const selectedSourceSet = useMemo(
+    () => new Set(deferredFilters.source),
+    [deferredFilters.source],
+  );
 
   const weekDays = useMemo(
     () => Array.from({ length: 7 }, (_, index) => addDaysISO(filters.weekStart, index)),
@@ -745,10 +753,10 @@ export default function App() {
     () => activitiesWithDistance.filter((activity) => {
       return activity.public_listing_status === 'published'
         && activityMatchesInterests(activity, selectedCategorySet, allCategoriesSelected)
-        && (deferredFilters.source === 'all' || activitySourceLabel(activity) === deferredFilters.source)
+        && (selectedSourceSet.size === 0 || selectedSourceSet.has(activitySourceLabel(activity)))
         && activityMatchesAge(activity, deferredFilters.ageRange);
     }),
-    [activitiesWithDistance, selectedCategorySet, allCategoriesSelected, deferredFilters.ageRange, deferredFilters.source],
+    [activitiesWithDistance, selectedCategorySet, allCategoriesSelected, deferredFilters.ageRange, selectedSourceSet],
   );
   const distanceMatchedActivities = useMemo(
     () => !userLocation
@@ -1294,6 +1302,18 @@ function StartScreen({
     });
   }
 
+  function toggleSource(source) {
+    setFilters((current) => {
+      const selected = current.source || [];
+      return {
+        ...current,
+        source: selected.includes(source)
+          ? selected.filter((item) => item !== source)
+          : [...selected, source],
+      };
+    });
+  }
+
   return (
     <section className="app-screen start-screen">
       <div className="screen-title hero-title">
@@ -1348,16 +1368,26 @@ function StartScreen({
           </div>
         </div>
 
-        <label className="field-group source-filter">
+        <div className="field-group source-filter">
           <span>Source</span>
-          <select
-            value={filters.source}
-            onChange={(event) => setFilters((current) => ({ ...current, source: event.target.value }))}
-          >
-            <option value="all">All sources</option>
-            {sourceOptions.map((source) => <option key={source} value={source}>{source}</option>)}
-          </select>
-        </label>
+          <details className="source-picker">
+            <summary>
+              {filters.source.length === 0 ? 'All sources' : `${filters.source.length} selected`}
+            </summary>
+            <div className="source-options" role="group" aria-label="Activity sources">
+              {sourceOptions.map((source) => (
+                <label key={source}>
+                  <input
+                    type="checkbox"
+                    checked={filters.source.includes(source)}
+                    onChange={() => toggleSource(source)}
+                  />
+                  <span>{source}</span>
+                </label>
+              ))}
+            </div>
+          </details>
+        </div>
 
         <div className="field-group">
           <span>Child's age</span>

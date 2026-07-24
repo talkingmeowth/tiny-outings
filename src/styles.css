@@ -1071,7 +1071,6 @@ input[type='range'] {
 }
 
 .calendar-controls select,
-.source-filter select,
 .app-form input,
 .app-form select,
 .app-form textarea,
@@ -1084,6 +1083,71 @@ input[type='range'] {
   color: var(--ink);
   background: rgba(255, 255, 255, 0.76);
   outline: none;
+}
+
+.source-picker {
+  position: relative;
+}
+
+.source-picker summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 46px;
+  padding: 12px;
+  border: 1px solid rgba(36, 52, 47, 0.12);
+  border-radius: 18px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.76);
+  cursor: pointer;
+  font-weight: 800;
+  list-style: none;
+}
+
+.source-picker summary::-webkit-details-marker {
+  display: none;
+}
+
+.source-picker summary::after {
+  content: '+';
+  color: var(--green);
+  font-size: 1.3rem;
+}
+
+.source-picker[open] summary::after {
+  content: '-';
+}
+
+.source-options {
+  display: grid;
+  gap: 7px;
+  max-height: 224px;
+  margin-top: 8px;
+  padding: 10px;
+  overflow-y: auto;
+  border: 1px solid rgba(36, 52, 47, 0.1);
+  border-radius: 18px;
+  background: rgba(255, 250, 240, 0.96);
+}
+
+.source-options label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  padding: 6px 8px;
+  border-radius: 12px;
+  font-weight: 750;
+}
+
+.source-options label:has(input:checked) {
+  background: rgba(47, 138, 100, 0.12);
+}
+
+.source-options input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--green);
 }
 
 .export-actions a,
