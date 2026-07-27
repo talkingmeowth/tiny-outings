@@ -761,6 +761,7 @@ export default function App() {
   const [returnScreen, setReturnScreen] = useState('swipe');
   const [dragState, setDragState] = useState({ activityId: null, startX: null, offsetX: 0 });
   const [session, setSession] = useState(null);
+  const [entryChoice, setEntryChoice] = useState(() => loadStored('entry-choice', null));
   const [authLoading, setAuthLoading] = useState(false);
   const [adminSaving, setAdminSaving] = useState(false);
   // Keep Plan controls responsive while the directory catches up with a changed filter.
@@ -900,10 +901,14 @@ export default function App() {
     if (!supabase) return undefined;
     let active = true;
     supabase.auth.getSession().then(({ data }) => {
-      if (active) setSession(data.session || null);
+      if (active) {
+        setSession(data.session || null);
+        if (data.session) setEntryChoice('google');
+      }
     });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession || null);
+      if (nextSession) setEntryChoice('google');
     });
     return () => {
       active = false;
@@ -1199,15 +1204,27 @@ export default function App() {
       options: { redirectTo: window.location.origin },
     });
     if (error) {
-      setNotice(`Google sign-in could not start: ${error.message}`);
+      const providerUnavailable = /provider.*enabled|unsupported provider/i.test(error.message);
+      setNotice(providerUnavailable
+        ? 'Google sign-in is not enabled yet. Turn on Google in Supabase Authentication, then try again.'
+        : `Google sign-in could not start: ${error.message}`);
       setAuthLoading(false);
     }
+  }
+
+  function continueAsGuest() {
+    saveStored('entry-choice', 'guest');
+    setEntryChoice('guest');
   }
 
   async function signOut() {
     if (!supabase) return;
     const { error } = await supabase.auth.signOut();
     if (error) setNotice(`Could not sign out: ${error.message}`);
+    else {
+      removeStored('entry-choice');
+      setEntryChoice(null);
+    }
   }
 
   async function saveAdminActivityEdits(activity, values) {
@@ -1396,6 +1413,14 @@ export default function App() {
 
   return (
     <div className="phone-app">
+      {!session && !entryChoice ? (
+        <WelcomeScreen
+          authLoading={authLoading}
+          onSignIn={signInWithGoogle}
+          onContinueAsGuest={continueAsGuest}
+        />
+      ) : (
+        <>
       <header className="app-topbar">
         <button className="brand-lockup" type="button" onClick={() => navigate('start')}>
           <span>Tiny</span>
@@ -1410,12 +1435,9 @@ export default function App() {
               <button className="account-button" type="button" onClick={signOut}>Log out</button>
             </>
           ) : (
-            <>
-              <button className="guest-button" type="button" onClick={() => setNotice('You are browsing as a guest.')}>Guest</button>
-              <button className="account-button" type="button" onClick={signInWithGoogle} disabled={authLoading}>
-                {authLoading ? 'Opening...' : 'Google sign in'}
-              </button>
-            </>
+            <button className="account-button" type="button" onClick={signInWithGoogle} disabled={authLoading}>
+              {authLoading ? 'Opening...' : 'Sign in'}
+            </button>
           )}
         </div>
       </header>
@@ -1510,7 +1532,35 @@ export default function App() {
       </main>
 
       <BottomNav activeScreen={activeScreen} setActiveScreen={navigate} />
+        </>
+      )}
     </div>
+  );
+}
+
+function WelcomeScreen({ authLoading, onSignIn, onContinueAsGuest }) {
+  return (
+    <main className="welcome-screen">
+      <div className="welcome-sun" aria-hidden="true" />
+      <div className="welcome-mark" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
+      <p className="welcome-kicker">Tiny Outings</p>
+      <h1>Small plans.<br />Big days.</h1>
+      <p className="welcome-copy">Find family-friendly things to do, then build your week one outing at a time.</p>
+      <div className="welcome-actions">
+        <button className="welcome-google" type="button" onClick={onSignIn} disabled={authLoading}>
+          <span className="google-g" aria-hidden="true">G</span>
+          {authLoading ? 'Opening Google...' : 'Sign in with Google'}
+        </button>
+        <button className="welcome-guest" type="button" onClick={onContinueAsGuest}>
+          Continue as guest
+        </button>
+      </div>
+      <p className="welcome-note">Guest plans stay on this device.</p>
+    </main>
   );
 }
 
