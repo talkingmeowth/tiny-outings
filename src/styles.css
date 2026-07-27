@@ -175,6 +175,49 @@ a {
   gap: 8px;
 }
 
+.account-actions {
+  justify-content: flex-end;
+}
+
+.account-button,
+.guest-button,
+.account-pill {
+  min-height: 34px;
+  border-radius: 999px;
+  padding: 7px 10px;
+  font-size: 0.7rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.account-button,
+.guest-button {
+  border: 1px solid rgba(36, 52, 47, 0.14);
+  color: var(--green-dark);
+  background: rgba(255, 250, 240, 0.84);
+}
+
+.account-button {
+  color: #fffdf6;
+  background: var(--green);
+}
+
+.guest-button {
+  display: none;
+}
+
+.account-pill {
+  display: inline-flex;
+  align-items: center;
+  color: var(--green-dark);
+  background: rgba(255, 250, 240, 0.7);
+}
+
+.account-pill.is-admin {
+  color: #fffdf6;
+  background: var(--coral-dark);
+}
+
 .sync-dot,
 .status-pill {
   display: inline-flex;
@@ -1433,6 +1476,63 @@ input[type='range'] {
 
 .detail-links a {
   min-height: 48px;
+}
+
+.admin-editor {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid rgba(203, 88, 63, 0.24);
+  border-radius: 28px;
+  background: linear-gradient(145deg, rgba(255, 239, 220, 0.95), rgba(255, 250, 240, 0.92));
+  box-shadow: 0 14px 34px rgba(103, 54, 30, 0.09);
+}
+
+.admin-editor h2 {
+  margin: 2px 0 4px;
+  color: var(--green-dark);
+  font-size: 1.2rem;
+}
+
+.admin-editor p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
+.admin-editor label {
+  display: grid;
+  gap: 6px;
+  color: var(--green-dark);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.admin-editor input {
+  min-width: 0;
+}
+
+@media (max-width: 390px) {
+  .brand-lockup {
+    padding-left: 40px;
+    font-size: 1.15rem;
+  }
+
+  .brand-lockup::before {
+    width: 32px;
+    height: 32px;
+  }
+
+  .account-pill,
+  .guest-button {
+    display: none;
+  }
+
+  .account-button {
+    padding: 7px 9px;
+    font-size: 0.7rem;
+  }
 }
 
 .bottom-nav {
