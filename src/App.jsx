@@ -1,9 +1,13 @@
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
+import { App as CapacitorApp } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
+import { Capacitor } from '@capacitor/core';
 import { supabase } from './supabaseClient';
 
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
 const adminEmail = 'talkingmeowth06@gmail.com';
+const nativeAuthCallback = 'com.tinyoutings.app://auth/callback';
 // Reset outdated swipe/filter state without touching planned calendar entries.
 const planningStorageVersion = '2026-07-24-seven-plan-categories';
 const statusOptions = ['booked', 'tentative'];
@@ -917,6 +921,28 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (!supabase || !Capacitor.isNativePlatform()) return undefined;
+
+    const appUrlListener = CapacitorApp.addListener('appUrlOpen', async ({ url }) => {
+      if (!url.startsWith(nativeAuthCallback)) return;
+
+      setAuthLoading(true);
+      const { error } = await supabase.auth.exchangeCodeForSession(url);
+      if (error) {
+        setNotice(`Google sign-in could not finish: ${error.message}`);
+      } else {
+        setEntryChoice('google');
+        await Browser.close();
+      }
+      setAuthLoading(false);
+    });
+
+    return () => {
+      appUrlListener.then((listener) => listener.remove());
+    };
+  }, []);
+
+  useEffect(() => {
     const weekEnd = addDaysISO(filters.weekStart, 6);
     if (selectedDate < filters.weekStart || selectedDate > weekEnd) {
       setSelectedDate(filters.weekStart);
@@ -1199,9 +1225,13 @@ export default function App() {
       return;
     }
     setAuthLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
+    const isNativeApp = Capacitor.isNativePlatform();
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin },
+      options: {
+        redirectTo: isNativeApp ? nativeAuthCallback : window.location.origin,
+        skipBrowserRedirect: isNativeApp,
+      },
     });
     if (error) {
       const providerUnavailable = /provider.*enabled|unsupported provider/i.test(error.message);
@@ -1209,6 +1239,16 @@ export default function App() {
         ? 'Google sign-in is not enabled yet. Turn on Google in Supabase Authentication, then try again.'
         : `Google sign-in could not start: ${error.message}`);
       setAuthLoading(false);
+      return;
+    }
+
+    if (isNativeApp) {
+      try {
+        await Browser.open({ url: data.url });
+      } catch {
+        setNotice('Google sign-in could not open. Please try again.');
+        setAuthLoading(false);
+      }
     }
   }
 
