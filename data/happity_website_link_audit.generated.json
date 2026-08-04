@@ -1,0 +1,90 @@
+{
+  "generated_at": "2026-08-04T16:16:55.879Z",
+  "total_happity_records": 1134,
+  "snapshot_schedule_urls": 1517,
+  "already_verified_schedule_links": 1122,
+  "directory_anchor_links": 11,
+  "official_organiser_links": 1,
+  "repaired_links": 0,
+  "needs_manual_review": 11,
+  "repairs": [],
+  "manual_review": [
+    {
+      "activity_id": "dfb9f029-c89e-4900-929b-f62bda381651",
+      "activity_name": "Juniorstrikers Baby Strikers Football",
+      "address": "London E9 7DD",
+      "current_url": "https://www.happity.co.uk/newham/baby-toddler-classes#juniorstrikers-baby-strikers-victoria-park-tue-0940",
+      "reason": "No unique same-area schedule match in snapshot."
+    },
+    {
+      "activity_id": "d392d154-e4c4-44a0-b994-9c0b50d09fc1",
+      "activity_name": "Bongalong Under Ones Trial Session",
+      "address": "129 Cavendish Rd, London E4 9NG",
+      "current_url": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#bongalong-under-ones-highams-park-wed-1100",
+      "reason": "No unique same-area schedule match in snapshot."
+    },
+    {
+      "activity_id": "13e5721b-0be3-4d4b-a456-06d66f5a9942",
+      "activity_name": "Walthamstow Toy Library Sensory Room Session",
+      "address": "6-8 Somers Rd, London E17 6RX",
+      "current_url": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#walthamstow-toy-library-sensory-room-wed-0930",
+      "reason": "No unique same-area schedule match in snapshot."
+    },
+    {
+      "activity_id": "f14cb658-364c-4eef-9c7f-be8d1d9fb8b6",
+      "activity_name": "Mother and More Baby Massage and Baby Yoga Stage 1",
+      "address": "Pause 478 High Road , Leyton, London, E10 6QA",
+      "current_url": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#mother-and-more-stage-1-pause-wed-1300",
+      "reason": "No unique same-area schedule match in snapshot."
+    },
+    {
+      "activity_id": "98f90426-165d-4ef5-a81f-7dcedb56fdef",
+      "activity_name": "Blossom Babies Blossom Toddler",
+      "address": "Poplar Union, 2 Cotall St, London E14 6TL",
+      "current_url": "https://www.happity.co.uk/newham/baby-toddler-classes#blossom-babies-blossom-toddler-poplar-union-tue-1000",
+      "reason": "No unique same-area schedule match in snapshot."
+    },
+    {
+      "activity_id": "8acd47e9-b537-4370-9816-09b1fdf38164",
+      "activity_name": "Monkey Music Jiggety Jig",
+      "address": "St George in the East Crypt West, 14 Cannon St Rd, London E1 0BH",
+      "current_url": "https://www.happity.co.uk/newham/baby-toddler-classes#monkey-music-jiggety-jig-st-george-east-tue-0945",
+      "reason": "No unique same-area schedule match in snapshot."
+    },
+    {
+      "activity_id": "d69ff8a0-d8e9-4906-964e-5dca845f3b84",
+      "activity_name": "Minis",
+      "address": "St Paul's Church, St Pauls Church, St Paul's Old Ford, 84 St Stephen's Rd, Bow, London E3 5JL",
+      "current_url": "https://www.happity.co.uk/hackney/baby-toddler-classes#minis-st-paul-old-ford-mon-1000",
+      "reason": "No unique same-area schedule match in snapshot."
+    },
+    {
+      "activity_id": "1711b152-5a19-4368-9055-ddf0b8787db2",
+      "activity_name": "Sing and Sign Stage Two",
+      "address": "Saint Joseph's Roman Catholic Church, 68 Grange Park Rd, London E10 5ES",
+      "current_url": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#sing-and-sign-stage-two-st-josephs-wed-1015",
+      "reason": "No unique same-area schedule match in snapshot."
+    },
+    {
+      "activity_id": "0c9d1cdf-c339-429b-bf3f-b0590f5036eb",
+      "activity_name": "Mother and More Baby Massage and Baby Yoga Stage 2",
+      "address": "1-3 Brevet Parade, Honour Lea Ave, Chobham Manor, London E20 1LF",
+      "current_url": "https://www.happity.co.uk/newham/baby-toddler-classes#mother-and-more-stage-2-chobham-manor-tue-1215",
+      "reason": "No unique same-area schedule match in snapshot."
+    },
+    {
+      "activity_id": "89b37dc5-1d7c-4dfe-be2e-e7eb98673b16",
+      "activity_name": "Boppin Bunnies Pre school Music",
+      "address": "44 Vanbrugh Park, Greater, Blackheath, London SE3 7JQ",
+      "current_url": "https://www.happity.co.uk/newham/baby-toddler-classes#boppin-bunnies-preschool-music-royal-standard-tue-0945",
+      "reason": "No unique same-area schedule match in snapshot."
+    },
+    {
+      "activity_id": "938a5260-c338-4ef7-bcb1-3f830404d2cb",
+      "activity_name": "Music Tree First Steps in Music 0 18",
+      "address": "51 Barnsbury St, London N1 1TP",
+      "current_url": "https://www.happity.co.uk/islington/baby-toddler-classes#music-tree-first-steps-0-18-wed-1100",
+      "reason": "No unique same-area schedule match in snapshot."
+    }
+  ]
+}

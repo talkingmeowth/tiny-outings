@@ -29,6 +29,7 @@
     "activities:london-chains": "node scripts/build-london-chain-places.js",
     "activities:london-parks": "node scripts/build-london-parks.js",
     "activities:repair-happity-links": "node scripts/repair-happity-links.js",
+    "activities:audit-happity-links": "node scripts/audit-happity-website-links.js",
     "activities:happity": "node scripts/import-happity-schedules.js",
     "activities:audit-swipe": "node scripts/audit-swipe-visibility.js",
     "activities:audit-plan-filters": "node scripts/audit-activity-plan-filters.js",
