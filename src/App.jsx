@@ -1,8 +1,13 @@
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
-import { supabase } from './supabaseClient';
+import { App as CapacitorApp } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
+import { Capacitor } from '@capacitor/core';
+import { completeNativeGoogleSignIn, supabase } from './supabaseClient';
 
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
+const adminEmail = 'talkingmeowth06@gmail.com';
+const nativeAuthCallback = 'com.tinyoutings.app://auth/callback';
 // Reset outdated swipe/filter state without touching planned calendar entries.
 const planningStorageVersion = '2026-07-24-seven-plan-categories';
 const statusOptions = ['booked', 'tentative'];
@@ -760,6 +765,9 @@ export default function App() {
   const [activityPhotosLoading, setActivityPhotosLoading] = useState(false);
   const [returnScreen, setReturnScreen] = useState('swipe');
   const [dragState, setDragState] = useState({ activityId: null, startX: null, offsetX: 0 });
+  const [session, setSession] = useState(null);
+  const [entryChoice, setEntryChoice] = useState(() => loadStored('entry-choice', null));
+  const [authLoading, setAuthLoading] = useState(false);
   const [adminSaving, setAdminSaving] = useState(false);
   // Keep Plan controls responsive while the directory catches up with a changed filter.
   const deferredFilters = useDeferredValue(filters);
@@ -772,7 +780,7 @@ export default function App() {
     () => new Set(deferredFilters.source),
     [deferredFilters.source],
   );
-  const isAdmin = false;
+  const isAdmin = session?.user?.email?.toLowerCase() === adminEmail;
 
   const weekDays = useMemo(
     () => Array.from({ length: 7 }, (_, index) => addDaysISO(filters.weekStart, index)),
@@ -895,6 +903,45 @@ export default function App() {
 
   useEffect(() => {
     removeStored('activity-drafts');
+  }, []);
+
+  useEffect(() => {
+    if (!supabase) return undefined;
+    let active = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!active) return;
+      setSession(data.session || null);
+      if (data.session) setEntryChoice('google');
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession || null);
+      if (nextSession) setEntryChoice('google');
+    });
+    return () => {
+      active = false;
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return undefined;
+    const handleCallback = async ({ url }) => {
+      if (!url.startsWith(nativeAuthCallback)) return;
+      setAuthLoading(true);
+      const { error } = await completeNativeGoogleSignIn(url);
+      if (error) setNotice(`Google sign-in could not finish: ${error.message}`);
+      else await Browser.close();
+      setAuthLoading(false);
+    };
+    // Android can create a fresh activity when Chrome redirects back, before
+    // the event listener exists. Read its launch URL as well as live events.
+    CapacitorApp.getLaunchUrl().then((launch) => {
+      if (launch?.url) handleCallback({ url: launch.url });
+    });
+    const listener = CapacitorApp.addListener('appUrlOpen', handleCallback);
+    return () => {
+      listener.then((handle) => handle.remove());
+    };
   }, []);
 
   useEffect(() => {
@@ -1174,6 +1221,51 @@ export default function App() {
     setActiveScreen(returnScreen);
   }
 
+  async function signInWithGoogle() {
+    if (!supabase) {
+      setNotice('Sign-in is not configured in this build.');
+      return;
+    }
+
+    setAuthLoading(true);
+    const isNativeApp = Capacitor.isNativePlatform();
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: isNativeApp ? nativeAuthCallback : window.location.origin,
+        skipBrowserRedirect: isNativeApp,
+      },
+    });
+    if (error || !data?.url) {
+      setNotice(`Google sign-in could not start: ${error?.message || 'No sign-in link was returned.'}`);
+      setAuthLoading(false);
+      return;
+    }
+
+    try {
+      if (isNativeApp) await Browser.open({ url: data.url });
+      else window.location.assign(data.url);
+    } catch {
+      setNotice('Google sign-in could not open. Please try again.');
+      setAuthLoading(false);
+    }
+  }
+
+  function continueAsGuest() {
+    saveStored('entry-choice', 'guest');
+    setEntryChoice('guest');
+  }
+
+  async function signOut() {
+    if (!supabase) return;
+    const { error } = await supabase.auth.signOut();
+    if (error) setNotice(`Could not sign out: ${error.message}`);
+    else {
+      removeStored('entry-choice');
+      setEntryChoice(null);
+    }
+  }
+
   async function saveAdminActivityEdits(activity, values) {
     if (!supabase || !isAdmin) return;
     const updates = {
@@ -1218,7 +1310,7 @@ export default function App() {
       const { data } = supabase.storage.from('activity-photos').getPublicUrl(path);
       uploadedPhotos.push({
         activity_id: activityId,
-        user_id: null,
+        user_id: session?.user?.id || null,
         photo_url: data.publicUrl,
         caption: caption || null,
         source_provider: 'user_upload',
@@ -1287,7 +1379,7 @@ export default function App() {
 
     const activityId = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const payload = {
-      ...buildSubmittedPayload(enriched, link, websiteLink, googlePlacesLink, null),
+      ...buildSubmittedPayload(enriched, link, websiteLink, googlePlacesLink, session?.user?.id || null),
       activity_id: activityId,
       activity_name: submittedName || enriched.activity_name,
       category: linkForm.category || enriched.category || enriched.google_primary_type || 'Classes & clubs',
@@ -1325,7 +1417,7 @@ export default function App() {
       tasks.push(
         supabase.from('activity_reviews').insert({
           activity_id: selectedActivity.activity_id,
-          user_id: null,
+          user_id: session?.user?.id || null,
           rating: Number(reviewForm.rating),
           review_text: reviewForm.comments.trim() || null,
         }),
@@ -1360,11 +1452,33 @@ export default function App() {
 
   return (
     <div className="phone-app">
+      {!session && !entryChoice ? (
+        <WelcomeScreen
+          authLoading={authLoading}
+          onSignIn={signInWithGoogle}
+          onContinueAsGuest={continueAsGuest}
+        />
+      ) : (
+        <>
       <header className="app-topbar">
         <button className="brand-lockup" type="button" onClick={() => navigate('start')}>
           <span>Tiny</span>
           <strong>Outings</strong>
         </button>
+        <div className="topbar-actions account-actions">
+          {session ? (
+            <>
+              <span className={classNames('account-pill', isAdmin && 'is-admin')}>
+                {isAdmin ? 'Admin' : 'Signed in'}
+              </span>
+              <button className="account-button" type="button" onClick={signOut}>Log out</button>
+            </>
+          ) : (
+            <button className="account-button" type="button" onClick={signInWithGoogle} disabled={authLoading}>
+              {authLoading ? 'Opening...' : 'Sign in'}
+            </button>
+          )}
+        </div>
       </header>
 
       {notice && (
@@ -1457,7 +1571,29 @@ export default function App() {
       </main>
 
       <BottomNav activeScreen={activeScreen} setActiveScreen={navigate} />
+        </>
+      )}
     </div>
+  );
+}
+
+function WelcomeScreen({ authLoading, onSignIn, onContinueAsGuest }) {
+  return (
+    <main className="welcome-screen">
+      <div className="welcome-sun" aria-hidden="true" />
+      <div className="welcome-mark" aria-hidden="true"><span /><span /><span /></div>
+      <p className="welcome-kicker">Tiny Outings</p>
+      <h1>Small plans.<br />Big days.</h1>
+      <p className="welcome-copy">Find family-friendly things to do, then build your week one outing at a time.</p>
+      <div className="welcome-actions">
+        <button className="welcome-google" type="button" onClick={onSignIn} disabled={authLoading}>
+          <span className="google-g" aria-hidden="true">G</span>
+          {authLoading ? 'Opening Google...' : 'Sign in with Google'}
+        </button>
+        <button className="welcome-guest" type="button" onClick={onContinueAsGuest}>Continue as guest</button>
+      </div>
+      <p className="welcome-note">Guest plans stay on this device.</p>
+    </main>
   );
 }
 
