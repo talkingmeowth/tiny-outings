@@ -2,7 +2,7 @@ import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
-import { completeNativePkceSignIn, preserveNativePkceVerifier, supabase } from './supabaseClient';
+import { clearNativePkceAttempt, completeNativePkceSignIn, preserveNativePkceVerifier, supabase } from './supabaseClient';
 
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
@@ -1230,6 +1230,7 @@ export default function App() {
     }
     setAuthLoading(true);
     const isNativeApp = Capacitor.isNativePlatform();
+    if (isNativeApp) await clearNativePkceAttempt();
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {

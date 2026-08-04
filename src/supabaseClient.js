@@ -50,6 +50,14 @@ export const supabase = hasSupabaseConfig
   })
   : null;
 
+export async function clearNativePkceAttempt() {
+  if (!isNativeApp || !codeVerifierKey) return;
+  await Promise.all([
+    authStorage.removeItem(codeVerifierKey),
+    Preferences.remove({ key: nativeVerifierBackupKey }),
+  ]);
+}
+
 // Keep a second native copy of the short-lived verifier before Chrome opens.
 // Some Android devices recreate the WebView while handling the app link, which
 // otherwise leaves Supabase Auth unable to read its primary verifier key.
@@ -67,9 +75,12 @@ export async function completeNativePkceSignIn(callbackUrl) {
   }
 
   const authCode = new URL(callbackUrl).searchParams.get('code');
-  const primaryVerifier = await authStorage.getItem(codeVerifierKey);
   const backupVerifier = (await Preferences.get({ key: nativeVerifierBackupKey })).value;
-  const verifier = primaryVerifier || backupVerifier;
+  const primaryVerifier = await authStorage.getItem(codeVerifierKey);
+  // The backup is captured immediately after this attempt creates its OAuth
+  // URL. Prefer it over the primary key, which can be stale after an Android
+  // activity recreation or a previous cancelled attempt.
+  const verifier = backupVerifier || primaryVerifier;
 
   if (!authCode || !verifier) {
     return { error: new Error('The sign-in response was incomplete. Please try again.') };
