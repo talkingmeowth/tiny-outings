@@ -2,7 +2,7 @@ import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
-import { supabase } from './supabaseClient';
+import { completeNativePkceSignIn, preserveNativePkceVerifier, supabase } from './supabaseClient';
 
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
@@ -939,7 +939,7 @@ export default function App() {
       if (!url.startsWith(nativeAuthCallback)) return;
 
       setAuthLoading(true);
-      const { error } = await supabase.auth.exchangeCodeForSession(url);
+      const { error } = await completeNativePkceSignIn(url);
       if (error) {
         setNotice(`Google sign-in could not finish: ${error.message}`);
       } else {
@@ -1256,6 +1256,12 @@ export default function App() {
 
     if (isNativeApp) {
       try {
+        const verifierSaved = await preserveNativePkceVerifier();
+        if (!verifierSaved) {
+          setNotice('Google sign-in could not start. Please try again.');
+          setAuthLoading(false);
+          return;
+        }
         await Browser.open({ url: data.url });
       } catch {
         setNotice('Google sign-in could not open. Please try again.');
