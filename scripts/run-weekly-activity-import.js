@@ -41,6 +41,21 @@ const sources = [
     output: join(root, 'supabase', 'seed', 'fever_availability_updates.generated.sql'),
   },
   {
+    name: 'loopla',
+    script: 'import-loopla-london.js',
+    output: join(root, 'supabase', 'seed', 'activities_loopla_london.generated.sql'),
+  },
+  {
+    name: 'museums-london',
+    script: 'import-museums-london.js',
+    output: join(root, 'supabase', 'seed', 'activities_museums_london.generated.sql'),
+  },
+  {
+    name: 'time-out-london-kids',
+    script: 'import-timeout-london-kids.js',
+    output: join(root, 'supabase', 'seed', 'activities_timeout_london_kids.generated.sql'),
+  },
+  {
     name: 'google-places',
     script: 'build-google-places-e10.js',
     output: join(root, 'supabase', 'seed', 'activities_google_places_e10_10_miles.generated.sql'),
@@ -64,17 +79,28 @@ const sources = [
     args: ['--audit'],
     output: join(root, 'supabase', 'seed', 'activity_image_updates.generated.sql'),
   },
+  {
+    name: 'data-quality',
+    script: 'apply-activity-data-quality.js',
+    output: join(root, 'supabase', 'seed', 'activity_import_quality_updates.generated.sql'),
+  },
+  {
+    name: 'archive-expired',
+    script: 'archive-expired-activities.js',
+    output: join(root, 'supabase', 'seed', 'activity_expired_listing_archives.generated.sql'),
+  },
 ];
 
 function printHelp() {
   console.log(`Usage: node scripts/run-weekly-activity-import.js [--apply] [--skip-image-curation]
 
 Runs the directory importers followed by image curation and writes an audit
-report under data/weekly-imports. With --apply, the generated idempotent SQL is
-applied to DATABASE_URL using psql.
+report under data/weekly-imports. With --apply, generated idempotent SQL is
+applied using DATABASE_URL and psql, or the linked Supabase project.
 
-Required for --apply:
-  DATABASE_URL                 Supabase Postgres connection string
+Required for --apply (one of):
+  DATABASE_URL                 Supabase Postgres connection string (uses psql)
+  SUPABASE_ACCESS_TOKEN        Uses the linked Supabase project (uses Supabase CLI)
 
 Required for Google Places:
   GOOGLE_MAPS_API_KEY or GOOGLE_PLACES_API_KEY
@@ -90,7 +116,7 @@ function runSource(source) {
     return { name: source.name, status: 'skipped', reason: 'Skipped with --skip-image-curation.' };
   }
   if (source.requiresGoogleKey && !(process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_PLACES_API_KEY)) {
-    return { name: source.name, status: 'skipped', reason: 'Google Places API key is not configured.' };
+    return { name: source.name, status: 'skipped', reason: 'Skipped: this source requires Google services, which are disabled.' };
   }
 
   const startedAt = new Date().toISOString();
@@ -117,13 +143,21 @@ function hasDatabaseChanges(filePath) {
 }
 
 function applySql(filePath) {
-  const result = spawnSync('psql', ['--set', 'ON_ERROR_STOP=1', '--dbname', process.env.DATABASE_URL, '--file', filePath], {
+  const usePsql = Boolean(process.env.DATABASE_URL);
+  const command = usePsql ? 'psql' : 'npx';
+  const args = usePsql
+    ? ['--set', 'ON_ERROR_STOP=1', '--dbname', process.env.DATABASE_URL, '--file', filePath]
+    : ['supabase', 'db', 'query', '--linked', '--file', filePath];
+  const result = spawnSync(command, args, {
     cwd: root,
     encoding: 'utf8',
     env: process.env,
+    // npx is a .cmd shim on Windows; running it through the shell avoids the
+    // Windows EINVAL error while the file paths remain runner-controlled.
+    shell: !usePsql && process.platform === 'win32',
   });
   if (result.status !== 0) {
-    throw new Error(`Could not apply ${filePath}: ${(result.stderr || result.stdout || 'psql failed').trim()}`);
+    throw new Error(`Could not apply ${filePath}: ${(result.error?.message || result.stderr || result.stdout || 'database command failed').trim()}`);
   }
 }
 
@@ -135,8 +169,8 @@ if (helpRequested) {
 const results = sources.map(runSource);
 const failed = results.filter((result) => result.status === 'failed');
 
-if (applyChanges && !process.env.DATABASE_URL) {
-  failed.push({ name: 'database', status: 'failed', reason: 'DATABASE_URL is required when using --apply.' });
+if (applyChanges && !process.env.DATABASE_URL && !process.env.SUPABASE_ACCESS_TOKEN) {
+  failed.push({ name: 'database', status: 'failed', reason: 'DATABASE_URL or SUPABASE_ACCESS_TOKEN is required when using --apply.' });
 }
 
 if (applyChanges && failed.length === 0) {

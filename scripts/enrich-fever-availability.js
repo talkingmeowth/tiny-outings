@@ -105,7 +105,9 @@ async function fetchHtml(url) {
 
 async function feverActivities() {
   if (!supabaseUrl || !supabaseAnonKey) throw new Error('Missing Supabase configuration.');
-  const response = await fetch(`${supabaseUrl}/rest/v1/activities?select=activity_id,activity_name,source_url&data_source=eq.fever&public_listing_status=eq.published&order=activity_name.asc`, {
+  // Use source_name because data_source is a user-facing grouping and may be
+  // renamed without changing the original importer provenance.
+  const response = await fetch(`${supabaseUrl}/rest/v1/activities?select=activity_id,activity_name,source_url&source_name=eq.Fever%20London%20family%20listings&public_listing_status=eq.published&order=activity_name.asc`, {
     headers: { apikey: supabaseAnonKey, Authorization: `Bearer ${supabaseAnonKey}` },
   });
   if (!response.ok) throw new Error(`Supabase returned ${response.status}`);

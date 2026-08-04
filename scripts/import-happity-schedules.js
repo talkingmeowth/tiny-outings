@@ -121,7 +121,9 @@ async function loadExistingActivities(env) {
   if (!url || !key) throw new Error('VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are required to audit Happity schedules.');
   const rows = [];
   for (let offset = 0; ; offset += 1000) {
-    const response = await fetch(`${url}/rest/v1/activities?select=activity_id,source_url,website,google_photo_url,image_url,lat,long&data_source=ilike.happity&limit=1000&offset=${offset}`, {
+    // `data_source` is a display grouping, so use the stable importer name
+    // when matching records from a Happity schedule refresh.
+    const response = await fetch(`${url}/rest/v1/activities?select=activity_id,source_url,website,google_photo_url,image_url,lat,long&source_name=eq.Happity&limit=1000&offset=${offset}`, {
       headers: { apikey: key, Authorization: `Bearer ${key}` },
     });
     if (!response.ok) throw new Error(`Could not load Happity records: ${response.status}`);
