@@ -52,6 +52,7 @@
     "@capacitor/browser": "^6.0.0",
     "@capacitor/cli": "^6.2.1",
     "@capacitor/core": "^6.2.1",
+    "@capacitor/preferences": "^6.0.0",
     "@supabase/supabase-js": "^2.53.0",
     "@vitejs/plugin-react": "^4.3.4",
     "react": "^19.0.0",
