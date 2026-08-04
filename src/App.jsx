@@ -654,10 +654,8 @@ function activitySourceLabel(activity) {
 }
 
 function isEventListing(activity) {
-  // Eventbrite, Fever, and Loopla listings are events even when their publisher has
-  // not supplied a machine-readable date yet. Dated entries are still
-  // filtered by isActivityAvailableOn when a parent chooses a planning week.
-  return isEventSource(activity);
+  // Keep the Plan filter aligned with the source badge on activity cards.
+  return activitySourceLabel(activity) === 'Events';
 }
 
 function buildSubmittedPayload(enriched, submissionLink, websiteLink, googlePlacesLink, userId = null) {
@@ -857,10 +855,12 @@ export default function App() {
     [sharedFilteredActivities, filteredWeekDays],
   );
   const filteredActivities = useMemo(
-    () => sharedFilteredActivities.filter(
-      (activity) => isActivityAvailableOn(activity, selectedDate),
-    ),
-    [sharedFilteredActivities, selectedDate],
+    () => deferredFilters.eventsOnly
+      ? sharedFilteredActivities.filter(isEventListing)
+      : sharedFilteredActivities.filter(
+        (activity) => isActivityAvailableOn(activity, selectedDate),
+      ),
+    [deferredFilters.eventsOnly, sharedFilteredActivities, selectedDate],
   );
   const slotActivities = useMemo(
     () => {
@@ -1713,7 +1713,7 @@ function StartScreen({
             onClick={() => setFilters((current) => ({ ...current, eventsOnly: !current.eventsOnly }))}
             aria-pressed={filters.eventsOnly}
           >
-            Events
+            Events only
           </button>
           <div className="chip-grid interest-grid">
             {activityInterestOptions.map((interest) => (

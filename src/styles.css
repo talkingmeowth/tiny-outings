@@ -1961,11 +1961,11 @@ input[type='range'] {
 }
 
 .event-filter-chip {
-  min-height: 32px;
-  padding: 5px 10px;
+  min-height: 27px;
+  padding: 3px 8px;
   margin-bottom: 8px;
   color: var(--green-dark);
-  font-size: 0.82rem;
+  font-size: 0.72rem;
   font-weight: 900;
   text-transform: none;
 }
