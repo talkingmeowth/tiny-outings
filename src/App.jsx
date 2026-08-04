@@ -90,6 +90,7 @@ const activityInterestOptions = [
   'Movement & wellbeing',
   'Museums & culture',
   'Bookshops',
+  'Events',
 ];
 
 const ageFilterOptions = [
@@ -109,7 +110,6 @@ function defaultFilters() {
     weekStart: startOfWeekISO(todayISO()),
     interests: [...activityInterestOptions],
     source: [],
-    eventsOnly: false,
     ageRange: 'all',
   };
 }
@@ -569,6 +569,8 @@ function activityMatchesInterests(activity, selectedCategories, allCategoriesSel
 }
 
 function activityPlanLabel(activity) {
+  if (isEventListing(activity)) return 'Events';
+
   const category = String(activity.category || '').toLowerCase();
   const filters = Array.isArray(activity.plan_filters) ? activity.plan_filters.join(' ').toLowerCase() : '';
   const value = `${category} ${filters}`;
@@ -745,7 +747,6 @@ export default function App() {
         : stored.source && stored.source !== 'all'
           ? [stored.source]
           : defaults.source,
-      eventsOnly: stored.eventsOnly === true,
       ageRange: ageFilterOptions.some((option) => option.value === stored.ageRange)
         ? stored.ageRange
         : defaults.ageRange,
@@ -817,10 +818,9 @@ export default function App() {
       return activity.public_listing_status === 'published'
         && activityMatchesInterests(activity, selectedCategorySet, allCategoriesSelected)
         && (selectedSourceSet.size === 0 || selectedSourceSet.has(activitySourceLabel(activity)))
-        && (!deferredFilters.eventsOnly || isEventListing(activity))
         && activityMatchesAge(activity, deferredFilters.ageRange);
     }),
-    [activitiesWithDistance, selectedCategorySet, allCategoriesSelected, deferredFilters.ageRange, deferredFilters.eventsOnly, selectedSourceSet],
+    [activitiesWithDistance, selectedCategorySet, allCategoriesSelected, deferredFilters.ageRange, selectedSourceSet],
   );
   const distanceMatchedActivities = useMemo(
     () => !userLocation
@@ -855,24 +855,16 @@ export default function App() {
     [sharedFilteredActivities, filteredWeekDays],
   );
   const filteredActivities = useMemo(
-    () => deferredFilters.eventsOnly
-      ? sharedFilteredActivities.filter(isEventListing)
-      : sharedFilteredActivities.filter(
-        (activity) => isActivityAvailableOn(activity, selectedDate),
-      ),
-    [deferredFilters.eventsOnly, sharedFilteredActivities, selectedDate],
+    () => sharedFilteredActivities.filter(
+      (activity) => isActivityAvailableOn(activity, selectedDate),
+    ),
+    [sharedFilteredActivities, selectedDate],
   );
   const slotActivities = useMemo(
     () => {
       const matchingWindow = filteredActivities
         .filter((activity) => activityMatchesWindow(activity, selectedWindow));
-      // Events are dated, but a parent should not see an empty deck simply
-      // because the only event that day starts in a later planning window.
-      const visibleActivities = deferredFilters.eventsOnly && matchingWindow.length === 0
-        ? filteredActivities
-        : matchingWindow;
-
-      return visibleActivities
+      return matchingWindow
       // Ticketed events lead the deck, followed by the weekly Happity classes
       // that match this exact day and time. General places follow afterwards.
       .sort((left, right) => (
@@ -881,7 +873,7 @@ export default function App() {
         || String(left.start_time).localeCompare(String(right.start_time))
       ));
     },
-    [deferredFilters.eventsOnly, filteredActivities, selectedWindow],
+    [filteredActivities, selectedWindow],
   );
   const swipedIds = useMemo(
     () => new Set((swipes[activeSlot] || []).map((item) => String(item.activity_id))),
@@ -1707,14 +1699,6 @@ function StartScreen({
         <div className="field-group">
           <span>Plan</span>
           <p>Pick a few, or browse everything.</p>
-          <button
-            type="button"
-            className={classNames('filter-chip', 'event-filter-chip', filters.eventsOnly && 'is-on')}
-            onClick={() => setFilters((current) => ({ ...current, eventsOnly: !current.eventsOnly }))}
-            aria-pressed={filters.eventsOnly}
-          >
-            Events only
-          </button>
           <div className="chip-grid interest-grid">
             {activityInterestOptions.map((interest) => (
               <button
