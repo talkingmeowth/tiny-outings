@@ -863,16 +863,25 @@ export default function App() {
     [sharedFilteredActivities, selectedDate],
   );
   const slotActivities = useMemo(
-    () => filteredActivities
-      .filter((activity) => activityMatchesWindow(activity, selectedWindow))
+    () => {
+      const matchingWindow = filteredActivities
+        .filter((activity) => activityMatchesWindow(activity, selectedWindow));
+      // Events are dated, but a parent should not see an empty deck simply
+      // because the only event that day starts in a later planning window.
+      const visibleActivities = deferredFilters.eventsOnly && matchingWindow.length === 0
+        ? filteredActivities
+        : matchingWindow;
+
+      return visibleActivities
       // Ticketed events lead the deck, followed by the weekly Happity classes
       // that match this exact day and time. General places follow afterwards.
       .sort((left, right) => (
         Number(isEventListing(right)) - Number(isEventListing(left))
         || Number(isHappityListing(right)) - Number(isHappityListing(left))
         || String(left.start_time).localeCompare(String(right.start_time))
-      )),
-    [filteredActivities, selectedWindow],
+      ));
+    },
+    [deferredFilters.eventsOnly, filteredActivities, selectedWindow],
   );
   const swipedIds = useMemo(
     () => new Set((swipes[activeSlot] || []).map((item) => String(item.activity_id))),
@@ -1694,7 +1703,7 @@ function StartScreen({
           <p>Pick a few, or browse everything.</p>
           <button
             type="button"
-            className={classNames('filter-chip', filters.eventsOnly && 'is-on')}
+            className={classNames('filter-chip', 'event-filter-chip', filters.eventsOnly && 'is-on')}
             onClick={() => setFilters((current) => ({ ...current, eventsOnly: !current.eventsOnly }))}
             aria-pressed={filters.eventsOnly}
           >

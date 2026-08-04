@@ -1960,6 +1960,16 @@ input[type='range'] {
   text-transform: none;
 }
 
+.event-filter-chip {
+  min-height: 32px;
+  padding: 5px 10px;
+  margin-bottom: 8px;
+  color: var(--green-dark);
+  font-size: 0.82rem;
+  font-weight: 900;
+  text-transform: none;
+}
+
 .age-grid .filter-chip {
   text-transform: none;
 }
