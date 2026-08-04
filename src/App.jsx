@@ -109,6 +109,7 @@ function defaultFilters() {
     weekStart: startOfWeekISO(todayISO()),
     interests: [...activityInterestOptions],
     source: [],
+    eventsOnly: false,
     ageRange: 'all',
   };
 }
@@ -620,7 +621,7 @@ function activityMatchesAge(activity, ageRange) {
 }
 
 function isEventSource(activity) {
-  return /eventbrite|fever/i.test([
+  return /eventbrite|fever|loopla/i.test([
     activity.data_source,
     activity.source_name,
     activity.source_url,
@@ -653,7 +654,7 @@ function activitySourceLabel(activity) {
 }
 
 function isEventListing(activity) {
-  // Fever and Eventbrite listings are events even when their publisher has
+  // Eventbrite, Fever, and Loopla listings are events even when their publisher has
   // not supplied a machine-readable date yet. Dated entries are still
   // filtered by isActivityAvailableOn when a parent chooses a planning week.
   return isEventSource(activity);
@@ -746,6 +747,7 @@ export default function App() {
         : stored.source && stored.source !== 'all'
           ? [stored.source]
           : defaults.source,
+      eventsOnly: stored.eventsOnly === true,
       ageRange: ageFilterOptions.some((option) => option.value === stored.ageRange)
         ? stored.ageRange
         : defaults.ageRange,
@@ -817,9 +819,10 @@ export default function App() {
       return activity.public_listing_status === 'published'
         && activityMatchesInterests(activity, selectedCategorySet, allCategoriesSelected)
         && (selectedSourceSet.size === 0 || selectedSourceSet.has(activitySourceLabel(activity)))
+        && (!deferredFilters.eventsOnly || isEventListing(activity))
         && activityMatchesAge(activity, deferredFilters.ageRange);
     }),
-    [activitiesWithDistance, selectedCategorySet, allCategoriesSelected, deferredFilters.ageRange, selectedSourceSet],
+    [activitiesWithDistance, selectedCategorySet, allCategoriesSelected, deferredFilters.ageRange, deferredFilters.eventsOnly, selectedSourceSet],
   );
   const distanceMatchedActivities = useMemo(
     () => !userLocation
@@ -1689,6 +1692,14 @@ function StartScreen({
         <div className="field-group">
           <span>Plan</span>
           <p>Pick a few, or browse everything.</p>
+          <button
+            type="button"
+            className={classNames('filter-chip', filters.eventsOnly && 'is-on')}
+            onClick={() => setFilters((current) => ({ ...current, eventsOnly: !current.eventsOnly }))}
+            aria-pressed={filters.eventsOnly}
+          >
+            Events
+          </button>
           <div className="chip-grid interest-grid">
             {activityInterestOptions.map((interest) => (
               <button
