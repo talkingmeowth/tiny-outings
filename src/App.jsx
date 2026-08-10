@@ -529,23 +529,15 @@ function classNames(...names) {
 }
 
 function googleEntryUrl(activity) {
+  if (activity.google_place_uri) return activity.google_place_uri;
+  if (activity.google_link) return activity.google_link;
+  if (activity.google_place_id) return googlePlaceIdUrl(activity);
   const query = `${activity.activity_name || ''} ${activity.address || ''}`.trim();
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 }
 
-function googleMapsAppUrl(activity) {
-  const latitude = numericOrNull(activity.lat);
-  const longitude = numericOrNull(activity.long);
-  const label = encodeURIComponent(activity.activity_name || 'Tiny Outing');
-  if (latitude != null && longitude != null) {
-    return `geo:${latitude},${longitude}?q=${latitude},${longitude}(${label})`;
-  }
-  return googleEntryUrl(activity);
-}
-
 function openGoogleMaps(activity) {
-  const destination = Capacitor.isNativePlatform() ? googleMapsAppUrl(activity) : googleEntryUrl(activity);
-  window.location.assign(destination);
+  window.location.assign(activityShareUrl(activity));
 }
 
 function googleMapEmbedUrl(activity) {
@@ -588,9 +580,9 @@ function isCoordinateGoogleMapsUrl(value) {
 
 function googlePlaceIdUrl(activity) {
   const placeId = String(activity.google_place_id || '').trim();
-  return placeId
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`place_id:${placeId}`)}`
-    : null;
+  if (!placeId) return null;
+  const query = activity.activity_name || activity.address || 'Tiny Outing';
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}&query_place_id=${encodeURIComponent(placeId)}`;
 }
 
 function originalGooglePlacesUrl(activity) {
