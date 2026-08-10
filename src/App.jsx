@@ -4,7 +4,6 @@ import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import L from 'leaflet';
-import 'leaflet.heat';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { supabase } from './supabaseClient';
@@ -344,25 +343,28 @@ function shuffleActivities(activities) {
   return shuffled;
 }
 
-function ActivityHeatLayer({ concentrations }) {
+function ActivityBubbleLayer({ concentrations }) {
   const map = useMap();
 
   useEffect(() => {
     const highestCount = Math.max(...concentrations.map((cluster) => cluster.count), 1);
-    const points = concentrations.map((cluster) => [cluster.lat, cluster.long, cluster.count]);
-    const layer = L.heatLayer(points, {
-      radius: 72,
-      blur: 58,
-      minOpacity: 0.28,
-      maxZoom: 11,
-      max: highestCount,
-      gradient: {
-        0.18: '#c8e5e9',
-        0.45: '#b8d5bd',
-        0.72: '#f7e6a5',
-        1: '#9fbeae',
-      },
-    }).addTo(map);
+    const layer = L.layerGroup().addTo(map);
+
+    for (const cluster of concentrations) {
+      const relativeSize = Math.sqrt(cluster.count / highestCount);
+      const diameter = Math.round(36 + relativeSize * 34);
+      const tier = relativeSize > 0.68 ? 'large' : relativeSize > 0.36 ? 'medium' : 'small';
+      const icon = L.divIcon({
+        className: 'activity-cluster-marker',
+        html: `<span class="activity-cluster-bubble is-${tier}" style="--bubble-size:${diameter}px">${cluster.count}</span>`,
+        iconSize: [diameter, diameter],
+        iconAnchor: [diameter / 2, diameter / 2],
+      });
+      L.marker([cluster.lat, cluster.long], { icon, title: `${cluster.count} activities nearby` })
+        .bindTooltip(`${cluster.count} activities nearby`, { direction: 'top', offset: [0, -diameter / 2] })
+        .addTo(layer);
+    }
+
     return () => map.removeLayer(layer);
   }, [concentrations, map]);
 
@@ -2973,15 +2975,16 @@ function ActivityMapScreen({ activities }) {
       <div className="screen-title compact">
         <span className="eyebrow">Where are we</span>
         <h1>London hotspots.</h1>
-        <p>Warmer areas have more outings.</p>
+        <p>Each bubble is a neighbourhood. Bigger means more outings.</p>
       </div>
 
       <div className="map-summary">
         <span><strong>{mappedActivityCount.toLocaleString()}</strong> activities on the map</span>
       </div>
 
-      <div className="heatmap-legend" aria-label="Map density legend">
-        <span>Fewer</span><i aria-hidden="true" /><span>More</span>
+      <div className="bubble-map-legend" aria-label="Map bubble size legend">
+        <i className="is-small" aria-hidden="true" /><span>Fewer</span>
+        <i className="is-large" aria-hidden="true" /><span>More</span>
       </div>
 
       <div className="london-map-shell">
@@ -2999,7 +3002,7 @@ function ActivityMapScreen({ activities }) {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
             url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           />
-          <ActivityHeatLayer concentrations={concentrations} />
+          <ActivityBubbleLayer concentrations={concentrations} />
         </MapContainer>
       </div>
     </section>
