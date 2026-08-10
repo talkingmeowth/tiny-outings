@@ -2819,3 +2819,309 @@ input[type='range'] {
     padding: 9px;
   }
 }
+
+/* Flat paper-cut visual refresh: warm, playful, and readable in bright light. */
+:root {
+  color: #173b35;
+  background: #edf5f4;
+  --ink: #173b35;
+  --muted: #385d55;
+  --paper: #fffdf6;
+  --cream: #f7edc8;
+  --line: #173b35;
+  --green: #b8d2b5;
+  --green-dark: #173b35;
+  --coral: #e8b6a7;
+  --coral-dark: #8a483a;
+  --yellow: #ecd482;
+  --blue: #b9dbe2;
+  --mint: #dcebd8;
+  --blush: #f4ddd5;
+  --shadow: 5px 6px 0 rgba(23, 59, 53, 0.12);
+}
+
+html {
+  background: #edf5f4;
+}
+
+body::before {
+  background: none;
+  mask-image: none;
+  opacity: 0;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #173b35;
+  outline-offset: 3px;
+}
+
+.welcome-screen,
+.screen-title,
+.filter-card,
+.start-summary,
+.shortlist-panel,
+.calendar-day,
+.soft-note,
+.app-form,
+.detail-sheet,
+.review-card,
+.profile-card,
+.community-card,
+.profile-editor,
+.share-card,
+.week-export-card,
+.week-share-card,
+.toast {
+  border: 2px solid var(--ink);
+  background: var(--paper);
+  box-shadow: var(--shadow);
+  backdrop-filter: none;
+}
+
+.welcome-screen {
+  background: var(--paper);
+}
+
+.welcome-screen::before {
+  top: 8%;
+  right: -78px;
+  width: 235px;
+  height: 270px;
+  border: 0;
+  border-radius: 42% 58% 50% 46%;
+  background: var(--blue);
+  transform: rotate(16deg);
+}
+
+.welcome-screen::after {
+  bottom: 18%;
+  left: -74px;
+  width: 245px;
+  height: 155px;
+  border-radius: 55% 45% 45% 55%;
+  background: var(--coral);
+  transform: rotate(-18deg);
+}
+
+.welcome-sun {
+  border: 2px solid var(--ink);
+  background: var(--yellow);
+  box-shadow: none;
+}
+
+.welcome-mark span {
+  border: 2px solid var(--ink);
+  border-radius: 15px 15px 6px 6px;
+}
+
+.welcome-screen h1,
+.screen-title h1,
+h1,
+h2,
+h3,
+.card-content h2,
+.detail-content-card h1 {
+  color: var(--ink);
+}
+
+.welcome-kicker,
+.eyebrow,
+.section-heading span,
+.card-tags > span:first-child:not(.status-pill) {
+  color: var(--coral-dark);
+}
+
+.welcome-copy,
+p,
+.toast span,
+.welcome-note {
+  color: var(--muted);
+}
+
+.welcome-google,
+.primary-action,
+.distance-toggle button.is-on,
+.filter-chip.is-on,
+.secondary-button.is-on,
+.segment.is-on,
+.date-pill.is-on,
+.window-pill.is-on,
+.bottom-nav .is-on,
+.week-export-card button {
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  background: var(--green);
+  box-shadow: 3px 3px 0 rgba(23, 59, 53, 0.18);
+}
+
+.welcome-guest,
+.account-button,
+.guest-button,
+.account-pill,
+.brand-lockup,
+.icon-button,
+.secondary-button,
+.filter-chip,
+.segment,
+.date-pill,
+.window-pill,
+.link-button,
+.shortlist-actions button,
+.export-actions a,
+.export-actions button,
+.external-links a,
+.sheet-close,
+.toast button,
+.distance-toggle,
+.distance-toggle button,
+.filter-card input[type='date'],
+.source-picker,
+.range-card,
+.location-card .field-group {
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  background: var(--paper);
+}
+
+.filter-chip:nth-child(3n + 1) { background: var(--yellow); }
+.filter-chip:nth-child(3n + 2) { background: var(--blue); }
+.filter-chip:nth-child(3n + 3) { background: var(--blush); }
+
+.filter-chip.is-on,
+.secondary-button.is-on,
+.segment.is-on,
+.date-pill.is-on,
+.window-pill.is-on,
+.bottom-nav .is-on,
+.distance-toggle button.is-on {
+  background: var(--green);
+}
+
+.app-topbar {
+  background: #edf5f4;
+  backdrop-filter: none;
+}
+
+.brand-lockup::before {
+  border: 2px solid var(--ink);
+  background: var(--blue);
+  box-shadow: none;
+}
+
+.screen-title,
+.range-card,
+.card-content,
+.week-share-card,
+.hero-title::after {
+  background-image: none;
+}
+
+.screen-title::after {
+  border-color: var(--ink);
+  background: var(--yellow);
+  opacity: 1;
+}
+
+.hero-title::after {
+  border: 2px solid var(--ink);
+  background: var(--blue);
+}
+
+.hero-badges span,
+.week-preview span,
+.term-time-badge,
+.status-pill,
+.sync-dot {
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  background: var(--yellow);
+}
+
+.location-card .field-group > strong {
+  line-height: 1.08;
+  overflow-wrap: anywhere;
+}
+
+.swipe-card {
+  border: 3px solid var(--ink);
+  background: var(--paper);
+  box-shadow: 7px 8px 0 rgba(23, 59, 53, 0.16);
+}
+
+.swipe-card.is-stacked { background: var(--blue); }
+.swipe-card.is-yes { border-color: #2c725d; }
+.swipe-card.is-no { border-color: #a55244; }
+
+.card-photo,
+.detail-photo {
+  color: var(--ink);
+  background: var(--blue);
+}
+
+.card-photo::after,
+.detail-photo::after {
+  border: 2px solid var(--ink);
+  background: var(--yellow);
+}
+
+.activity-photo-image { filter: brightness(0.92) saturate(0.92); }
+
+.card-content {
+  background-color: var(--paper);
+  background-size: auto;
+}
+
+.card-summary span,
+.shortlist-card,
+.chosen-slot-card,
+.activity-fact,
+.calendar-event,
+.share-option,
+.report-sheet,
+.detail-content-card {
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  background: var(--paper);
+}
+
+.bottom-nav {
+  border: 2px solid var(--ink);
+  background: var(--paper);
+  box-shadow: 4px 5px 0 rgba(23, 59, 53, 0.13);
+}
+
+.bottom-nav button { color: var(--ink); }
+
+.week-share-card button,
+.share-option.native-share i {
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  background: var(--coral);
+}
+
+.share-sheet,
+.report-sheet {
+  border: 2px solid var(--ink);
+  background: var(--paper);
+}
+
+.heatmap-legend i {
+  background: var(--blue);
+  border: 1px solid var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
