@@ -3,9 +3,11 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path android:fillColor="#B8D5BD" android:pathData="M15,62C15,35.5 36.5,14 63,14c15.5,0 28.8,7.3 37.2,18.8v44.7C90.6,88.8 76.3,95 60.5,95C35.4,95 15,79.4 15,62z" />
-    <path android:fillColor="#F7E6A5" android:pathData="M49,42a22,22 0,1 0,0.1,0" />
-    <path android:fillColor="#B8D5BD" android:pathData="M73,69a16,16 0,1 0,0.1,0" />
-    <path android:fillColor="#FFFDF4" android:fillAlpha="0.82" android:pathData="M43,36a5.7,5.7 0,1 0,0.1,0" />
-    <path android:fillColor="#FFFDF4" android:fillAlpha="0.78" android:pathData="M68.5,64.5a4.2,4.2 0,1 0,0.1,0" />
+    <!-- Matches the current Tiny Outings web and legacy launcher mark. -->
+    <path android:fillColor="#BDE4D9" android:pathData="M40,13.5H68A26.5,26.5 0,0 1,94.5,40V68A26.5,26.5 0,0 1,68,94.5H40A26.5,26.5 0,0 1,13.5,68V40A26.5,26.5 0,0 1,40,13.5Z" />
+    <path android:fillColor="#A9D8D3" android:pathData="M13.5,54C13.5,31.6 31.6,13.5 54,13.5S94.5,31.6 94.5,54V66.7C78.9,76 62.5,80.6 45.1,80.6C33.5,80.6 22.9,78.5 13.5,74.3Z" />
+    <path android:fillColor="#FFD56A" android:pathData="M43.9,29.3A13.9,13.9 0,1 0,43.9,57.1A13.9,13.9 0,1 0,43.9,29.3" />
+    <path android:fillColor="#FF8A65" android:pathData="M66,53.6A10.3,10.3 0,1 0,66,74.2A10.3,10.3 0,1 0,66,53.6" />
+    <path android:fillColor="#FFFAF0" android:fillAlpha="0.8" android:pathData="M43.9,39.4A3.8,3.8 0,1 0,43.9,47A3.8,3.8 0,1 0,43.9,39.4" />
+    <path android:fillColor="#FFFAF0" android:fillAlpha="0.78" android:pathData="M66,59.4A2.95,2.95 0,1 0,66,65.3A2.95,2.95 0,1 0,66,59.4" />
 </vector>
