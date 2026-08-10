@@ -181,6 +181,34 @@ function addDaysISO(dateISO, days) {
   return date.toISOString().slice(0, 10);
 }
 
+function monthStartISO(dateISO) {
+  const date = new Date(`${dateISO}T12:00:00`);
+  date.setDate(1);
+  return date.toISOString().slice(0, 10);
+}
+
+function addMonthsISO(dateISO, months) {
+  const date = new Date(`${dateISO}T12:00:00`);
+  date.setMonth(date.getMonth() + months, 1);
+  return date.toISOString().slice(0, 10);
+}
+
+function calendarDaysForMonth(monthStart) {
+  const firstDay = new Date(`${monthStart}T12:00:00`);
+  const mondayOffset = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
+  const calendarStart = new Date(firstDay);
+  calendarStart.setDate(firstDay.getDate() - mondayOffset);
+
+  return Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(calendarStart);
+    date.setDate(calendarStart.getDate() + index);
+    return {
+      iso: date.toISOString().slice(0, 10),
+      inMonth: date.getMonth() === firstDay.getMonth(),
+    };
+  });
+}
+
 function formatDay(dateISO, style = 'short') {
   return new Intl.DateTimeFormat('en-GB', {
     weekday: style,
@@ -943,6 +971,7 @@ export default function App() {
         : defaults.ageRange,
     };
   });
+  const [calendarMonth, setCalendarMonth] = useState(() => monthStartISO(startOfWeekISO(todayISO())));
   const [userLocation, setUserLocation] = useState(null);
   const [locationStatus, setLocationStatus] = useState('idle');
   const [swipes, setSwipes] = useState(() => loadStored('swipes', {}));
@@ -991,6 +1020,7 @@ export default function App() {
     () => Array.from({ length: 7 }, (_, index) => addDaysISO(filters.weekStart, index)),
     [filters.weekStart],
   );
+  const calendarDays = useMemo(() => calendarDaysForMonth(calendarMonth), [calendarMonth]);
   const activeSlot = slotKey(selectedDate, selectedWindow);
   const allActivities = useMemo(() => activities.map(normalizeActivity), [activities]);
   const activityById = useMemo(
@@ -1984,6 +2014,10 @@ export default function App() {
             userLocation={userLocation}
             usingDistanceFallback={usingDistanceFallback}
             weekDays={weekDays}
+            calendarMonth={calendarMonth}
+            setCalendarMonth={setCalendarMonth}
+            calendarDays={calendarDays}
+            setSelectedDate={setSelectedDate}
             totalActivityCount={weekMatchedActivities.length}
             dayActivityCount={filteredActivities.length}
             slotActivityCount={slotActivities.length}
@@ -2131,6 +2165,10 @@ function StartScreen({
   userLocation,
   usingDistanceFallback,
   weekDays,
+  calendarMonth,
+  setCalendarMonth,
+  calendarDays,
+  setSelectedDate,
   totalActivityCount,
   dayActivityCount,
   slotActivityCount,
@@ -2195,27 +2233,68 @@ function StartScreen({
       <div className="filter-card location-card">
         <div className="field-group">
           <span>Week</span>
-          <p>Choose the week you want to plan.</p>
-          <div className="week-stepper" aria-label="Choose week">
-            <button
-              type="button"
-              onClick={() => setFilters((current) => ({
-                ...current,
-                weekStart: addDaysISO(current.weekStart, -7),
-              }))}
-            >
-              Previous
-            </button>
+          <p>Choose any day to plan its week.</p>
+          <div className="week-calendar" aria-label="Choose a planning week">
+            <div className="week-calendar-header">
+              <button
+                type="button"
+                className="calendar-month-button"
+                aria-label="Previous month"
+                onClick={() => setCalendarMonth((current) => addMonthsISO(current, -1))}
+              >
+                <span aria-hidden="true">‹</span>
+              </button>
+              <strong>
+                {new Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' }).format(
+                  new Date(`${calendarMonth}T12:00:00`),
+                )}
+              </strong>
+              <button
+                type="button"
+                className="calendar-month-button"
+                aria-label="Next month"
+                onClick={() => setCalendarMonth((current) => addMonthsISO(current, 1))}
+              >
+                <span aria-hidden="true">›</span>
+              </button>
+            </div>
+            <div className="week-calendar-weekdays" aria-hidden="true">
+              {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, index) => (
+                <span key={`${day}-${index}`}>{day}</span>
+              ))}
+            </div>
+            <div className="week-calendar-days" role="grid" aria-label="Calendar days">
+              {calendarDays.map((day) => {
+                const dayWeekStart = startOfWeekISO(day.iso);
+                const isSelectedWeek = dayWeekStart === filters.weekStart;
+                const isToday = day.iso === todayISO();
+                return (
+                  <button
+                    key={day.iso}
+                    type="button"
+                    role="gridcell"
+                    aria-label={`${formatDay(day.iso, 'long')}${isSelectedWeek ? ', selected week' : ''}`}
+                    aria-selected={isSelectedWeek}
+                    className={classNames(
+                      'week-calendar-day',
+                      !day.inMonth && 'is-outside-month',
+                      isSelectedWeek && 'is-selected-week',
+                      isToday && 'is-today',
+                    )}
+                    onClick={() => {
+                      setFilters((current) => ({ ...current, weekStart: dayWeekStart }));
+                      setSelectedDate(dayWeekStart);
+                    }}
+                  >
+                    {Number(day.iso.slice(-2))}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div className="week-selection-label" aria-live="polite">
             <strong>{relativeWeekLabel(filters.weekStart)}</strong>
-            <button
-              type="button"
-              onClick={() => setFilters((current) => ({
-                ...current,
-                weekStart: addDaysISO(current.weekStart, 7),
-              }))}
-            >
-              Next
-            </button>
+            <span>{formatDay(filters.weekStart)} to {formatDay(addDaysISO(filters.weekStart, 6))}</span>
           </div>
           <div className="week-preview" aria-label={`${relativeWeekLabel(filters.weekStart)} weekdays`}>
             {weekDays.map((day) => (

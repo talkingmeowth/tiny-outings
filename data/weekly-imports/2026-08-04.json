@@ -1,0 +1,109 @@
+{
+  "run_date": "2026-08-04",
+  "generated_at": "2026-08-04T16:46:48.267Z",
+  "applied_to_database": true,
+  "sources": [
+    {
+      "name": "happity",
+      "status": "generated",
+      "started_at": "2026-08-04T16:46:01.140Z",
+      "finished_at": "2026-08-04T16:46:01.909Z",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app\\supabase\\seed\\activities_happity_schedules.generated.sql",
+      "message": "Happity schedules: 1517; refreshed: 1102; new with verified locations: 0; awaiting location: 415.",
+      "applied": true
+    },
+    {
+      "name": "waltham-forest-best-start",
+      "status": "skipped",
+      "reason": "Skipped: this source requires Google services, which are disabled."
+    },
+    {
+      "name": "eventbrite",
+      "status": "skipped",
+      "reason": "Skipped: this source requires Google services, which are disabled."
+    },
+    {
+      "name": "fever",
+      "status": "generated",
+      "started_at": "2026-08-04T16:46:01.909Z",
+      "finished_at": "2026-08-04T16:46:06.125Z",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app\\supabase\\seed\\activities_fever_london_family_20260711.generated.sql",
+      "message": "Found 48 Fever family listings and generated 20 family-friendly activities.",
+      "applied": true
+    },
+    {
+      "name": "fever-availability",
+      "status": "generated",
+      "started_at": "2026-08-04T16:46:06.125Z",
+      "finished_at": "2026-08-04T16:46:07.763Z",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app\\supabase\\seed\\fever_availability_updates.generated.sql",
+      "message": "Enriched 21 of 21 Fever listings.",
+      "applied": true
+    },
+    {
+      "name": "loopla",
+      "status": "generated",
+      "started_at": "2026-08-04T16:46:07.763Z",
+      "finished_at": "2026-08-04T16:46:08.349Z",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app\\supabase\\seed\\activities_loopla_london.generated.sql",
+      "message": "Scanned 2 Loopla pages, found 39/39 results, and generated 39 activities.",
+      "applied": true
+    },
+    {
+      "name": "museums-london",
+      "status": "generated",
+      "started_at": "2026-08-04T16:46:08.349Z",
+      "finished_at": "2026-08-04T16:46:12.059Z",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app\\supabase\\seed\\activities_museums_london.generated.sql",
+      "message": "Museums London: 53 child-friendly candidates; 43 suitable imports; 10 excluded.",
+      "applied": true
+    },
+    {
+      "name": "time-out-london-kids",
+      "status": "generated",
+      "started_at": "2026-08-04T16:46:12.059Z",
+      "finished_at": "2026-08-04T16:46:15.138Z",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app\\supabase\\seed\\activities_timeout_london_kids.generated.sql",
+      "message": "Scanned 9 Time Out Kids guides, checked 148 linked venues, and generated 98 activities.",
+      "applied": true
+    },
+    {
+      "name": "google-places",
+      "status": "skipped",
+      "reason": "Skipped: this source requires Google services, which are disabled."
+    },
+    {
+      "name": "local-parks",
+      "status": "skipped",
+      "reason": "Skipped: this source requires Google services, which are disabled."
+    },
+    {
+      "name": "quality-cafes-and-bakeries",
+      "status": "skipped",
+      "reason": "Skipped: this source requires Google services, which are disabled."
+    },
+    {
+      "name": "image-curation",
+      "status": "skipped",
+      "reason": "Skipped with --skip-image-curation."
+    },
+    {
+      "name": "data-quality",
+      "status": "generated",
+      "started_at": "2026-08-04T16:46:15.138Z",
+      "finished_at": "2026-08-04T16:46:15.216Z",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app\\supabase\\seed\\activity_import_quality_updates.generated.sql",
+      "message": "Generated shared activity data-quality SQL.",
+      "applied": true
+    },
+    {
+      "name": "archive-expired",
+      "status": "generated",
+      "started_at": "2026-08-04T16:46:15.216Z",
+      "finished_at": "2026-08-04T16:46:15.290Z",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app\\supabase\\seed\\activity_expired_listing_archives.generated.sql",
+      "message": "Generated conservative expired-listing archive SQL.",
+      "applied": true
+    }
+  ]
+}

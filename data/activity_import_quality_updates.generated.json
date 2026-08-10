@@ -1,0 +1,7 @@
+{
+  "generated_at": "2026-08-10T11:29:01.887Z",
+  "rules": [
+    "trim whitespace and control characters",
+    "restore data_source from source_name"
+  ]
+}

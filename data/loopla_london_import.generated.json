@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-07-23T15:29:57.215Z",
+  "generated_at": "2026-08-10T11:18:43.836Z",
   "listing_url": "https://loopla.com/search?type=events-and-activities&location=London&geo-lat=51.5072178&geo-lng=-0.1275862&ages=0-6m%2C6-12m%2C1%2C2%2C3",
   "pages_scanned": 2,
-  "source_total": 37,
-  "activities_discovered": 37,
-  "activities_imported": 37,
+  "source_total": 38,
+  "activities_discovered": 38,
+  "activities_imported": 38,
   "audit": [
     {
       "name": "Paddington Afternoon Tea Tour",
@@ -33,12 +33,6 @@
     {
       "name": "Kaspar: Prince of Cats",
       "url": "https://loopla.com/business/st-pauls-church/kaspar-prince-of-cats/30715",
-      "status": "ready",
-      "category": "Family activities"
-    },
-    {
-      "name": "The Big Bad Wolf",
-      "url": "https://loopla.com/business/st-pauls-church/the-big-bad-wolf/30715",
       "status": "ready",
       "category": "Family activities"
     },
@@ -91,6 +85,12 @@
       "category": "Family activities"
     },
     {
+      "name": "Family Sing & Play Mini-Festival Covent Garden",
+      "url": "https://loopla.com/business/baby-broadway/family-sing-and-play-mini-festival-covent-garden/31116",
+      "status": "ready",
+      "category": "Music & singing"
+    },
+    {
       "name": "Bach to Baby Family Concert, Pimlico",
       "url": "https://loopla.com/business/bach-to-baby/bach-to-baby-family-concert-pimlico/29616",
       "status": "ready",
@@ -121,12 +121,6 @@
       "category": "Museums & culture"
     },
     {
-      "name": "BubbleArt Show: A Dazzling Bubble Show",
-      "url": "https://loopla.com/business/greenwood-theatre/bubbleart-show-a-dazzling-bubble-show/31096",
-      "status": "ready",
-      "category": "Family activities"
-    },
-    {
       "name": "Boppin' Bunnies Summer Music Fun, Bermondsey",
       "url": "https://loopla.com/business/boppin-bunnies/boppin-bunnies-summer-bermondsey-music-fun/28823",
       "status": "ready",
@@ -147,6 +141,12 @@
     {
       "name": "Disney's The Lion King Exhibition",
       "url": "https://loopla.com/business/zsl/disney-s-the-lion-king-exhibition/30431",
+      "status": "ready",
+      "category": "Museums & culture"
+    },
+    {
+      "name": "Horrible Science at London Zoo",
+      "url": "https://loopla.com/business/zsl/horrible-science-at-london-zoo/30431",
       "status": "ready",
       "category": "Museums & culture"
     },
@@ -181,22 +181,10 @@
       "category": "Music & singing"
     },
     {
-      "name": "Summer Tennis Holiday Camp",
-      "url": "https://loopla.com/business/kensington-tennis-club/summer-camp-week-1/31147",
-      "status": "ready",
-      "category": "Family activities"
-    },
-    {
       "name": "Junior Campers Summer Camp!",
       "url": "https://loopla.com/business/happy-campers-club/summer-camp-junior-campers/30851",
       "status": "ready",
       "category": "Family activities"
-    },
-    {
-      "name": "FLY-KID Family Party",
-      "url": "https://loopla.com/business/fly-kid/fly-kid-family-party-pop-brixton/31112",
-      "status": "ready",
-      "category": "Music & singing"
     },
     {
       "name": "Bach to Baby Family Concert, Notting Hill",
@@ -217,14 +205,32 @@
       "category": "Family activities"
     },
     {
+      "name": "Baby Broadway Family Concert Islington",
+      "url": "https://loopla.com/business/baby-broadway/baby-broadway-family-concert-islington/31333",
+      "status": "ready",
+      "category": "Music & singing"
+    },
+    {
       "name": "Baby Broadway Family Concert Clapham",
       "url": "https://loopla.com/business/baby-broadway/baby-broadway-family-concert-clapham/31233",
       "status": "ready",
       "category": "Music & singing"
     },
     {
+      "name": "Baby Gospel Family Concert Clapham",
+      "url": "https://loopla.com/business/baby-gospel/baby-gospel-family-concert-clapham/31409",
+      "status": "ready",
+      "category": "Music & singing"
+    },
+    {
       "name": "Bach to Baby Family Concert, East Dulwich",
       "url": "https://loopla.com/business/bach-to-baby/bach-to-baby-family-concert-east-dulwich/31414",
+      "status": "ready",
+      "category": "Music & singing"
+    },
+    {
+      "name": "Bach to Baby Half Term Concert, East Dulwich",
+      "url": "https://loopla.com/business/bach-to-baby/bach-to-baby-half-term-concert-east-dulwich/31414",
       "status": "ready",
       "category": "Music & singing"
     }

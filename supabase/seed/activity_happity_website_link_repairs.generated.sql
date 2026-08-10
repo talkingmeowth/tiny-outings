@@ -1,0 +1,1 @@
+-- No validated Happity website link repairs were found.

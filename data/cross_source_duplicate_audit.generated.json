@@ -1,0 +1,392 @@
+[
+  {
+    "keeper": {
+      "activity_id": "03b0f706-010d-41ea-9dff-ff6dc1c50491",
+      "activity_name": "Babylon Park: London's Underground Theme Park",
+      "address": "Babylon Park, 8 Castlehaven Road, Camden, NW1 8QU",
+      "source": "loopla"
+    },
+    "duplicates": [
+      {
+        "activity_id": "446f3be0-6b5b-43c3-9e04-dd8678efa12b",
+        "activity_name": "Babylon Park London s Underground Theme Park",
+        "address": "Babylon Park London",
+        "source": "fever"
+      }
+    ]
+  },
+  {
+    "keeper": {
+      "activity_id": "1d8abd50-a5e8-49b7-9bf4-04d9753d12be",
+      "activity_name": "Toconoco",
+      "address": "Unit A, 28 Hertford Rd, London N1 5QT",
+      "source": "google_places"
+    },
+    "duplicates": [
+      {
+        "activity_id": "030935f0-0244-4cb9-ac01-6fb8e0aec60b",
+        "activity_name": "Toconoco",
+        "address": "28 Hertford Road, London, N1 5QT",
+        "source": "time_out"
+      }
+    ]
+  },
+  {
+    "keeper": {
+      "activity_id": "240457a7-475e-44a3-b167-335b3d52e15b",
+      "activity_name": "Peppa Pig Christmas Tea Bus Tour",
+      "address": "Temple Embankment Bus Stop N, Temple Place, Temple, WC2R 2PH",
+      "source": "loopla"
+    },
+    "duplicates": [
+      {
+        "activity_id": "9fd5a606-8d99-45e4-a977-e273d690653d",
+        "activity_name": "Peppa Pig Christmas Bus Tour",
+        "address": "Temple Embankment Bus Stop N, London",
+        "source": "fever"
+      }
+    ]
+  },
+  {
+    "keeper": {
+      "activity_id": "4ef23c41-d476-41e1-a20b-e0fd46ae7dae",
+      "activity_name": "London: Peppa Pig Afternoon Tea Bus Tour",
+      "address": "Temple Embankment Bus Stop N, Temple Place, Temple, WC2R 2PH",
+      "source": "loopla"
+    },
+    "duplicates": [
+      {
+        "activity_id": "969da575-2f14-4a38-affb-7a7bb3bfdfc5",
+        "activity_name": "Peppa Pig Afternoon Tea London Sightseeing Bus Tour",
+        "address": "Temple Embankment Bus Stop N, London",
+        "source": "fever"
+      }
+    ]
+  },
+  {
+    "keeper": {
+      "activity_id": "6d87ab1d-34c4-434d-8369-c7f880c963b3",
+      "activity_name": "St James's Park",
+      "address": "Horse Guards Parade, London, SW1A 2BJ",
+      "source": "time_out"
+    },
+    "duplicates": [
+      {
+        "activity_id": "7371ecb9-a82c-4f2a-9739-dd951740843d",
+        "activity_name": "St James's Park",
+        "address": "London SW1A 2BJ",
+        "source": "google_places"
+      }
+    ]
+  },
+  {
+    "keeper": {
+      "activity_id": "c359c2f8-a5f6-46a7-bc75-398624de982b",
+      "activity_name": "Golders Hill Park",
+      "address": "Golders Green, London, NW11 7QP",
+      "source": "time_out"
+    },
+    "duplicates": [
+      {
+        "activity_id": "7fd6d9ad-5e25-44a5-aebc-79e14359ffb9",
+        "activity_name": "Golders Hill Park",
+        "address": "N End Way, London NW3 7HE",
+        "source": "google_places"
+      }
+    ]
+  },
+  {
+    "keeper": {
+      "activity_id": "95f40a5b-1597-4286-a968-dac90bea4323",
+      "activity_name": "London Transport Museum",
+      "address": "London Transport Musuem Covent Garden Piazza London WC2E 7BB",
+      "source": "museums london"
+    },
+    "duplicates": [
+      {
+        "activity_id": "bd00f7d9-bfe2-40e9-81bd-eda4669c10d1",
+        "activity_name": "London Transport Museum",
+        "address": "Covent Garden Piazza, London, WC2E 7BB",
+        "source": "time_out"
+      }
+    ]
+  },
+  {
+    "keeper": {
+      "activity_id": "2a6a3af2-0a50-4900-8200-d49935ec9d9e",
+      "activity_name": "Natural History Museum",
+      "address": "Cromwell Rd Kensingston London SW7 5BD",
+      "source": "museums london"
+    },
+    "duplicates": [
+      {
+        "activity_id": "c5c8a009-5f7a-4bb0-bb72-fa6a0fdb0396",
+        "activity_name": "Natural History Museum",
+        "address": "Cromwell Road, London, SW7 5BD",
+        "source": "time_out"
+      }
+    ]
+  },
+  {
+    "keeper": {
+      "activity_id": "977e16bb-74f0-4243-a051-c2a0efad709f",
+      "activity_name": "Discover Children's Story Centre",
+      "address": "383-387 High St, London E15 4QZ",
+      "source": "google_places"
+    },
+    "duplicates": [
+      {
+        "activity_id": "37ee601e-28f4-4107-8f45-002ee34843d9",
+        "activity_name": "Discover Children's Story Centre",
+        "address": "High Street, London, E15 4QZ",
+        "source": "time_out"
+      }
+    ]
+  },
+  {
+    "keeper": {
+      "activity_id": "13ca4da6-e4cc-48d6-a1e7-c7478e47656c",
+      "activity_name": "PAW Patrol Christmas Lights Bus Tour",
+      "address": "Corinthia Hotels, 16 Craven House, Northumberland Avenue, Westminster, WC2N 5AP",
+      "source": "loopla"
+    },
+    "duplicates": [
+      {
+        "activity_id": "daa8db89-c405-4371-82e8-e32e962dffc2",
+        "activity_name": "PAW Patrol Christmas Lights Bus Tour",
+        "address": "Corinthia Hotels, London",
+        "source": "fever"
+      }
+    ]
+  },
+  {
+    "keeper": {
+      "activity_id": "838de202-ccec-403e-8bab-d944bd05c186",
+      "activity_name": "Bach to Baby Family Concert, Kensington",
+      "address": "St Stephen's Church, Gloucester Road and Southwell Gardens, Kensington, SW7 4RL",
+      "source": "loopla"
+    },
+    "duplicates": [
+      {
+        "activity_id": "f5b594e3-d5f3-4e89-8841-d7c1cbf33320",
+        "activity_name": "South Kensington Bach to Baby Family Concert",
+        "address": "Bach to Baby - South Kensington, St Stephen's Church, Southwell Gardens, London SW7 4RL",
+        "source": "eventbrite"
+      }
+    ]
+  },
+  {
+    "keeper": {
+      "activity_id": "677a4af1-dc76-47a1-8e91-02c01d30b2e1",
+      "activity_name": "Walthamstow Bach to Baby Family Concert",
+      "address": "St Michael & All Angels, Walthamstow, London",
+      "source": "eventbrite"
+    },
+    "duplicates": [
+      {
+        "activity_id": "70985c69-f066-49a4-b329-7ea9a684bb96",
+        "activity_name": "Walthamstow Bach to Baby Family Concert",
+        "address": "Northcote Rd, London E17 6PQ",
+        "source": "eventbrite"
+      },
+      {
+        "activity_id": "9b9d9293-035e-467c-b484-e2fac41576e9",
+        "activity_name": "BACH TO BABY FAMILY CONCERT",
+        "address": "St Michael & All Angels, Walthamstow Northcote Road, Northcote Road, London, Greater London, E17 6PQ",
+        "source": "happity"
+      }
+    ]
+  },
+  {
+    "keeper": {
+      "activity_id": "17ed83b1-13e8-442b-b365-942565fdbd06",
+      "activity_name": "Bach to Baby Family Concert, Notting Hill",
+      "address": "St Peter's Church, Kensington Park Road, Notting Hill, W11 2PN",
+      "source": "loopla"
+    },
+    "duplicates": [
+      {
+        "activity_id": "32365d59-ad06-4d4e-8eb4-e83f1abbfccb",
+        "activity_name": "Notting Hill Bach to Baby Family Concert",
+        "address": "Bach to Baby - Notting Hill, St Peter's Church, Kensington Park Road, London W11 2PN",
+        "source": "eventbrite"
+      }
+    ]
+  },
+  {
+    "keeper": {
+      "activity_id": "3b7277cd-b9df-45d1-a9fc-99499cd16019",
+      "activity_name": "Paradox Museum London",
+      "address": "Paradox Museum, 90 Brompton Road, Knightsbridge, SW3 1JJ",
+      "source": "loopla"
+    },
+    "duplicates": [
+      {
+        "activity_id": "f9b22eb5-1c66-47d2-b937-8d02eea4b99b",
+        "activity_name": "Paradox Museum London",
+        "address": "Paradox Museum London",
+        "source": "fever"
+      }
+    ]
+  },
+  {
+    "keeper": {
+      "activity_id": "739e13b3-3474-40b3-be37-a649afb8faf3",
+      "activity_name": "Bach to Baby Half Term Concert, Notting Hill",
+      "address": "St Peter's Church, Kensington Park Road, Notting Hill, W11 2PN",
+      "source": "loopla"
+    },
+    "duplicates": [
+      {
+        "activity_id": "660ae615-49ca-4214-9d18-5b286b51fdb2",
+        "activity_name": "Notting Hill Bach to Baby Half Term Family Concert",
+        "address": "Bach to Baby - Notting Hill, St Peter's Church, Kensington Park Road, London W11 2PN",
+        "source": "eventbrite"
+      }
+    ]
+  },
+  {
+    "keeper": {
+      "activity_id": "cd1cd65f-339c-4339-9bf4-1a8cdd1d5056",
+      "activity_name": "Lewis Carroll Library Baby Bounce",
+      "address": "166 Copenhagen St, London N1 0ST",
+      "source": "other"
+    },
+    "duplicates": [
+      {
+        "activity_id": "a6b0f8bf-4017-4853-8c4e-5cd6ae137d97",
+        "activity_name": "LEWIS CARROLL LIBRARY BABY BOUNCE",
+        "address": "166 Copenhagen St, London N1 0ST",
+        "source": "happity"
+      }
+    ]
+  },
+  {
+    "keeper": {
+      "activity_id": "4453bd23-fba1-4002-bf60-4281d73033d2",
+      "activity_name": "Science Museum",
+      "address": "Exhibition Road, South Kensington, London SW7 2DD",
+      "source": "museums london"
+    },
+    "duplicates": [
+      {
+        "activity_id": "83de4ee2-d049-40e0-91f2-22329bda9ed5",
+        "activity_name": "Science Museum",
+        "address": "Exhibition Rd, London, SW7 2DD",
+        "source": "time_out"
+      }
+    ]
+  },
+  {
+    "keeper": {
+      "activity_id": "1490b536-4b8b-4066-8efd-d5c9b6eab710",
+      "activity_name": "William Morris Gallery",
+      "address": "Lloyd Park Forest Rd London E17 4PP",
+      "source": "museums london"
+    },
+    "duplicates": [
+      {
+        "activity_id": "ce5fcb26-a7bd-4364-ad6c-dc196d2a7ca4",
+        "activity_name": "William Morris Gallery family visit",
+        "address": "William Morris Gallery, Lloyd Park, Forest Road, Walthamstow, London E17 4PP",
+        "source": "other"
+      }
+    ]
+  },
+  {
+    "keeper": {
+      "activity_id": "4a0f971e-7f45-4a79-93ad-a8ceddecd72b",
+      "activity_name": "The Alligator's Mouth",
+      "address": "2A Church Ct, Richmond TW9 1JL",
+      "source": "google_places"
+    },
+    "duplicates": [
+      {
+        "activity_id": "d24009b3-586f-41ce-87f0-d5a060b14675",
+        "activity_name": "The Alligator's Mouth",
+        "address": "2a Church Court, London, TW9 1JL",
+        "source": "time_out"
+      }
+    ]
+  },
+  {
+    "keeper": {
+      "activity_id": "33095799-f86f-4cf2-8d27-12315876b395",
+      "activity_name": "Half Term Concert, Bach to Baby Kensington",
+      "address": "St Stephen's Church, Gloucester Road and Southwell Gardens, Kensington, SW7 4RL",
+      "source": "loopla"
+    },
+    "duplicates": [
+      {
+        "activity_id": "73eb0336-f4b7-49ec-b3ed-3f99a1f1cb0f",
+        "activity_name": "South Kensington Bach to Baby Half Term Family Concert",
+        "address": "Bach to Baby - South Kensington, St Stephen's Church, Southwell Gardens, London SW7 4RL",
+        "source": "eventbrite"
+      }
+    ]
+  },
+  {
+    "keeper": {
+      "activity_id": "83d3d223-c0b2-4e07-8df1-15396f71ea78",
+      "activity_name": "Pickled Pepper Books",
+      "address": "10 Middle Ln, London N8 8PL",
+      "source": "google_places"
+    },
+    "duplicates": [
+      {
+        "activity_id": "bf4f3032-3791-41ce-92e1-16a75a166297",
+        "activity_name": "Pickled Pepper Books",
+        "address": "10 Middle Lane, London, N8 8PL",
+        "source": "time_out"
+      }
+    ]
+  },
+  {
+    "keeper": {
+      "activity_id": "c6b0a6d8-7a34-43b1-af58-0bd11bf22b12",
+      "activity_name": "Museum of London Docklands",
+      "address": "No.1 Warehouse West India Quay London E14 4AL",
+      "source": "museums london"
+    },
+    "duplicates": [
+      {
+        "activity_id": "b2d1da9f-81ba-4e79-928a-19d946fdd0c8",
+        "activity_name": "London Museum Docklands",
+        "address": "Hertsmere Road, London, E14 4AL",
+        "source": "time_out"
+      }
+    ]
+  },
+  {
+    "keeper": {
+      "activity_id": "8c6702e6-f87f-4efb-a354-b4d6193784b5",
+      "activity_name": "Stay and Play at Sybourn Primary School",
+      "address": "2 Perth Rd, London E10 7PB",
+      "source": "better_start"
+    },
+    "duplicates": [
+      {
+        "activity_id": "0ef842d5-12e9-4366-b014-9e491302b49e",
+        "activity_name": "SYBOURN PRIMARY SCHOOL STAY AND PLAY SYBOURN PRIMARY SCHOOL",
+        "address": "2 Perth Rd, London E10 7PB",
+        "source": "happity"
+      }
+    ]
+  },
+  {
+    "keeper": {
+      "activity_id": "67c4fe36-713f-453a-b315-66e78b70ba17",
+      "activity_name": "The British Museum",
+      "address": "Great Russell Street London WC1B 3DG",
+      "source": "museums london"
+    },
+    "duplicates": [
+      {
+        "activity_id": "4258c142-1c2f-4baa-95a2-79a257f552ce",
+        "activity_name": "British Museum",
+        "address": "44 Great Russell St, London, WC1B 3DG",
+        "source": "time_out"
+      }
+    ]
+  }
+]
