@@ -10,7 +10,7 @@ import { googleSignInErrorMessage, signInWithNativeGoogle } from './googleAuth';
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
 const adminEmails = new Set(['talkingmeowth06@gmail.com', 'benfielden@gmail.com']);
-const publicAppUrl = 'https://tiny-outings-cpjh.onrender.com';
+const appDownloadPageUrl = 'https://tiny-outings-cpjh.onrender.com/';
 const defaultProfileAvatar = '/images/profile-placeholder.svg';
 const NativeGoogleSignIn = registerPlugin('TinyOutingsGoogle');
 const NativeCalendar = registerPlugin('TinyOutingsCalendar');
@@ -703,7 +703,7 @@ function appShareData() {
   return {
     title: 'Tiny Outings',
     text: 'Plan little family adventures with Tiny Outings.',
-    url: publicAppUrl,
+    url: appDownloadPageUrl,
   };
 }
 

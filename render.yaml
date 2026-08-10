@@ -4,3 +4,10 @@ services:
     runtime: static
     buildCommand: npm install && npm run render:download
     staticPublishPath: render-mobile
+    headers:
+      - path: /
+        name: Cache-Control
+        value: no-cache, no-store, must-revalidate
+      - path: /downloads/*
+        name: Cache-Control
+        value: no-cache, no-store, must-revalidate

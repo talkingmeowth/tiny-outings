@@ -141,7 +141,7 @@ The current mobile app no longer uses accounts, follows, or user-specific Supaba
 
 ## Render Hosting
 
-Render is used only as a static download host for the Android APK. It does not publish the React app as a webpage.
+Render publishes a lightweight landing page for sharing Tiny Outings and downloading the latest Android APK. The React app itself remains available only inside the installed mobile app.
 
 Use these Render settings:
 
@@ -149,7 +149,7 @@ Use these Render settings:
 - Publish directory: `render-mobile`
 - Node version: Render can auto-detect Node from the project; Node 20+ is suitable.
 
-The published APK path is `/downloads/tiny-outings-debug.apk`. The root URL can return a 404 because there is intentionally no app webpage.
+The landing page is available at `https://tiny-outings-cpjh.onrender.com/`, and the published APK path is `/downloads/tiny-outings-debug.apk`. The Render build creates the landing page from `landing/`, reads the Android version, and adds a cache-busting release identifier to the download link.
 
 ## Local Frontend
 
