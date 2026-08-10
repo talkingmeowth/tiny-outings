@@ -1805,6 +1805,94 @@ input[type='range'] {
   background: var(--green);
 }
 
+.review-queue {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(203, 88, 63, 0.25);
+  border-radius: 28px;
+  background: linear-gradient(145deg, rgba(255, 239, 220, 0.95), rgba(255, 250, 240, 0.92));
+}
+
+.review-queue .section-heading {
+  margin: 0;
+}
+
+.queue-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.review-list {
+  display: grid;
+  gap: 10px;
+}
+
+.review-item {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid rgba(36, 52, 47, 0.1);
+  border-radius: 18px;
+  background: rgba(255, 250, 240, 0.8);
+}
+
+.review-photo {
+  min-height: 62px;
+  overflow: hidden;
+  border-radius: 13px;
+}
+
+.review-item > div:nth-child(2) {
+  display: grid;
+  min-width: 0;
+  align-content: center;
+  gap: 3px;
+}
+
+.review-item strong,
+.review-item small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.review-item strong {
+  color: var(--green-dark);
+  font-size: 0.88rem;
+}
+
+.review-item small {
+  color: rgba(36, 52, 47, 0.64);
+  font-size: 0.7rem;
+}
+
+.review-actions {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.review-actions button {
+  min-height: 40px;
+  border: 1px solid rgba(22, 115, 95, 0.18);
+  border-radius: 12px;
+  color: #fffdf6;
+  background: var(--green);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.review-actions button:last-child {
+  color: #9e3525;
+  border-color: rgba(179, 68, 47, 0.32);
+  background: rgba(255, 250, 240, 0.9);
+}
+
 .detail-description {
   color: var(--ink);
   font-size: 1rem;

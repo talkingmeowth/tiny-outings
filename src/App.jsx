@@ -58,6 +58,8 @@ const activitySelectColumns = [
   'google_rating',
   'google_user_rating_count',
   'public_listing_status',
+  'submitted_by_user_id',
+  'created_at',
 ].join(',');
 const statusLabels = {
   booked: 'Booked',
@@ -822,6 +824,8 @@ export default function App() {
   const [communityProfiles, setCommunityProfiles] = useState([]);
   const [followingIds, setFollowingIds] = useState([]);
   const [profileSaving, setProfileSaving] = useState(false);
+  const [reviewQueue, setReviewQueue] = useState([]);
+  const [reviewQueueLoading, setReviewQueueLoading] = useState(false);
   const [adminSaving, setAdminSaving] = useState(false);
   // Keep Plan controls responsive while the directory catches up with a changed filter.
   const deferredFilters = useDeferredValue(filters);
@@ -1113,6 +1117,35 @@ export default function App() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!supabase || !isAdmin) {
+      setReviewQueue([]);
+      return undefined;
+    }
+
+    let cancelled = false;
+    async function loadReviewQueue() {
+      setReviewQueueLoading(true);
+      const { data, error } = await supabase
+        .from('activities')
+        .select(activitySelectColumns)
+        .eq('public_listing_status', 'draft')
+        .order('created_at', { ascending: true });
+      if (cancelled) return;
+      setReviewQueueLoading(false);
+      if (error) {
+        setNotice(`Review queue could not be loaded: ${error.message}`);
+        return;
+      }
+      setReviewQueue((data || []).map(normalizeActivity));
+    }
+
+    loadReviewQueue();
+    return () => {
+      cancelled = true;
+    };
+  }, [isAdmin]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1509,6 +1542,33 @@ export default function App() {
     setNotice('Listing archived.');
   }
 
+  async function reviewSubmittedActivity(activity, status) {
+    if (!supabase || !isAdmin) return;
+    const label = status === 'published' ? 'approve' : 'archive';
+    if (!window.confirm(`${label[0].toUpperCase()}${label.slice(1)} ${activity.activity_name}?`)) return;
+
+    setAdminSaving(true);
+    const { data, error } = await supabase
+      .from('activities')
+      .update({ public_listing_status: status })
+      .eq('activity_id', activity.activity_id)
+      .select(activitySelectColumns)
+      .single();
+    setAdminSaving(false);
+    if (error) {
+      setNotice(`Listing could not be ${status === 'published' ? 'approved' : 'archived'}: ${error.message}`);
+      return;
+    }
+
+    setReviewQueue((current) => current.filter((item) => String(item.activity_id) !== String(activity.activity_id)));
+    if (status === 'published') {
+      setActivities((current) => [...current, normalizeActivity(data)]);
+      setNotice('Listing approved and live.');
+    } else {
+      setNotice('Listing archived.');
+    }
+  }
+
   async function uploadActivityPhotos(activityId, files, caption = null, sourceUrl = null) {
     const uploads = acceptedPhotoFiles(files);
     if (!uploads.length) return [];
@@ -1773,6 +1833,11 @@ export default function App() {
             setForm={setLinkForm}
             onSubmit={submitActivityLink}
             loading={loading}
+            isAdmin={isAdmin}
+            reviewQueue={reviewQueue}
+            reviewQueueLoading={reviewQueueLoading}
+            adminSaving={adminSaving}
+            onReview={reviewSubmittedActivity}
           />
         )}
 
@@ -2524,13 +2589,23 @@ function CalendarScreen({
   );
 }
 
-function AddActivityScreen({ form, setForm, onSubmit, loading }) {
+function AddActivityScreen({
+  form,
+  setForm,
+  onSubmit,
+  loading,
+  isAdmin,
+  reviewQueue,
+  reviewQueueLoading,
+  adminSaving,
+  onReview,
+}) {
   return (
     <section className="app-screen form-screen">
       <div className="screen-title compact">
         <span className="eyebrow">Add</span>
         <h1>Add a spot.</h1>
-        <p>Share the basics. We fill the rest.</p>
+        <p>Share the basics. We review every new listing first.</p>
       </div>
 
       <form className="app-form link-only-form" onSubmit={onSubmit}>
@@ -2593,6 +2668,32 @@ function AddActivityScreen({ form, setForm, onSubmit, loading }) {
           {loading ? 'Reading...' : 'Add'}
         </button>
       </form>
+
+      {isAdmin && (
+        <section className="review-queue">
+          <div className="section-heading">
+            <span>Admin review</span>
+            <h2>{reviewQueueLoading ? 'Loading submissions...' : `${reviewQueue.length} awaiting review`}</h2>
+          </div>
+          {!reviewQueueLoading && reviewQueue.length === 0 && <p className="queue-empty">Nothing waiting right now.</p>}
+          <div className="review-list">
+            {reviewQueue.map((activity) => (
+              <article key={activity.activity_id} className="review-item">
+                <ActivityPhoto activity={activity} className="review-photo" />
+                <div>
+                  <strong>{activity.activity_name}</strong>
+                  <small>{activityPlanLabel(activity)} · {activity.address || 'Address to review'}</small>
+                  <small>{activity.website || activity.google_link || 'No source link'}</small>
+                </div>
+                <div className="review-actions">
+                  <button type="button" onClick={() => onReview(activity, 'published')} disabled={adminSaving}>Approve</button>
+                  <button type="button" onClick={() => onReview(activity, 'archived')} disabled={adminSaving}>Archive</button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
     </section>
   );
 }
