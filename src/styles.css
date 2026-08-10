@@ -2857,26 +2857,28 @@ input[type='range'] {
 
 /* Flat paper-cut visual refresh: warm, playful, and readable in bright light. */
 :root {
-  color: #173b35;
-  background: #edf5f4;
-  --ink: #173b35;
-  --muted: #385d55;
-  --paper: #fffdf6;
-  --cream: #f7edc8;
-  --line: #173b35;
-  --green: #b8d2b5;
-  --green-dark: #173b35;
-  --coral: #e8b6a7;
-  --coral-dark: #8a483a;
-  --yellow: #ecd482;
-  --blue: #b9dbe2;
-  --mint: #dcebd8;
-  --blush: #f4ddd5;
-  --shadow: 5px 6px 0 rgba(23, 59, 53, 0.12);
+  color: #3e4e4a;
+  background: #f3f2ed;
+  --ink: #3e4e4a;
+  --muted: #697570;
+  --paper: #fffdf8;
+  --cream: #f3e6bb;
+  --line: rgba(62, 78, 74, 0.19);
+  --green: #b9cfbd;
+  --green-dark: #587068;
+  --coral: #dfb8af;
+  --coral-dark: #8a625c;
+  --yellow: #e8d18d;
+  --blue: #bbd8df;
+  --mint: #d4e1d0;
+  --blush: #ead7df;
+  --lavender: #d8cee5;
+  --apricot: #edc9a7;
+  --shadow: 0 12px 28px rgba(62, 78, 74, 0.10);
 }
 
 html {
-  background: #edf5f4;
+  background: #f3f2ed;
 }
 
 body::before {
@@ -2891,7 +2893,7 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 summary:focus-visible {
-  outline: 3px solid #173b35;
+  outline: 2px solid #7f9e93;
   outline-offset: 3px;
 }
 
@@ -2912,7 +2914,7 @@ summary:focus-visible {
 .week-export-card,
 .week-share-card,
 .toast {
-  border: 2px solid var(--ink);
+  border: 1px solid var(--line);
   background: var(--paper);
   box-shadow: var(--shadow);
   backdrop-filter: none;
@@ -2944,13 +2946,13 @@ summary:focus-visible {
 }
 
 .welcome-sun {
-  border: 2px solid var(--ink);
+  border: 1px solid var(--line);
   background: var(--yellow);
   box-shadow: none;
 }
 
 .welcome-mark span {
-  border: 2px solid var(--ink);
+  border: 1px solid var(--line);
   border-radius: 15px 15px 6px 6px;
 }
 
@@ -2988,10 +2990,10 @@ p,
 .window-pill.is-on,
 .bottom-nav .is-on,
 .week-export-card button {
-  border: 2px solid var(--ink);
+  border: 1px solid var(--line);
   color: var(--ink);
   background: var(--green);
-  box-shadow: 3px 3px 0 rgba(23, 59, 53, 0.18);
+  box-shadow: 0 5px 12px rgba(62, 78, 74, 0.12);
 }
 
 .welcome-guest,
@@ -3018,14 +3020,17 @@ p,
 .source-picker,
 .range-card,
 .location-card .field-group {
-  border: 2px solid var(--ink);
+  border: 1px solid var(--line);
   color: var(--ink);
   background: var(--paper);
 }
 
-.filter-chip:nth-child(3n + 1) { background: var(--yellow); }
-.filter-chip:nth-child(3n + 2) { background: var(--blue); }
-.filter-chip:nth-child(3n + 3) { background: var(--blush); }
+.filter-chip:nth-child(6n + 1) { background: var(--yellow); }
+.filter-chip:nth-child(6n + 2) { background: var(--blue); }
+.filter-chip:nth-child(6n + 3) { background: var(--blush); }
+.filter-chip:nth-child(6n + 4) { background: var(--lavender); }
+.filter-chip:nth-child(6n + 5) { background: var(--mint); }
+.filter-chip:nth-child(6n + 6) { background: var(--apricot); }
 
 .filter-chip.is-on,
 .secondary-button.is-on,
@@ -3043,7 +3048,7 @@ p,
 }
 
 .brand-lockup::before {
-  border: 2px solid var(--ink);
+  border: 1px solid var(--line);
   background: var(--blue);
   box-shadow: none;
 }
@@ -3057,13 +3062,13 @@ p,
 }
 
 .screen-title::after {
-  border-color: var(--ink);
+  border-color: var(--line);
   background: var(--yellow);
   opacity: 1;
 }
 
 .hero-title::after {
-  border: 2px solid var(--ink);
+  border: 1px solid var(--line);
   background: var(--blue);
 }
 
@@ -3072,7 +3077,7 @@ p,
 .term-time-badge,
 .status-pill,
 .sync-dot {
-  border: 1px solid var(--ink);
+  border: 1px solid var(--line);
   color: var(--ink);
   background: var(--yellow);
 }
@@ -3083,14 +3088,14 @@ p,
 }
 
 .swipe-card {
-  border: 3px solid var(--ink);
+  border: 1px solid var(--line);
   background: var(--paper);
-  box-shadow: 7px 8px 0 rgba(23, 59, 53, 0.16);
+  box-shadow: 0 16px 34px rgba(62, 78, 74, 0.14);
 }
 
 .swipe-card.is-stacked { background: var(--blue); }
-.swipe-card.is-yes { border-color: #2c725d; }
-.swipe-card.is-no { border-color: #a55244; }
+.swipe-card.is-yes { border-color: #82a99a; }
+.swipe-card.is-no { border-color: #ca9288; }
 
 .card-photo,
 .detail-photo {
@@ -3100,7 +3105,7 @@ p,
 
 .card-photo::after,
 .detail-photo::after {
-  border: 2px solid var(--ink);
+  border: 1px solid var(--line);
   background: var(--yellow);
 }
 
@@ -3119,31 +3124,79 @@ p,
 .share-option,
 .report-sheet,
 .detail-content-card {
-  border: 2px solid var(--ink);
+  border: 1px solid var(--line);
   color: var(--ink);
   background: var(--paper);
 }
 
 .bottom-nav {
-  border: 2px solid var(--ink);
+  border: 1px solid var(--line);
   background: var(--paper);
-  box-shadow: 4px 5px 0 rgba(23, 59, 53, 0.13);
+  box-shadow: 0 10px 24px rgba(62, 78, 74, 0.12);
 }
 
 .bottom-nav button { color: var(--ink); }
 
 .week-share-card button,
 .share-option.native-share i {
-  border: 2px solid var(--ink);
+  border: 1px solid var(--line);
   color: var(--ink);
   background: var(--coral);
 }
 
 .share-sheet,
 .report-sheet {
-  border: 2px solid var(--ink);
+  border: 1px solid var(--line);
   background: var(--paper);
 }
+
+/* Flat surfaces create hierarchy through spacing and gentle elevation, not hard outlines. */
+html,
+.app-topbar,
+.welcome-screen,
+.screen-title,
+.filter-card,
+.range-card,
+.start-summary,
+.shortlist-panel,
+.calendar-day,
+.soft-note,
+.app-form,
+.detail-sheet,
+.review-card,
+.profile-card,
+.community-card,
+.profile-editor,
+.share-card,
+.week-export-card,
+.week-share-card,
+.toast,
+.card-content,
+.detail-content-card {
+  background-image: none;
+}
+
+.app-topbar { background-color: #f3f2ed; }
+.welcome-screen { background-color: #fbf4df; }
+.screen-title,
+.filter-card,
+.range-card,
+.start-summary,
+.shortlist-panel,
+.calendar-day,
+.soft-note,
+.app-form,
+.detail-sheet,
+.review-card,
+.profile-card,
+.community-card,
+.profile-editor,
+.share-card,
+.week-export-card,
+.week-share-card,
+.toast,
+.card-content,
+.detail-content-card { background-color: var(--paper); }
 
 @media (prefers-reduced-motion: reduce) {
   *,
