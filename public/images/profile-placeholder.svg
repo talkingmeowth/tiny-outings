@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="Tiny Outings profile illustration">
+  <rect width="160" height="160" rx="80" fill="#c8e5e9"/>
+  <circle cx="122" cy="38" r="22" fill="#f7e6a5"/>
+  <path d="M0 128c31-27 55-18 81-6 27 13 50 16 79-6v44H0z" fill="#b8d5bd"/>
+  <circle cx="80" cy="73" r="29" fill="#f2b38f"/>
+  <path d="M49 73c0-27 14-43 33-43 21 0 33 17 33 40-10-9-23-13-38-13-10 0-19 5-28 16z" fill="#4d7768"/>
+  <circle cx="69" cy="76" r="3" fill="#24413a"/>
+  <circle cx="92" cy="76" r="3" fill="#24413a"/>
+  <path d="M70 91c7 6 14 6 21 0" fill="none" stroke="#b85f45" stroke-linecap="round" stroke-width="4"/>
+  <path d="M42 150c4-33 20-52 38-52s35 19 39 52z" fill="#f7e6a5"/>
+  <path d="M62 110c12 9 25 9 37 0" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-width="5"/>
+</svg>

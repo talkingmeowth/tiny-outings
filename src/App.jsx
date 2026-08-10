@@ -13,6 +13,7 @@ const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
 const adminEmails = new Set(['talkingmeowth06@gmail.com', 'benfielden@gmail.com']);
 const publicAppUrl = 'https://tiny-outings-cpjh.onrender.com';
+const defaultProfileAvatar = '/images/profile-placeholder.svg';
 // Reset outdated swipe/filter state without touching planned calendar entries.
 const planningStorageVersion = '2026-07-24-seven-plan-categories';
 const statusOptions = ['booked', 'tentative'];
@@ -680,11 +681,6 @@ function profileUsername(user) {
 
 function profileDisplayName(user) {
   return user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Tiny Outings parent';
-}
-
-function profileAvatar(profile) {
-  const name = profile?.display_name || profile?.user_name || 'T';
-  return String(name).trim().slice(0, 1).toUpperCase();
 }
 
 function activityShareUrl(activity) {
@@ -2746,11 +2742,12 @@ function CalendarScreen({
       </div>
 
       <section className="profile-card">
-        {profile?.avatar_url ? (
-          <img src={profile.avatar_url} alt="Your profile" className="profile-avatar" />
-        ) : (
-          <span className="profile-avatar profile-avatar-fallback">{profileAvatar(profile)}</span>
-        )}
+        <img
+          src={profile?.avatar_url || defaultProfileAvatar}
+          alt="Your profile"
+          className="profile-avatar"
+          onError={(event) => { event.currentTarget.src = defaultProfileAvatar; }}
+        />
         <div className="profile-summary">
           <span className="eyebrow">Your profile</span>
           <strong>{profile?.display_name || profile?.user_name || 'Plan together'}</strong>
