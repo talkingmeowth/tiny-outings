@@ -4307,8 +4307,8 @@ html,
   --muted: #647870;
   --paper: #fffdf6;
   --cream: #fff0b8;
-  --line: #a8c0b8;
-  --line-soft: #d4e1dc;
+  --line: rgba(57, 121, 102, 0.12);
+  --line-soft: rgba(57, 121, 102, 0.07);
   --green: #b8d9b5;
   --green-dark: #397966;
   --coral: #f2ad9f;
@@ -4319,7 +4319,7 @@ html,
   --blush: #f7d5ce;
   --lavender: #d9d4e9;
   --apricot: #f3c48d;
-  --shadow: 0 9px 22px rgba(41, 75, 69, 0.1);
+  --shadow: 0 14px 34px rgba(41, 75, 69, 0.1);
 }
 
 *,
@@ -4341,13 +4341,15 @@ html,
 }
 
 .phone-app::before {
-  border: 2px solid rgba(41, 75, 69, 0.12);
+  border: 0;
   background-color: var(--blue);
+  opacity: 0.58;
 }
 
 .phone-app::after {
-  border: 2px solid rgba(41, 75, 69, 0.12);
+  border: 0;
   background-color: var(--green);
+  opacity: 0.5;
 }
 
 .screen-title,
@@ -4372,24 +4374,32 @@ html,
 .swipe-card,
 .share-sheet,
 .report-sheet,
-.map-summary {
-  border: 1.5px solid var(--line-soft);
-  border-radius: 24px;
+.map-summary,
+.review-queue,
+.review-item,
+.admin-editor,
+.empty-deck,
+.empty-list,
+.open-slot,
+.map-summary span {
+  border: 0;
+  border-radius: 28px;
   background-color: var(--paper);
   box-shadow: var(--shadow);
 }
 
-.start-screen .screen-title { background-color: var(--blue); }
-.calendar-screen .screen-title { background-color: var(--green); }
-.form-screen .screen-title { background-color: var(--yellow); }
-.map-screen .screen-title { background-color: var(--blush); }
+.screen-title {
+  padding-inline: 8px;
+  background-color: transparent !important;
+  box-shadow: none;
+}
 
 .screen-title::before {
   color: var(--coral-dark);
 }
 
 .screen-title::after {
-  border: 2px solid rgba(41, 75, 69, 0.12);
+  border: 0;
   background-color: var(--yellow);
   box-shadow: none;
 }
@@ -4415,10 +4425,10 @@ button,
 .external-links a,
 .source-picker summary,
 [role='button'] {
-  border: 2px solid var(--line) !important;
-  border-radius: 16px;
+  border: 0 !important;
+  border-radius: 18px;
   background-color: var(--paper);
-  box-shadow: none;
+  box-shadow: 0 7px 18px rgba(41, 75, 69, 0.08);
 }
 
 button {
@@ -4426,7 +4436,6 @@ button {
 }
 
 button:disabled {
-  border-style: dashed !important;
   color: var(--muted) !important;
   background-color: #edf3ee !important;
   opacity: 0.78;
@@ -4450,10 +4459,9 @@ button:focus-visible,
 .window-pill.is-on,
 .distance-toggle button.is-on,
 .bottom-nav button.is-on {
-  border-color: var(--green-dark) !important;
   color: #ffffff;
   background-color: var(--green-dark);
-  box-shadow: none;
+  box-shadow: 0 8px 18px rgba(57, 121, 102, 0.18);
 }
 
 .welcome-guest,
@@ -4480,19 +4488,16 @@ button:focus-visible,
 .archive-listing-button,
 .review-actions button:last-child,
 .swipe-button.no {
-  border-color: var(--coral-dark) !important;
   color: var(--coral-dark);
   background-color: #fff4ef;
 }
 
 .swipe-button.yes {
-  border-color: var(--green-dark) !important;
   color: #ffffff;
   background-color: var(--green-dark);
 }
 
 .swipe-button.info {
-  border-color: #789ea4 !important;
   background-color: #eef8f8;
 }
 
@@ -4533,8 +4538,8 @@ button:focus-visible,
 }
 
 .location-card .field-group {
-  border: 1.5px solid var(--line-soft);
-  border-radius: 20px;
+  border: 0;
+  border-radius: 24px;
   background-color: #fffaf0;
 }
 
@@ -4571,9 +4576,10 @@ button:focus-visible,
 
 .week-preview span,
 .date-pill {
-  border: 2px solid var(--line) !important;
+  border: 0 !important;
   color: var(--ink);
   background-color: var(--paper);
+  box-shadow: 0 6px 14px rgba(41, 75, 69, 0.07);
 }
 
 .week-preview span {
@@ -4586,23 +4592,22 @@ button:focus-visible,
 }
 
 .date-pill.is-on {
-  border-color: var(--green-dark) !important;
   background-color: var(--green-dark);
 }
 
 .planner-strip,
 .swipe-status-bar {
-  border: 1.5px solid var(--line-soft);
-  border-radius: 20px;
-  background-color: var(--paper);
+  border: 0;
+  border-radius: 24px;
+  background-color: transparent;
   box-shadow: none;
 }
 
 .window-switcher,
 .distance-toggle {
-  border: 1.5px solid var(--line-soft);
-  border-radius: 20px;
-  background-color: #f7fbf9;
+  border: 0;
+  border-radius: 24px;
+  background-color: transparent;
 }
 
 .range-card,
@@ -4611,8 +4616,9 @@ button:focus-visible,
 input,
 select,
 textarea {
-  border: 2px solid var(--line) !important;
+  border: 0 !important;
   background-color: var(--paper);
+  box-shadow: inset 0 0 0 1px rgba(57, 121, 102, 0.06), 0 7px 18px rgba(41, 75, 69, 0.06);
 }
 
 input,
@@ -4624,8 +4630,8 @@ textarea {
 .card-summary span,
 .detail-grid span,
 .activity-facts span {
-  border: 2px solid var(--line) !important;
-  border-radius: 16px;
+  border: 0 !important;
+  border-radius: 20px;
   background-color: #f7fbf9;
 }
 
@@ -4642,22 +4648,21 @@ textarea {
 .term-time-badge,
 .status-pill,
 .hero-badges span {
-  border: 1.5px solid var(--line);
+  border: 0;
   color: var(--ink);
   background-color: #fff8dc;
 }
 
 .swipe-card {
-  border: 2px solid var(--line);
-  border-radius: 26px;
+  border: 0;
+  border-radius: 32px;
   background-color: var(--paper);
-  box-shadow: 0 12px 28px rgba(41, 75, 69, 0.12);
+  box-shadow: 0 20px 46px rgba(41, 75, 69, 0.14);
 }
 
 .card-content {
   border: 0;
-  border-top: 1.5px solid var(--line-soft);
-  border-radius: 0 0 24px 24px;
+  border-radius: 0 0 30px 30px;
   box-shadow: none;
 }
 
@@ -4666,39 +4671,57 @@ textarea {
 .calendar-day:nth-of-type(3n + 3) { background-color: #f2f8ef; }
 
 .calendar-event {
-  border: 1.5px solid var(--line);
-  border-radius: 18px;
+  border: 0;
+  border-radius: 22px;
   background-color: var(--paper);
+  box-shadow: 0 7px 18px rgba(41, 75, 69, 0.07);
 }
 
 .bottom-nav {
-  border: 1.5px solid var(--line);
-  border-radius: 24px;
+  border: 0;
+  border-radius: 30px;
   background-color: var(--paper);
-  box-shadow: 0 7px 18px rgba(41, 75, 69, 0.12);
+  box-shadow: 0 12px 30px rgba(41, 75, 69, 0.14);
 }
 
 .bottom-nav button {
   min-height: 46px;
-  border-width: 1.5px !important;
-  border-radius: 15px;
-  background-color: #fffaf0;
+  border-radius: 20px;
+  background-color: transparent;
+  box-shadow: none;
 }
 
 .bottom-nav button.is-on {
-  border-radius: 15px;
+  border-radius: 20px;
 }
 
 .share-sheet,
 .report-sheet {
-  border: 2px solid var(--line);
+  border: 0;
   background-color: var(--paper);
 }
 
+.share-actions a,
+.share-launcher,
+.report-launcher,
+.activity-photo,
+.detail-photo,
+.profile-editor,
+.community-card,
+.share-card {
+  border: 0 !important;
+}
+
+.open-slot,
+.empty-list {
+  box-shadow: none;
+}
+
 .london-map-shell {
-  border: 2px solid var(--line);
-  border-radius: 22px;
+  border: 0;
+  border-radius: 28px;
   overflow: hidden;
+  box-shadow: var(--shadow);
 }
 
 .london-map-shell::before,

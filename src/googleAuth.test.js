@@ -87,9 +87,11 @@ test('Supabase token exchange errors are preserved', async () => {
 });
 
 test('native cancellation and missing-account errors have useful copy', () => {
-  assert.equal(
-    googleSignInErrorMessage({ code: 'SIGN_IN_CANCELLED' }),
-    'Google sign-in was cancelled.',
-  );
+  assert.match(googleSignInErrorMessage({ code: 'SIGN_IN_CANCELLED' }), /Android sign-in setup/);
   assert.match(googleSignInErrorMessage({ code: 'NO_GOOGLE_ACCOUNT' }), /Android settings/);
+  assert.match(
+    googleSignInErrorMessage({ code: 'DEVELOPER_CONFIGURATION_ERROR' }),
+    /not configured/,
+  );
+  assert.match(googleSignInErrorMessage({ code: 'SIGN_IN_INTERRUPTED' }), /interrupted/);
 });

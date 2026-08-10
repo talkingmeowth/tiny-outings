@@ -46,12 +46,23 @@ export async function signInWithNativeGoogle({
 }
 
 export function googleSignInErrorMessage(error) {
-  if (error?.code === 'SIGN_IN_CANCELLED') return 'Google sign-in was cancelled.';
+  if (error?.code === 'SIGN_IN_CANCELLED') {
+    return 'Google sign-in closed before it finished. If you selected an account, the Android sign-in setup needs checking.';
+  }
   if (error?.code === 'NO_GOOGLE_ACCOUNT') {
     return 'No Google account is available on this device. Add one in Android settings and try again.';
   }
   if (error?.code === 'DEVELOPER_CONFIGURATION_ERROR') {
-    return 'Google sign-in needs an app configuration update.';
+    return 'Google sign-in is not configured for this Android app.';
+  }
+  if (error?.code === 'SIGN_IN_INTERRUPTED') {
+    return 'Google sign-in was interrupted. Please try again.';
+  }
+  if (error?.code === 'SIGN_IN_IN_PROGRESS') {
+    return 'Google sign-in is already open.';
+  }
+  if (error?.code === 'UNSUPPORTED_DEVICE') {
+    return 'Google sign-in is not supported by this device.';
   }
   return error?.message || 'Please try again.';
 }

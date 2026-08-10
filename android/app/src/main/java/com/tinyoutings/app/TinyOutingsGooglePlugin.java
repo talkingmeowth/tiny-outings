@@ -1,6 +1,7 @@
 package com.tinyoutings.app;
 
 import android.app.Activity;
+import android.util.Log;
 import androidx.core.content.ContextCompat;
 import androidx.credentials.ClearCredentialStateRequest;
 import androidx.credentials.Credential;
@@ -20,10 +21,13 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption;
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @CapacitorPlugin(name = "TinyOutingsGoogle")
 public class TinyOutingsGooglePlugin extends Plugin {
+  private static final String TAG = "TinyOutingsGoogle";
   private CredentialManager credentialManager;
+  private final AtomicBoolean signInInProgress = new AtomicBoolean(false);
 
   @Override
   public void load() {
@@ -44,6 +48,11 @@ public class TinyOutingsGooglePlugin extends Plugin {
       return;
     }
 
+    if (!signInInProgress.compareAndSet(false, true)) {
+      call.reject("Google sign-in is already open.", "SIGN_IN_IN_PROGRESS");
+      return;
+    }
+
     GetSignInWithGoogleOption.Builder optionBuilder = new GetSignInWithGoogleOption.Builder(clientId);
     String nonce = call.getString("nonce");
     if (nonce != null && !nonce.isEmpty()) optionBuilder.setNonce(nonce);
@@ -60,11 +69,13 @@ public class TinyOutingsGooglePlugin extends Plugin {
       new CredentialManagerCallback<GetCredentialResponse, GetCredentialException>() {
         @Override
         public void onResult(GetCredentialResponse response) {
+          signInInProgress.set(false);
           resolveCredential(call, response.getCredential());
         }
 
         @Override
         public void onError(GetCredentialException error) {
+          signInInProgress.set(false);
           rejectCredentialError(call, error);
         }
       }
@@ -128,10 +139,19 @@ public class TinyOutingsGooglePlugin extends Plugin {
   }
 
   private void rejectCredentialError(PluginCall call, GetCredentialException error) {
+    String exceptionName = error.getClass().getSimpleName();
+    Log.e(TAG, exceptionName + ": " + error.getMessage(), error);
+
     if (error instanceof GetCredentialCancellationException) {
       call.reject("Google sign-in was cancelled.", "SIGN_IN_CANCELLED", error);
     } else if (error instanceof NoCredentialException) {
       call.reject("No Google account is available on this device.", "NO_GOOGLE_ACCOUNT", error);
+    } else if (exceptionName.contains("ProviderConfiguration")) {
+      call.reject("Google sign-in is not configured for this Android app.", "DEVELOPER_CONFIGURATION_ERROR", error);
+    } else if (exceptionName.contains("Interrupted")) {
+      call.reject("Google sign-in was interrupted.", "SIGN_IN_INTERRUPTED", error);
+    } else if (exceptionName.contains("Unsupported")) {
+      call.reject("Google sign-in is not supported on this device.", "UNSUPPORTED_DEVICE", error);
     } else {
       call.reject("Google account sign-in failed.", "GOOGLE_SIGN_IN_FAILED", error);
     }
