@@ -1,8 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Little Week app icon">
-  <rect width="512" height="512" rx="112" fill="#fffaf0"/>
-  <circle cx="158" cy="154" r="92" fill="#f7c85d"/>
-  <path fill="#1f7a65" d="M92 292c0-60 49-109 109-109h110c60 0 109 49 109 109v88c0 22-18 40-40 40H132c-22 0-40-18-40-40v-88Z"/>
-  <path fill="#e86f51" d="M185 301c0-39 32-71 71-71s71 32 71 71-32 71-71 71-71-32-71-71Z"/>
-  <path fill="#fffaf0" d="M219 296c0-20 16-36 36-36s36 16 36 36v44h-72v-44Z"/>
-  <path fill="#17322f" d="M174 145c0 15-12 27-27 27s-27-12-27-27 12-27 27-27 27 12 27 27Zm218 0c0 15-12 27-27 27s-27-12-27-27 12-27 27-27 27 12 27 27Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Tiny Outings app icon">
+  <rect width="512" height="512" rx="112" fill="#fff0d3"/>
+  <rect x="64" y="64" width="384" height="384" rx="132" fill="#bde4d9"/>
+  <path d="M64 256c0-106 86-192 192-192s192 86 192 192v60c-74 44-152 66-234 66-55 0-105-10-150-30v-96Z" fill="#a9d8d3"/>
+  <circle cx="208" cy="205" r="66" fill="#ffd56a"/>
+  <circle cx="313" cy="303" r="49" fill="#ff8a65"/>
+  <circle cx="208" cy="205" r="18" fill="#fffaf0" opacity=".8"/>
+  <circle cx="313" cy="303" r="14" fill="#fffaf0" opacity=".78"/>
+  <path d="M155 349c47 26 103 39 168 39 39 0 75-5 108-15" fill="none" stroke="#1f4a3f" stroke-linecap="round" stroke-width="14" opacity=".12"/>
 </svg>
