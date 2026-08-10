@@ -1292,7 +1292,7 @@ export default function App() {
   }, [filters.weekStart, selectedDate]);
 
   useEffect(() => {
-    if (activeScreen !== 'swipe') return;
+    if (activeScreen !== 'swipe' && activeScreen !== 'map') return;
     window.requestAnimationFrame(() => {
       window.scrollTo(0, 0);
       document.documentElement.scrollTop = 0;
