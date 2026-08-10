@@ -936,8 +936,6 @@ export default function App() {
   const [entryChoice, setEntryChoice] = useState(null);
   const [authLoading, setAuthLoading] = useState(false);
   const [profile, setProfile] = useState(null);
-  const [communityProfiles, setCommunityProfiles] = useState([]);
-  const [followingIds, setFollowingIds] = useState([]);
   const [profileSaving, setProfileSaving] = useState(false);
   const [reviewQueue, setReviewQueue] = useState([]);
   const [reviewQueueLoading, setReviewQueueLoading] = useState(false);
@@ -1096,8 +1094,6 @@ export default function App() {
   useEffect(() => {
     if (!supabase || !signedInUser) {
       setProfile(null);
-      setCommunityProfiles([]);
-      setFollowingIds([]);
       return undefined;
     }
 
@@ -1124,23 +1120,8 @@ export default function App() {
         ownProfile = data;
       }
 
-      const [{ data: profiles }, { data: follows }] = await Promise.all([
-        supabase
-          .from('user_table')
-          .select('user_id,user_name,display_name,avatar_url,followers,following')
-          .neq('user_id', userId)
-          .order('followers', { ascending: false })
-          .limit(20),
-        supabase
-          .from('user_follows')
-          .select('followed_user_id')
-          .eq('follower_user_id', userId),
-      ]);
-
       if (cancelled) return;
       setProfile(ownProfile || null);
-      setCommunityProfiles(profiles || []);
-      setFollowingIds((follows || []).map((follow) => String(follow.followed_user_id)));
     }
 
     loadCommunity();
@@ -1600,40 +1581,6 @@ export default function App() {
     setNotice('Profile saved.');
   }
 
-  async function toggleFollow(person) {
-    if (!supabase || !session?.user) {
-      setNotice('Sign in to follow other parents.');
-      return;
-    }
-    const personId = String(person.user_id);
-    const alreadyFollowing = followingIds.includes(personId);
-    const request = alreadyFollowing
-      ? supabase
-        .from('user_follows')
-        .delete()
-        .eq('follower_user_id', session.user.id)
-        .eq('followed_user_id', personId)
-      : supabase
-        .from('user_follows')
-        .insert({ follower_user_id: session.user.id, followed_user_id: personId });
-    const { error } = await request;
-    if (error) {
-      setNotice(`Could not update follow: ${error.message}`);
-      return;
-    }
-
-    const adjustment = alreadyFollowing ? -1 : 1;
-    setFollowingIds((current) => (
-      alreadyFollowing ? current.filter((id) => id !== personId) : [...current, personId]
-    ));
-    setProfile((current) => current ? { ...current, following: Math.max(0, Number(current.following || 0) + adjustment) } : current);
-    setCommunityProfiles((current) => current.map((item) => (
-      String(item.user_id) === personId
-        ? { ...item, followers: Math.max(0, Number(item.followers || 0) + adjustment) }
-        : item
-    )));
-  }
-
   async function shareActivity(activity) {
     const shareData = {
       title: activity.activity_name,
@@ -2053,15 +2000,12 @@ export default function App() {
             weekDays={weekDays}
             calendarEvents={calendarEvents}
             profile={profile}
-            communityProfiles={communityProfiles}
-            followingIds={followingIds}
             signedIn={Boolean(session)}
             profileSaving={profileSaving}
             onOpenActivity={openActivity}
             onUpdateEvent={updateEvent}
             onRemoveEvent={removeEvent}
             onSaveProfile={saveProfile}
-            onToggleFollow={toggleFollow}
             onSignIn={signInWithGoogle}
             onShareApp={shareApp}
           />
@@ -2716,15 +2660,12 @@ function CalendarScreen({
   weekDays,
   calendarEvents,
   profile,
-  communityProfiles,
-  followingIds,
   signedIn,
   profileSaving,
   onOpenActivity,
   onUpdateEvent,
   onRemoveEvent,
   onSaveProfile,
-  onToggleFollow,
   onSignIn,
   onShareApp,
 }) {
@@ -2776,24 +2717,6 @@ function CalendarScreen({
           <label className="wide"><span>Profile photo URL</span><input type="url" value={form.avatar_url} onChange={(event) => setForm((current) => ({ ...current, avatar_url: event.target.value }))} placeholder="https://..." /></label>
           <button className="primary-action wide" type="submit" disabled={profileSaving}>{profileSaving ? 'Saving...' : 'Save profile'}</button>
         </form>
-      )}
-
-      {signedIn && communityProfiles.length > 0 && (
-        <section className="community-card">
-          <div className="section-heading"><span>Community</span><h2>Parents nearby</h2></div>
-          <div className="community-list">
-            {communityProfiles.map((person) => {
-              const following = followingIds.includes(String(person.user_id));
-              return (
-                <article key={person.user_id} className="community-person">
-                  {person.avatar_url ? <img src={person.avatar_url} alt="" className="community-avatar" /> : <span className="community-avatar profile-avatar-fallback">{profileAvatar(person)}</span>}
-                  <div><strong>{person.display_name || person.user_name}</strong><small>@{person.user_name} - {person.followers || 0} followers</small></div>
-                  <button type="button" className={classNames('follow-button', following && 'is-following')} onClick={() => onToggleFollow(person)}>{following ? 'Following' : 'Follow'}</button>
-                </article>
-              );
-            })}
-          </div>
-        </section>
       )}
 
       <div className="week-export-card">
