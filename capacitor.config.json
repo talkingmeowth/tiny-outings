@@ -5,13 +5,5 @@
     "server":  {
                    "androidScheme":  "https"
                },
-    "plugins":  {
-                    "GoogleAuth":  {
-                                       "scopes":  [
-                                                      "profile",
-                                                      "email"
-                                                  ],
-                                       "serverClientId":  "661533721927-3fbul6gkmbd4f2fqkjjhcdgl5jmnliu5.apps.googleusercontent.com"
-                                   }
-                }
+    "plugins":  {}
 }

@@ -2857,28 +2857,28 @@ input[type='range'] {
 
 /* Flat paper-cut visual refresh: warm, playful, and readable in bright light. */
 :root {
-  color: #3e4e4a;
-  background: #f3f2ed;
-  --ink: #3e4e4a;
-  --muted: #697570;
-  --paper: #fffdf8;
-  --cream: #f3e6bb;
-  --line: rgba(62, 78, 74, 0.19);
-  --green: #b9cfbd;
-  --green-dark: #587068;
-  --coral: #dfb8af;
-  --coral-dark: #8a625c;
-  --yellow: #e8d18d;
-  --blue: #bbd8df;
-  --mint: #d4e1d0;
-  --blush: #ead7df;
-  --lavender: #d8cee5;
-  --apricot: #edc9a7;
-  --shadow: 0 12px 28px rgba(62, 78, 74, 0.10);
+  color: #314d47;
+  background: #f8f0dc;
+  --ink: #314d47;
+  --muted: #5e6f68;
+  --paper: #fffaf0;
+  --cream: #f8df83;
+  --line: rgba(49, 77, 71, 0.16);
+  --green: #91c9a6;
+  --green-dark: #397761;
+  --coral: #eca593;
+  --coral-dark: #9d5144;
+  --yellow: #f6d36b;
+  --blue: #9fd4df;
+  --mint: #b8ddb8;
+  --blush: #f1c6c6;
+  --lavender: #c9bce2;
+  --apricot: #f3bd7f;
+  --shadow: 0 12px 28px rgba(49, 77, 71, 0.12);
 }
 
 html {
-  background: #f3f2ed;
+  background: #f8f0dc;
 }
 
 body::before {
@@ -2893,7 +2893,7 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 summary:focus-visible {
-  outline: 2px solid #7f9e93;
+  outline: 2px solid #397761;
   outline-offset: 3px;
 }
 
@@ -3176,8 +3176,8 @@ html,
   background-image: none;
 }
 
-.app-topbar { background-color: #f3f2ed; }
-.welcome-screen { background-color: #fbf4df; }
+.app-topbar { background-color: #f8f0dc; }
+.welcome-screen { background-color: #fff1c5; }
 .screen-title,
 .filter-card,
 .range-card,
@@ -3197,6 +3197,281 @@ html,
 .toast,
 .card-content,
 .detail-content-card { background-color: var(--paper); }
+
+/* Let whitespace, colour, and elevation define sections instead of box outlines. */
+.welcome-screen,
+.screen-title,
+.filter-card,
+.range-card,
+.start-summary,
+.shortlist-panel,
+.calendar-day,
+.soft-note,
+.app-form,
+.detail-sheet,
+.review-card,
+.profile-card,
+.community-card,
+.profile-editor,
+.share-card,
+.week-export-card,
+.week-share-card,
+.toast,
+.swipe-card,
+.card-content,
+.card-summary span,
+.shortlist-card,
+.chosen-slot-card,
+.activity-fact,
+.calendar-event,
+.share-option,
+.report-sheet,
+.detail-content-card,
+.bottom-nav,
+.share-sheet,
+.detail-map,
+.location-card .field-group,
+.range-card,
+.source-picker,
+.filter-card input[type='date'] {
+  border: 0;
+}
+
+.welcome-google,
+.primary-action,
+.distance-toggle button.is-on,
+.filter-chip.is-on,
+.secondary-button.is-on,
+.segment.is-on,
+.date-pill.is-on,
+.window-pill.is-on,
+.bottom-nav .is-on,
+.week-export-card button,
+.welcome-guest,
+.account-button,
+.guest-button,
+.account-pill,
+.icon-button,
+.secondary-button,
+.filter-chip,
+.segment,
+.date-pill,
+.window-pill,
+.link-button,
+.shortlist-actions button,
+.export-actions a,
+.export-actions button,
+.external-links a,
+.sheet-close,
+.toast button,
+.distance-toggle,
+.distance-toggle button,
+.hero-badges span,
+.week-preview span,
+.term-time-badge,
+.status-pill,
+.sync-dot,
+.week-share-card button,
+.share-option.native-share i {
+  border-color: transparent;
+}
+
+/* A quiet hand-drawn layer: friendly, irregular, and still easy to scan. */
+.phone-app::before,
+.phone-app::after {
+  position: fixed;
+  z-index: -1;
+  width: 120px;
+  height: 120px;
+  border-radius: 46% 54% 58% 42% / 43% 44% 56% 57%;
+  content: '';
+  opacity: 0.44;
+  pointer-events: none;
+}
+
+.phone-app::before {
+  top: 17%;
+  right: -52px;
+  background: var(--lavender);
+  transform: rotate(17deg);
+}
+
+.phone-app::after {
+  bottom: 15%;
+  left: -52px;
+  background: var(--apricot);
+  transform: rotate(-14deg);
+}
+
+.screen-title h1,
+.welcome-screen h1,
+.detail-content-card h1 {
+  letter-spacing: -0.045em;
+}
+
+.eyebrow::after {
+  display: inline-block;
+  margin-left: 7px;
+  color: var(--coral-dark);
+  content: '~~';
+  font-size: 0.9em;
+  letter-spacing: -0.14em;
+  transform: rotate(-8deg);
+}
+
+.filter-card,
+.range-card,
+.start-summary,
+.shortlist-panel,
+.calendar-day,
+.soft-note,
+.app-form,
+.detail-sheet,
+.review-card,
+.profile-card,
+.community-card,
+.profile-editor,
+.share-card,
+.week-export-card,
+.week-share-card,
+.toast,
+.card-content,
+.detail-content-card {
+  border-radius: 28px 24px 30px 22px;
+}
+
+.filter-card:nth-of-type(2n),
+.calendar-day:nth-of-type(2n),
+.review-card:nth-of-type(2n),
+.share-card:nth-of-type(2n) {
+  border-radius: 23px 30px 25px 32px;
+}
+
+.filter-chip,
+.segment,
+.date-pill,
+.window-pill,
+.secondary-button,
+.link-button,
+.external-links a,
+.sheet-close,
+.account-button,
+.guest-button,
+.primary-action,
+.welcome-google,
+.welcome-guest {
+  transform: rotate(-0.7deg);
+}
+
+.filter-chip:nth-child(2n),
+.segment:nth-child(2n),
+.date-pill:nth-child(2n),
+.window-pill:nth-child(2n),
+.external-links a:nth-child(2n) {
+  transform: rotate(0.8deg);
+}
+
+.filter-chip,
+.segment,
+.date-pill,
+.window-pill {
+  border-radius: 48% 52% 49% 51% / 48% 47% 53% 52%;
+}
+
+.swipe-card {
+  border-radius: 34px 28px 38px 30px;
+}
+
+.swipe-card.is-stacked {
+  transform: rotate(-1.2deg) translateY(8px);
+}
+
+.card-photo::after,
+.detail-photo::after {
+  width: 26px;
+  height: 26px;
+  border-radius: 42% 58% 56% 44%;
+  transform: rotate(15deg);
+}
+
+.bottom-nav {
+  border-radius: 30px 26px 32px 28px;
+}
+
+.bottom-nav .is-on {
+  border-radius: 47% 53% 48% 52% / 49% 46% 54% 51%;
+}
+
+/* Colourful page landmarks make each step easier to recognise at a glance. */
+.start-screen .screen-title { background-color: var(--blue); }
+.start-screen .filter-card { background-color: #ffe7a1; }
+.start-screen .location-card .field-group:nth-of-type(1) { background-color: #bde3eb; }
+.start-screen .location-card .field-group:nth-of-type(2) { background-color: #f6cfd0; }
+.start-screen .location-card .field-group:nth-of-type(3) { background-color: #d8cbed; }
+.start-screen .location-card .field-group:nth-of-type(4) { background-color: #c8e4bd; }
+.start-screen .location-card .field-group:nth-of-type(5) { background-color: #f7cd97; }
+.start-screen .location-card .field-group:nth-of-type(6) { background-color: #bde3eb; }
+
+.planner-strip {
+  padding: 12px 10px 8px;
+  border-radius: 32px 26px 34px 28px;
+  background: var(--lavender);
+}
+
+.swipe-status-bar {
+  padding: 12px 14px;
+  border-radius: 24px 30px 26px 28px;
+  background: var(--mint);
+}
+
+.calendar-screen .screen-title { background-color: var(--blush); }
+.form-screen .screen-title { background-color: var(--yellow); }
+.map-screen .screen-title { background-color: var(--blue); }
+.calendar-day:nth-of-type(2n) { background-color: #d8ebcf; }
+.calendar-day:nth-of-type(3n) { background-color: #ffe2ad; }
+.app-form { background-color: #ded0ee; }
+
+/* The compact header mark uses the app art directly, with no square frame. */
+.brand-lockup::before {
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 50%;
+  background: url('/icons/icon.svg') center / cover no-repeat;
+  box-shadow: 0 5px 12px rgba(62, 78, 74, 0.12);
+  transform: rotate(-7deg);
+}
+
+.brand-lockup::after {
+  position: absolute;
+  top: 2px;
+  left: 34px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  content: '';
+  background: var(--apricot);
+  transform: rotate(12deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .filter-chip,
+  .segment,
+  .date-pill,
+  .window-pill,
+  .secondary-button,
+  .link-button,
+  .external-links a,
+  .sheet-close,
+  .account-button,
+  .guest-button,
+  .primary-action,
+  .welcome-google,
+  .welcome-guest,
+  .swipe-card.is-stacked {
+    transform: none;
+  }
+}
 
 @media (prefers-reduced-motion: reduce) {
   *,

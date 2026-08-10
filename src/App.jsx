@@ -1,8 +1,6 @@
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
-import { Capacitor } from '@capacitor/core';
-import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 import { Share } from '@capacitor/share';
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import L from 'leaflet';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -13,6 +11,8 @@ const storagePrefix = 'tiny-outings';
 const adminEmails = new Set(['talkingmeowth06@gmail.com', 'benfielden@gmail.com']);
 const publicAppUrl = 'https://tiny-outings-cpjh.onrender.com';
 const defaultProfileAvatar = '/images/profile-placeholder.svg';
+const NativeGoogleSignIn = registerPlugin('TinyOutingsGoogle');
+const NativeCalendar = registerPlugin('TinyOutingsCalendar');
 // Reset outdated swipe/filter state without touching planned calendar entries.
 const planningStorageVersion = '2026-07-24-seven-plan-categories';
 const statusOptions = ['booked', 'tentative'];
@@ -493,33 +493,29 @@ function buildICS(events) {
   ].join('\r\n');
 }
 
-async function downloadICS(events, filename) {
-  const calendar = buildICS(events);
-
+async function downloadICS(events) {
   if (Capacitor.isNativePlatform()) {
-    const result = await Filesystem.writeFile({
-      path: `calendar-exports/${filename}`,
-      data: calendar,
-      directory: Directory.Cache,
-      encoding: Encoding.UTF8,
-      recursive: true,
-    });
-    const canShare = await Share.canShare();
-    if (!canShare.value) throw new Error('Calendar sharing is not available on this device.');
-    await Share.share({
-      title: 'Tiny Outings calendar',
-      text: 'Add this Tiny Outings plan to your calendar.',
-      files: [result.uri],
-      dialogTitle: 'Export Tiny Outings calendar',
-    });
+    for (const event of events) {
+      const activity = event.activity;
+      const startsAt = new Date(`${event.planned_date}T${event.start_time || '09:00'}:00`).getTime();
+      const endsAt = new Date(`${event.planned_date}T${event.end_time || event.start_time || '10:00'}:00`).getTime();
+      await NativeCalendar.addEvent({
+        title: event.title_override || activity.activity_name || 'Tiny Outing',
+        description: activity.description || 'Planned in Tiny Outings',
+        location: activity.address || '',
+        startsAt,
+        endsAt: Math.max(endsAt, startsAt + 30 * 60 * 1000),
+      });
+    }
     return;
   }
 
+  const calendar = buildICS(events);
   const blob = new Blob([calendar], { type: 'text/calendar;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = filename;
+  link.download = 'tiny-outings-week.ics';
   link.click();
   URL.revokeObjectURL(url);
 }
@@ -1527,9 +1523,8 @@ export default function App() {
 
     if (isNativeApp) {
       try {
-        await GoogleAuth.initialize();
-        const googleUser = await GoogleAuth.signIn();
-        const idToken = googleUser.authentication?.idToken;
+        const googleUser = await NativeGoogleSignIn.signIn();
+        const idToken = googleUser.idToken;
         if (!idToken) throw new Error('Google did not return an identity token.');
         const { error } = await supabase.auth.signInWithIdToken({
           provider: 'google',
