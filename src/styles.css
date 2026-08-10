@@ -2173,13 +2173,10 @@ input[type='range'] {
 }
 
 .map-summary {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  display: block;
 }
 
-.map-summary span,
-.map-insight {
+.map-summary span {
   display: grid;
   gap: 3px;
   padding: 12px;
@@ -2195,21 +2192,21 @@ input[type='range'] {
 }
 
 .map-summary strong,
-.map-insight strong {
+.map-summary strong {
   color: var(--green-dark);
   font-size: 1rem;
 }
 
 .london-map-shell {
   overflow: hidden;
-  min-height: 520px;
+  min-height: 560px;
   border: 4px solid rgba(255, 252, 245, 0.96);
   border-radius: 30px;
   box-shadow: 0 10px 0 rgba(23, 50, 77, 0.14), 0 20px 42px rgba(23, 50, 77, 0.14);
 }
 
 .london-map {
-  min-height: 520px;
+  min-height: 560px;
   width: 100%;
   font-family: inherit;
 }
@@ -2242,30 +2239,6 @@ input[type='range'] {
   max-width: 78%;
   color: rgba(36, 52, 47, 0.62);
   font-size: 0.56rem;
-}
-
-.london-map .leaflet-tooltip {
-  max-width: 220px;
-  border: 0;
-  border-radius: 12px;
-  color: var(--ink);
-  background: rgba(255, 250, 240, 0.96);
-  box-shadow: 0 10px 24px rgba(48, 35, 21, 0.16);
-  font-family: inherit;
-  font-size: 0.75rem;
-  line-height: 1.35;
-}
-
-.map-insight {
-  border-color: rgba(22, 115, 95, 0.18);
-  background: linear-gradient(135deg, rgba(220, 237, 200, 0.86), rgba(255, 250, 240, 0.94));
-}
-
-.map-insight span,
-.map-insight small {
-  color: rgba(36, 52, 47, 0.67);
-  font-size: 0.76rem;
-  font-weight: 800;
 }
 
 .detail-description {

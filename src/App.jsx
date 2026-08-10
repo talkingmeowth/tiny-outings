@@ -4,7 +4,7 @@ import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 import L from 'leaflet';
 import 'leaflet.heat';
-import { CircleMarker, MapContainer, TileLayer, Tooltip, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { completeNativeGoogleSignIn, supabase } from './supabaseClient';
 
@@ -320,8 +320,8 @@ function activityConcentrations(activities) {
     const lat = numericOrNull(activity.lat);
     const long = numericOrNull(activity.long);
     if (lat == null || long == null) continue;
-    // Roughly 1.2 km cells make a readable London-wide activity heat map.
-    const key = `${Math.round(lat * 85) / 85}:${Math.round(long * 55) / 55}`;
+    // Larger neighbourhood-sized cells make the London-wide hotspots readable.
+    const key = `${Math.round(lat * 40) / 40}:${Math.round(long * 28) / 28}`;
     const existing = cells.get(key) || { lat: 0, long: 0, count: 0, activities: [] };
     existing.lat += lat;
     existing.long += long;
@@ -343,29 +343,28 @@ function shuffleActivities(activities) {
   return shuffled;
 }
 
-function ActivityHeatLayer({ activities }) {
+function ActivityHeatLayer({ concentrations }) {
   const map = useMap();
 
   useEffect(() => {
-    const points = activities
-      .map((activity) => [numericOrNull(activity.lat), numericOrNull(activity.long), 1])
-      .filter(([lat, long]) => lat != null && long != null);
+    const highestCount = Math.max(...concentrations.map((cluster) => cluster.count), 1);
+    const points = concentrations.map((cluster) => [cluster.lat, cluster.long, cluster.count]);
     const layer = L.heatLayer(points, {
-      radius: 48,
-      blur: 34,
-      minOpacity: 0.36,
+      radius: 72,
+      blur: 58,
+      minOpacity: 0.28,
       maxZoom: 11,
-      max: 5,
+      max: highestCount,
       gradient: {
-        0.2: '#5cb9ea',
-        0.45: '#70d6a7',
-        0.65: '#f7c948',
-        0.82: '#f28a5d',
-        1: '#c94762',
+        0.18: '#5ab6e6',
+        0.4: '#74d49d',
+        0.62: '#f3cf57',
+        0.8: '#ef8c58',
+        1: '#d85162',
       },
     }).addTo(map);
     return () => map.removeLayer(layer);
-  }, [activities, map]);
+  }, [concentrations, map]);
 
   return null;
 }
@@ -2992,34 +2991,31 @@ function AddActivityScreen({
 function ActivityMapScreen({ activities }) {
   const concentrations = useMemo(() => activityConcentrations(activities), [activities]);
   const mappedActivityCount = activities.filter((activity) => activity.lat != null && activity.long != null).length;
-  const largest = concentrations[0];
-  const peakClusters = concentrations.slice(0, 16);
 
   return (
     <section className="app-screen map-screen">
       <div className="screen-title compact">
         <span className="eyebrow">Where are we</span>
-        <h1>London, mapped.</h1>
-        <p>Bigger bubbles mean more Tiny Outings nearby.</p>
+        <h1>London hotspots.</h1>
+        <p>Warmer areas have more outings.</p>
       </div>
 
       <div className="map-summary">
-        <span><strong>{mappedActivityCount.toLocaleString()}</strong> mapped outings</span>
-        <span><strong>{concentrations.length}</strong> local clusters</span>
+        <span><strong>{mappedActivityCount.toLocaleString()}</strong> activities on the map</span>
       </div>
 
       <div className="heatmap-legend" aria-label="Map density legend">
-        <span>Less to explore</span><i aria-hidden="true" /><span>More to explore</span>
+        <span>Fewer</span><i aria-hidden="true" /><span>More</span>
       </div>
 
       <div className="london-map-shell">
         <MapContainer
           center={[51.5074, -0.1278]}
-          zoom={8.5}
+          zoom={10}
           zoomSnap={0.25}
-          minZoom={8}
+          minZoom={9}
           maxZoom={15}
-          maxBounds={[[51.12, -0.78], [51.9, 0.56]]}
+          maxBounds={[[51.24, -0.56], [51.78, 0.38]]}
           scrollWheelZoom={false}
           className="london-map"
         >
@@ -3027,35 +3023,9 @@ function ActivityMapScreen({ activities }) {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
             url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           />
-          <ActivityHeatLayer activities={activities} />
-          {peakClusters.map((cluster) => (
-            <CircleMarker
-              key={`${cluster.lat}:${cluster.long}`}
-              center={[cluster.lat, cluster.long]}
-              radius={Math.min(18, 4 + Math.sqrt(cluster.count) * 2.3)}
-              pathOptions={{
-                color: '#fffdf6',
-                weight: 2.5,
-                fillColor: '#17324d',
-                fillOpacity: 0.86,
-              }}
-            >
-              <Tooltip direction="top" offset={[0, -6]} opacity={1}>
-                <strong>{cluster.count} activities</strong><br />
-                {cluster.activities.join(', ')}
-              </Tooltip>
-            </CircleMarker>
-          ))}
+          <ActivityHeatLayer concentrations={concentrations} />
         </MapContainer>
       </div>
-
-      {largest && (
-        <div className="map-insight">
-          <span>Most concentrated</span>
-          <strong>{largest.count} activities in one local area</strong>
-          <small>{largest.activities.join(' - ')}</small>
-        </div>
-      )}
     </section>
   );
 }
