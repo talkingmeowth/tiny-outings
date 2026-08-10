@@ -952,6 +952,7 @@ function buildSubmittedPayload(enriched, submissionLink, websiteLink, googlePlac
     source_name: googlePlacesLink ? 'Google Places link submission' : 'Website link submission',
     source_url: submissionLink,
     public_listing_status: 'draft',
+    archive: false,
     submitted_by_user_id: userId,
     google_place_id: enriched.google_place_id || null,
     google_place_uri: googlePlacesLink || enriched.google_place_uri || enriched.google_link || null,
@@ -1393,27 +1394,33 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!supabase || !isAdmin) {
-      setReviewQueue([]);
-      return undefined;
-    }
-
     let cancelled = false;
+
     async function loadReviewQueue() {
-      setReviewQueueLoading(true);
-      const { data, error } = await supabase
-        .from('activities')
-        .select(activitySelectColumns)
-        .eq('public_listing_status', 'draft')
-        .eq('archive', false)
-        .order('created_at', { ascending: true });
-      if (cancelled) return;
-      setReviewQueueLoading(false);
-      if (error) {
-        setNotice(`Review queue could not be loaded: ${error.message}`);
+      if (!supabase || !isAdmin) {
+        if (!cancelled) setReviewQueue([]);
         return;
       }
-      setReviewQueue((data || []).map(normalizeActivity));
+
+      if (!cancelled) setReviewQueueLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('activities')
+          .select(activitySelectColumns)
+          .eq('public_listing_status', 'draft')
+          .eq('archive', false)
+          .order('created_at', { ascending: true });
+        if (cancelled) return;
+        if (error) {
+          setNotice(`Review queue could not be loaded: ${error.message}`);
+          return;
+        }
+        setReviewQueue((data || []).map(normalizeActivity));
+      } catch {
+        if (!cancelled) setNotice('Review queue could not be loaded. Try again in a moment.');
+      } finally {
+        if (!cancelled) setReviewQueueLoading(false);
+      }
     }
 
     loadReviewQueue();
@@ -1966,67 +1973,81 @@ export default function App() {
     }
 
     setLoading(true);
-    let enriched;
-    if (!websiteLink && isGooglePlacesUrl(googlePlacesLink)) {
-      if (!submittedName) {
-        setNotice('Add an activity name with a Google Places link.');
-        setLoading(false);
-        return;
-      }
-      // Google Maps blocks public page scraping. Save a reviewable draft and
-      // retain the supplied place URL instead of treating it as a website.
-      enriched = {
-        activity_name: submittedName,
-        address: 'Address to review',
-        category: linkForm.category || 'Classes & clubs',
-        website: null,
-        google_link: googlePlacesLink,
-        google_place_uri: googlePlacesLink,
-      };
-    } else {
-      const { data, error } = await supabase.functions.invoke('activity-link-autofill', {
-        body: { link, websiteLink: websiteLink || null, googlePlacesLink: googlePlacesLink || null, activityName: submittedName || null },
-      });
-
-      if (error) {
-        setNotice(`That link could not be read yet: ${error.message}`);
-        setLoading(false);
-        return;
-      }
-      enriched = data?.activity || data;
-    }
-
-    if (!enriched?.activity_name || !enriched?.address) {
-      setNotice('That link needs more detail. Try the place listing link.');
-      setLoading(false);
-      return;
-    }
-
-    const activityId = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    const payload = {
-      ...buildSubmittedPayload(enriched, link, websiteLink, googlePlacesLink, session?.user?.id || null),
-      activity_id: activityId,
-      activity_name: submittedName || enriched.activity_name,
-      category: linkForm.category || enriched.category || enriched.google_primary_type || 'Classes & clubs',
-    };
-    const { error: insertError } = await supabase.from('activities').insert(payload);
-    if (insertError) {
-      setLoading(false);
-      setNotice(`The activity details were found, but could not be saved: ${insertError.message}`);
-      return;
-    }
-
     try {
-      await uploadActivityPhotos(activityId, linkForm.photos, null, link);
-    } catch (photoError) {
-      setLoading(false);
-      setNotice(`Activity added, but the photos could not be saved: ${photoError.message}`);
-      return;
-    }
+      let enriched;
+      if (!websiteLink && isGooglePlacesUrl(googlePlacesLink)) {
+        if (!submittedName) {
+          setNotice('Add an activity name with a Google Places link.');
+          return;
+        }
+        // Google Maps blocks public page scraping. Save a reviewable draft and
+        // retain the supplied place URL instead of treating it as a website.
+        enriched = {
+          activity_name: submittedName,
+          address: 'Address to review',
+          category: linkForm.category || 'Classes & clubs',
+          website: null,
+          google_link: googlePlacesLink,
+          google_place_uri: googlePlacesLink,
+        };
+      } else {
+        const { data, error } = await supabase.functions.invoke('activity-link-autofill', {
+          body: { link, websiteLink: websiteLink || null, googlePlacesLink: googlePlacesLink || null, activityName: submittedName || null },
+        });
 
-    setLinkForm(emptyLinkForm);
-    setLoading(false);
-    setNotice(`${payload.activity_name} was added for review.`);
+        if (error) {
+          setNotice(`That link could not be read yet: ${error.message}`);
+          return;
+        }
+        enriched = data?.activity || data;
+      }
+
+      if (!enriched?.activity_name || !enriched?.address) {
+        setNotice('That link needs more detail. Try the place listing link.');
+        return;
+      }
+
+      const activityId = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const payload = {
+        ...buildSubmittedPayload(enriched, link, websiteLink, googlePlacesLink, session?.user?.id || null),
+        activity_id: activityId,
+        activity_name: submittedName || enriched.activity_name,
+        category: linkForm.category || enriched.category || enriched.google_primary_type || 'Classes & clubs',
+      };
+      const { error: insertError } = await supabase.from('activities').insert(payload);
+      if (insertError) {
+        setNotice(`The activity details were found, but could not be saved: ${insertError.message}`);
+        return;
+      }
+
+      try {
+        await uploadActivityPhotos(activityId, linkForm.photos, null, link);
+      } catch (photoError) {
+        setNotice(`Activity added, but the photos could not be saved: ${photoError.message}`);
+        return;
+      }
+
+      setLinkForm({ ...emptyLinkForm, photos: [] });
+      setNotice(`${payload.activity_name} was added for review.`);
+      if (isAdmin) {
+        // Re-run the shared query so submitted drafts appear immediately for review.
+        const { data, error } = await supabase
+          .from('activities')
+          .select(activitySelectColumns)
+          .eq('activity_id', activityId)
+          .maybeSingle();
+        if (!error && data) {
+          setReviewQueue((current) => [
+            normalizeActivity(data),
+            ...current.filter((item) => String(item.activity_id) !== String(activityId)),
+          ]);
+        }
+      }
+    } catch (error) {
+      setNotice(`The activity could not be added: ${error instanceof Error ? error.message : 'Please try again.'}`);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function submitReview(event) {
