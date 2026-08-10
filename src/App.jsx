@@ -1680,6 +1680,7 @@ export default function App() {
   async function saveAdminActivityEdits(activity, values) {
     if (!supabase || !isAdmin) return;
     const updates = {
+      category: values.category || activity.category || null,
       user_image_url: values.user_image_url || null,
       website: values.website || null,
       organiser_website: values.organiser_website || null,
@@ -3191,6 +3192,7 @@ function ReportSheet({ activity, value, submitting, onChange, onClose, onSubmit 
 
 function ActivityAdminEditor({ activity, saving, onSave, onArchive }) {
   const [form, setForm] = useState({
+    category: activity.category || '',
     user_image_url: activity.user_image_url || '',
     website: activity.website || '',
     organiser_website: activity.organiser_website || '',
@@ -3199,6 +3201,7 @@ function ActivityAdminEditor({ activity, saving, onSave, onArchive }) {
 
   useEffect(() => {
     setForm({
+      category: activity.category || '',
       user_image_url: activity.user_image_url || '',
       website: activity.website || '',
       organiser_website: activity.organiser_website || '',
@@ -3221,6 +3224,20 @@ function ActivityAdminEditor({ activity, saving, onSave, onArchive }) {
         <h2>Improve this listing</h2>
         <p>These corrections are saved as importer feedback.</p>
       </div>
+      <label>
+        <span>Category</span>
+        <select
+          value={form.category}
+          onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))}
+        >
+          {!activityInterestOptions.includes(form.category) && form.category && (
+            <option value={form.category}>{form.category}</option>
+          )}
+          {activityInterestOptions.map((category) => (
+            <option key={category} value={category}>{category}</option>
+          ))}
+        </select>
+      </label>
       <label>
         <span>Card image URL</span>
         <input
