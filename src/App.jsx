@@ -1,20 +1,18 @@
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
-import { App as CapacitorApp } from '@capacitor/app';
-import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import L from 'leaflet';
 import 'leaflet.heat';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { completeNativeGoogleSignIn, supabase } from './supabaseClient';
+import { supabase } from './supabaseClient';
 
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
 const adminEmails = new Set(['talkingmeowth06@gmail.com', 'benfielden@gmail.com']);
 const publicAppUrl = 'https://tiny-outings-cpjh.onrender.com';
-const nativeAuthCallback = 'com.tinyoutings.app://auth/callback';
 // Reset outdated swipe/filter state without touching planned calendar entries.
 const planningStorageVersion = '2026-07-24-seven-plan-categories';
 const statusOptions = ['booked', 'tentative'];
@@ -1165,27 +1163,6 @@ export default function App() {
   }, [allActivities, openedSharedActivity, sharedActivityId]);
 
   useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return undefined;
-    const handleCallback = async ({ url }) => {
-      if (!url.startsWith(nativeAuthCallback)) return;
-      setAuthLoading(true);
-      const { error } = await completeNativeGoogleSignIn(url);
-      if (error) setNotice(`Google sign-in could not finish: ${error.message}`);
-      else await Browser.close();
-      setAuthLoading(false);
-    };
-    // Android can create a fresh activity when Chrome redirects back, before
-    // the event listener exists. Read its launch URL as well as live events.
-    CapacitorApp.getLaunchUrl().then((launch) => {
-      if (launch?.url) handleCallback({ url: launch.url });
-    });
-    const listener = CapacitorApp.addListener('appUrlOpen', handleCallback);
-    return () => {
-      listener.then((handle) => handle.remove());
-    };
-  }, []);
-
-  useEffect(() => {
     const weekEnd = addDaysISO(filters.weekStart, 6);
     if (selectedDate < filters.weekStart || selectedDate > weekEnd) {
       setSelectedDate(filters.weekStart);
@@ -1537,11 +1514,30 @@ export default function App() {
 
     setAuthLoading(true);
     const isNativeApp = Capacitor.isNativePlatform();
+
+    if (isNativeApp) {
+      try {
+        await GoogleAuth.initialize();
+        const googleUser = await GoogleAuth.signIn();
+        const idToken = googleUser.authentication?.idToken;
+        if (!idToken) throw new Error('Google did not return an identity token.');
+        const { error } = await supabase.auth.signInWithIdToken({
+          provider: 'google',
+          token: idToken,
+        });
+        if (error) throw error;
+      } catch (error) {
+        setNotice(`Google sign-in could not finish: ${error.message || 'Please try again.'}`);
+      } finally {
+        setAuthLoading(false);
+      }
+      return;
+    }
+
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: isNativeApp ? nativeAuthCallback : window.location.origin,
-        skipBrowserRedirect: isNativeApp,
+        redirectTo: window.location.origin,
       },
     });
     if (error || !data?.url) {
@@ -1551,8 +1547,7 @@ export default function App() {
     }
 
     try {
-      if (isNativeApp) await Browser.open({ url: data.url });
-      else window.location.assign(data.url);
+      window.location.assign(data.url);
     } catch {
       setNotice('Google sign-in could not open. Please try again.');
       setAuthLoading(false);
