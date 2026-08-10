@@ -1014,10 +1014,6 @@ export default function App() {
     [allActivities, userLocation],
   );
 
-  const publishedActivityCount = useMemo(
-    () => allActivities.filter((activity) => activity.public_listing_status === 'published' && !activity.archive).length,
-    [allActivities],
-  );
   const sourceOptions = useMemo(
     () => [...new Set(allActivities.map(activitySourceLabel))].sort((left, right) => left.localeCompare(right)),
     [allActivities],
@@ -1105,6 +1101,13 @@ export default function App() {
   useEffect(() => saveStored('shortlists', shortlists), [shortlists]);
   useEffect(() => saveStored('statuses', statuses), [statuses]);
   useEffect(() => saveStored('calendar-events', calendarEvents), [calendarEvents]);
+
+  useEffect(() => {
+    if (!notice) return undefined;
+    // Confirm actions without leaving an overlay on top of shortlist controls.
+    const timeout = window.setTimeout(() => setNotice(''), 3200);
+    return () => window.clearTimeout(timeout);
+  }, [notice]);
 
   useEffect(() => {
     removeStored('activity-drafts');
@@ -2000,8 +2003,7 @@ export default function App() {
             userLocation={userLocation}
             usingDistanceFallback={usingDistanceFallback}
             weekDays={weekDays}
-            totalActivityCount={publishedActivityCount}
-            weekActivityCount={weekMatchedActivities.length}
+            totalActivityCount={weekMatchedActivities.length}
             dayActivityCount={filteredActivities.length}
             slotActivityCount={slotActivities.length}
             onRequestLocation={requestLocation}
@@ -2149,7 +2151,6 @@ function StartScreen({
   usingDistanceFallback,
   weekDays,
   totalActivityCount,
-  weekActivityCount,
   dayActivityCount,
   slotActivityCount,
   onRequestLocation,
@@ -2164,11 +2165,21 @@ function StartScreen({
   function toggleInterest(interest) {
     setFilters((current) => {
       const exists = current.interests.includes(interest);
+      const allSelected = current.interests.length === activityInterestOptions.length;
+
+      // The initial state means "browse everything". The first category tap
+      // should narrow the deck, rather than silently removing one category.
+      if (allSelected) {
+        return { ...current, interests: [interest] };
+      }
+
+      const interests = exists
+        ? current.interests.filter((item) => item !== interest)
+        : [...current.interests, interest];
       return {
         ...current,
-        interests: exists
-          ? current.interests.filter((item) => item !== interest)
-          : [...current.interests, interest],
+        // Keep at least one clear browsing state instead of an empty deck.
+        interests: interests.length ? interests : [...activityInterestOptions],
       };
     });
   }
@@ -2371,7 +2382,7 @@ function StartScreen({
         <div>
           <span>Outings</span>
           <strong>{totalActivityCount}</strong>
-          <small>{weekActivityCount} this week. {dayActivityCount} today. {slotActivityCount} now.</small>
+          <small>{dayActivityCount} today. {slotActivityCount} in this slot.</small>
         </div>
         <div className="start-actions">
           <button className="primary-action" type="button" onClick={onStart}>
@@ -2571,21 +2582,11 @@ function ActivityCard({
   return (
     <article
       className={classNames('swipe-card', isTop && 'is-top', !isTop && 'is-stacked', decisionClass)}
-      role="button"
-      tabIndex={isTop ? 0 : -1}
-      aria-label={`Open ${activity.activity_name}`}
       style={{
         transform: `translateX(${offset}px) translateY(${stackOffset}px) scale(${1 - stackIndex * 0.035}) rotate(${rotate}deg)`,
         zIndex: 10 - stackIndex,
       }}
       onClick={() => isTop && Math.abs(offset) < 8 && onOpenActivity(activity)}
-      onKeyDown={(event) => {
-        if (!isTop) return;
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          onOpenActivity(activity);
-        }
-      }}
       onPointerDown={(event) => isTop && onStartDrag(event, activity)}
       onPointerMove={(event) => isTop && onMoveDrag(event, activity)}
       onPointerUp={() => isTop && onEndDrag(activity)}
