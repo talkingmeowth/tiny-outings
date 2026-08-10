@@ -2,6 +2,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isUsableActivityImageUrl } from './lib/activity-image-policy.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const sourceUrl = 'https://www.museumslondon.org/list-of-museums-in-london';
@@ -118,7 +119,7 @@ function museumImage(html, pageUrl) {
     if (!['og:image', 'og:image:url', 'twitter:image'].includes(property)) continue;
     const content = attr(tag, 'content');
     const imageUrl = content ? absoluteUrl(content, pageUrl) : null;
-    if (imageUrl && !/(logo|icon|favicon|facebook|twitter|pixel|tracking)/i.test(imageUrl)) return imageUrl;
+    if (isUsableActivityImageUrl(imageUrl)) return imageUrl;
   }
 
   // Museums London publishes the activity image as a regular hero image rather
@@ -128,7 +129,7 @@ function museumImage(html, pageUrl) {
     const imageUrl = source ? absoluteUrl(source.split(',')[0].trim().split(/\s+/)[0], pageUrl) : null;
     const alt = attr(tag, 'alt') || '';
     if (!imageUrl || !/\.(?:avif|gif|jpe?g|png|webp)(?:[?#]|$)/i.test(imageUrl)) continue;
-    if (/(logo|icon|favicon|facebook|twitter|pixel|tracking|prf\.hn)/i.test(`${imageUrl} ${alt}`)) continue;
+    if (!isUsableActivityImageUrl(imageUrl) || /prf\.hn/i.test(`${imageUrl} ${alt}`)) continue;
     return imageUrl;
   }
   return null;

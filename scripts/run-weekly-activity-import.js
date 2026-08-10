@@ -76,7 +76,9 @@ const sources = [
   {
     name: 'image-curation',
     script: 'enrich-activity-images.js',
-    args: ['--audit'],
+    // Routine imports only fetch images for new or incomplete listings. A
+    // full audit remains available through `npm run activities:images`.
+    args: ['--missing-only'],
     output: join(root, 'supabase', 'seed', 'activity_image_updates.generated.sql'),
   },
   {

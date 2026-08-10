@@ -1,5 +1,7 @@
 // Shared guardrails for every importer that creates family-directory records.
 
+export { normaliseWalthamForestEventImageUrl } from './activity-image-policy.js';
+
 const unsuitableFamilyCafeTypes = new Set([
   'bar',
   'pub',
@@ -43,11 +45,3 @@ export const parkExternalFields = Object.freeze({
   image_url: null,
   image_source_url: null,
 });
-
-export function normaliseWalthamForestEventImageUrl(imageUrl) {
-  if (!imageUrl || !/walthamforest\.gov\.uk/i.test(imageUrl)) return imageUrl;
-  return imageUrl.replace(
-    '/styles/x_small_3_2_546_x_364_/public/',
-    '/styles/large_3_2_2x/public/',
-  );
-}

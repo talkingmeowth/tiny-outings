@@ -2,6 +2,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isUsableActivityImageUrl, normaliseFeverImageUrl } from './lib/activity-image-policy.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const listingUrl = 'https://feverup.com/en/london/family';
@@ -190,20 +191,15 @@ function feverImageUrl(product, html) {
   for (const tag of metaTags) {
     const name = (htmlAttr(tag, 'property') || htmlAttr(tag, 'name') || '').toLowerCase();
     const content = htmlAttr(tag, 'content');
-    if (content && ['og:image', 'og:image:url', 'twitter:image', 'twitter:image:src'].includes(name)) return content.replaceAll('&amp;', '&');
+    if (content && ['og:image', 'og:image:url', 'twitter:image', 'twitter:image:src'].includes(name)) {
+      const imageUrl = normaliseFeverImageUrl(content.replaceAll('&amp;', '&'));
+      if (isUsableActivityImageUrl(imageUrl)) return imageUrl;
+    }
   }
 
   const imageUrl = product.image?.contentUrl || product.image?.url || null;
-  if (!imageUrl) return null;
-
-  try {
-    const parsed = new URL(imageUrl);
-    const photoPathIndex = parsed.pathname.indexOf('/fever2/plan/photo/');
-    if (!parsed.hostname.endsWith('feverup.com') || photoPathIndex === -1) return imageUrl;
-    return `https://applications-media.feverup.com/image/upload/f_auto,w_720,h_720/${parsed.pathname.slice(photoPathIndex + 1)}`;
-  } catch {
-    return imageUrl;
-  }
+  const normalisedImageUrl = normaliseFeverImageUrl(imageUrl);
+  return isUsableActivityImageUrl(normalisedImageUrl) ? normalisedImageUrl : null;
 }
 
 function rowFor(product, url, html) {

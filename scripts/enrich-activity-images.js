@@ -2,7 +2,14 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { normaliseWalthamForestEventImageUrl } from './lib/activity-import-policy.js';
+import {
+  isClearCafeLogoCandidate as sharedCafeLogoCandidate,
+  isSocialMediaImage as sharedSocialMediaImage,
+  isUsableActivityImageUrl as sharedUsableImageUrl,
+  normaliseFeverImageUrl as sharedFeverImageUrl,
+  normaliseWalthamForestEventImageUrl,
+  scoreActivityImage as sharedImageScore,
+} from './lib/activity-image-policy.js';
 
 const repoRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 // Allow a targeted enrichment run without overwriting another pending image batch.
@@ -155,175 +162,23 @@ function absoluteUrl(value, baseUrl) {
 }
 
 function isGoodActivityImageUrl(imageUrl) {
-  if (!imageUrl) return false;
-  const value = imageUrl.toLowerCase();
-  try {
-    const parsed = new URL(imageUrl);
-    const path = parsed.pathname.toLowerCase();
-    const basename = path.split('/').pop() || '';
-    if (/^(?:facebook|twitter)[0-9_-]*\.(?:png|jpe?g|webp)$/.test(basename)) {
-      return false;
-    }
-    if (
-      parsed.hostname.includes('walthamforest.gov.uk') &&
-      path.includes('/sites/default/files/2026-06/') &&
-      basename.endsWith('.png')
-    ) {
-      return false;
-    }
-  } catch {
-    return false;
-  }
-
-  return ![
-    'favicon',
-    'icon',
-    'logo',
-    'brand',
-    'wordmark',
-    'header',
-    'footer',
-    '/flags/',
-    'site-flag',
-    'union-jack',
-    'union_jack',
-    'country-selector',
-    'language-selector',
-    'sprite',
-    'avatar',
-    'placeholder',
-    '/pay.',
-    'pay.png',
-    '/find.',
-    'find.png',
-    '/apply.',
-    'apply.png',
-    '/report.',
-    'report.png',
-    'apple-touch',
-    'loading',
-    'spinner',
-    'pixelated',
-    'low-res',
-    'lowres',
-    'blurry',
-    'facebook.com/tr',
-    'facebook.net/tr',
-    'facebook.png',
-    'facebook.jpg',
-    'facebook.jpeg',
-    'facebook.webp',
-    'twitter.png',
-    'twitter.jpg',
-    'twitter.jpeg',
-    'twitter.webp',
-    'doubleclick.net',
-    'google-analytics.com',
-    'tracking-pixel',
-    '/pixel.',
-    'pixel.gif',
-    '.svg',
-    'google-play',
-    'google_play',
-    'app-store',
-    'app_store',
-    'download-button',
-    '/small_',
-    '/uploads/company/logo/',
-    '/x_small_',
-    's100x100',
-    'sloppyframe',
-    'profile_pic',
-    't51.2885-19/',
-    'moon@2x',
-    '150x150',
-    '200x200',
-    's200x200',
-    'cookie',
-    'consent',
-    'newsletter',
-    'payment',
-    'checkout',
-  ].some((blocked) => value.includes(blocked));
+  return sharedUsableImageUrl(imageUrl);
 }
 
 function isCafe(activity) {
   return /cafe|coffee|food|lunch/i.test(activity.category || '');
 }
 
-function dimensionsFromImageContext(imageUrl, context = '') {
-  const contextWidth = Number(context.match(/\bwidth=(\d+)/i)?.[1] || 0);
-  const contextHeight = Number(context.match(/\bheight=(\d+)/i)?.[1] || 0);
-  const wixDimensions = [...String(imageUrl).matchAll(/(?:(?:\/|,)w_|[?&]w(?:idth)?=)(\d+).*?(?:(?:\/|,)h_|[?&]h(?:eight)?=)(\d+)/gi)]
-    .map((match) => ({ width: Number(match[1]), height: Number(match[2]) }));
-  return {
-    width: Math.max(contextWidth, ...wixDimensions.map((size) => size.width), 0),
-    height: Math.max(contextHeight, ...wixDimensions.map((size) => size.height), 0),
-  };
-}
-
 function isSocialMediaIconCandidate(imageUrl, context = '') {
-  return /(facebook|instagram|twitter|tiktok|linkedin|pinterest|youtube|social[-_ ]?(?:icon|link|media))/i
-    .test(`${imageUrl} ${context}`);
+  return sharedSocialMediaImage(imageUrl, context);
 }
 
 function isClearCafeLogoCandidate(imageUrl, context = '', activity = {}) {
-  if (!isCafe(activity) || isSocialMediaIconCandidate(imageUrl, context)) return false;
-  if (!/(?:logo|brand|wordmark)/i.test(`${imageUrl} ${context}`)) return false;
-  if (!/\.(?:png|jpe?g|webp|avif)(?:[?#]|$)/i.test(imageUrl)) return false;
-  const nameTerms = String(activity.activity_name || '')
-    .toLowerCase()
-    .split(/[^a-z0-9]+/)
-    .filter((term) => term.length >= 4 && !['cafe', 'coffee', 'restaurant', 'bakery', 'shop']);
-  if (!nameTerms.some((term) => `${imageUrl} ${context}`.toLowerCase().includes(term))) return false;
-  const { width, height } = dimensionsFromImageContext(imageUrl, context);
-  return width === 0 || height === 0 || (width >= 180 && height >= 120);
+  return sharedCafeLogoCandidate(imageUrl, context, activity);
 }
 
 function imageCandidateScore(imageUrl, context = '', activity = {}) {
-  const value = `${imageUrl} ${context}`.toLowerCase();
-  let score = 0;
-  if (/(original|full[-_]?size|large|hero|feature|gallery)/.test(value)) score += 10;
-  if (/(thumbnail|thumb|150x150|300x300|400x400)/.test(value)) score -= 8;
-  if (/\.gif(?:[?#]|$)/.test(value)) score -= 16;
-  const { width, height } = dimensionsFromImageContext(imageUrl, context);
-  if (width * height >= 180000) score += 8;
-  if (width > 0 && height > 0 && width * height < 12000) score -= 12;
-  const queryDimensions = [...value.matchAll(/[?&](?:w|width|h|height)=(\d+)/g)].map((match) => Number(match[1]));
-  if (queryDimensions.some((dimension) => dimension >= 900)) score += 6;
-  if (queryDimensions.some((dimension) => dimension > 0 && dimension < 180)) score -= 12;
-
-  const activityTerms = String(activity.activity_name || '')
-    .toLowerCase()
-    .split(/[^a-z0-9]+/)
-    .filter((term) => term.length >= 4 && !['with', 'from', 'this', 'that', 'class', 'activity', 'london', 'family', 'years'].includes(term));
-  const matchingTerms = activityTerms.filter((term) => value.includes(term));
-  score += Math.min(matchingTerms.length, 3) * 8;
-  const categoryTerms = String(activity.category || '')
-    .toLowerCase()
-    .split(/[^a-z0-9]+/)
-    .filter((term) => term.length >= 4 && !['family', 'activities', 'outdoor'].includes(term));
-  const matchingCategoryTerms = categoryTerms.filter((term) => value.includes(term));
-  score += Math.min(matchingCategoryTerms.length, 2) * 10;
-  if (isCafe(activity)) {
-    // Cafe cards should show the place first, then food, then a clear brand
-    // logo. The large gaps make this ordering deterministic for each page.
-    if (/(interior|inside|venue|dining|seating|space|room|restaurant|cafe)/.test(value)) score += 600;
-    else if (/(food|dish|cake|pastry|brunch|bakery|coffee|drink|menu)/.test(value)) score += 400;
-    else if (isClearCafeLogoCandidate(imageUrl, context, activity)) score += 200;
-    if (/(og:image|twitter:image|social-share|open-graph|default|banner)/.test(value)) score -= 18;
-  } else if (/(interior|inside|venue|cafe|coffee|restaurant|food|gallery|play|studio|class|space|room|facility)/.test(value)) {
-    score += 30;
-  }
-  // Across all importers, real activities and venues are more useful than
-  // decorative graphics. These terms can come from an image's URL, alt text,
-  // CSS classes, or metadata supplied by the source website.
-  if (/(people|person|parent|mum|mom|dad|baby|toddler|child|children|kid|family|group|class|session|workshop|performance|dance|yoga)/.test(value)) score += 35;
-  if (/(photo|photograph|gallery|interior|inside|venue|space|studio|room|food|dish|cake|pastry|coffee)/.test(value)) score += 25;
-  if (/(graphic|illustration|drawing|cartoon|animation|plane|poster|flyer|template|stock)/.test(value)) score -= 45;
-  if (/(hero|banner|cover|default|social-share)/.test(value)) score -= 6;
-  if (/(logo|brand|wordmark|icon|avatar|badge)/.test(value)) score -= 20;
-  return score;
+  return sharedImageScore(imageUrl, context, activity);
 }
 
 function sqlString(value) {
@@ -350,16 +205,7 @@ function websiteLinksForActivity(activity) {
 
 function normaliseFeverImageUrl(imageUrl, activity) {
   if (activity?.source_name !== 'Fever London family listings') return imageUrl;
-
-  try {
-    const parsed = new URL(imageUrl);
-    const photoPathIndex = parsed.pathname.indexOf('/fever2/plan/photo/');
-    if (!parsed.hostname.endsWith('feverup.com') || photoPathIndex === -1) return imageUrl;
-    const photoPath = parsed.pathname.slice(photoPathIndex + 1);
-    return `https://applications-media.feverup.com/image/upload/f_auto,w_720,h_720/${photoPath}`;
-  } catch {
-    return imageUrl;
-  }
+  return sharedFeverImageUrl(imageUrl);
 }
 
 function curatedImageForActivity(activity) {
@@ -580,31 +426,20 @@ async function fetchWebsiteImage(activity) {
 }
 
 async function enrichActivity(activity) {
-  const websiteImage = await fetchWebsiteImage(activity);
-  if (websiteImage?.imageUrl) {
-    return {
-      activity,
-      source: 'website',
-      googlePlaceId: activity.google_place_id,
-      googlePlaceUri: activity.google_place_uri,
-      googlePhotoUrl: null,
-      googleRating: activity.google_rating,
-      googleUserRatingCount: activity.google_user_rating_count,
-      imageUrl: websiteImage.imageUrl,
-      imageSourceUrl: websiteImage.imageSourceUrl,
-    };
-  }
+  return enrichmentResult(activity, await fetchWebsiteImage(activity));
+}
 
+function enrichmentResult(activity, websiteImage) {
   return {
     activity,
-    source: 'missing',
+    source: websiteImage?.imageUrl ? 'website' : 'missing',
     googlePlaceId: activity.google_place_id,
     googlePlaceUri: activity.google_place_uri,
     googlePhotoUrl: null,
     googleRating: activity.google_rating,
     googleUserRatingCount: activity.google_user_rating_count,
-    imageUrl: null,
-    imageSourceUrl: null,
+    imageUrl: websiteImage?.imageUrl || null,
+    imageSourceUrl: websiteImage?.imageSourceUrl || null,
   };
 }
 
@@ -712,34 +547,6 @@ async function main() {
   console.log('Images are read from the verified organiser website, then the activity listing.');
 
   const enriched = await mapWithConcurrency(targets, websiteOnly ? 10 : 6, async (activity, index) => {
-    if (websiteOnly) {
-      const websiteImage = await fetchWebsiteImage(activity);
-      const result = websiteImage?.imageUrl
-        ? {
-          activity,
-          source: 'website',
-          googlePlaceId: activity.google_place_id,
-          googlePlaceUri: activity.google_place_uri,
-          googlePhotoUrl: null,
-          googleRating: activity.google_rating,
-          googleUserRatingCount: activity.google_user_rating_count,
-          imageUrl: websiteImage.imageUrl,
-          imageSourceUrl: websiteImage.imageSourceUrl,
-        }
-        : {
-          activity,
-          source: 'missing',
-          googlePlaceId: activity.google_place_id,
-          googlePlaceUri: activity.google_place_uri,
-          googlePhotoUrl: null,
-          googleRating: activity.google_rating,
-          googleUserRatingCount: activity.google_user_rating_count,
-          imageUrl: null,
-          imageSourceUrl: null,
-        };
-      if (verbose) console.log(`${index + 1}/${targets.length} ${result.source}: ${activity.activity_name}`);
-      return result;
-    }
     const result = await enrichActivity(activity);
     if (verbose) console.log(`${index + 1}/${targets.length} ${result.source}: ${activity.activity_name}`);
     return result;
