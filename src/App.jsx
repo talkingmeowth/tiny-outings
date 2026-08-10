@@ -5,6 +5,7 @@ import L from 'leaflet';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { supabase } from './supabaseClient';
+import { googleSignInErrorMessage, signInWithNativeGoogle } from './googleAuth';
 
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
@@ -1518,43 +1519,22 @@ export default function App() {
       return;
     }
 
+    if (!Capacitor.isNativePlatform()) {
+      setNotice('Google sign-in is available in the installed Android app.');
+      return;
+    }
+
     setAuthLoading(true);
-    const isNativeApp = Capacitor.isNativePlatform();
-
-    if (isNativeApp) {
-      try {
-        const googleUser = await NativeGoogleSignIn.signIn();
-        const idToken = googleUser.idToken;
-        if (!idToken) throw new Error('Google did not return an identity token.');
-        const { error } = await supabase.auth.signInWithIdToken({
-          provider: 'google',
-          token: idToken,
-        });
-        if (error) throw error;
-      } catch (error) {
-        setNotice(`Google sign-in could not finish: ${error.message || 'Please try again.'}`);
-      } finally {
-        setAuthLoading(false);
-      }
-      return;
-    }
-
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin,
-      },
-    });
-    if (error || !data?.url) {
-      setNotice(`Google sign-in could not start: ${error?.message || 'No sign-in link was returned.'}`);
-      setAuthLoading(false);
-      return;
-    }
-
     try {
-      window.location.assign(data.url);
-    } catch {
-      setNotice('Google sign-in could not open. Please try again.');
+      const data = await signInWithNativeGoogle({
+        supabaseClient: supabase,
+        nativeGoogle: NativeGoogleSignIn,
+      });
+      setSession(data.session);
+      setEntryChoice('google');
+    } catch (error) {
+      setNotice(googleSignInErrorMessage(error));
+    } finally {
       setAuthLoading(false);
     }
   }
@@ -1568,6 +1548,13 @@ export default function App() {
     const { error } = await supabase.auth.signOut();
     if (error) setNotice(`Could not sign out: ${error.message}`);
     else {
+      if (Capacitor.isNativePlatform()) {
+        try {
+          await NativeGoogleSignIn.signOut();
+        } catch {
+          // The Supabase session is closed even if Android credential cleanup fails.
+        }
+      }
       setEntryChoice(null);
     }
   }

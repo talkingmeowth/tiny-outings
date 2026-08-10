@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "test:auth": "node --test src/googleAuth.test.js",
     "preview": "vite preview",
     "lint": "eslint .",
     "activities:expanded": "node scripts/build-expanded-activities-seed.js",
