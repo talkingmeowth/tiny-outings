@@ -2104,9 +2104,9 @@ function WelcomeScreen({ authLoading, onSignIn, onContinueAsGuest }) {
     <main className="welcome-screen">
       <div className="welcome-sun" aria-hidden="true" />
       <div className="welcome-mark" aria-hidden="true"><span /><span /><span /></div>
-      <p className="welcome-kicker">Tiny Outings</p>
+      <p className="welcome-kicker">Tiny Outings - London family planner</p>
       <h1>Small plans.<br />Big days.</h1>
-      <p className="welcome-copy">Find family-friendly things to do, then build your week one outing at a time.</p>
+      <p className="welcome-copy">Discover family-friendly London outings, then build your week one outing at a time.</p>
       <div className="welcome-actions">
         <button className="welcome-google" type="button" onClick={onSignIn} disabled={authLoading}>
           <span className="google-g" aria-hidden="true">G</span>
