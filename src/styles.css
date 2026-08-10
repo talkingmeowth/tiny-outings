@@ -1893,6 +1893,82 @@ input[type='range'] {
   background: rgba(255, 250, 240, 0.9);
 }
 
+.map-screen {
+  gap: 14px;
+}
+
+.map-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.map-summary span,
+.map-insight {
+  display: grid;
+  gap: 3px;
+  padding: 12px;
+  border: 1px solid rgba(36, 52, 47, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 250, 240, 0.88);
+}
+
+.map-summary span {
+  color: rgba(36, 52, 47, 0.67);
+  font-size: 0.73rem;
+  font-weight: 800;
+}
+
+.map-summary strong,
+.map-insight strong {
+  color: var(--green-dark);
+  font-size: 1rem;
+}
+
+.london-map-shell {
+  overflow: hidden;
+  min-height: 480px;
+  border: 1px solid rgba(36, 52, 47, 0.14);
+  border-radius: 30px;
+  box-shadow: 0 16px 42px rgba(48, 35, 21, 0.12);
+}
+
+.london-map {
+  min-height: 480px;
+  width: 100%;
+  font-family: inherit;
+}
+
+.london-map .leaflet-control-attribution {
+  max-width: 78%;
+  color: rgba(36, 52, 47, 0.62);
+  font-size: 0.56rem;
+}
+
+.london-map .leaflet-tooltip {
+  max-width: 220px;
+  border: 0;
+  border-radius: 12px;
+  color: var(--ink);
+  background: rgba(255, 250, 240, 0.96);
+  box-shadow: 0 10px 24px rgba(48, 35, 21, 0.16);
+  font-family: inherit;
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.map-insight {
+  border-color: rgba(22, 115, 95, 0.18);
+  background: linear-gradient(135deg, rgba(220, 237, 200, 0.86), rgba(255, 250, 240, 0.94));
+}
+
+.map-insight span,
+.map-insight small {
+  color: rgba(36, 52, 47, 0.67);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
 .detail-description {
   color: var(--ink);
   font-size: 1rem;
@@ -1983,7 +2059,7 @@ input[type='range'] {
   left: 12px;
   z-index: 50;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 5px;
   max-width: 496px;
   margin: 0 auto;

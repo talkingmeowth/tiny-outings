@@ -2,6 +2,8 @@ import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
+import { CircleMarker, MapContainer, TileLayer, Tooltip } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 import { completeNativeGoogleSignIn, supabase } from './supabaseClient';
 
 const dayWindows = ['morning', 'afternoon', 'evening'];
@@ -279,6 +281,26 @@ function milesBetween(a, b) {
     Math.sin(dLat / 2) ** 2 +
     Math.sin(dLon / 2) ** 2 * Math.cos(lat1) * Math.cos(lat2);
   return 2 * radiusMiles * Math.asin(Math.sqrt(x));
+}
+
+function activityConcentrations(activities) {
+  const cells = new Map();
+  for (const activity of activities) {
+    const lat = numericOrNull(activity.lat);
+    const long = numericOrNull(activity.long);
+    if (lat == null || long == null) continue;
+    // Roughly 1.2 km cells make a readable London-wide activity heat map.
+    const key = `${Math.round(lat * 85) / 85}:${Math.round(long * 55) / 55}`;
+    const existing = cells.get(key) || { lat: 0, long: 0, count: 0, activities: [] };
+    existing.lat += lat;
+    existing.long += long;
+    existing.count += 1;
+    if (existing.activities.length < 3) existing.activities.push(activity.activity_name);
+    cells.set(key, existing);
+  }
+  return [...cells.values()]
+    .map((cell) => ({ ...cell, lat: cell.lat / cell.count, long: cell.long / cell.count }))
+    .sort((left, right) => right.count - left.count);
 }
 
 function formatDistance(miles) {
@@ -1827,6 +1849,10 @@ export default function App() {
           />
         )}
 
+        {activeScreen === 'map' && (
+          <ActivityMapScreen activities={allActivities.filter((activity) => activity.public_listing_status === 'published')} />
+        )}
+
         {activeScreen === 'add' && (
           <AddActivityScreen
             form={linkForm}
@@ -2698,6 +2724,70 @@ function AddActivityScreen({
   );
 }
 
+function ActivityMapScreen({ activities }) {
+  const concentrations = useMemo(() => activityConcentrations(activities), [activities]);
+  const mappedActivityCount = activities.filter((activity) => activity.lat != null && activity.long != null).length;
+  const largest = concentrations[0];
+
+  return (
+    <section className="app-screen map-screen">
+      <div className="screen-title compact">
+        <span className="eyebrow">Where are we</span>
+        <h1>London, mapped.</h1>
+        <p>Bigger bubbles mean more Tiny Outings nearby.</p>
+      </div>
+
+      <div className="map-summary">
+        <span><strong>{mappedActivityCount.toLocaleString()}</strong> mapped outings</span>
+        <span><strong>{concentrations.length}</strong> local clusters</span>
+      </div>
+
+      <div className="london-map-shell">
+        <MapContainer
+          center={[51.5074, -0.1278]}
+          zoom={10}
+          minZoom={9}
+          maxZoom={15}
+          maxBounds={[[51.28, -0.56], [51.78, 0.34]]}
+          scrollWheelZoom={false}
+          className="london-map"
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+          />
+          {concentrations.map((cluster) => (
+            <CircleMarker
+              key={`${cluster.lat}:${cluster.long}`}
+              center={[cluster.lat, cluster.long]}
+              radius={Math.min(32, 7 + Math.sqrt(cluster.count) * 4.2)}
+              pathOptions={{
+                color: '#fffaf0',
+                weight: 2,
+                fillColor: cluster.count > 15 ? '#c85d43' : '#16735f',
+                fillOpacity: 0.78,
+              }}
+            >
+              <Tooltip direction="top" offset={[0, -6]} opacity={1}>
+                <strong>{cluster.count} activities</strong><br />
+                {cluster.activities.join(', ')}
+              </Tooltip>
+            </CircleMarker>
+          ))}
+        </MapContainer>
+      </div>
+
+      {largest && (
+        <div className="map-insight">
+          <span>Most concentrated</span>
+          <strong>{largest.count} activities in one local area</strong>
+          <small>{largest.activities.join(' · ')}</small>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function ActivityDetail({
   activity,
   userPhotos,
@@ -2938,6 +3028,7 @@ function BottomNav({ activeScreen, setActiveScreen }) {
     ['start', 'Plan'],
     ['swipe', 'Swipe'],
     ['calendar', 'Week'],
+    ['map', 'Where'],
     ['add', 'Add'],
   ];
 
