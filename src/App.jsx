@@ -2213,7 +2213,7 @@ function StartScreen({
           />
           <div className="week-preview">
             {weekDays.map((day) => (
-              <span key={day}>{formatDay(day).split(' ')[0]}</span>
+              <span key={day}>{formatDay(day).split(',')[0]}</span>
             ))}
           </div>
         </div>
@@ -2418,9 +2418,9 @@ function SwipeScreen({
               type="button"
               className={classNames('date-pill', selectedDate === day && 'is-on')}
               onClick={() => setSelectedDate(day)}
+              aria-label={formatDay(day, 'long')}
             >
-              <span>{formatDay(day).split(' ')[0]}</span>
-              <strong>{formatDay(day).replace(/^[A-Za-z]+ /, '')}</strong>
+              <span>{formatDay(day).split(',')[0]}</span>
             </button>
           ))}
         </div>

@@ -3690,3 +3690,196 @@ html,
   color: #fffdf7;
   background: var(--green-dark);
 }
+
+/* Playful paper-and-pencil layer. It only changes presentation, never layout semantics. */
+.phone-app::before,
+.phone-app::after {
+  position: fixed;
+  z-index: -1;
+  display: block;
+  width: 92px;
+  height: 92px;
+  border: 2px dashed rgba(39, 74, 67, 0.16);
+  border-radius: 45% 55% 52% 48% / 48% 44% 56% 52%;
+  content: '';
+  pointer-events: none;
+}
+
+.phone-app::before {
+  top: 20%;
+  right: -38px;
+  background: rgba(145, 208, 223, 0.38);
+  transform: rotate(15deg);
+}
+
+.phone-app::after {
+  bottom: 18%;
+  left: -42px;
+  background: rgba(247, 212, 93, 0.34);
+  transform: rotate(-12deg);
+}
+
+.welcome-screen::before,
+.welcome-screen::after {
+  position: absolute;
+  z-index: 0;
+  display: block;
+  color: var(--coral-dark);
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 2.1rem;
+  font-weight: 900;
+  line-height: 1;
+  content: '*';
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.welcome-screen::before {
+  top: 14%;
+  right: 10%;
+  width: auto;
+  height: auto;
+  border: 0;
+  background: none;
+  transform: rotate(14deg);
+}
+
+.welcome-screen::after {
+  right: auto;
+  bottom: 8%;
+  left: 10%;
+  width: auto;
+  height: auto;
+  border: 0;
+  background: none;
+  transform: rotate(-12deg);
+}
+
+.welcome-mark {
+  border-radius: 42% 58% 52% 48% / 48% 44% 56% 52%;
+  box-shadow: 5px 6px 0 rgba(240, 173, 143, 0.28);
+  transform: rotate(-4deg);
+}
+
+.screen-title,
+.filter-card,
+.range-card,
+.start-summary,
+.shortlist-panel,
+.calendar-day,
+.soft-note,
+.app-form,
+.detail-sheet,
+.review-card,
+.profile-card,
+.community-card,
+.profile-editor,
+.share-card,
+.week-export-card,
+.week-share-card,
+.toast,
+.card-content,
+.detail-content-card,
+.swipe-card,
+.share-sheet,
+.report-sheet {
+  border-radius: 28px 24px 30px 22px;
+}
+
+.filter-card:nth-of-type(2n),
+.calendar-day:nth-of-type(2n),
+.review-card:nth-of-type(2n),
+.share-card:nth-of-type(2n) {
+  border-radius: 23px 30px 25px 32px;
+}
+
+.start-screen .screen-title { background-color: #b9e3ed; }
+.calendar-screen .screen-title { background-color: #f8cfca; }
+.form-screen .screen-title { background-color: #ffe49a; }
+.map-screen .screen-title { background-color: #d2c3e7; }
+
+.screen-title::after {
+  border: 0;
+  border-radius: 45% 55% 52% 48% / 48% 44% 56% 52%;
+  background: var(--yellow);
+  opacity: 1;
+  transform: rotate(11deg);
+}
+
+.eyebrow::after {
+  display: inline-block;
+  margin-left: 6px;
+  color: var(--coral-dark);
+  content: '~';
+  font-size: 1.1em;
+  font-weight: 900;
+  transform: rotate(-11deg);
+}
+
+.filter-chip,
+.segment,
+.window-pill,
+.bottom-nav .is-on {
+  border-radius: 18px;
+  transform: none;
+}
+
+.date-pill {
+  flex: 0 0 66px;
+  min-height: 66px;
+  place-items: center;
+  padding: 6px;
+  border: 1.5px solid rgba(39, 74, 67, 0.18);
+  border-radius: 50%;
+  background: var(--paper);
+  text-align: center;
+}
+
+.date-pill span {
+  font-size: 0.76rem;
+  line-height: 1;
+}
+
+.date-pill.is-on {
+  border-color: transparent;
+}
+
+.week-preview span {
+  border: 1px solid rgba(39, 74, 67, 0.16);
+  background: var(--paper);
+}
+
+.card-photo::after,
+.detail-photo::after {
+  width: 30px;
+  height: 30px;
+  border: 2px dashed rgba(39, 74, 67, 0.2);
+  border-radius: 50% 42% 58% 46%;
+  background: var(--yellow);
+  transform: rotate(16deg);
+}
+
+.bottom-nav {
+  border-radius: 31px 27px 34px 29px;
+}
+
+.bottom-nav .is-on {
+  border-radius: 48% 52% 46% 54% / 48% 45% 55% 52%;
+}
+
+/* Keep brand and planning surfaces light; colour belongs to small doodle accents. */
+.brand-lockup {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.start-screen .screen-title,
+.calendar-screen .screen-title,
+.form-screen .screen-title,
+.map-screen .screen-title,
+.planner-strip,
+.swipe-status-bar,
+.swipe-card.is-stacked {
+  background: var(--paper);
+}
