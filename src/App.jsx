@@ -91,6 +91,8 @@ const emptyReviewForm = {
 
 const maxUploadedPhotos = 5;
 const maxPhotoBytes = 8 * 1024 * 1024;
+const preloadedActivityImageUrls = new Set();
+const preconnectedImageOrigins = new Set();
 
 const activityInterestOptions = [
   'Cafes & food',
@@ -682,7 +684,36 @@ function activityPhotoUrl(activity) {
   return activityPhotoUrls(activity)[0] || null;
 }
 
-function ActivityPhoto({ activity, className }) {
+function preloadActivityImages(activities, limit = 4) {
+  if (!globalThis.Image || !Array.isArray(activities)) return;
+
+  activities.slice(0, limit).forEach((activity) => {
+    const imageUrl = activityPhotoUrl(activity);
+    if (!imageUrl || imageUrl.startsWith('/')) return;
+
+    try {
+      const origin = new URL(imageUrl, globalThis.location?.origin).origin;
+      if (!preconnectedImageOrigins.has(origin)) {
+        preconnectedImageOrigins.add(origin);
+        const link = document.createElement('link');
+        link.rel = 'preconnect';
+        link.href = origin;
+        link.crossOrigin = 'anonymous';
+        document.head.append(link);
+      }
+    } catch {
+      // The image itself is still allowed to attempt loading below.
+    }
+
+    if (preloadedActivityImageUrls.has(imageUrl)) return;
+    preloadedActivityImageUrls.add(imageUrl);
+    const image = new Image();
+    image.decoding = 'async';
+    image.src = imageUrl;
+  });
+}
+
+function ActivityPhoto({ activity, className, priority = false }) {
   const photoUrl = activityPhotoUrl(activity);
   const fallbackImage = activityFallbackImage(activity);
 
@@ -693,7 +724,8 @@ function ActivityPhoto({ activity, className }) {
         src={photoUrl || fallbackImage}
         alt=""
         aria-hidden="true"
-        loading="lazy"
+        loading={priority ? 'eager' : 'lazy'}
+        fetchPriority={priority ? 'high' : 'auto'}
         decoding="async"
         onError={(event) => {
           // A bad remote image must never leave the card blank on a mobile connection.
@@ -1136,6 +1168,12 @@ export default function App() {
     () => slotActivities.filter((activity) => !swipedIds.has(String(activity.activity_id))),
     [slotActivities, swipedIds],
   );
+
+  useEffect(() => {
+    // The deck only displays one card, so warm a small look-ahead cache before it is shown.
+    preloadActivityImages(deckActivities);
+  }, [deckActivities]);
+
   const currentShortlist = useMemo(
     () => (shortlists[activeSlot] || [])
       .map((activityId) => activityById.get(String(activityId)))
@@ -2743,7 +2781,7 @@ function ActivityCard({
       <span className="decision-stamp yes">Save</span>
       <span className="decision-stamp no">Skip</span>
 
-      <ActivityPhoto activity={activity} className="card-photo" />
+      <ActivityPhoto activity={activity} className="card-photo" priority={isTop} />
 
       <div className="card-content">
         <div className="card-kicker">
@@ -3206,7 +3244,7 @@ function ActivityDetail({
 
       <div className="detail-hero">
         <div className="detail-gallery" aria-label={`${activity.activity_name} photos`}>
-          <ActivityPhoto activity={activity} className="detail-photo is-main" />
+          <ActivityPhoto activity={activity} className="detail-photo is-main" priority />
           {userPhotos.map((photo) => (
             <figure className="detail-photo user-photo" key={photo.photo_id || photo.photo_url}>
               <img className="activity-photo-image" src={securePhotoUrl(photo.photo_url)} alt={photo.caption || `Photo of ${activity.activity_name}`} />
