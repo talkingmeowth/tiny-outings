@@ -46,6 +46,7 @@ const activitySelectColumns = [
   'time_window',
   'description',
   'cost',
+  'admin_cover_image_url',
   'scraped_image_url',
   'user_image_url',
   'wikimedia_image_url',
@@ -319,6 +320,7 @@ function normalizeActivity(activity) {
       : null,
     availability_type: activity.availability_type || 'recurring',
     cost,
+    admin_cover_image_url: activity.admin_cover_image_url || null,
     scraped_image_url: activity.scraped_image_url || null,
     user_uploaded_image_url: activity.user_uploaded_image_url || null,
     user_image_url: activity.user_image_url || null,
@@ -663,8 +665,9 @@ function activityFallbackImage(activity) {
 function activityPhotoUrls(activity) {
   const fallbackImage = activityFallbackImage(activity);
   const candidates = [
-    activity.user_uploaded_image_url,
+    activity.admin_cover_image_url,
     activity.user_image_url,
+    activity.user_uploaded_image_url,
     activity.scraped_image_url,
     activity.wikimedia_image_url,
     activity.website_image_url,
@@ -953,6 +956,12 @@ function activityPhotoPath(activityId, file) {
   const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
   const id = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   return `${activityId}/${id}.${extension}`;
+}
+
+function adminCoverPhotoPath(activityId, file) {
+  const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+  const id = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return `admin-covers/${activityId}/${id}.${extension}`;
 }
 
 export default function App() {
@@ -1757,8 +1766,10 @@ export default function App() {
     setNotice('Thanks. We will check this listing.');
   }
 
-  async function saveAdminActivityEdits(activity, values) {
+  async function saveAdminActivityEdits(activity, values, coverImageFile = null) {
     if (!supabase || !isAdmin) return;
+    let adminCoverImageUrl = activity.admin_cover_image_url || null;
+
     const updates = {
       category: values.category || activity.category || null,
       user_image_url: values.user_image_url || null,
@@ -1768,6 +1779,29 @@ export default function App() {
       google_place_uri: values.google_link || null,
     };
     setAdminSaving(true);
+
+    if (coverImageFile) {
+      const [acceptedCoverImage] = acceptedPhotoFiles([coverImageFile]);
+      if (!acceptedCoverImage) {
+        setAdminSaving(false);
+        setNotice('Choose a JPG, PNG or WebP cover image under 8 MB.');
+        return;
+      }
+
+      const path = adminCoverPhotoPath(activity.activity_id, acceptedCoverImage);
+      const { error: uploadError } = await supabase.storage
+        .from('activity-photos')
+        .upload(path, acceptedCoverImage, { contentType: acceptedCoverImage.type, upsert: false });
+      if (uploadError) {
+        setAdminSaving(false);
+        setNotice(`Cover image could not be uploaded: ${uploadError.message}`);
+        return;
+      }
+      const { data: coverImage } = supabase.storage.from('activity-photos').getPublicUrl(path);
+      adminCoverImageUrl = coverImage.publicUrl;
+    }
+
+    updates.admin_cover_image_url = adminCoverImageUrl;
     const { data, error } = await supabase
       .from('activities')
       .update(updates)
@@ -3348,6 +3382,7 @@ function ReportSheet({ activity, value, submitting, onChange, onClose, onSubmit 
 }
 
 function ActivityAdminEditor({ activity, saving, onSave, onArchive }) {
+  const [coverImageFile, setCoverImageFile] = useState(null);
   const [form, setForm] = useState({
     category: activity.category || '',
     user_image_url: activity.user_image_url || '',
@@ -3357,6 +3392,7 @@ function ActivityAdminEditor({ activity, saving, onSave, onArchive }) {
   });
 
   useEffect(() => {
+    setCoverImageFile(null);
     setForm({
       category: activity.category || '',
       user_image_url: activity.user_image_url || '',
@@ -3371,7 +3407,7 @@ function ActivityAdminEditor({ activity, saving, onSave, onArchive }) {
     const values = Object.fromEntries(
       Object.entries(form).map(([key, value]) => [key, value.trim()]),
     );
-    onSave(activity, values);
+    onSave(activity, values, coverImageFile);
   }
 
   return (
@@ -3395,8 +3431,17 @@ function ActivityAdminEditor({ activity, saving, onSave, onArchive }) {
           ))}
         </select>
       </label>
+      <label className="wide photo-upload-field">
+        <span>Upload cover image</span>
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={(event) => setCoverImageFile(event.target.files?.[0] || null)}
+        />
+        <small>{coverImageFile ? coverImageFile.name : activity.admin_cover_image_url ? 'Current admin cover image stays until replaced' : 'JPG, PNG or WebP up to 8 MB'}</small>
+      </label>
       <label>
-        <span>Card image URL</span>
+        <span>Admin image URL</span>
         <input
           type="url"
           value={form.user_image_url}
