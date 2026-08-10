@@ -226,6 +226,7 @@ function cleanDisplayText(value, fallback = '') {
     .replace(/\u2026/g, '...')
     .replace(/\u00A3/g, 'GBP ')
     .replace(/\u20AC/g, 'EUR ')
+    .replace(/\?/g, '')
     .replace(/[\u00A0\s]+/g, ' ')
     .replace(/[^\x20-\x7E]/g, '')
     .trim();
@@ -3138,7 +3139,7 @@ function ActivityDetail({
         </form>
       ) : (
         <section className="review-card review-signin-card">
-          <div><h3>Have you been?</h3><p>Sign in to leave a rating or comment.</p></div>
+          <div><h3>Have you been</h3><p>Sign in to leave a rating or comment.</p></div>
           <button className="primary-action" type="button" onClick={onSignIn}>Sign in to review</button>
         </section>
       )}
