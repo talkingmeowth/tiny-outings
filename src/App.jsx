@@ -9,7 +9,11 @@ import { googleSignInErrorMessage, signInWithNativeGoogle } from './googleAuth';
 
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
-const adminEmails = new Set(['talkingmeowth06@gmail.com', 'benfielden@gmail.com']);
+const adminEmails = new Set([
+  'talkingmeowth06@gmail.com',
+  'talkingmeowtho6@gmail.com',
+  'benfielden@gmail.com',
+]);
 const appDownloadPageUrl = 'https://tiny-outings-cpjh.onrender.com/';
 const defaultProfileAvatar = '/images/profile-placeholder.svg';
 const NativeGoogleSignIn = registerPlugin('TinyOutingsGoogle');
@@ -930,7 +934,14 @@ function isEventListing(activity) {
   return activitySourceLabel(activity) === 'Events';
 }
 
-function buildSubmittedPayload(enriched, submissionLink, websiteLink, googlePlacesLink, userId = null) {
+function buildSubmittedPayload(
+  enriched,
+  submissionLink,
+  websiteLink,
+  googlePlacesLink,
+  userId = null,
+  publicListingStatus = 'draft',
+) {
   const appRating = numericOrNull(enriched.app_rating ?? enriched.google_rating);
   const reviewCount = Number(enriched.number_of_reviews ?? enriched.google_user_rating_count ?? 0);
   const payload = {
@@ -951,7 +962,7 @@ function buildSubmittedPayload(enriched, submissionLink, websiteLink, googlePlac
     cost: enriched.cost || null,
     source_name: googlePlacesLink ? 'Google Places link submission' : 'Website link submission',
     source_url: submissionLink,
-    public_listing_status: 'draft',
+    public_listing_status: publicListingStatus,
     archive: false,
     submitted_by_user_id: userId,
     google_place_id: enriched.google_place_id || null,
@@ -2009,12 +2020,23 @@ export default function App() {
 
       const activityId = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
       const payload = {
-        ...buildSubmittedPayload(enriched, link, websiteLink, googlePlacesLink, session?.user?.id || null),
+        ...buildSubmittedPayload(
+          enriched,
+          link,
+          websiteLink,
+          googlePlacesLink,
+          session?.user?.id || null,
+          isAdmin ? 'published' : 'draft',
+        ),
         activity_id: activityId,
         activity_name: submittedName || enriched.activity_name,
         category: linkForm.category || enriched.category || enriched.google_primary_type || 'Classes & clubs',
       };
-      const { error: insertError } = await supabase.from('activities').insert(payload);
+      const { data: insertedActivityData, error: insertError } = await supabase
+        .from('activities')
+        .insert(payload)
+        .select(activitySelectColumns)
+        .single();
       if (insertError) {
         setNotice(`The activity details were found, but could not be saved: ${insertError.message}`);
         return;
@@ -2028,20 +2050,21 @@ export default function App() {
       }
 
       setLinkForm({ ...emptyLinkForm, photos: [] });
-      setNotice(`${payload.activity_name} was added for review.`);
       if (isAdmin) {
-        // Re-run the shared query so submitted drafts appear immediately for review.
-        const { data, error } = await supabase
-          .from('activities')
-          .select(activitySelectColumns)
-          .eq('activity_id', activityId)
-          .maybeSingle();
-        if (!error && data) {
-          setReviewQueue((current) => [
-            normalizeActivity(data),
+        // An administrator adding a listing is the manual review step. Show the
+        // live result immediately, rather than hiding their own work in drafts.
+        if (insertedActivityData) {
+          const insertedActivity = normalizeActivity(insertedActivityData);
+          setActivities((current) => [
+            insertedActivity,
             ...current.filter((item) => String(item.activity_id) !== String(activityId)),
           ]);
+          setSelectedActivity(insertedActivity);
+          setActiveScreen('activity');
         }
+        setNotice(`${payload.activity_name} is live.`);
+      } else {
+        setNotice(`${payload.activity_name} was added for review.`);
       }
     } catch (error) {
       setNotice(`The activity could not be added: ${error instanceof Error ? error.message : 'Please try again.'}`);
@@ -3079,7 +3102,7 @@ function AddActivityScreen({
       <div className="screen-title compact">
         <span className="eyebrow">Add</span>
         <h1>Add a spot.</h1>
-        <p>Share the basics. We review every new listing first.</p>
+        <p>{isAdmin ? 'Your additions go live straight away.' : 'Share the basics. We review every new listing first.'}</p>
       </div>
 
       <form className="app-form link-only-form" onSubmit={onSubmit}>
