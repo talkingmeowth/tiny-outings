@@ -416,14 +416,27 @@ function classNames(...names) {
 }
 
 function googleEntryUrl(activity) {
-  if (activity.google_place_uri) return activity.google_place_uri;
-  if (activity.google_link) return activity.google_link;
-  if (activity.google_place_id) {
-    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activity.activity_name)}&query_place_id=${activity.google_place_id}`;
+  const latitude = numericOrNull(activity.lat);
+  const longitude = numericOrNull(activity.long);
+  const query = latitude != null && longitude != null
+    ? `${latitude},${longitude}`
+    : `${activity.activity_name || ''} ${activity.address || ''}`.trim();
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+}
+
+function googleMapsAppUrl(activity) {
+  const latitude = numericOrNull(activity.lat);
+  const longitude = numericOrNull(activity.long);
+  const label = encodeURIComponent(activity.activity_name || 'Tiny Outing');
+  if (latitude != null && longitude != null) {
+    return `geo:${latitude},${longitude}?q=${latitude},${longitude}(${label})`;
   }
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-    `${activity.activity_name} ${activity.address || ''}`,
-  )}`;
+  return googleEntryUrl(activity);
+}
+
+function openGoogleMaps(activity) {
+  const destination = Capacitor.isNativePlatform() ? googleMapsAppUrl(activity) : googleEntryUrl(activity);
+  window.location.assign(destination);
 }
 
 function googleMapEmbedUrl(activity) {
@@ -1295,6 +1308,26 @@ export default function App() {
     setNotice('Listing correction saved for future importer review.');
   }
 
+  async function archiveAdminActivity(activity) {
+    if (!supabase || !isAdmin) return;
+    if (!window.confirm(`Archive ${activity.activity_name}? It will no longer appear in the app.`)) return;
+
+    setAdminSaving(true);
+    const { error } = await supabase
+      .from('activities')
+      .update({ public_listing_status: 'archived' })
+      .eq('activity_id', activity.activity_id);
+    setAdminSaving(false);
+    if (error) {
+      setNotice(`Listing could not be archived: ${error.message}`);
+      return;
+    }
+
+    setActivities((current) => current.filter((item) => String(item.activity_id) !== String(activity.activity_id)));
+    closeActivity();
+    setNotice('Listing archived.');
+  }
+
   async function uploadActivityPhotos(activityId, files, caption = null, sourceUrl = null) {
     const uploads = acceptedPhotoFiles(files);
     if (!uploads.length) return [];
@@ -1565,6 +1598,7 @@ export default function App() {
             isAdmin={isAdmin}
             adminSaving={adminSaving}
             onSaveAdminEdits={saveAdminActivityEdits}
+            onArchive={archiveAdminActivity}
             onClose={closeActivity}
           />
         )}
@@ -2311,6 +2345,7 @@ function ActivityDetail({
   isAdmin,
   adminSaving,
   onSaveAdminEdits,
+  onArchive,
   onClose,
 }) {
   const googleUrl = googleEntryUrl(activity);
@@ -2369,16 +2404,16 @@ function ActivityDetail({
         </div>
 
         {mapEmbedUrl && (
-          <figure className="detail-map">
+          <button className="detail-map" type="button" onClick={() => openGoogleMaps(activity)}>
             <iframe
               title={`Map for ${activity.activity_name}`}
               src={mapEmbedUrl}
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              allowFullScreen
+              tabIndex="-1"
             />
-            <figcaption>Map preview</figcaption>
-          </figure>
+            <span>Open in Google Maps</span>
+          </button>
         )}
 
         <div className="external-links detail-links">
@@ -2386,7 +2421,7 @@ function ActivityDetail({
           {organiserWebsiteUrl && (
             <a href={organiserWebsiteUrl} target="_blank" rel="noreferrer">Organiser site</a>
           )}
-          <a href={googleUrl} target="_blank" rel="noreferrer">Google Places</a>
+          <a href={googleUrl} target="_blank" rel="noreferrer">Google Maps</a>
         </div>
       </div>
 
@@ -2395,6 +2430,7 @@ function ActivityDetail({
           activity={activity}
           saving={adminSaving}
           onSave={onSaveAdminEdits}
+          onArchive={onArchive}
         />
       )}
 
@@ -2437,7 +2473,7 @@ function ActivityDetail({
   );
 }
 
-function ActivityAdminEditor({ activity, saving, onSave }) {
+function ActivityAdminEditor({ activity, saving, onSave, onArchive }) {
   const [form, setForm] = useState({
     user_image_url: activity.user_image_url || '',
     website: activity.website || '',
@@ -2507,6 +2543,9 @@ function ActivityAdminEditor({ activity, saving, onSave }) {
       </label>
       <button className="primary-action" type="submit" disabled={saving}>
         {saving ? 'Saving...' : 'Save corrections'}
+      </button>
+      <button className="archive-listing-button" type="button" onClick={() => onArchive(activity)} disabled={saving}>
+        Archive listing
       </button>
     </form>
   );

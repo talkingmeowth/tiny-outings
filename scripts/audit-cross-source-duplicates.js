@@ -41,6 +41,16 @@ function postcode(activity) {
   return match ? match[0].replace(/\s/g, '') : null;
 }
 
+function distanceKm(left, right) {
+  if (left.lat == null || left.long == null || right.lat == null || right.long == null) return null;
+  const radians = (value) => Number(value) * Math.PI / 180;
+  const latitudeDelta = radians(Number(right.lat) - Number(left.lat));
+  const longitudeDelta = radians(Number(right.long) - Number(left.long));
+  const a = Math.sin(latitudeDelta / 2) ** 2
+    + Math.cos(radians(left.lat)) * Math.cos(radians(right.lat)) * Math.sin(longitudeDelta / 2) ** 2;
+  return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 function sourceLabel(activity) {
   const value = `${activity.data_source || ''} ${activity.source_name || ''} ${activity.source_url || ''}`.toLowerCase();
   if (value.includes('loopla')) return 'loopla';
@@ -65,7 +75,7 @@ function qualityScore(activity) {
 
 async function fetchActivities(env) {
   const rows = [];
-  const select = 'activity_id,activity_name,address,postcode,borough,category,start_time,end_time,activity_date,available_dates,availability_start_date,availability_end_date,days_of_week,available_days_of_week,availability_type,source_name,data_source,source_url,website,description,image_url,public_listing_status';
+  const select = 'activity_id,activity_name,address,postcode,borough,category,start_time,end_time,activity_date,available_dates,availability_start_date,availability_end_date,days_of_week,available_days_of_week,availability_type,source_name,data_source,source_url,website,description,image_url,lat,long,public_listing_status';
   for (let offset = 0; ; offset += 1000) {
     const url = new URL('/rest/v1/activities', env.VITE_SUPABASE_URL);
     url.searchParams.set('select', select);
@@ -87,6 +97,8 @@ function canMatch(left, right) {
   const leftPostcode = postcode(left);
   const rightPostcode = postcode(right);
   if (leftPostcode && rightPostcode && leftPostcode === rightPostcode) return true;
+  const distance = distanceKm(left, right);
+  if (distance != null && distance <= 0.35) return true;
   const venueScore = similarity(tokens(left.address, ignoredVenueTokens), tokens(right.address, ignoredVenueTokens));
   return venueScore >= 0.58;
 }

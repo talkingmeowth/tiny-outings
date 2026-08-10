@@ -235,6 +235,7 @@ function parseEvent(url, html, place, occurrences) {
   const recurring = occurrences.length > 1
     || /ongoing|every\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/i.test(`${status} ${frequency}`)
     || /weekly|term[ -]?time/i.test(description);
+  const explicitlyWeekly = /every\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)|weekly/i.test(`${status} ${frequency} ${description}`);
 
   if (!activityName || !/best start in life/i.test(categories) || excludedNames.test(activityName)) return null;
   if (!eventDate || !venue || !place?.location) return null;
@@ -245,7 +246,7 @@ function parseEvent(url, html, place, occurrences) {
   const day = weekdayFor(eventDate.date);
   const lastListedDate = availableDates.at(-1) || eventDate.date;
   const availabilityNotes = recurring
-    ? `Council dates listed through ${lastListedDate}${/term[ -]?time/i.test(description) ? '; term time only' : ''}. Check the council event page for changes.`
+    ? `${explicitlyWeekly ? `Runs weekly on ${availableDays.join(', ') || day}` : `Council dates listed through ${lastListedDate}`}${/term[ -]?time/i.test(description) ? '; term time only' : ''}. Check the council event page for changes.`
     : `Council event on ${eventDate.date}. Check the council event page for changes.`;
 
   return {
@@ -289,7 +290,10 @@ function parseEvent(url, html, place, occurrences) {
     availability_start_date: null,
     availability_end_date: null,
     available_days_of_week: recurring ? availableDays : [day],
-    availability_type: recurring ? 'specific_dates' : 'one_off',
+    // The council results view exposes only a short date window. Preserve its
+    // listed dates for auditability, but use the event page's explicit weekly
+    // statement so ongoing groups remain visible in future planning weeks.
+    availability_type: explicitlyWeekly ? 'weekly' : recurring ? 'specific_dates' : 'one_off',
     availability_notes: availabilityNotes,
     public_listing_status: 'published',
   };
