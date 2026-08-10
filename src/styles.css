@@ -83,6 +83,12 @@ a {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Plan filters are frequent mobile taps, so do not wait for gesture detection. */
+button,
+.source-picker summary {
+  touch-action: manipulation;
+}
+
 .phone-app {
   position: relative;
   max-width: 520px;

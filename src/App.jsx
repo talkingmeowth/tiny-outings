@@ -109,6 +109,7 @@ const ageFilterOptions = [
   { value: 'preschool', label: 'Preschool', minMonths: 36, maxMonths: 60 },
   { value: 'five-plus', label: '5+', minMonths: 60, maxMonths: 216 },
 ];
+const ageFilterByValue = new Map(ageFilterOptions.map((option) => [option.value, option]));
 
 function defaultFilters() {
   return {
@@ -278,7 +279,7 @@ function normalizeActivity(activity) {
   const reviewCount = Number(activity.number_of_reviews ?? activity.google_user_rating_count ?? 0);
   const cost = cleanDisplayText(activity.cost || activity.price || activity.price_text || activity.fee || '') || null;
 
-  return {
+  const normalized = {
     ...activity,
     activity_id: String(activity.activity_id),
     start_time: String(activity.start_time || '09:00').slice(0, 5),
@@ -327,6 +328,22 @@ function normalizeActivity(activity) {
     image_source_url: activity.image_source_url || activity.website || activity.source_url || null,
     public_listing_status: activity.public_listing_status || 'published',
     archive: Boolean(activity.archive),
+  };
+
+  const sourceLabel = activitySourceLabel(normalized);
+  const availableDays = normalized.available_days_of_week.length
+    ? normalized.available_days_of_week
+    : normalized.days_of_week;
+
+  // These labels are used by every Plan filter. Deriving them once when the
+  // directory arrives keeps category and age taps quick on lower-end phones.
+  return {
+    ...normalized,
+    source_label: sourceLabel,
+    is_event_source: isEventSource(normalized),
+    plan_label: activityPlanLabel({ ...normalized, source_label: sourceLabel }),
+    age_range: activityAgeRange(normalized),
+    available_days_normalized: availableDays.map(normalizedWeekday),
   };
 }
 
@@ -756,9 +773,10 @@ function socialShareUrl(provider, shareData) {
 function isActivityAvailableOn(activity, dateISO) {
   const weekday = weekdayName(dateISO);
   const explicitDates = activity.available_dates || [];
-  const availableDays = activity.available_days_of_week?.length
-    ? activity.available_days_of_week
-    : activity.days_of_week;
+  const availableDays = activity.available_days_normalized
+    || (activity.available_days_of_week?.length
+      ? activity.available_days_of_week
+      : activity.days_of_week || []).map(normalizedWeekday);
 
   if (activity.activity_date === dateISO || explicitDates.includes(dateISO)) return true;
 
@@ -785,17 +803,18 @@ function isActivityAvailableOn(activity, dateISO) {
 
   if (availableDays?.length) {
     const normalizedTargetDay = normalizedWeekday(weekday);
-    return availableDays.some((day) => normalizedWeekday(day) === normalizedTargetDay);
+    return availableDays.includes(normalizedTargetDay);
   }
   return true;
 }
 
 function activityMatchesInterests(activity, selectedCategories, allCategoriesSelected) {
   if (allCategoriesSelected) return true;
-  return selectedCategories.has(activityPlanLabel(activity));
+  return selectedCategories.has(activity.plan_label || activityPlanLabel(activity));
 }
 
 function activityPlanLabel(activity) {
+  if (activity.plan_label) return activity.plan_label;
   if (isEventListing(activity)) return 'Events';
 
   const category = String(activity.category || '').toLowerCase();
@@ -843,13 +862,14 @@ function activityAgeRange(activity) {
 
 function activityMatchesAge(activity, ageRange) {
   if (ageRange === 'all') return true;
-  const selected = ageFilterOptions.find((option) => option.value === ageRange);
-  const activityRange = activityAgeRange(activity);
+  const selected = ageFilterByValue.get(ageRange);
+  const activityRange = activity.age_range || activityAgeRange(activity);
   if (!selected || !activityRange) return true;
   return activityRange.minMonths <= selected.maxMonths && activityRange.maxMonths >= selected.minMonths;
 }
 
 function isEventSource(activity) {
+  if (typeof activity.is_event_source === 'boolean') return activity.is_event_source;
   return /eventbrite|fever|loopla/i.test([
     activity.data_source,
     activity.source_name,
@@ -859,6 +879,7 @@ function isEventSource(activity) {
 }
 
 function activitySourceLabel(activity) {
+  if (activity.source_label) return activity.source_label;
   const source = String(activity.data_source || '').trim().toLowerCase();
   const sourceName = String(activity.source_name || '').toLowerCase();
   const searchableSource = `${source} ${sourceName} ${activity.source_url || ''}`.toLowerCase();
