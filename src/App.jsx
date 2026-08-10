@@ -2965,6 +2965,24 @@ function ActivityMapScreen({ activities }) {
         <p>Each bubble is a neighbourhood. Bigger means more outings.</p>
       </div>
 
+      <div className="london-landmark-doodles" aria-hidden="true">
+        <svg className="doodle-big-ben" viewBox="0 0 72 118" fill="none">
+          <path d="M20 108h32M25 108l4-66h14l4 66M24 42h24L36 13 24 42Z" />
+          <path d="M29 42h14v17H29zM31 48h10" />
+          <path d="M34 13V5m0 0 5 5m-5-5-5 5M24 108l-4 7m32-7 4 7" />
+        </svg>
+        <svg className="doodle-eye" viewBox="0 0 120 112" fill="none">
+          <circle cx="60" cy="49" r="35" />
+          <circle cx="60" cy="49" r="5" />
+          <path d="M60 14v70M25 49h70M35 24l50 50M85 24 35 74M52 84l-13 20m29-20 13 20M20 104h80" />
+        </svg>
+        <svg className="doodle-bridge" viewBox="0 0 146 70" fill="none">
+          <path d="M8 58h130M23 58V25m18 33V25m64 33V25m18 33V25" />
+          <path d="M23 25h18l-9-15-9 15Zm82 0h18l-9-15-9 15ZM41 37h64M41 25l64 33M105 25 41 58" />
+          <path d="M12 65c12-8 24 8 36 0s24 8 36 0 24 8 36 0" />
+        </svg>
+      </div>
+
       <div className="map-summary">
         <span><strong>{mappedActivityCount.toLocaleString()}</strong> activities on the map</span>
       </div>

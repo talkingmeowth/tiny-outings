@@ -3883,3 +3883,420 @@ html,
 .swipe-card.is-stacked {
   background: var(--paper);
 }
+
+/* Bright crayon-and-sticker accents inspired by children's activity books. */
+:root {
+  --ink: #243956;
+  --muted: #607184;
+  --paper: #fffdf6;
+  --cream: #fff1bd;
+  --line: rgba(36, 57, 86, 0.15);
+  --green: #90d58f;
+  --green-dark: #376fce;
+  --coral: #ff8879;
+  --coral-dark: #b94f47;
+  --yellow: #ffd54d;
+  --blue: #76afea;
+  --mint: #a8dda1;
+  --blush: #ffc6bb;
+  --lavender: #bcb4ee;
+  --apricot: #ffb36b;
+  --shadow: 0 12px 28px rgba(36, 57, 86, 0.12);
+}
+
+html,
+.phone-app,
+.app-topbar,
+.welcome-screen {
+  background: #fff1bd;
+}
+
+.phone-app::before,
+.phone-app::after {
+  border: 0;
+  opacity: 0.72;
+}
+
+.phone-app::before {
+  width: 108px;
+  height: 78px;
+  border-radius: 48% 52% 42% 58%;
+  background: var(--coral);
+}
+
+.phone-app::after {
+  width: 94px;
+  height: 94px;
+  border-radius: 50%;
+  background: var(--blue);
+}
+
+.welcome-screen::before,
+.welcome-screen::after {
+  color: var(--coral-dark);
+  font-size: 2.6rem;
+  opacity: 0.82;
+}
+
+.welcome-mark {
+  box-shadow: 7px 7px 0 rgba(255, 136, 121, 0.3);
+}
+
+.welcome-google,
+.primary-action,
+.distance-toggle button.is-on,
+.filter-chip.is-on,
+.secondary-button.is-on,
+.segment.is-on,
+.date-pill.is-on,
+.window-pill.is-on,
+.bottom-nav .is-on,
+.week-export-card button {
+  color: #fff;
+  background: var(--green-dark);
+  box-shadow: 4px 5px 0 rgba(36, 57, 86, 0.14);
+}
+
+.welcome-guest,
+.account-button,
+.guest-button,
+.secondary-button,
+.link-button,
+.sheet-close,
+.toast button {
+  border: 2px solid rgba(36, 57, 86, 0.12);
+  background: var(--paper);
+}
+
+.screen-title,
+.filter-card,
+.range-card,
+.start-summary,
+.shortlist-panel,
+.calendar-day,
+.soft-note,
+.app-form,
+.detail-sheet,
+.review-card,
+.profile-card,
+.community-card,
+.profile-editor,
+.share-card,
+.week-export-card,
+.week-share-card,
+.toast,
+.card-content,
+.detail-content-card,
+.swipe-card,
+.share-sheet,
+.report-sheet {
+  border: 2px solid rgba(36, 57, 86, 0.1);
+  box-shadow: 7px 8px 0 rgba(255, 213, 77, 0.25), var(--shadow);
+}
+
+.screen-title {
+  position: relative;
+  overflow: hidden;
+}
+
+.screen-title::before {
+  position: absolute;
+  top: 18px;
+  left: 20px;
+  color: var(--coral);
+  content: '+';
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 2.1rem;
+  font-weight: 900;
+  line-height: 1;
+  transform: rotate(-10deg);
+}
+
+.screen-title .eyebrow,
+.screen-title h1,
+.screen-title p,
+.screen-title .hero-badges {
+  position: relative;
+  z-index: 1;
+}
+
+.screen-title::after {
+  background: var(--yellow);
+  box-shadow: -7px 7px 0 rgba(255, 136, 121, 0.26);
+}
+
+.planner-strip,
+.swipe-status-bar {
+  border: 2px solid rgba(36, 57, 86, 0.1);
+  box-shadow: 5px 6px 0 rgba(118, 175, 234, 0.24);
+}
+
+.swipe-status-bar {
+  box-shadow: 5px 6px 0 rgba(144, 213, 143, 0.28);
+}
+
+.filter-chip:nth-child(6n + 1) { background: #ffd54d; }
+.filter-chip:nth-child(6n + 2) { background: #8fc7f4; }
+.filter-chip:nth-child(6n + 3) { background: #ffb8ad; }
+.filter-chip:nth-child(6n + 4) { background: #c5bdf4; }
+.filter-chip:nth-child(6n + 5) { background: #a8dda1; }
+.filter-chip:nth-child(6n + 6) { background: #ffbf82; }
+
+.filter-chip,
+.segment,
+.window-pill,
+.date-pill,
+.week-preview span {
+  border: 2px solid rgba(36, 57, 86, 0.15);
+}
+
+.date-pill {
+  background: #fffdf6;
+}
+
+.date-pill.is-on {
+  border-color: var(--green-dark);
+}
+
+.card-photo::after,
+.detail-photo::after {
+  border-color: rgba(36, 57, 86, 0.22);
+  background: var(--coral);
+  box-shadow: 3px 3px 0 rgba(255, 213, 77, 0.65);
+}
+
+.bottom-nav {
+  border: 2px solid rgba(36, 57, 86, 0.1);
+  box-shadow: 0 10px 22px rgba(36, 57, 86, 0.12);
+}
+
+/* Keep every destination legible above long, scrollable screens. */
+.bottom-nav button {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  white-space: nowrap;
+}
+
+/* Extra paper-cut doodles: decorative only, so controls stay predictable to use. */
+.hero-badges {
+  position: relative;
+}
+
+.hero-badges::after {
+  position: absolute;
+  right: -24px;
+  bottom: -28px;
+  width: 48px;
+  height: 48px;
+  border: 3px dashed var(--coral);
+  border-radius: 49% 51% 42% 58%;
+  content: '';
+  opacity: 0.7;
+  pointer-events: none;
+  transform: rotate(16deg);
+}
+
+.filter-card,
+.profile-card,
+.week-export-card,
+.week-share-card,
+.map-summary,
+.app-form,
+.detail-content-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.filter-card::after,
+.profile-card::after,
+.week-export-card::after,
+.week-share-card::after,
+.map-summary::after,
+.app-form::after,
+.detail-content-card::after {
+  position: absolute;
+  right: 22px;
+  top: 20px;
+  width: 11px;
+  height: 11px;
+  border: 3px solid var(--coral);
+  border-radius: 50%;
+  box-shadow: 19px 12px 0 -3px var(--yellow), 4px 30px 0 -2px var(--blue);
+  content: '';
+  opacity: 0.85;
+  pointer-events: none;
+  transform: rotate(-8deg);
+}
+
+.filter-card::before,
+.app-form::before {
+  position: absolute;
+  right: 52px;
+  bottom: 18px;
+  width: 46px;
+  height: 18px;
+  border-top: 3px solid var(--blue);
+  border-radius: 52%;
+  content: '';
+  opacity: 0.62;
+  pointer-events: none;
+  transform: rotate(-9deg);
+}
+
+.planner-strip {
+  position: relative;
+  overflow: hidden;
+}
+
+.planner-strip::after {
+  position: absolute;
+  left: 12px;
+  bottom: 8px;
+  width: 37px;
+  height: 12px;
+  border-bottom: 3px dashed var(--coral);
+  border-radius: 50%;
+  content: '';
+  opacity: 0.72;
+  pointer-events: none;
+  transform: rotate(8deg);
+}
+
+.swipe-status-bar {
+  position: relative;
+  overflow: hidden;
+}
+
+.swipe-status-bar::after {
+  position: absolute;
+  right: 18px;
+  top: 14px;
+  width: 22px;
+  height: 22px;
+  border: 3px solid var(--yellow);
+  border-radius: 38% 62% 52% 48%;
+  content: '';
+  opacity: 0.8;
+  pointer-events: none;
+  transform: rotate(20deg);
+}
+
+.london-map-shell {
+  position: relative;
+}
+
+.london-map-shell::before,
+.london-map-shell::after {
+  position: absolute;
+  z-index: 500;
+  width: 25px;
+  height: 25px;
+  border: 3px solid var(--coral);
+  border-radius: 50% 45% 55% 42%;
+  content: '';
+  pointer-events: none;
+}
+
+.london-map-shell::before {
+  top: -9px;
+  right: 32px;
+  box-shadow: 14px 14px 0 -7px var(--yellow);
+  transform: rotate(13deg);
+}
+
+.london-map-shell::after {
+  bottom: -8px;
+  left: 28px;
+  border-color: var(--blue);
+  transform: rotate(-16deg);
+}
+
+.welcome-actions::before {
+  display: block;
+  width: 46px;
+  margin: 0 auto 13px;
+  border-top: 3px dashed var(--coral);
+  content: '';
+  opacity: 0.75;
+  transform: rotate(-3deg);
+}
+
+.bottom-nav::before {
+  position: absolute;
+  left: 16px;
+  top: -6px;
+  width: 26px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--yellow);
+  content: '';
+  opacity: 0.9;
+  transform: rotate(-8deg);
+}
+
+/* A little London sketchbook for the hotspot view. */
+.map-screen {
+  position: relative;
+}
+
+.london-landmark-doodles {
+  position: relative;
+  height: 74px;
+  margin: -2px 0 6px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.london-landmark-doodles svg {
+  position: absolute;
+  stroke: var(--ink);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
+}
+
+.doodle-big-ben {
+  left: 6%;
+  bottom: -43px;
+  width: 48px;
+  fill: var(--apricot);
+  transform: rotate(-4deg);
+}
+
+.doodle-eye {
+  left: 41%;
+  bottom: -30px;
+  width: 72px;
+  fill: var(--blue);
+  transform: rotate(5deg);
+}
+
+.doodle-bridge {
+  right: 4%;
+  bottom: -10px;
+  width: 112px;
+  fill: none;
+  stroke: var(--coral) !important;
+  transform: rotate(-3deg);
+}
+
+.doodle-eye circle:first-child {
+  fill: var(--yellow);
+}
+
+.doodle-eye circle:nth-child(2) {
+  fill: var(--coral);
+}
+
+@media (max-width: 380px) {
+  .london-landmark-doodles {
+    height: 62px;
+  }
+
+  .doodle-big-ben { left: 2%; }
+  .doodle-eye { left: 39%; }
+  .doodle-bridge { right: -3%; width: 102px; }
+}
