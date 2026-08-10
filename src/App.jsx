@@ -1227,6 +1227,42 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (!supabase) return undefined;
+
+    const channel = supabase
+      .channel('tiny-outings-activity-cards')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'activities' },
+        ({ new: changedActivity }) => {
+          const updatedActivity = normalizeActivity(changedActivity);
+          const isVisible = updatedActivity.public_listing_status === 'published' && !updatedActivity.archive;
+
+          setActivities((current) => {
+            const exists = current.some((item) => String(item.activity_id) === String(updatedActivity.activity_id));
+            if (!isVisible) {
+              return current.filter((item) => String(item.activity_id) !== String(updatedActivity.activity_id));
+            }
+            return exists
+              ? current.map((item) => (String(item.activity_id) === String(updatedActivity.activity_id) ? updatedActivity : item))
+              : [...current, updatedActivity];
+          });
+
+          setSelectedActivity((current) => (
+            String(current?.activity_id) === String(updatedActivity.activity_id)
+              ? (isVisible ? updatedActivity : null)
+              : current
+          ));
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!supabase || !isAdmin) {
       setReviewQueue([]);
       return undefined;
