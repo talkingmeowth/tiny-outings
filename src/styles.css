@@ -2,24 +2,24 @@
 
 :root {
   font-family: 'Nunito', Verdana, sans-serif;
-  color: #24342f;
-  background: #fff0d3;
+  color: #17324d;
+  background: #eaf6ff;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  --ink: #24342f;
-  --muted: #756f62;
-  --cream: #fff3d7;
-  --paper: #fffaf0;
-  --line: rgba(36, 52, 47, 0.14);
-  --green: #2f8a64;
-  --green-dark: #1f4a3f;
-  --coral: #ff8a65;
-  --coral-dark: #b9543d;
-  --yellow: #ffd56a;
-  --blue: #aee0df;
-  --mint: #dcedc8;
-  --blush: #ffe1d0;
-  --shadow: 0 24px 70px rgba(64, 46, 25, 0.17);
+  --ink: #17324d;
+  --muted: #5e6b73;
+  --cream: #fff4d7;
+  --paper: #fffcf5;
+  --line: rgba(23, 50, 77, 0.15);
+  --green: #257b8e;
+  --green-dark: #17324d;
+  --coral: #ed6a5e;
+  --coral-dark: #b63e55;
+  --yellow: #f7c948;
+  --blue: #a7daf7;
+  --mint: #d7f0e8;
+  --blush: #ffdce5;
+  --shadow: 0 24px 70px rgba(23, 50, 77, 0.18);
 }
 
 * {
@@ -30,10 +30,10 @@ html {
   min-height: 100%;
   overflow-x: hidden;
   background:
-    radial-gradient(circle at 12% 6%, rgba(255, 213, 106, 0.86), transparent 19rem),
-    radial-gradient(circle at 96% 5%, rgba(174, 224, 223, 0.9), transparent 20rem),
-    radial-gradient(circle at 82% 82%, rgba(255, 138, 101, 0.22), transparent 18rem),
-    linear-gradient(145deg, #fff7e8 0%, #f4dfbe 58%, #d7eccc 100%);
+    radial-gradient(circle at 12% 6%, rgba(247, 201, 72, 0.72), transparent 19rem),
+    radial-gradient(circle at 96% 5%, rgba(167, 218, 247, 0.92), transparent 20rem),
+    radial-gradient(circle at 82% 82%, rgba(237, 106, 94, 0.24), transparent 18rem),
+    linear-gradient(145deg, #f6fbff 0%, #e3f3ff 57%, #fff0cb 100%);
 }
 
 body {
@@ -52,7 +52,7 @@ body::before {
   z-index: -1;
   pointer-events: none;
   content: '';
-  background-image: radial-gradient(rgba(36, 52, 47, 0.16) 1px, transparent 1.5px);
+  background-image: radial-gradient(rgba(23, 50, 77, 0.14) 1px, transparent 1.5px);
   background-size: 24px 24px;
   mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.62), transparent 78%);
   opacity: 0.45;
@@ -1948,16 +1948,40 @@ input[type='range'] {
 
 .london-map-shell {
   overflow: hidden;
-  min-height: 480px;
-  border: 4px solid rgba(255, 250, 240, 0.94);
+  min-height: 520px;
+  border: 4px solid rgba(255, 252, 245, 0.96);
   border-radius: 30px;
-  box-shadow: 0 10px 0 rgba(31, 74, 63, 0.13), 0 20px 42px rgba(48, 35, 21, 0.12);
+  box-shadow: 0 10px 0 rgba(23, 50, 77, 0.14), 0 20px 42px rgba(23, 50, 77, 0.14);
 }
 
 .london-map {
-  min-height: 480px;
+  min-height: 520px;
   width: 100%;
   font-family: inherit;
+}
+
+.london-map .leaflet-tile-pane {
+  filter: saturate(0.78) contrast(1.08);
+}
+
+.heatmap-legend {
+  display: grid;
+  grid-template-columns: auto minmax(80px, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  margin: -2px 4px 12px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.heatmap-legend i {
+  display: block;
+  height: 9px;
+  border: 1px solid rgba(23, 50, 77, 0.12);
+  border-radius: 999px;
+  background: linear-gradient(90deg, #5cb9ea, #70d6a7, #f7c948, #f28a5d, #c94762);
 }
 
 .london-map .leaflet-control-attribution {

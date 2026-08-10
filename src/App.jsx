@@ -2,7 +2,9 @@ import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
-import { CircleMarker, MapContainer, TileLayer, Tooltip } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet.heat';
+import { CircleMarker, MapContainer, TileLayer, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { completeNativeGoogleSignIn, supabase } from './supabaseClient';
 
@@ -310,6 +312,33 @@ function shuffleActivities(activities) {
     [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
   }
   return shuffled;
+}
+
+function ActivityHeatLayer({ activities }) {
+  const map = useMap();
+
+  useEffect(() => {
+    const points = activities
+      .map((activity) => [numericOrNull(activity.lat), numericOrNull(activity.long), 1])
+      .filter(([lat, long]) => lat != null && long != null);
+    const layer = L.heatLayer(points, {
+      radius: 48,
+      blur: 34,
+      minOpacity: 0.36,
+      maxZoom: 11,
+      max: 5,
+      gradient: {
+        0.2: '#5cb9ea',
+        0.45: '#70d6a7',
+        0.65: '#f7c948',
+        0.82: '#f28a5d',
+        1: '#c94762',
+      },
+    }).addTo(map);
+    return () => map.removeLayer(layer);
+  }, [activities, map]);
+
+  return null;
 }
 
 function formatDistance(miles) {
@@ -2723,6 +2752,7 @@ function ActivityMapScreen({ activities }) {
   const concentrations = useMemo(() => activityConcentrations(activities), [activities]);
   const mappedActivityCount = activities.filter((activity) => activity.lat != null && activity.long != null).length;
   const largest = concentrations[0];
+  const peakClusters = concentrations.slice(0, 16);
 
   return (
     <section className="app-screen map-screen">
@@ -2737,10 +2767,15 @@ function ActivityMapScreen({ activities }) {
         <span><strong>{concentrations.length}</strong> local clusters</span>
       </div>
 
+      <div className="heatmap-legend" aria-label="Map density legend">
+        <span>Less to explore</span><i aria-hidden="true" /><span>More to explore</span>
+      </div>
+
       <div className="london-map-shell">
         <MapContainer
           center={[51.5074, -0.1278]}
-          zoom={9}
+          zoom={8.5}
+          zoomSnap={0.25}
           minZoom={8}
           maxZoom={15}
           maxBounds={[[51.12, -0.78], [51.9, 0.56]]}
@@ -2751,16 +2786,17 @@ function ActivityMapScreen({ activities }) {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
             url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           />
-          {concentrations.map((cluster) => (
+          <ActivityHeatLayer activities={activities} />
+          {peakClusters.map((cluster) => (
             <CircleMarker
               key={`${cluster.lat}:${cluster.long}`}
               center={[cluster.lat, cluster.long]}
-              radius={Math.min(32, 7 + Math.sqrt(cluster.count) * 4.2)}
+              radius={Math.min(18, 4 + Math.sqrt(cluster.count) * 2.3)}
               pathOptions={{
-                color: '#fffaf0',
-                weight: 2,
-                fillColor: cluster.count > 15 ? '#c85d43' : '#16735f',
-                fillOpacity: 0.78,
+                color: '#fffdf6',
+                weight: 2.5,
+                fillColor: '#17324d',
+                fillOpacity: 0.86,
               }}
             >
               <Tooltip direction="top" offset={[0, -6]} opacity={1}>
