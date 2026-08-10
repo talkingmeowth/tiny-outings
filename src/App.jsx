@@ -623,7 +623,8 @@ function profileAvatar(profile) {
 }
 
 function activityShareUrl(activity) {
-  return `${publicAppUrl}/?activity=${encodeURIComponent(activity.activity_id)}`;
+  const storedGooglePlaceUrl = activity.google_place_uri || activity.google_link;
+  return isGooglePlacesUrl(storedGooglePlaceUrl) ? storedGooglePlaceUrl : googleEntryUrl(activity);
 }
 
 function sharedActivityIdFromLocation() {
@@ -636,7 +637,7 @@ function sharedActivityIdFromLocation() {
 
 function activityShareText(activity) {
   const timing = isFlexibleActivity(activity) ? 'Anytime' : `${activity.start_time} to ${activity.end_time}`;
-  return `Fancy this Tiny Outing? ${activity.activity_name} - ${timing}.`;
+  return `Tiny Outings pick: ${activity.activity_name} - ${timing}.`;
 }
 
 function socialShareUrl(provider, activity) {
