@@ -704,9 +704,25 @@ function activityShareText(activity) {
   return `Tiny Outings pick: ${activity.activity_name} - ${timing}.`;
 }
 
-function socialShareUrl(provider, activity) {
-  const url = activityShareUrl(activity);
-  const message = `${activityShareText(activity)} ${url}`;
+function activityShareData(activity) {
+  return {
+    title: activity.activity_name,
+    text: activityShareText(activity),
+    url: activityShareUrl(activity),
+  };
+}
+
+function appShareData() {
+  return {
+    title: 'Tiny Outings',
+    text: 'Plan little family adventures with Tiny Outings.',
+    url: publicAppUrl,
+  };
+}
+
+function socialShareUrl(provider, shareData) {
+  const { url, text } = shareData;
+  const message = `${text} ${url}`;
   if (provider === 'whatsapp') return `https://wa.me/?text=${encodeURIComponent(message)}`;
   if (provider === 'facebook') return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
   if (provider === 'sms') return `sms:?body=${encodeURIComponent(message)}`;
@@ -943,6 +959,7 @@ export default function App() {
   const [sharedActivityId] = useState(sharedActivityIdFromLocation);
   const [openedSharedActivity, setOpenedSharedActivity] = useState(false);
   const [shareSheetActivity, setShareSheetActivity] = useState(null);
+  const [shareSheetApp, setShareSheetApp] = useState(false);
   const [reportSheetActivity, setReportSheetActivity] = useState(null);
   const [reportText, setReportText] = useState('');
   const [reportSubmitting, setReportSubmitting] = useState(false);
@@ -1599,11 +1616,7 @@ export default function App() {
   }
 
   async function shareActivity(activity) {
-    const shareData = {
-      title: activity.activity_name,
-      text: activityShareText(activity),
-      url: activityShareUrl(activity),
-    };
+    const shareData = activityShareData(activity);
     try {
       if (navigator.share) {
         await navigator.share(shareData);
@@ -1617,11 +1630,7 @@ export default function App() {
   }
 
   async function shareApp() {
-    const shareData = {
-      title: 'Tiny Outings',
-      text: 'Plan little family adventures with Tiny Outings.',
-      url: publicAppUrl,
-    };
+    const shareData = appShareData();
     try {
       if (navigator.share) {
         await navigator.share(shareData);
@@ -1635,7 +1644,13 @@ export default function App() {
   }
 
   function openShareSheet(activity) {
+    setShareSheetApp(false);
     setShareSheetActivity(activity);
+  }
+
+  function openAppShareSheet() {
+    setShareSheetActivity(null);
+    setShareSheetApp(true);
   }
 
   function openReportSheet(activity) {
@@ -1648,6 +1663,16 @@ export default function App() {
     try {
       await navigator.clipboard?.writeText(`${activityShareText(activity)} ${activityShareUrl(activity)}`);
       setNotice('Activity link copied.');
+    } catch {
+      setNotice('Could not copy the link on this device.');
+    }
+  }
+
+  async function copyAppLink() {
+    try {
+      const shareData = appShareData();
+      await navigator.clipboard?.writeText(`${shareData.text} ${shareData.url}`);
+      setNotice('Tiny Outings link copied.');
     } catch {
       setNotice('Could not copy the link on this device.');
     }
@@ -2025,7 +2050,7 @@ export default function App() {
             onRemoveEvent={removeEvent}
             onSaveProfile={saveProfile}
             onSignIn={signInWithGoogle}
-            onShareApp={shareApp}
+            onShareApp={openAppShareSheet}
           />
         )}
 
@@ -2068,13 +2093,13 @@ export default function App() {
         )}
       </main>
 
-      {shareSheetActivity && (
+      {(shareSheetActivity || shareSheetApp) && (
         <ShareSheet
-          activity={shareSheetActivity}
-          onClose={() => setShareSheetActivity(null)}
-          onShare={() => shareActivity(shareSheetActivity)}
-          onCopy={() => copyActivityLink(shareSheetActivity)}
-          onReport={() => openReportSheet(shareSheetActivity)}
+          shareData={shareSheetActivity ? activityShareData(shareSheetActivity) : appShareData()}
+          onClose={() => { setShareSheetActivity(null); setShareSheetApp(false); }}
+          onShare={() => (shareSheetActivity ? shareActivity(shareSheetActivity) : shareApp())}
+          onCopy={() => (shareSheetActivity ? copyActivityLink(shareSheetActivity) : copyAppLink())}
+          onReport={shareSheetActivity ? () => openReportSheet(shareSheetActivity) : null}
         />
       )}
       {reportSheetActivity && (
@@ -3142,24 +3167,24 @@ function ActivityDetail({
   );
 }
 
-function ShareSheet({ activity, onClose, onShare, onCopy, onReport }) {
+function ShareSheet({ shareData, onClose, onShare, onCopy, onReport }) {
   const openProvider = (provider) => {
     if (provider === 'instagram') {
       onShare();
       return;
     }
-    window.open(socialShareUrl(provider, activity), '_blank', 'noopener,noreferrer');
+    window.open(socialShareUrl(provider, shareData), '_blank', 'noopener,noreferrer');
   };
 
   return (
     <div className="share-sheet-backdrop" role="presentation" onClick={onClose}>
-      <section className="share-sheet" role="dialog" aria-modal="true" aria-label="Share activity" onClick={(event) => event.stopPropagation()}>
+      <section className="share-sheet" role="dialog" aria-modal="true" aria-label="Share options" onClick={(event) => event.stopPropagation()}>
         <div className="sheet-handle" />
         <div className="share-sheet-heading">
           <span>Send to</span>
           <button type="button" onClick={onClose} aria-label="Close share options">x</button>
         </div>
-        <p className="share-sheet-title">{activity.activity_name}</p>
+        <p className="share-sheet-title">{shareData.title}</p>
         <div className="share-row">
           <button className="share-option native-share" type="button" onClick={onShare}><i>+</i><span>Share</span></button>
           <button className="share-option whatsapp" type="button" onClick={() => openProvider('whatsapp')}><i>W</i><span>WhatsApp</span></button>
@@ -3169,7 +3194,7 @@ function ShareSheet({ activity, onClose, onShare, onCopy, onReport }) {
         </div>
         <div className="share-tools">
           <button type="button" onClick={onCopy}><i>Link</i><span>Copy link</span></button>
-          <button type="button" onClick={onReport}><i>!</i><span>Report</span></button>
+          {onReport && <button type="button" onClick={onReport}><i>!</i><span>Report</span></button>}
         </div>
       </section>
     </div>
