@@ -2,6 +2,8 @@ import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
+import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 import L from 'leaflet';
 import 'leaflet.heat';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
@@ -491,8 +493,29 @@ function buildICS(events) {
   ].join('\r\n');
 }
 
-function downloadICS(events, filename) {
-  const blob = new Blob([buildICS(events)], { type: 'text/calendar;charset=utf-8' });
+async function downloadICS(events, filename) {
+  const calendar = buildICS(events);
+
+  if (Capacitor.isNativePlatform()) {
+    const result = await Filesystem.writeFile({
+      path: `calendar-exports/${filename}`,
+      data: calendar,
+      directory: Directory.Cache,
+      encoding: Encoding.UTF8,
+      recursive: true,
+    });
+    const canShare = await Share.canShare();
+    if (!canShare.value) throw new Error('Calendar sharing is not available on this device.');
+    await Share.share({
+      title: 'Tiny Outings calendar',
+      text: 'Add this Tiny Outings plan to your calendar.',
+      files: [result.uri],
+      dialogTitle: 'Export Tiny Outings calendar',
+    });
+    return;
+  }
+
+  const blob = new Blob([calendar], { type: 'text/calendar;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
@@ -2671,6 +2694,7 @@ function CalendarScreen({
 }) {
   const weekEvents = calendarEvents.filter((event) => weekDays.includes(event.planned_date));
   const [editingProfile, setEditingProfile] = useState(false);
+  const [exportingCalendar, setExportingCalendar] = useState(false);
   const [form, setForm] = useState({ user_name: '', display_name: '', avatar_url: '' });
 
   useEffect(() => {
@@ -2680,6 +2704,17 @@ function CalendarScreen({
       avatar_url: profile?.avatar_url || '',
     });
   }, [profile]);
+
+  async function exportCalendar(events, filename) {
+    setExportingCalendar(true);
+    try {
+      await downloadICS(events, filename);
+    } catch (error) {
+      window.alert(`Calendar export could not start: ${error.message}`);
+    } finally {
+      setExportingCalendar(false);
+    }
+  }
 
   return (
     <section className="app-screen calendar-screen">
@@ -2726,10 +2761,10 @@ function CalendarScreen({
         </div>
         <button
           type="button"
-          disabled={weekEvents.length === 0}
-          onClick={() => downloadICS(weekEvents, `tiny-outings-week-${weekDays[0]}.ics`)}
+          disabled={weekEvents.length === 0 || exportingCalendar}
+          onClick={() => exportCalendar(weekEvents, `tiny-outings-week-${weekDays[0]}.ics`)}
         >
-          Export for Google Calendar
+          {exportingCalendar ? 'Preparing...' : 'Export for Google Calendar'}
         </button>
       </div>
 
@@ -2779,7 +2814,7 @@ function CalendarScreen({
                             <a href={buildGoogleCalendarUrl(event)} target="_blank" rel="noreferrer">
                               Google
                             </a>
-                            <button type="button" onClick={() => downloadICS([event], `${event.planned_date}-${event.day_window}-tiny-outings.ics`)}>
+                            <button type="button" onClick={() => exportCalendar([event], `${event.planned_date}-${event.day_window}-tiny-outings.ics`)}>
                               ICS
                             </button>
                             <button type="button" onClick={() => onRemoveEvent(event)}>
