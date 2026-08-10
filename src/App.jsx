@@ -11,6 +11,7 @@ import { completeNativeGoogleSignIn, supabase } from './supabaseClient';
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
 const adminEmails = new Set(['talkingmeowth06@gmail.com', 'benfielden@gmail.com']);
+const publicAppUrl = 'https://tiny-outings-cpjh.onrender.com';
 const nativeAuthCallback = 'com.tinyoutings.app://auth/callback';
 // Reset outdated swipe/filter state without touching planned calendar entries.
 const planningStorageVersion = '2026-07-24-seven-plan-categories';
@@ -622,7 +623,15 @@ function profileAvatar(profile) {
 }
 
 function activityShareUrl(activity) {
-  return activity.website || activity.organiser_website || activity.source_url || googleEntryUrl(activity);
+  return `${publicAppUrl}/?activity=${encodeURIComponent(activity.activity_id)}`;
+}
+
+function sharedActivityIdFromLocation() {
+  try {
+    return new URLSearchParams(window.location.search).get('activity');
+  } catch {
+    return null;
+  }
 }
 
 function activityShareText(activity) {
@@ -866,6 +875,8 @@ export default function App() {
   const [linkForm, setLinkForm] = useState(emptyLinkForm);
   const [reviewForm, setReviewForm] = useState(emptyReviewForm);
   const [selectedActivity, setSelectedActivity] = useState(null);
+  const [sharedActivityId] = useState(sharedActivityIdFromLocation);
+  const [openedSharedActivity, setOpenedSharedActivity] = useState(false);
   const [shareSheetActivity, setShareSheetActivity] = useState(null);
   const [reportSheetActivity, setReportSheetActivity] = useState(null);
   const [reportText, setReportText] = useState('');
@@ -1091,6 +1102,18 @@ export default function App() {
       cancelled = true;
     };
   }, [signedInUser]);
+
+  useEffect(() => {
+    if (!sharedActivityId || openedSharedActivity || allActivities.length === 0) return;
+    const sharedActivity = allActivities.find(
+      (activity) => String(activity.activity_id) === String(sharedActivityId),
+    );
+    if (!sharedActivity) return;
+    setReturnScreen('start');
+    setSelectedActivity(sharedActivity);
+    setActiveScreen('activity');
+    setOpenedSharedActivity(true);
+  }, [allActivities, openedSharedActivity, sharedActivityId]);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return undefined;
