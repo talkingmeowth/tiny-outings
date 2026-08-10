@@ -1630,6 +1630,181 @@ input[type='range'] {
   opacity: 0.45;
 }
 
+.profile-card,
+.community-card,
+.profile-editor,
+.share-card {
+  border: 1px solid rgba(36, 52, 47, 0.12);
+  background: rgba(255, 250, 240, 0.88);
+  box-shadow: 0 14px 34px rgba(48, 35, 21, 0.08);
+}
+
+.profile-card {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 24px;
+}
+
+.profile-avatar,
+.community-avatar {
+  width: 54px;
+  height: 54px;
+  border: 2px solid rgba(22, 115, 95, 0.2);
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profile-avatar-fallback {
+  display: grid;
+  place-items: center;
+  color: #fffdf6;
+  background: linear-gradient(135deg, var(--green), var(--coral-dark));
+  font-weight: 900;
+}
+
+.profile-summary {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.profile-summary strong,
+.community-person strong {
+  overflow: hidden;
+  color: var(--green-dark);
+  font-size: 0.96rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-summary small,
+.community-person small,
+.share-card small {
+  color: rgba(36, 52, 47, 0.65);
+  font-size: 0.75rem;
+}
+
+.profile-edit-button,
+.follow-button {
+  border: 1px solid rgba(22, 115, 95, 0.2);
+  border-radius: 999px;
+  padding: 9px 11px;
+  color: var(--green-dark);
+  background: rgba(220, 237, 200, 0.62);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.profile-editor {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 22px;
+}
+
+.profile-editor label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  color: var(--green-dark);
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.profile-editor .wide {
+  grid-column: 1 / -1;
+}
+
+.community-card {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 26px;
+}
+
+.community-card .section-heading {
+  margin: 0;
+}
+
+.community-list {
+  display: grid;
+  gap: 9px;
+}
+
+.community-person {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+}
+
+.community-avatar {
+  width: 38px;
+  height: 38px;
+  border-width: 1px;
+  font-size: 0.78rem;
+}
+
+.community-person > div {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.follow-button.is-following {
+  color: #fffdf6;
+  background: var(--green);
+}
+
+.share-card {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 20px;
+}
+
+.share-card > div:first-child {
+  display: grid;
+  gap: 2px;
+}
+
+.share-card strong {
+  color: var(--green-dark);
+  font-size: 0.88rem;
+}
+
+.share-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.share-actions a,
+.share-actions button {
+  min-height: 42px;
+  border: 1px solid rgba(36, 52, 47, 0.14);
+  border-radius: 14px;
+  padding: 8px;
+  color: var(--green-dark);
+  background: rgba(255, 250, 240, 0.88);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-align: center;
+  text-decoration: none;
+}
+
+.share-actions button:first-child {
+  color: #fffdf6;
+  border-color: transparent;
+  background: var(--green);
+}
+
 .detail-description {
   color: var(--ink);
   font-size: 1rem;

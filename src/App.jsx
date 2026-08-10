@@ -539,6 +539,43 @@ function activityCost(activity) {
   return String(cost).trim();
 }
 
+function profileUsername(user) {
+  const requested = String(user?.user_metadata?.user_name || user?.user_metadata?.preferred_username || user?.email || '')
+    .split('@')[0]
+    .toLowerCase()
+    .replace(/[^a-z0-9_.]/g, '')
+    .slice(0, 20);
+  const suffix = String(user?.id || '').replace(/-/g, '').slice(0, 8);
+  const base = requested.length >= 3 ? requested : 'parent';
+  return `${base}_${suffix}`.slice(0, 30);
+}
+
+function profileDisplayName(user) {
+  return user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Tiny Outings parent';
+}
+
+function profileAvatar(profile) {
+  const name = profile?.display_name || profile?.user_name || 'T';
+  return String(name).trim().slice(0, 1).toUpperCase();
+}
+
+function activityShareUrl(activity) {
+  return activity.website || activity.organiser_website || activity.source_url || googleEntryUrl(activity);
+}
+
+function activityShareText(activity) {
+  const timing = isFlexibleActivity(activity) ? 'Anytime' : `${activity.start_time} to ${activity.end_time}`;
+  return `Fancy this Tiny Outing? ${activity.activity_name} - ${timing}.`;
+}
+
+function socialShareUrl(provider, activity) {
+  const url = activityShareUrl(activity);
+  const message = `${activityShareText(activity)} ${url}`;
+  if (provider === 'whatsapp') return `https://wa.me/?text=${encodeURIComponent(message)}`;
+  if (provider === 'facebook') return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+  return url;
+}
+
 function isActivityAvailableOn(activity, dateISO) {
   const weekday = weekdayName(dateISO);
   const explicitDates = activity.available_dates || [];
@@ -781,6 +818,10 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [entryChoice, setEntryChoice] = useState(() => loadStored('entry-choice', null));
   const [authLoading, setAuthLoading] = useState(false);
+  const [profile, setProfile] = useState(null);
+  const [communityProfiles, setCommunityProfiles] = useState([]);
+  const [followingIds, setFollowingIds] = useState([]);
+  const [profileSaving, setProfileSaving] = useState(false);
   const [adminSaving, setAdminSaving] = useState(false);
   // Keep Plan controls responsive while the directory catches up with a changed filter.
   const deferredFilters = useDeferredValue(filters);
@@ -794,6 +835,7 @@ export default function App() {
     [deferredFilters.source],
   );
   const isAdmin = session?.user?.email?.toLowerCase() === adminEmail;
+  const signedInUser = session?.user || null;
 
   const weekDays = useMemo(
     () => Array.from({ length: 7 }, (_, index) => addDaysISO(filters.weekStart, index)),
@@ -935,6 +977,62 @@ export default function App() {
       listener.subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (!supabase || !signedInUser) {
+      setProfile(null);
+      setCommunityProfiles([]);
+      setFollowingIds([]);
+      return undefined;
+    }
+
+    let cancelled = false;
+    async function loadCommunity() {
+      const userId = signedInUser.id;
+      let { data: ownProfile } = await supabase
+        .from('user_table')
+        .select('user_id,user_name,display_name,avatar_url,followers,following')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (!ownProfile) {
+        const { data } = await supabase
+          .from('user_table')
+          .upsert({
+            user_id: userId,
+            user_name: profileUsername(signedInUser),
+            display_name: profileDisplayName(signedInUser),
+            avatar_url: signedInUser.user_metadata?.avatar_url || signedInUser.user_metadata?.picture || null,
+          }, { onConflict: 'user_id' })
+          .select('user_id,user_name,display_name,avatar_url,followers,following')
+          .maybeSingle();
+        ownProfile = data;
+      }
+
+      const [{ data: profiles }, { data: follows }] = await Promise.all([
+        supabase
+          .from('user_table')
+          .select('user_id,user_name,display_name,avatar_url,followers,following')
+          .neq('user_id', userId)
+          .order('followers', { ascending: false })
+          .limit(20),
+        supabase
+          .from('user_follows')
+          .select('followed_user_id')
+          .eq('follower_user_id', userId),
+      ]);
+
+      if (cancelled) return;
+      setProfile(ownProfile || null);
+      setCommunityProfiles(profiles || []);
+      setFollowingIds((follows || []).map((follow) => String(follow.followed_user_id)));
+    }
+
+    loadCommunity();
+    return () => {
+      cancelled = true;
+    };
+  }, [signedInUser]);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return undefined;
@@ -1279,6 +1377,89 @@ export default function App() {
     }
   }
 
+  async function saveProfile(values) {
+    if (!supabase || !session?.user) {
+      setNotice('Sign in to save your profile.');
+      return;
+    }
+    const userName = values.user_name.trim().toLowerCase();
+    if (!/^[a-z0-9_.]{3,30}$/.test(userName)) {
+      setNotice('Choose 3 to 30 letters, numbers, dots, or underscores.');
+      return;
+    }
+
+    setProfileSaving(true);
+    const { data, error } = await supabase
+      .from('user_table')
+      .update({
+        user_name: userName,
+        display_name: values.display_name.trim() || userName,
+        avatar_url: values.avatar_url.trim() || null,
+      })
+      .eq('user_id', session.user.id)
+      .select('user_id,user_name,display_name,avatar_url,followers,following')
+      .single();
+    setProfileSaving(false);
+    if (error) {
+      setNotice(`Profile could not be saved: ${error.message}`);
+      return;
+    }
+    setProfile(data);
+    setNotice('Profile saved.');
+  }
+
+  async function toggleFollow(person) {
+    if (!supabase || !session?.user) {
+      setNotice('Sign in to follow other parents.');
+      return;
+    }
+    const personId = String(person.user_id);
+    const alreadyFollowing = followingIds.includes(personId);
+    const request = alreadyFollowing
+      ? supabase
+        .from('user_follows')
+        .delete()
+        .eq('follower_user_id', session.user.id)
+        .eq('followed_user_id', personId)
+      : supabase
+        .from('user_follows')
+        .insert({ follower_user_id: session.user.id, followed_user_id: personId });
+    const { error } = await request;
+    if (error) {
+      setNotice(`Could not update follow: ${error.message}`);
+      return;
+    }
+
+    const adjustment = alreadyFollowing ? -1 : 1;
+    setFollowingIds((current) => (
+      alreadyFollowing ? current.filter((id) => id !== personId) : [...current, personId]
+    ));
+    setProfile((current) => current ? { ...current, following: Math.max(0, Number(current.following || 0) + adjustment) } : current);
+    setCommunityProfiles((current) => current.map((item) => (
+      String(item.user_id) === personId
+        ? { ...item, followers: Math.max(0, Number(item.followers || 0) + adjustment) }
+        : item
+    )));
+  }
+
+  async function shareActivity(activity) {
+    const shareData = {
+      title: activity.activity_name,
+      text: activityShareText(activity),
+      url: activityShareUrl(activity),
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        return;
+      }
+      await navigator.clipboard?.writeText(`${shareData.text} ${shareData.url}`);
+      setNotice('Activity link copied.');
+    } catch (error) {
+      if (error?.name !== 'AbortError') setNotice('Could not open sharing. Try WhatsApp or Facebook below.');
+    }
+  }
+
   async function saveAdminActivityEdits(activity, values) {
     if (!supabase || !isAdmin) return;
     const updates = {
@@ -1572,9 +1753,17 @@ export default function App() {
           <CalendarScreen
             weekDays={weekDays}
             calendarEvents={calendarEvents}
+            profile={profile}
+            communityProfiles={communityProfiles}
+            followingIds={followingIds}
+            signedIn={Boolean(session)}
+            profileSaving={profileSaving}
             onOpenActivity={openActivity}
             onUpdateEvent={updateEvent}
             onRemoveEvent={removeEvent}
+            onSaveProfile={saveProfile}
+            onToggleFollow={toggleFollow}
+            onSignIn={signInWithGoogle}
           />
         )}
 
@@ -1599,6 +1788,7 @@ export default function App() {
             adminSaving={adminSaving}
             onSaveAdminEdits={saveAdminActivityEdits}
             onArchive={archiveAdminActivity}
+            onShare={shareActivity}
             onClose={closeActivity}
           />
         )}
@@ -2179,8 +2369,32 @@ function ShortlistPanel({
   );
 }
 
-function CalendarScreen({ weekDays, calendarEvents, onOpenActivity, onUpdateEvent, onRemoveEvent }) {
+function CalendarScreen({
+  weekDays,
+  calendarEvents,
+  profile,
+  communityProfiles,
+  followingIds,
+  signedIn,
+  profileSaving,
+  onOpenActivity,
+  onUpdateEvent,
+  onRemoveEvent,
+  onSaveProfile,
+  onToggleFollow,
+  onSignIn,
+}) {
   const weekEvents = calendarEvents.filter((event) => weekDays.includes(event.planned_date));
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [form, setForm] = useState({ user_name: '', display_name: '', avatar_url: '' });
+
+  useEffect(() => {
+    setForm({
+      user_name: profile?.user_name || '',
+      display_name: profile?.display_name || '',
+      avatar_url: profile?.avatar_url || '',
+    });
+  }, [profile]);
 
   return (
     <section className="app-screen calendar-screen">
@@ -2189,6 +2403,54 @@ function CalendarScreen({ weekDays, calendarEvents, onOpenActivity, onUpdateEven
         <h1>Your plan</h1>
         <p>Booked and maybe plans.</p>
       </div>
+
+      <section className="profile-card">
+        {profile?.avatar_url ? (
+          <img src={profile.avatar_url} alt="Your profile" className="profile-avatar" />
+        ) : (
+          <span className="profile-avatar profile-avatar-fallback">{profileAvatar(profile)}</span>
+        )}
+        <div className="profile-summary">
+          <span className="eyebrow">Your profile</span>
+          <strong>{profile?.display_name || profile?.user_name || 'Plan together'}</strong>
+          <small>{profile?.user_name ? `@${profile.user_name}` : 'Sign in to create your profile'}</small>
+          {profile && <small>{profile.followers || 0} followers · {profile.following || 0} following</small>}
+        </div>
+        {signedIn ? (
+          <button type="button" className="profile-edit-button" onClick={() => setEditingProfile((current) => !current)}>
+            {editingProfile ? 'Close' : 'Edit'}
+          </button>
+        ) : (
+          <button type="button" className="profile-edit-button" onClick={onSignIn}>Sign in</button>
+        )}
+      </section>
+
+      {signedIn && editingProfile && (
+        <form className="profile-editor" onSubmit={(event) => { event.preventDefault(); onSaveProfile(form); }}>
+          <label><span>Username</span><input value={form.user_name} onChange={(event) => setForm((current) => ({ ...current, user_name: event.target.value }))} /></label>
+          <label><span>Name</span><input value={form.display_name} onChange={(event) => setForm((current) => ({ ...current, display_name: event.target.value }))} /></label>
+          <label className="wide"><span>Profile photo URL</span><input type="url" value={form.avatar_url} onChange={(event) => setForm((current) => ({ ...current, avatar_url: event.target.value }))} placeholder="https://..." /></label>
+          <button className="primary-action wide" type="submit" disabled={profileSaving}>{profileSaving ? 'Saving...' : 'Save profile'}</button>
+        </form>
+      )}
+
+      {signedIn && communityProfiles.length > 0 && (
+        <section className="community-card">
+          <div className="section-heading"><span>Community</span><h2>Parents nearby</h2></div>
+          <div className="community-list">
+            {communityProfiles.map((person) => {
+              const following = followingIds.includes(String(person.user_id));
+              return (
+                <article key={person.user_id} className="community-person">
+                  {person.avatar_url ? <img src={person.avatar_url} alt="" className="community-avatar" /> : <span className="community-avatar profile-avatar-fallback">{profileAvatar(person)}</span>}
+                  <div><strong>{person.display_name || person.user_name}</strong><small>@{person.user_name} · {person.followers || 0} followers</small></div>
+                  <button type="button" className={classNames('follow-button', following && 'is-following')} onClick={() => onToggleFollow(person)}>{following ? 'Following' : 'Follow'}</button>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       <div className="week-export-card">
         <div>
@@ -2346,6 +2608,7 @@ function ActivityDetail({
   adminSaving,
   onSaveAdminEdits,
   onArchive,
+  onShare,
   onClose,
 }) {
   const googleUrl = googleEntryUrl(activity);
@@ -2422,6 +2685,16 @@ function ActivityDetail({
             <a href={organiserWebsiteUrl} target="_blank" rel="noreferrer">Organiser site</a>
           )}
           <a href={googleUrl} target="_blank" rel="noreferrer">Google Maps</a>
+        </div>
+
+        <div className="share-card">
+          <div><strong>Share this outing</strong><small>Send it to your people.</small></div>
+          <div className="share-actions">
+            <button type="button" onClick={() => onShare(activity)}>Share</button>
+            <a href={socialShareUrl('whatsapp', activity)} target="_blank" rel="noreferrer">WhatsApp</a>
+            <a href={socialShareUrl('facebook', activity)} target="_blank" rel="noreferrer">Facebook</a>
+            <button type="button" onClick={() => onShare(activity)}>Instagram</button>
+          </div>
         </div>
       </div>
 
