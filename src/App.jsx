@@ -507,11 +507,7 @@ function classNames(...names) {
 }
 
 function googleEntryUrl(activity) {
-  const latitude = numericOrNull(activity.lat);
-  const longitude = numericOrNull(activity.long);
-  const query = latitude != null && longitude != null
-    ? `${latitude},${longitude}`
-    : `${activity.activity_name || ''} ${activity.address || ''}`.trim();
+  const query = `${activity.activity_name || ''} ${activity.address || ''}`.trim();
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 }
 
@@ -556,6 +552,28 @@ function isGooglePlacesUrl(value) {
   } catch {
     return false;
   }
+}
+
+function isCoordinateGoogleMapsUrl(value) {
+  if (!isGooglePlacesUrl(value)) return false;
+  try {
+    const decoded = decodeURIComponent(String(value));
+    return /[?&]query=-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?(?:[&#]|$)/i.test(decoded);
+  } catch {
+    return false;
+  }
+}
+
+function googlePlaceIdUrl(activity) {
+  const placeId = String(activity.google_place_id || '').trim();
+  return placeId
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`place_id:${placeId}`)}`
+    : null;
+}
+
+function originalGooglePlacesUrl(activity) {
+  return [activity.google_place_uri, activity.google_link]
+    .find((url) => isGooglePlacesUrl(url) && !isCoordinateGoogleMapsUrl(url)) || null;
 }
 
 function isUsablePhotoUrl(url) {
@@ -651,8 +669,7 @@ function profileAvatar(profile) {
 }
 
 function activityShareUrl(activity) {
-  const storedGooglePlaceUrl = activity.google_place_uri || activity.google_link;
-  return isGooglePlacesUrl(storedGooglePlaceUrl) ? storedGooglePlaceUrl : googleEntryUrl(activity);
+  return originalGooglePlacesUrl(activity) || googlePlaceIdUrl(activity) || googleEntryUrl(activity);
 }
 
 function sharedActivityIdFromLocation() {
