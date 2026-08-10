@@ -10,7 +10,7 @@ import { completeNativeGoogleSignIn, supabase } from './supabaseClient';
 
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
-const adminEmail = 'talkingmeowth06@gmail.com';
+const adminEmails = new Set(['talkingmeowth06@gmail.com', 'benfielden@gmail.com']);
 const nativeAuthCallback = 'com.tinyoutings.app://auth/callback';
 // Reset outdated swipe/filter state without touching planned calendar entries.
 const planningStorageVersion = '2026-07-24-seven-plan-categories';
@@ -869,7 +869,9 @@ export default function App() {
   const [returnScreen, setReturnScreen] = useState('swipe');
   const [dragState, setDragState] = useState({ activityId: null, startX: null, offsetX: 0 });
   const [session, setSession] = useState(null);
-  const [entryChoice, setEntryChoice] = useState(() => loadStored('entry-choice', null));
+  // A guest choice lasts only for the open app session. On a fresh launch,
+  // signed-out people always start at the account screen.
+  const [entryChoice, setEntryChoice] = useState(null);
   const [authLoading, setAuthLoading] = useState(false);
   const [profile, setProfile] = useState(null);
   const [communityProfiles, setCommunityProfiles] = useState([]);
@@ -889,7 +891,7 @@ export default function App() {
     () => new Set(deferredFilters.source),
     [deferredFilters.source],
   );
-  const isAdmin = session?.user?.email?.toLowerCase() === adminEmail;
+  const isAdmin = adminEmails.has(session?.user?.email?.toLowerCase());
   const signedInUser = session?.user || null;
 
   const weekDays = useMemo(
@@ -1442,7 +1444,6 @@ export default function App() {
   }
 
   function continueAsGuest() {
-    saveStored('entry-choice', 'guest');
     setEntryChoice('guest');
   }
 
@@ -1451,7 +1452,6 @@ export default function App() {
     const { error } = await supabase.auth.signOut();
     if (error) setNotice(`Could not sign out: ${error.message}`);
     else {
-      removeStored('entry-choice');
       setEntryChoice(null);
     }
   }
