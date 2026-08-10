@@ -1651,6 +1651,39 @@ input[type='range'] {
   opacity: 0.45;
 }
 
+.week-share-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 15px;
+  border: 1px solid rgba(23, 50, 77, 0.14);
+  border-radius: 23px;
+  background: linear-gradient(135deg, rgba(215, 240, 232, 0.94), rgba(255, 252, 245, 0.92));
+}
+
+.week-share-card div { display: grid; gap: 2px; }
+.week-share-card span { color: var(--coral-dark); font-size: 0.68rem; font-weight: 900; text-transform: uppercase; }
+.week-share-card strong { color: var(--green-dark); font-size: 0.93rem; }
+.week-share-card small { color: var(--muted); font-size: 0.72rem; }
+
+.week-share-card button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 15px;
+  padding: 11px 12px;
+  color: #fff;
+  background: var(--coral);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.week-share-card button span { color: #fff; font-size: 1.05rem; line-height: 1; }
+
 .profile-card,
 .community-card,
 .profile-editor,

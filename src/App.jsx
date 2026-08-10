@@ -1568,6 +1568,24 @@ export default function App() {
     }
   }
 
+  async function shareApp() {
+    const shareData = {
+      title: 'Tiny Outings',
+      text: 'Plan little family adventures with Tiny Outings.',
+      url: publicAppUrl,
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        return;
+      }
+      await navigator.clipboard?.writeText(`${shareData.text} ${shareData.url}`);
+      setNotice('Tiny Outings link copied.');
+    } catch (error) {
+      if (error?.name !== 'AbortError') setNotice('Could not open sharing on this device.');
+    }
+  }
+
   function openShareSheet(activity) {
     setShareSheetActivity(activity);
   }
@@ -1943,6 +1961,7 @@ export default function App() {
             onSaveProfile={saveProfile}
             onToggleFollow={toggleFollow}
             onSignIn={signInWithGoogle}
+            onShareApp={shareApp}
           />
         )}
 
@@ -2603,6 +2622,7 @@ function CalendarScreen({
   onSaveProfile,
   onToggleFollow,
   onSignIn,
+  onShareApp,
 }) {
   const weekEvents = calendarEvents.filter((event) => weekDays.includes(event.planned_date));
   const [editingProfile, setEditingProfile] = useState(false);
@@ -2685,6 +2705,17 @@ function CalendarScreen({
           Export for Google Calendar
         </button>
       </div>
+
+      <section className="week-share-card">
+        <div>
+          <span>Invite a parent</span>
+          <strong>Share Tiny Outings</strong>
+          <small>Send the app to someone planning their week too.</small>
+        </div>
+        <button type="button" onClick={onShareApp}>
+          <span aria-hidden="true">+</span> Share app
+        </button>
+      </section>
 
       <div className="calendar-list">
         {weekDays.map((day) => (
