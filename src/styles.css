@@ -4785,6 +4785,72 @@ textarea {
   border-radius: 20px;
 }
 
+/* The swipe card has a fixed mobile height. Keep its header and essential
+   facts in separate grid tracks so long source names cannot overlap copy. */
+.card-content {
+  grid-template-rows: auto auto minmax(2.68em, 1fr) auto;
+  gap: 10px;
+}
+
+.card-kicker {
+  display: grid;
+  grid-template-areas:
+    'primary report'
+    'source source';
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 6px;
+}
+
+.card-primary-tags {
+  grid-area: primary;
+  flex-wrap: wrap;
+}
+
+.card-source-row {
+  grid-area: source;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 6px;
+}
+
+.card-source-row .status-pill:first-child {
+  display: block;
+  min-width: 0;
+  max-width: 16rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-source-row .status-pill + .status-pill {
+  flex: 0 0 auto;
+}
+
+.card-report-button {
+  grid-area: report;
+  align-self: start;
+  min-height: 32px;
+  white-space: nowrap;
+}
+
+.card-description {
+  min-height: 2.68em;
+}
+
+@media (max-width: 420px) {
+  .card-content {
+    gap: 9px;
+    padding: 18px 16px 20px;
+  }
+
+  .card-source-row .status-pill:first-child {
+    max-width: 13.5rem;
+  }
+}
+
 .share-sheet,
 .report-sheet {
   border: 0;

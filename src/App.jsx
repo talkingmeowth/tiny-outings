@@ -320,6 +320,7 @@ function normalizeActivity(activity) {
     availability_type: activity.availability_type || 'recurring',
     cost,
     scraped_image_url: activity.scraped_image_url || null,
+    user_uploaded_image_url: activity.user_uploaded_image_url || null,
     user_image_url: activity.user_image_url || null,
     wikimedia_image_url: activity.wikimedia_image_url || null,
     website_image_url: activity.website_image_url || null,
@@ -424,12 +425,6 @@ function ActivityBubbleLayer({ concentrations }) {
   }, [concentrations, map]);
 
   return null;
-}
-
-function formatDistance(miles) {
-  if (miles == null || Number.isNaN(miles)) return null;
-  if (miles < 0.1) return 'Very nearby';
-  return `${miles.toFixed(1)} mi`;
 }
 
 function isFlexibleActivity(activity) {
@@ -668,6 +663,7 @@ function activityFallbackImage(activity) {
 function activityPhotoUrls(activity) {
   const fallbackImage = activityFallbackImage(activity);
   const candidates = [
+    activity.user_uploaded_image_url,
     activity.user_image_url,
     activity.scraped_image_url,
     activity.wikimedia_image_url,
@@ -1273,12 +1269,36 @@ export default function App() {
         if ((response.data || []).length < pageSize) break;
       }
 
+      const uploadedImageByActivityId = new Map();
+      if (!error) {
+        // A parent-uploaded photo is the most current view of an outing.
+        for (let from = 0; ; from += pageSize) {
+          const response = await supabase
+            .from('activity_photos')
+            .select('activity_id,photo_url')
+            .eq('source_provider', 'user_upload')
+            .order('created_at', { ascending: false })
+            .range(from, from + pageSize - 1);
+
+          if (response.error) break;
+          for (const photo of response.data || []) {
+            if (photo.activity_id && photo.photo_url && !uploadedImageByActivityId.has(String(photo.activity_id))) {
+              uploadedImageByActivityId.set(String(photo.activity_id), photo.photo_url);
+            }
+          }
+          if ((response.data || []).length < pageSize) break;
+        }
+      }
+
       if (cancelled) return;
 
       if (error) {
         setNotice(`We could not refresh outings just now: ${error.message}`);
       } else {
-        setActivities(data);
+        setActivities(data.map((activity) => ({
+          ...activity,
+          user_uploaded_image_url: uploadedImageByActivityId.get(String(activity.activity_id)) || null,
+        })));
       }
       setLoading(false);
     }
@@ -1983,6 +2003,15 @@ export default function App() {
     setReviewForm(emptyReviewForm);
     if (uploadedPhotos.length) {
       setActivityPhotos((current) => [...uploadedPhotos, ...current]);
+      const userUploadedImageUrl = uploadedPhotos[0].photo_url;
+      setActivities((current) => current.map((activity) => (
+        String(activity.activity_id) === String(selectedActivity.activity_id)
+          ? { ...activity, user_uploaded_image_url: userUploadedImageUrl }
+          : activity
+      )));
+      setSelectedActivity((current) => current && String(current.activity_id) === String(selectedActivity.activity_id)
+        ? { ...current, user_uploaded_image_url: userUploadedImageUrl }
+        : current);
     }
     setNotice(uploadedPhotos.length ? 'Review and photo saved.' : 'Review saved.');
   }
@@ -2660,12 +2689,6 @@ function ActivityCard({
   const rotate = offset / 22;
   const stackOffset = stackIndex * 12;
   const cost = activityCost(activity);
-  const distance = formatDistance(activity.distance);
-  // Travel estimates use the local straight-line distance, without an external routing API.
-  const walkMinutes = activity.distance == null ? null : Math.max(1, Math.round(activity.distance * 20));
-  const driveMinutes = activity.distance == null ? null : Math.max(1, Math.round(activity.distance * 6));
-  const walk = Number.isFinite(walkMinutes) ? `${walkMinutes} min` : null;
-  const drive = Number.isFinite(driveMinutes) ? `${driveMinutes} min` : null;
   const flexible = isFlexibleActivity(activity);
   const sourceLabel = activitySourceLabel(activity);
   const termTimeOnly = isTermTimeOnly(activity);
@@ -2690,22 +2713,22 @@ function ActivityCard({
 
       <div className="card-content">
         <div className="card-kicker">
-          <div className="card-tags">
+          <div className="card-tags card-primary-tags">
             <span>{activityPlanLabel(activity)}</span>
             {termTimeOnly && <span className="term-time-badge">Term time</span>}
           </div>
-          <div className="card-tags">
+          <div className="card-source-row">
             <span className="status-pill is-ghost">{sourceLabel}</span>
             {status && <StatusPill status={status} />}
-            <button
-              className="card-report-button"
-              type="button"
-              onPointerDown={(event) => event.stopPropagation()}
-              onClick={(event) => { event.stopPropagation(); onReportActivity(activity); }}
-            >
-              Report
-            </button>
           </div>
+          <button
+            className="card-report-button"
+            type="button"
+            onPointerDown={(event) => event.stopPropagation()}
+            onClick={(event) => { event.stopPropagation(); onReportActivity(activity); }}
+          >
+            Report
+          </button>
         </div>
         <h2>{activity.activity_name}</h2>
         <p className="card-description">
@@ -2727,9 +2750,6 @@ function ActivityCard({
               <small>{cost}</small>
             </span>
           )}
-          {distance && <span><strong>Miles</strong><small>{distance}</small></span>}
-          {walk && <span><strong>Walk</strong><small>{walk}</small></span>}
-          {drive && <span><strong>Drive</strong><small>{drive}</small></span>}
         </div>
       </div>
     </article>
