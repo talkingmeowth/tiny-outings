@@ -358,11 +358,10 @@ function ActivityHeatLayer({ concentrations }) {
       maxZoom: 11,
       max: highestCount,
       gradient: {
-        0.18: '#5ab6e6',
-        0.4: '#74d49d',
-        0.62: '#f3cf57',
-        0.8: '#ef8c58',
-        1: '#d85162',
+        0.18: '#c8e5e9',
+        0.45: '#b8d5bd',
+        0.72: '#f7e6a5',
+        1: '#9fbeae',
       },
     }).addTo(map);
     return () => map.removeLayer(layer);
