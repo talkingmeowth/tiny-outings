@@ -1826,6 +1826,217 @@ input[type='range'] {
   background: var(--green);
 }
 
+.detail-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 9px;
+  align-items: stretch;
+}
+
+.share-launcher,
+.report-launcher {
+  border: 1px solid rgba(23, 50, 77, 0.16);
+  color: var(--ink);
+  background: rgba(255, 252, 245, 0.92);
+  font: inherit;
+  font-weight: 900;
+}
+
+.share-launcher {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 13px;
+  border-radius: 19px;
+  text-align: left;
+}
+
+.share-launcher > span:first-child {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--green);
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.share-launcher span:last-child { display: grid; gap: 1px; }
+.share-launcher small { color: var(--muted); font-size: 0.68rem; }
+
+.report-launcher {
+  padding: 10px 12px;
+  border-radius: 19px;
+  color: var(--coral-dark);
+  font-size: 0.73rem;
+}
+
+.card-report-button {
+  border: 0;
+  padding: 4px 6px;
+  color: var(--muted);
+  background: transparent;
+  font: inherit;
+  font-size: 0.64rem;
+  font-weight: 900;
+  text-decoration: underline;
+}
+
+.share-sheet-backdrop {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  display: grid;
+  align-items: end;
+  background: rgba(11, 30, 46, 0.46);
+  animation: share-fade-in 160ms ease-out;
+}
+
+.share-sheet,
+.report-sheet {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 10px 20px calc(28px + env(safe-area-inset-bottom));
+  border-radius: 31px 31px 0 0;
+  color: #172536;
+  background: #fffdf8;
+  box-shadow: 0 -18px 50px rgba(12, 34, 52, 0.28);
+  animation: share-sheet-in 220ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.sheet-handle {
+  width: 42px;
+  height: 5px;
+  margin: 0 auto 13px;
+  border-radius: 999px;
+  background: rgba(23, 50, 77, 0.2);
+}
+
+.share-sheet-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.share-sheet-heading button {
+  display: grid;
+  place-items: center;
+  width: 35px;
+  height: 35px;
+  border: 0;
+  border-radius: 50%;
+  color: var(--ink);
+  background: #edf1f3;
+  font: inherit;
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.share-sheet-title {
+  overflow: hidden;
+  margin: 7px 0 17px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.share-row {
+  display: flex;
+  gap: 15px;
+  overflow-x: auto;
+  padding: 2px 0 16px;
+  scrollbar-width: none;
+}
+
+.share-row::-webkit-scrollbar { display: none; }
+.share-option { flex: 0 0 61px; }
+
+.share-option,
+.share-tools button {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  border: 0;
+  color: #172536;
+  background: transparent;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.share-option i,
+.share-tools i {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  color: #fff;
+  background: #17324d;
+  font-size: 0.83rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.share-option.whatsapp i { background: #22c76a; }
+.share-option.instagram i { background: linear-gradient(135deg, #f7c948, #ed6a5e 46%, #8b4fb3); }
+.share-option.facebook i { background: #3479e8; font-size: 1.45rem; }
+.share-option.sms i { background: #2d91d3; font-size: 0.65rem; }
+.share-option.native-share i { background: var(--coral); font-size: 1.55rem; }
+
+.share-tools {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(23, 50, 77, 0.11);
+}
+
+.share-tools button {
+  grid-template-columns: 37px auto;
+  justify-content: start;
+  align-items: center;
+  gap: 10px;
+  padding: 9px;
+  border-radius: 14px;
+  background: #f2f5f7;
+  font-size: 0.74rem;
+}
+
+.share-tools i {
+  width: 37px;
+  height: 37px;
+  color: var(--ink);
+  background: #fff;
+  font-size: 0.64rem;
+}
+
+.report-sheet { display: grid; gap: 13px; }
+.report-sheet p { margin: 0; color: var(--muted); font-size: 0.87rem; line-height: 1.45; }
+.report-sheet textarea {
+  min-height: 112px;
+  resize: vertical;
+  border: 1px solid rgba(23, 50, 77, 0.2);
+  border-radius: 18px;
+  padding: 12px;
+  color: var(--ink);
+  background: #fff;
+  font: inherit;
+}
+
+@keyframes share-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes share-sheet-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
 .review-queue {
   display: grid;
   gap: 12px;

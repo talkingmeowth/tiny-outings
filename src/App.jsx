@@ -635,6 +635,7 @@ function socialShareUrl(provider, activity) {
   const message = `${activityShareText(activity)} ${url}`;
   if (provider === 'whatsapp') return `https://wa.me/?text=${encodeURIComponent(message)}`;
   if (provider === 'facebook') return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+  if (provider === 'sms') return `sms:?body=${encodeURIComponent(message)}`;
   return url;
 }
 
@@ -842,7 +843,8 @@ export default function App() {
       radiusMiles: Number(stored.radiusMiles) || defaults.radiusMiles,
       walkMinutes: Number(stored.walkMinutes) || defaults.walkMinutes,
       driveMinutes: Number(stored.driveMinutes) || defaults.driveMinutes,
-      weekStart: stored.weekStart || defaults.weekStart,
+      // Each new app launch starts with the current Monday, not the last plan viewed.
+      weekStart: defaults.weekStart,
       // Categories always begin broad. Parents can narrow them for the current session.
       interests: defaults.interests,
       source: Array.isArray(stored.source)
@@ -864,6 +866,10 @@ export default function App() {
   const [linkForm, setLinkForm] = useState(emptyLinkForm);
   const [reviewForm, setReviewForm] = useState(emptyReviewForm);
   const [selectedActivity, setSelectedActivity] = useState(null);
+  const [shareSheetActivity, setShareSheetActivity] = useState(null);
+  const [reportSheetActivity, setReportSheetActivity] = useState(null);
+  const [reportText, setReportText] = useState('');
+  const [reportSubmitting, setReportSubmitting] = useState(false);
   const [activityPhotos, setActivityPhotos] = useState([]);
   const [activityPhotosLoading, setActivityPhotosLoading] = useState(false);
   const [returnScreen, setReturnScreen] = useState('swipe');
@@ -1539,6 +1545,49 @@ export default function App() {
     }
   }
 
+  function openShareSheet(activity) {
+    setShareSheetActivity(activity);
+  }
+
+  function openReportSheet(activity) {
+    setShareSheetActivity(null);
+    setReportText('');
+    setReportSheetActivity(activity);
+  }
+
+  async function copyActivityLink(activity) {
+    try {
+      await navigator.clipboard?.writeText(`${activityShareText(activity)} ${activityShareUrl(activity)}`);
+      setNotice('Activity link copied.');
+    } catch {
+      setNotice('Could not copy the link on this device.');
+    }
+  }
+
+  async function submitActivityReport(event) {
+    event.preventDefault();
+    if (!reportSheetActivity || !reportText.trim()) return;
+    if (!supabase) {
+      setNotice('Reporting is not ready in this build yet.');
+      return;
+    }
+    setReportSubmitting(true);
+    const { error } = await supabase.from('activity_bug_reports').insert({
+      activity_id: reportSheetActivity.activity_id,
+      reported_by_user_id: session?.user?.id || null,
+      report_text: reportText.trim(),
+      source_url: activityShareUrl(reportSheetActivity),
+    });
+    setReportSubmitting(false);
+    if (error) {
+      setNotice(`Could not send the report: ${error.message}`);
+      return;
+    }
+    setReportSheetActivity(null);
+    setReportText('');
+    setNotice('Thanks. We will check this listing.');
+  }
+
   async function saveAdminActivityEdits(activity, values) {
     if (!supabase || !isAdmin) return;
     const updates = {
@@ -1852,6 +1901,7 @@ export default function App() {
             onResetSlot={resetCurrentSlot}
             onChoose={chooseActivity}
             onOpenActivity={openActivity}
+            onReportActivity={openReportSheet}
           />
         )}
 
@@ -1903,11 +1953,32 @@ export default function App() {
             adminSaving={adminSaving}
             onSaveAdminEdits={saveAdminActivityEdits}
             onArchive={archiveAdminActivity}
-            onShare={shareActivity}
+            onOpenShare={openShareSheet}
+            onReport={openReportSheet}
             onClose={closeActivity}
           />
         )}
       </main>
+
+      {shareSheetActivity && (
+        <ShareSheet
+          activity={shareSheetActivity}
+          onClose={() => setShareSheetActivity(null)}
+          onShare={() => shareActivity(shareSheetActivity)}
+          onCopy={() => copyActivityLink(shareSheetActivity)}
+          onReport={() => openReportSheet(shareSheetActivity)}
+        />
+      )}
+      {reportSheetActivity && (
+        <ReportSheet
+          activity={reportSheetActivity}
+          value={reportText}
+          submitting={reportSubmitting}
+          onChange={setReportText}
+          onClose={() => setReportSheetActivity(null)}
+          onSubmit={submitActivityReport}
+        />
+      )}
 
       <BottomNav activeScreen={activeScreen} setActiveScreen={navigate} />
         </>
@@ -2204,6 +2275,7 @@ function SwipeScreen({
   onResetSlot,
   onChoose,
   onOpenActivity,
+  onReportActivity,
 }) {
   const topActivity = deckActivities[0];
 
@@ -2283,6 +2355,7 @@ function SwipeScreen({
               onMoveDrag={onMoveDrag}
               onEndDrag={onEndDrag}
               onOpenActivity={onOpenActivity}
+              onReportActivity={onReportActivity}
             />
           );
         })}
@@ -2347,6 +2420,7 @@ function ActivityCard({
   onMoveDrag,
   onEndDrag,
   onOpenActivity,
+  onReportActivity,
 }) {
   const rotate = offset / 22;
   const stackOffset = stackIndex * 12;
@@ -2398,6 +2472,14 @@ function ActivityCard({
           <div className="card-tags">
             <span className="status-pill is-ghost">{sourceLabel}</span>
             {status && <StatusPill status={status} />}
+            <button
+              className="card-report-button"
+              type="button"
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={(event) => { event.stopPropagation(); onReportActivity(activity); }}
+            >
+              Report
+            </button>
           </div>
         </div>
         <h2>{activity.activity_name}</h2>
@@ -2830,7 +2912,8 @@ function ActivityDetail({
   adminSaving,
   onSaveAdminEdits,
   onArchive,
-  onShare,
+  onOpenShare,
+  onReport,
   onClose,
 }) {
   const googleUrl = googleEntryUrl(activity);
@@ -2909,14 +2992,14 @@ function ActivityDetail({
           <a href={googleUrl} target="_blank" rel="noreferrer">Google Maps</a>
         </div>
 
-        <div className="share-card">
-          <div><strong>Share this outing</strong><small>Send it to your people.</small></div>
-          <div className="share-actions">
-            <button type="button" onClick={() => onShare(activity)}>Share</button>
-            <a href={socialShareUrl('whatsapp', activity)} target="_blank" rel="noreferrer">WhatsApp</a>
-            <a href={socialShareUrl('facebook', activity)} target="_blank" rel="noreferrer">Facebook</a>
-            <button type="button" onClick={() => onShare(activity)}>Instagram</button>
-          </div>
+        <div className="detail-actions">
+          <button className="share-launcher" type="button" onClick={() => onOpenShare(activity)}>
+            <span aria-hidden="true">+</span>
+            <span><strong>Share</strong><small>Send this outing</small></span>
+          </button>
+          <button className="report-launcher" type="button" onClick={() => onReport(activity)}>
+            Report a listing
+          </button>
         </div>
       </div>
 
@@ -2965,6 +3048,54 @@ function ActivityDetail({
         <button className="primary-action" type="submit">Save</button>
       </form>
     </section>
+  );
+}
+
+function ShareSheet({ activity, onClose, onShare, onCopy, onReport }) {
+  const openProvider = (provider) => {
+    if (provider === 'instagram') {
+      onShare();
+      return;
+    }
+    window.open(socialShareUrl(provider, activity), '_blank', 'noopener,noreferrer');
+  };
+
+  return (
+    <div className="share-sheet-backdrop" role="presentation" onClick={onClose}>
+      <section className="share-sheet" role="dialog" aria-modal="true" aria-label="Share activity" onClick={(event) => event.stopPropagation()}>
+        <div className="sheet-handle" />
+        <div className="share-sheet-heading">
+          <span>Send to</span>
+          <button type="button" onClick={onClose} aria-label="Close share options">x</button>
+        </div>
+        <p className="share-sheet-title">{activity.activity_name}</p>
+        <div className="share-row">
+          <button className="share-option native-share" type="button" onClick={onShare}><i>+</i><span>Share</span></button>
+          <button className="share-option whatsapp" type="button" onClick={() => openProvider('whatsapp')}><i>W</i><span>WhatsApp</span></button>
+          <button className="share-option instagram" type="button" onClick={() => openProvider('instagram')}><i>IG</i><span>Instagram</span></button>
+          <button className="share-option facebook" type="button" onClick={() => openProvider('facebook')}><i>f</i><span>Facebook</span></button>
+          <button className="share-option sms" type="button" onClick={() => openProvider('sms')}><i>SMS</i><span>Messages</span></button>
+        </div>
+        <div className="share-tools">
+          <button type="button" onClick={onCopy}><i>Link</i><span>Copy link</span></button>
+          <button type="button" onClick={onReport}><i>!</i><span>Report</span></button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function ReportSheet({ activity, value, submitting, onChange, onClose, onSubmit }) {
+  return (
+    <div className="share-sheet-backdrop" role="presentation" onClick={onClose}>
+      <form className="report-sheet" onSubmit={onSubmit} onClick={(event) => event.stopPropagation()}>
+        <div className="sheet-handle" />
+        <div className="share-sheet-heading"><span>Report a listing</span><button type="button" onClick={onClose} aria-label="Close report form">x</button></div>
+        <p>Tell us what needs fixing for <strong>{activity.activity_name}</strong>.</p>
+        <textarea value={value} onChange={(event) => onChange(event.target.value)} placeholder="Wrong details, broken link, unsuitable listing..." required />
+        <button className="primary-action wide" type="submit" disabled={submitting}>{submitting ? 'Sending...' : 'Send report'}</button>
+      </form>
+    </div>
   );
 }
 
