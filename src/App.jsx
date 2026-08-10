@@ -63,6 +63,7 @@ const activitySelectColumns = [
   'google_rating',
   'google_user_rating_count',
   'public_listing_status',
+  'archive',
   'submitted_by_user_id',
   'created_at',
 ].join(',');
@@ -287,6 +288,7 @@ function normalizeActivity(activity) {
     image_url: activity.image_url || activity.photo_url || null,
     image_source_url: activity.image_source_url || activity.website || activity.source_url || null,
     public_listing_status: activity.public_listing_status || 'published',
+    archive: Boolean(activity.archive),
   };
 }
 
@@ -962,7 +964,7 @@ export default function App() {
   );
 
   const publishedActivityCount = useMemo(
-    () => allActivities.filter((activity) => activity.public_listing_status === 'published').length,
+    () => allActivities.filter((activity) => activity.public_listing_status === 'published' && !activity.archive).length,
     [allActivities],
   );
   const sourceOptions = useMemo(
@@ -972,6 +974,7 @@ export default function App() {
   const baseFilteredActivities = useMemo(
     () => activitiesWithDistance.filter((activity) => {
       return activity.public_listing_status === 'published'
+        && !activity.archive
         && activityMatchesInterests(activity, selectedCategorySet, allCategoriesSelected)
         && (selectedSourceSet.size === 0 || selectedSourceSet.has(activitySourceLabel(activity)))
         && activityMatchesAge(activity, deferredFilters.ageRange);
@@ -1194,6 +1197,7 @@ export default function App() {
           .from('activities')
           .select(activitySelectColumns)
           .eq('public_listing_status', 'published')
+          .eq('archive', false)
           .order('start_time', { ascending: true })
           .order('activity_id', { ascending: true })
           .range(from, from + pageSize - 1);
@@ -1235,6 +1239,7 @@ export default function App() {
         .from('activities')
         .select(activitySelectColumns)
         .eq('public_listing_status', 'draft')
+        .eq('archive', false)
         .order('created_at', { ascending: true });
       if (cancelled) return;
       setReviewQueueLoading(false);
@@ -1690,10 +1695,9 @@ export default function App() {
     if (!window.confirm(`Archive ${activity.activity_name}? It will no longer appear in the app.`)) return;
 
     setAdminSaving(true);
-    const { error } = await supabase
-      .from('activities')
-      .update({ public_listing_status: 'archived' })
-      .eq('activity_id', activity.activity_id);
+    const { error } = await supabase.rpc('archive_tiny_outings_activity', {
+      target_activity_id: activity.activity_id,
+    });
     setAdminSaving(false);
     if (error) {
       setNotice(`Listing could not be archived: ${error.message}`);
@@ -1709,6 +1713,21 @@ export default function App() {
     if (!supabase || !isAdmin) return;
     const label = status === 'published' ? 'approve' : 'archive';
     if (!window.confirm(`${label[0].toUpperCase()}${label.slice(1)} ${activity.activity_name}?`)) return;
+
+    if (status === 'archived') {
+      setAdminSaving(true);
+      const { error } = await supabase.rpc('archive_tiny_outings_activity', {
+        target_activity_id: activity.activity_id,
+      });
+      setAdminSaving(false);
+      if (error) {
+        setNotice(`Listing could not be archived: ${error.message}`);
+        return;
+      }
+      setReviewQueue((current) => current.filter((item) => String(item.activity_id) !== String(activity.activity_id)));
+      setNotice('Listing archived.');
+      return;
+    }
 
     setAdminSaving(true);
     const { data, error } = await supabase
@@ -1997,7 +2016,7 @@ export default function App() {
         )}
 
         {activeScreen === 'map' && (
-          <ActivityMapScreen activities={allActivities.filter((activity) => activity.public_listing_status === 'published')} />
+          <ActivityMapScreen activities={allActivities.filter((activity) => activity.public_listing_status === 'published' && !activity.archive)} />
         )}
 
         {activeScreen === 'add' && (
