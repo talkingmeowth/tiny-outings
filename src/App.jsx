@@ -215,11 +215,28 @@ function numericOrNull(value) {
   return Number.isFinite(numeric) ? numeric : null;
 }
 
+function cleanDisplayText(value, fallback = '') {
+  if (value === null || value === undefined) return fallback;
+  const cleaned = String(value)
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u2013\u2014\u2212\u00B7]/g, '-')
+    .replace(/\u2026/g, '...')
+    .replace(/\u00A3/g, 'GBP ')
+    .replace(/\u20AC/g, 'EUR ')
+    .replace(/[\u00A0\s]+/g, ' ')
+    .replace(/[^\x20-\x7E]/g, '')
+    .trim();
+  return cleaned || fallback;
+}
+
 function normalizeActivity(activity) {
   const appRating = numericOrNull(activity.app_rating);
   const googleRating = numericOrNull(activity.google_rating);
   const reviewCount = Number(activity.number_of_reviews ?? activity.google_user_rating_count ?? 0);
-  const cost = activity.cost || activity.price || activity.price_text || activity.fee || null;
+  const cost = cleanDisplayText(activity.cost || activity.price || activity.price_text || activity.fee || '') || null;
 
   return {
     ...activity,
@@ -229,18 +246,26 @@ function normalizeActivity(activity) {
     // A source import can carry an old derived window. The visible card and
     // its swipe slot must always follow the actual scheduled start time.
     time_window: toWindow(activity.start_time),
-    category: activity.category || activity.google_primary_type || 'parent friendly',
+    activity_name: cleanDisplayText(activity.activity_name, 'Untitled activity'),
+    address: cleanDisplayText(activity.address),
+    category: cleanDisplayText(activity.category || activity.google_primary_type, 'parent friendly'),
+    description: cleanDisplayText(activity.description),
+    age_suitability: cleanDisplayText(activity.age_suitability),
+    availability_notes: cleanDisplayText(activity.availability_notes),
+    source_name: cleanDisplayText(activity.source_name),
+    borough: cleanDisplayText(activity.borough),
+    google_primary_type: cleanDisplayText(activity.google_primary_type),
     lat: numericOrNull(activity.lat),
     long: numericOrNull(activity.long),
     app_rating: appRating ?? googleRating,
     google_rating: googleRating,
     number_of_reviews: Number.isFinite(reviewCount) ? reviewCount : 0,
     google_user_rating_count: Number(activity.google_user_rating_count ?? reviewCount ?? 0),
-    days_of_week: Array.isArray(activity.days_of_week) ? activity.days_of_week : [],
+    days_of_week: Array.isArray(activity.days_of_week) ? activity.days_of_week.map((day) => cleanDisplayText(day)) : [],
     available_days_of_week: Array.isArray(activity.available_days_of_week)
-      ? activity.available_days_of_week
+      ? activity.available_days_of_week.map((day) => cleanDisplayText(day))
       : [],
-    plan_filters: Array.isArray(activity.plan_filters) ? activity.plan_filters : [],
+    plan_filters: Array.isArray(activity.plan_filters) ? activity.plan_filters.map((filter) => cleanDisplayText(filter)) : [],
     available_dates: Array.isArray(activity.available_dates)
       ? activity.available_dates.map((date) => String(date).slice(0, 10))
       : [],
@@ -2661,7 +2686,7 @@ function CalendarScreen({
           <span className="eyebrow">Your profile</span>
           <strong>{profile?.display_name || profile?.user_name || 'Plan together'}</strong>
           <small>{profile?.user_name ? `@${profile.user_name}` : 'Sign in to create your profile'}</small>
-          {profile && <small>{profile.followers || 0} followers · {profile.following || 0} following</small>}
+          {profile && <small>{profile.followers || 0} followers - {profile.following || 0} following</small>}
         </div>
         {signedIn ? (
           <button type="button" className="profile-edit-button" onClick={() => setEditingProfile((current) => !current)}>
@@ -2690,7 +2715,7 @@ function CalendarScreen({
               return (
                 <article key={person.user_id} className="community-person">
                   {person.avatar_url ? <img src={person.avatar_url} alt="" className="community-avatar" /> : <span className="community-avatar profile-avatar-fallback">{profileAvatar(person)}</span>}
-                  <div><strong>{person.display_name || person.user_name}</strong><small>@{person.user_name} · {person.followers || 0} followers</small></div>
+                  <div><strong>{person.display_name || person.user_name}</strong><small>@{person.user_name} - {person.followers || 0} followers</small></div>
                   <button type="button" className={classNames('follow-button', following && 'is-following')} onClick={() => onToggleFollow(person)}>{following ? 'Following' : 'Follow'}</button>
                 </article>
               );
@@ -2875,7 +2900,7 @@ function AddActivityScreen({
                 <ActivityPhoto activity={activity} className="review-photo" />
                 <div>
                   <strong>{activity.activity_name}</strong>
-                  <small>{activityPlanLabel(activity)} · {activity.address || 'Address to review'}</small>
+                  <small>{activityPlanLabel(activity)} - {activity.address || 'Address to review'}</small>
                   <small>{activity.website || activity.google_link || 'No source link'}</small>
                 </div>
                 <div className="review-actions">
@@ -2955,7 +2980,7 @@ function ActivityMapScreen({ activities }) {
         <div className="map-insight">
           <span>Most concentrated</span>
           <strong>{largest.count} activities in one local area</strong>
-          <small>{largest.activities.join(' · ')}</small>
+          <small>{largest.activities.join(' - ')}</small>
         </div>
       )}
     </section>
