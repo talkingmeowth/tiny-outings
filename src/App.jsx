@@ -2971,7 +2971,7 @@ function ActivityDetail({
   onReport,
   onClose,
 }) {
-  const googleUrl = googleEntryUrl(activity);
+  const googlePlacesUrl = activityShareUrl(activity);
   const mapEmbedUrl = googleMapEmbedUrl(activity);
   const websiteUrl = activityWebsiteUrl(activity);
   const organiserWebsiteUrl = activity.organiser_website || null;
@@ -3035,7 +3035,7 @@ function ActivityDetail({
               referrerPolicy="no-referrer-when-downgrade"
               tabIndex="-1"
             />
-            <span>Open in Google Maps</span>
+            <span>View map</span>
           </button>
         )}
 
@@ -3044,7 +3044,7 @@ function ActivityDetail({
           {organiserWebsiteUrl && (
             <a href={organiserWebsiteUrl} target="_blank" rel="noreferrer">Organiser site</a>
           )}
-          <a href={googleUrl} target="_blank" rel="noreferrer">Google Maps</a>
+          <a href={googlePlacesUrl} target="_blank" rel="noreferrer">Google Places</a>
         </div>
 
         <div className="detail-actions">
