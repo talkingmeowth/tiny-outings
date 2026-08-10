@@ -4300,3 +4300,419 @@ html,
   .doodle-eye { left: 39%; }
   .doodle-bridge { right: -3%; width: 102px; }
 }
+
+/* Flat family theme: one playful palette and one control language across every screen. */
+:root {
+  --ink: #294b45;
+  --muted: #647870;
+  --paper: #fffdf6;
+  --cream: #fff0b8;
+  --line: #a8c0b8;
+  --line-soft: #d4e1dc;
+  --green: #b8d9b5;
+  --green-dark: #397966;
+  --coral: #f2ad9f;
+  --coral-dark: #a95749;
+  --yellow: #f6d76f;
+  --blue: #b9dfe3;
+  --mint: #d7ead2;
+  --blush: #f7d5ce;
+  --lavender: #d9d4e9;
+  --apricot: #f3c48d;
+  --shadow: 0 9px 22px rgba(41, 75, 69, 0.1);
+}
+
+*,
+*::before,
+*::after {
+  background-image: none !important;
+}
+
+.brand-lockup::before,
+.welcome-mark {
+  background-image: url('/icons/icon.svg') !important;
+}
+
+html,
+.phone-app,
+.app-topbar,
+.welcome-screen {
+  background-color: var(--cream);
+}
+
+.phone-app::before {
+  border: 2px solid rgba(41, 75, 69, 0.12);
+  background-color: var(--blue);
+}
+
+.phone-app::after {
+  border: 2px solid rgba(41, 75, 69, 0.12);
+  background-color: var(--green);
+}
+
+.screen-title,
+.filter-card,
+.range-card,
+.start-summary,
+.shortlist-panel,
+.calendar-day,
+.soft-note,
+.app-form,
+.detail-sheet,
+.review-card,
+.profile-card,
+.community-card,
+.profile-editor,
+.share-card,
+.week-export-card,
+.week-share-card,
+.toast,
+.card-content,
+.detail-content-card,
+.swipe-card,
+.share-sheet,
+.report-sheet,
+.map-summary {
+  border: 1.5px solid var(--line-soft);
+  border-radius: 24px;
+  background-color: var(--paper);
+  box-shadow: var(--shadow);
+}
+
+.start-screen .screen-title { background-color: var(--blue); }
+.calendar-screen .screen-title { background-color: var(--green); }
+.form-screen .screen-title { background-color: var(--yellow); }
+.map-screen .screen-title { background-color: var(--blush); }
+
+.screen-title::before {
+  color: var(--coral-dark);
+}
+
+.screen-title::after {
+  border: 2px solid rgba(41, 75, 69, 0.12);
+  background-color: var(--yellow);
+  box-shadow: none;
+}
+
+.filter-card::after,
+.profile-card::after,
+.week-export-card::after,
+.week-share-card::after,
+.map-summary::after,
+.app-form::after,
+.detail-content-card::after,
+.filter-card::before,
+.app-form::before,
+.planner-strip::after,
+.swipe-status-bar::after,
+.hero-badges::after,
+.bottom-nav::before {
+  display: none;
+}
+
+button,
+.card-links a,
+.external-links a,
+.source-picker summary,
+[role='button'] {
+  border: 2px solid var(--line) !important;
+  border-radius: 16px;
+  background-color: var(--paper);
+  box-shadow: none;
+}
+
+button {
+  min-height: 42px;
+}
+
+button:disabled {
+  border-style: dashed !important;
+  color: var(--muted) !important;
+  background-color: #edf3ee !important;
+  opacity: 0.78;
+}
+
+button:focus-visible,
+.card-links a:focus-visible,
+.external-links a:focus-visible,
+.source-picker summary:focus-visible {
+  outline: 3px solid var(--coral-dark);
+  outline-offset: 3px;
+}
+
+.welcome-google,
+.primary-action,
+.week-export-card button,
+.filter-chip.is-on,
+.secondary-button.is-on,
+.segment.is-on,
+.date-pill.is-on,
+.window-pill.is-on,
+.distance-toggle button.is-on,
+.bottom-nav button.is-on {
+  border-color: var(--green-dark) !important;
+  color: #ffffff;
+  background-color: var(--green-dark);
+  box-shadow: none;
+}
+
+.welcome-guest,
+.account-button,
+.guest-button,
+.secondary-button,
+.link-button,
+.sheet-close,
+.toast button,
+.swipe-button,
+.share-tools button,
+.share-actions button,
+.review-actions button,
+.profile-edit-button,
+.follow-button,
+.archive-listing-button,
+.card-report-button,
+.swipe-status-bar button,
+.calendar-event button {
+  color: var(--ink);
+  background-color: var(--paper);
+}
+
+.archive-listing-button,
+.review-actions button:last-child,
+.swipe-button.no {
+  border-color: var(--coral-dark) !important;
+  color: var(--coral-dark);
+  background-color: #fff4ef;
+}
+
+.swipe-button.yes {
+  border-color: var(--green-dark) !important;
+  color: #ffffff;
+  background-color: var(--green-dark);
+}
+
+.swipe-button.info {
+  border-color: #789ea4 !important;
+  background-color: #eef8f8;
+}
+
+.card-report-button {
+  min-height: 32px;
+  border-radius: 12px;
+}
+
+.filter-chip,
+.segment,
+.window-pill,
+.secondary-button,
+.link-button,
+.primary-action,
+.welcome-google,
+.welcome-guest,
+.account-button,
+.guest-button,
+.external-links a,
+.source-picker summary {
+  transform: none;
+}
+
+.filter-chip,
+.segment,
+.window-pill,
+.distance-toggle button,
+.bottom-nav button {
+  border-radius: 16px;
+}
+
+.filter-chip:nth-child(3n + 1) { background-color: #fff0b8; }
+.filter-chip:nth-child(3n + 2) { background-color: #d8ecee; }
+.filter-chip:nth-child(3n + 3) { background-color: #dcebd7; }
+
+.filter-chip.is-on {
+  background-color: var(--green-dark);
+}
+
+.location-card .field-group {
+  border: 1.5px solid var(--line-soft);
+  border-radius: 20px;
+  background-color: #fffaf0;
+}
+
+.location-card .field-group:nth-of-type(3n + 1) { background-color: #eef8f8; }
+.location-card .field-group:nth-of-type(3n + 2) { background-color: #fff8dc; }
+.location-card .field-group:nth-of-type(3n + 3) { background-color: #f2f8ef; }
+
+.week-stepper {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.week-stepper button {
+  min-width: 0;
+  padding: 9px 8px;
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.week-stepper strong {
+  color: var(--ink);
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.08rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.week-preview {
+  gap: 6px;
+}
+
+.week-preview span,
+.date-pill {
+  border: 2px solid var(--line) !important;
+  color: var(--ink);
+  background-color: var(--paper);
+}
+
+.week-preview span {
+  min-height: 36px;
+  border-radius: 13px;
+}
+
+.date-pill {
+  border-radius: 50%;
+}
+
+.date-pill.is-on {
+  border-color: var(--green-dark) !important;
+  background-color: var(--green-dark);
+}
+
+.planner-strip,
+.swipe-status-bar {
+  border: 1.5px solid var(--line-soft);
+  border-radius: 20px;
+  background-color: var(--paper);
+  box-shadow: none;
+}
+
+.window-switcher,
+.distance-toggle {
+  border: 1.5px solid var(--line-soft);
+  border-radius: 20px;
+  background-color: #f7fbf9;
+}
+
+.range-card,
+.source-picker,
+.source-options,
+input,
+select,
+textarea {
+  border: 2px solid var(--line) !important;
+  background-color: var(--paper);
+}
+
+input,
+select,
+textarea {
+  border-radius: 14px;
+}
+
+.card-summary span,
+.detail-grid span,
+.activity-facts span {
+  border: 2px solid var(--line) !important;
+  border-radius: 16px;
+  background-color: #f7fbf9;
+}
+
+.card-summary span:nth-child(2n),
+.detail-grid span:nth-child(2n) {
+  background-color: #eef8f8;
+}
+
+.card-summary strong,
+.detail-grid strong {
+  color: var(--green-dark);
+}
+
+.term-time-badge,
+.status-pill,
+.hero-badges span {
+  border: 1.5px solid var(--line);
+  color: var(--ink);
+  background-color: #fff8dc;
+}
+
+.swipe-card {
+  border: 2px solid var(--line);
+  border-radius: 26px;
+  background-color: var(--paper);
+  box-shadow: 0 12px 28px rgba(41, 75, 69, 0.12);
+}
+
+.card-content {
+  border: 0;
+  border-top: 1.5px solid var(--line-soft);
+  border-radius: 0 0 24px 24px;
+  box-shadow: none;
+}
+
+.calendar-day:nth-of-type(3n + 1) { background-color: #fffaf0; }
+.calendar-day:nth-of-type(3n + 2) { background-color: #eef8f8; }
+.calendar-day:nth-of-type(3n + 3) { background-color: #f2f8ef; }
+
+.calendar-event {
+  border: 1.5px solid var(--line);
+  border-radius: 18px;
+  background-color: var(--paper);
+}
+
+.bottom-nav {
+  border: 1.5px solid var(--line);
+  border-radius: 24px;
+  background-color: var(--paper);
+  box-shadow: 0 7px 18px rgba(41, 75, 69, 0.12);
+}
+
+.bottom-nav button {
+  min-height: 46px;
+  border-width: 1.5px !important;
+  border-radius: 15px;
+  background-color: #fffaf0;
+}
+
+.bottom-nav button.is-on {
+  border-radius: 15px;
+}
+
+.share-sheet,
+.report-sheet {
+  border: 2px solid var(--line);
+  background-color: var(--paper);
+}
+
+.london-map-shell {
+  border: 2px solid var(--line);
+  border-radius: 22px;
+  overflow: hidden;
+}
+
+.london-map-shell::before,
+.london-map-shell::after {
+  display: none;
+}
+
+@media (max-width: 380px) {
+  .week-stepper {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .week-stepper strong {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+}

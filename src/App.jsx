@@ -200,8 +200,17 @@ function normalizedWeekday(value) {
     .replace(/s$/, '');
 }
 
-function formatWeekRange(weekStart) {
-  return `${formatDay(weekStart)} to ${formatDay(addDaysISO(weekStart, 6))}`;
+function relativeWeekLabel(weekStart) {
+  const currentWeek = startOfWeekISO();
+  const millisecondsPerWeek = 7 * 24 * 60 * 60 * 1000;
+  const offset = Math.round(
+    (new Date(`${weekStart}T12:00:00`) - new Date(`${currentWeek}T12:00:00`)) / millisecondsPerWeek,
+  );
+
+  if (offset === 0) return 'This week';
+  if (offset === 1) return 'Next week';
+  if (offset === -1) return 'Last week';
+  return offset > 1 ? `In ${offset} weeks` : `${Math.abs(offset)} weeks ago`;
 }
 
 function toWindow(startTime) {
@@ -2186,21 +2195,31 @@ function StartScreen({
       <div className="filter-card location-card">
         <div className="field-group">
           <span>Week</span>
-          <strong>{formatWeekRange(filters.weekStart)}</strong>
-          <p>Choose the week to plan.</p>
-          <input
-            type="date"
-            value={filters.weekStart}
-            onChange={(event) =>
-              setFilters((current) => ({
+          <p>Choose the week you want to plan.</p>
+          <div className="week-stepper" aria-label="Choose week">
+            <button
+              type="button"
+              onClick={() => setFilters((current) => ({
                 ...current,
-                weekStart: startOfWeekISO(event.target.value || todayISO()),
-              }))
-            }
-          />
-          <div className="week-preview">
+                weekStart: addDaysISO(current.weekStart, -7),
+              }))}
+            >
+              Previous
+            </button>
+            <strong>{relativeWeekLabel(filters.weekStart)}</strong>
+            <button
+              type="button"
+              onClick={() => setFilters((current) => ({
+                ...current,
+                weekStart: addDaysISO(current.weekStart, 7),
+              }))}
+            >
+              Next
+            </button>
+          </div>
+          <div className="week-preview" aria-label={`${relativeWeekLabel(filters.weekStart)} weekdays`}>
             {weekDays.map((day) => (
-              <span key={day}>{formatDay(day).split(',')[0]}</span>
+              <span key={day}>{weekdayName(day).slice(0, 3)}</span>
             ))}
           </div>
         </div>
