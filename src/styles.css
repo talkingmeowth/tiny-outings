@@ -1530,6 +1530,16 @@ input[type='range'] {
   box-shadow: none;
 }
 
+.review-signin-card {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.review-signin-card h3,
+.review-signin-card p { margin: 0; }
+.review-signin-card p { margin-top: 3px; color: var(--muted); font-size: 0.78rem; }
+.review-signin-card .primary-action { white-space: nowrap; }
+
 .activity-detail-screen {
   gap: 14px;
 }

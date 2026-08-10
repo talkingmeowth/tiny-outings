@@ -1818,6 +1818,10 @@ export default function App() {
   async function submitReview(event) {
     event.preventDefault();
     if (!selectedActivity) return;
+    if (!session?.user) {
+      setNotice('Sign in to leave a rating or comment.');
+      return;
+    }
     if (!supabase) {
       setNotice('Reviews are not ready in this build yet.');
       return;
@@ -1992,6 +1996,8 @@ export default function App() {
             reviewForm={reviewForm}
             setReviewForm={setReviewForm}
             submitReview={submitReview}
+            signedIn={Boolean(session)}
+            onSignIn={signInWithGoogle}
             isAdmin={isAdmin}
             adminSaving={adminSaving}
             onSaveAdminEdits={saveAdminActivityEdits}
@@ -2963,6 +2969,8 @@ function ActivityDetail({
   reviewForm,
   setReviewForm,
   submitReview,
+  signedIn,
+  onSignIn,
   isAdmin,
   adminSaving,
   onSaveAdminEdits,
@@ -3067,41 +3075,48 @@ function ActivityDetail({
         />
       )}
 
-      <form className="review-card" onSubmit={submitReview}>
-        <h3>Quick review</h3>
-        <label>
-          <span>Rating</span>
-          <input
-            type="number"
-            min="1"
-            max="5"
-            value={reviewForm.rating}
-            onChange={(event) => setReviewForm((current) => ({ ...current, rating: event.target.value }))}
-          />
-        </label>
-        <label>
-          <span>Comment</span>
-          <textarea
-            value={reviewForm.comments}
-            onChange={(event) => setReviewForm((current) => ({ ...current, comments: event.target.value }))}
-            placeholder="Buggy access, baby change, vibe..."
-          />
-        </label>
-        <label>
-          <span>Photos</span>
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            multiple
-            onChange={(event) => setReviewForm((current) => ({
-              ...current,
-              photos: acceptedPhotoFiles(event.target.files),
-            }))}
-          />
-          <small>{reviewForm.photos.length ? `${reviewForm.photos.length} ready to upload` : 'Up to 5 images'}</small>
-        </label>
-        <button className="primary-action" type="submit">Save</button>
-      </form>
+      {signedIn ? (
+        <form className="review-card" onSubmit={submitReview}>
+          <h3>Quick review</h3>
+          <label>
+            <span>Rating</span>
+            <input
+              type="number"
+              min="1"
+              max="5"
+              value={reviewForm.rating}
+              onChange={(event) => setReviewForm((current) => ({ ...current, rating: event.target.value }))}
+            />
+          </label>
+          <label>
+            <span>Comment</span>
+            <textarea
+              value={reviewForm.comments}
+              onChange={(event) => setReviewForm((current) => ({ ...current, comments: event.target.value }))}
+              placeholder="Buggy access, baby change, vibe..."
+            />
+          </label>
+          <label>
+            <span>Photos</span>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              onChange={(event) => setReviewForm((current) => ({
+                ...current,
+                photos: acceptedPhotoFiles(event.target.files),
+              }))}
+            />
+            <small>{reviewForm.photos.length ? `${reviewForm.photos.length} ready to upload` : 'Up to 5 images'}</small>
+          </label>
+          <button className="primary-action" type="submit">Save</button>
+        </form>
+      ) : (
+        <section className="review-card review-signin-card">
+          <div><h3>Have you been?</h3><p>Sign in to leave a rating or comment.</p></div>
+          <button className="primary-action" type="button" onClick={onSignIn}>Sign in to review</button>
+        </section>
+      )}
     </section>
   );
 }
