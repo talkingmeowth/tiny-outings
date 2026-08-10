@@ -303,6 +303,15 @@ function activityConcentrations(activities) {
     .sort((left, right) => right.count - left.count);
 }
 
+function shuffleActivities(activities) {
+  const shuffled = [...activities];
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+  }
+  return shuffled;
+}
+
 function formatDistance(miles) {
   if (miles == null || Number.isNaN(miles)) return null;
   if (miles < 0.1) return 'Very nearby';
@@ -705,15 +714,6 @@ function isEventSource(activity) {
   ].filter(Boolean).join(' '));
 }
 
-function isHappityListing(activity) {
-  return /happity/i.test([
-    activity.data_source,
-    activity.source_name,
-    activity.source_url,
-    activity.website,
-  ].filter(Boolean).join(' '));
-}
-
 function activitySourceLabel(activity) {
   const source = String(activity.data_source || '').trim().toLowerCase();
   const sourceName = String(activity.source_name || '').toLowerCase();
@@ -945,14 +945,9 @@ export default function App() {
     () => {
       const matchingWindow = filteredActivities
         .filter((activity) => activityMatchesWindow(activity, selectedWindow));
-      return matchingWindow
-      // Ticketed events lead the deck, followed by the weekly Happity classes
-      // that match this exact day and time. General places follow afterwards.
-      .sort((left, right) => (
-        Number(isEventListing(right)) - Number(isEventListing(left))
-        || Number(isHappityListing(right)) - Number(isHappityListing(left))
-        || String(left.start_time).localeCompare(String(right.start_time))
-      ));
+      // Shuffle once when this date/window deck is assembled. Swiping itself
+      // does not reshuffle, so the next card stays stable during a gesture.
+      return shuffleActivities(matchingWindow);
     },
     [filteredActivities, selectedWindow],
   );
@@ -2745,10 +2740,10 @@ function ActivityMapScreen({ activities }) {
       <div className="london-map-shell">
         <MapContainer
           center={[51.5074, -0.1278]}
-          zoom={10}
-          minZoom={9}
+          zoom={9}
+          minZoom={8}
           maxZoom={15}
-          maxBounds={[[51.28, -0.56], [51.78, 0.34]]}
+          maxBounds={[[51.12, -0.78], [51.9, 0.56]]}
           scrollWheelZoom={false}
           className="london-map"
         >
