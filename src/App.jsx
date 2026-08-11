@@ -9,6 +9,7 @@ import 'leaflet/dist/leaflet.css';
 import { supabase } from './supabaseClient';
 import { googleSignInErrorMessage, signInWithNativeGoogle } from './googleAuth';
 import { comparisonTokens, findLikelyDuplicate } from './activityDuplicates';
+import { profileQrUrl, profileShareData } from './profileSharing';
 
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
@@ -912,16 +913,6 @@ function sharedActivityIdFromLocation() {
   } catch {
     return null;
   }
-}
-
-function profileFollowUrl(userName) {
-  const user = cleanDisplayText(userName).toLowerCase();
-  return user ? `${appDownloadPageUrl}?follow=${encodeURIComponent(user)}` : appDownloadPageUrl;
-}
-
-function profileQrUrl(userName) {
-  const user = cleanDisplayText(userName).toLowerCase();
-  return user ? `tinyoutings://follow/${encodeURIComponent(user)}` : appDownloadPageUrl;
 }
 
 function followUsernameFromUrl(value) {
@@ -2205,18 +2196,18 @@ export default function App() {
       setNotice('Create a username before sharing your profile.');
       return;
     }
-    const data = {
-      title: `Follow ${profile.display_name || profile.user_name} on Tiny Outings`,
-      text: `Follow @${profile.user_name} to see our shared Tiny Outings week.`,
-      url: profileFollowUrl(profile.user_name),
-    };
+    const data = profileShareData(profile);
     try {
+      if (Capacitor.isNativePlatform()) {
+        await Share.share(data);
+        return;
+      }
       if (navigator.share) {
         await navigator.share(data);
         return;
       }
-      await navigator.clipboard?.writeText(data.url);
-      setNotice('Profile link copied.');
+      await navigator.clipboard?.writeText(data.text);
+      setNotice('Follow code copied.');
     } catch (error) {
       if (error?.name !== 'AbortError') setNotice('Could not open sharing right now.');
     }
