@@ -345,6 +345,37 @@ button,
   justify-content: flex-end;
 }
 
+.account-profile-button {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 6px;
+  min-height: 34px;
+  max-width: 122px;
+  padding: 5px 8px 5px 5px;
+  border: 1px solid rgba(36, 52, 47, 0.14);
+  border-radius: 999px;
+  color: var(--green-dark);
+  background: rgba(255, 250, 240, 0.84);
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.account-profile-button img {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.account-profile-button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .account-button,
 .guest-button,
 .account-pill {
@@ -1982,6 +2013,10 @@ input[type='range'] {
 .follow-button.is-following {
   color: #fffdf6;
   background: var(--green);
+}
+
+.user-screen {
+  padding-bottom: 16px;
 }
 
 .share-card {

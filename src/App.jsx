@@ -1225,7 +1225,7 @@ export default function App() {
   );
 
   useEffect(() => {
-    if (!supabase || !signedInUser || activeScreen !== 'calendar') {
+    if (!supabase || !signedInUser || activeScreen !== 'user') {
       if (!signedInUser) {
         setFollowingProfiles([]);
         setFollowerProfiles([]);
@@ -2635,9 +2635,10 @@ export default function App() {
         <div className="topbar-actions account-actions">
           {session ? (
             <>
-              <span className={classNames('account-pill', isAdmin && 'is-admin')}>
-                {isAdmin ? 'Admin' : 'Signed in'}
-              </span>
+              <button className="account-profile-button" type="button" onClick={() => navigate('user')}>
+                <img src={profile?.avatar_url || defaultProfileAvatar} alt="" onError={(event) => { event.currentTarget.src = defaultProfileAvatar; }} />
+                <span>{isAdmin ? 'Admin' : (profile?.user_name || 'You')}</span>
+              </button>
               <button className="account-button" type="button" onClick={signOut}>Log out</button>
             </>
           ) : (
@@ -2710,6 +2711,15 @@ export default function App() {
           <CalendarScreen
             weekDays={weekDays}
             calendarEvents={calendarEvents}
+            onOpenActivity={openActivity}
+            onUpdateEvent={updateEvent}
+            onRemoveEvent={removeEvent}
+            onShareApp={openAppShareSheet}
+          />
+        )}
+
+        {activeScreen === 'user' && (
+          <UserScreen
             profile={profile}
             signedIn={Boolean(session)}
             profileSaving={profileSaving}
@@ -2718,11 +2728,8 @@ export default function App() {
             followingWeekEvents={followingWeekEvents}
             socialLoading={socialLoading}
             onOpenActivity={openActivity}
-            onUpdateEvent={updateEvent}
-            onRemoveEvent={removeEvent}
             onSaveProfile={saveProfile}
             onSignIn={signInWithGoogle}
-            onShareApp={openAppShareSheet}
             onShareProfile={shareProfile}
             onFollowByUsername={followProfileByUsername}
             onUnfollow={unfollowProfile}
@@ -3498,9 +3505,7 @@ function FollowingWeekSection({ profiles, events, loading, onOpenActivity }) {
   );
 }
 
-function CalendarScreen({
-  weekDays,
-  calendarEvents,
+function UserScreen({
   profile,
   signedIn,
   profileSaving,
@@ -3509,18 +3514,13 @@ function CalendarScreen({
   followingWeekEvents,
   socialLoading,
   onOpenActivity,
-  onUpdateEvent,
-  onRemoveEvent,
   onSaveProfile,
   onSignIn,
-  onShareApp,
   onShareProfile,
   onFollowByUsername,
   onUnfollow,
 }) {
-  const weekEvents = calendarEvents.filter((event) => weekDays.includes(event.planned_date));
   const [editingProfile, setEditingProfile] = useState(false);
-  const [exportingCalendar, setExportingCalendar] = useState(false);
   const [form, setForm] = useState({ user_name: '', display_name: '', avatar_url: '', default_calendar_visibility: 'followers' });
   const [followUsername, setFollowUsername] = useState('');
 
@@ -3533,23 +3533,12 @@ function CalendarScreen({
     });
   }, [profile]);
 
-  async function exportCalendar(events, filename) {
-    setExportingCalendar(true);
-    try {
-      await downloadICS(events, filename);
-    } catch (error) {
-      window.alert(`Calendar export could not start: ${error.message}`);
-    } finally {
-      setExportingCalendar(false);
-    }
-  }
-
   return (
-    <section className="app-screen calendar-screen">
+    <section className="app-screen user-screen">
       <div className="screen-title compact">
-        <span className="eyebrow">Week</span>
-        <h1>Your plan</h1>
-        <p>Booked and maybe plans.</p>
+        <span className="eyebrow">User</span>
+        <h1>Your profile</h1>
+        <p>Share your code and plan with your people.</p>
       </div>
 
       <section className="profile-card">
@@ -3560,7 +3549,7 @@ function CalendarScreen({
           onError={(event) => { event.currentTarget.src = defaultProfileAvatar; }}
         />
         <div className="profile-summary">
-          <span className="eyebrow">Your profile</span>
+          <span className="eyebrow">Your account</span>
           <strong>{profile?.display_name || profile?.user_name || 'Plan together'}</strong>
           <small>{profile?.user_name ? `@${profile.user_name}` : 'Sign in to create your profile'}</small>
           {profile && <small>{profile.followers || 0} followers - {profile.following || 0} following</small>}
@@ -3597,7 +3586,7 @@ function CalendarScreen({
       )}
 
       {signedIn && (
-        <section className="community-card week-community-card">
+        <section className="community-card user-community-card">
           <div className="section-heading">
             <span>Parents</span>
             <h2>{socialLoading ? 'Loading your people...' : `${followerProfiles.length} followers - ${followingProfiles.length} following`}</h2>
@@ -3638,6 +3627,39 @@ function CalendarScreen({
           onOpenActivity={onOpenActivity}
         />
       )}
+    </section>
+  );
+}
+
+function CalendarScreen({
+  weekDays,
+  calendarEvents,
+  onOpenActivity,
+  onUpdateEvent,
+  onRemoveEvent,
+  onShareApp,
+}) {
+  const weekEvents = calendarEvents.filter((event) => weekDays.includes(event.planned_date));
+  const [exportingCalendar, setExportingCalendar] = useState(false);
+
+  async function exportCalendar(events, filename) {
+    setExportingCalendar(true);
+    try {
+      await downloadICS(events, filename);
+    } catch (error) {
+      window.alert(`Calendar export could not start: ${error.message}`);
+    } finally {
+      setExportingCalendar(false);
+    }
+  }
+
+  return (
+    <section className="app-screen calendar-screen">
+      <div className="screen-title compact">
+        <span className="eyebrow">Week</span>
+        <h1>Your plan</h1>
+        <p>Booked and maybe plans.</p>
+      </div>
 
       <div className="week-export-card">
         <div>
