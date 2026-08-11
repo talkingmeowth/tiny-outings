@@ -6,6 +6,7 @@ import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { supabase } from './supabaseClient';
 import { googleSignInErrorMessage, signInWithNativeGoogle } from './googleAuth';
+import { comparisonTokens, findLikelyDuplicate } from './activityDuplicates';
 
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
@@ -1129,6 +1130,7 @@ export default function App() {
   const [shareSheetActivity, setShareSheetActivity] = useState(null);
   const [shareSheetApp, setShareSheetApp] = useState(false);
   const [reportSheetActivity, setReportSheetActivity] = useState(null);
+  const [duplicateSubmission, setDuplicateSubmission] = useState(null);
   const [reportText, setReportText] = useState('');
   const [reportSubmitting, setReportSubmitting] = useState(false);
   const [activityPhotos, setActivityPhotos] = useState([]);
@@ -2072,6 +2074,90 @@ export default function App() {
     return uploadedPhotos;
   }
 
+  async function saveSubmittedActivity({ activityId, payload, link, photos }) {
+    const { data: insertedActivityData, error: insertError } = await supabase
+      .from('activities')
+      .insert(payload)
+      .select(activitySelectColumns)
+      .single();
+    if (insertError) {
+      setNotice(`The activity details were found, but could not be saved: ${insertError.message}`);
+      return;
+    }
+
+    try {
+      await uploadActivityPhotos(activityId, photos, null, link);
+    } catch (photoError) {
+      setNotice(`Activity added, but the photos could not be saved: ${photoError.message}`);
+      return;
+    }
+
+    setLinkForm({ ...emptyLinkForm, photos: [] });
+    if (isAdmin) {
+      // An administrator adding a listing is the manual review step. Show the
+      // live result immediately, rather than hiding their own work in drafts.
+      if (insertedActivityData) {
+        const insertedActivity = normalizeActivity(insertedActivityData);
+        setActivities((current) => [
+          insertedActivity,
+          ...current.filter((item) => String(item.activity_id) !== String(activityId)),
+        ]);
+        setSelectedActivity(insertedActivity);
+        setActiveScreen('activity');
+      }
+      setNotice(`${payload.activity_name} is live.`);
+    } else {
+      setNotice(`${payload.activity_name} was added for review.`);
+    }
+  }
+
+  async function findSubmissionDuplicate(payload) {
+    const localMatch = findLikelyDuplicate(payload, allActivities);
+    if (localMatch || !supabase) return localMatch;
+
+    // Add can open before the directory has completed its first load. Query a
+    // narrow set of title candidates so the duplicate safeguard still applies.
+    const [distinctiveToken] = comparisonTokens(payload.activity_name)
+      .filter((token) => token.length >= 4)
+      .sort((left, right) => right.length - left.length);
+    if (!distinctiveToken) return null;
+
+    const { data, error } = await supabase
+      .from('activities')
+      .select(activitySelectColumns)
+      .eq('public_listing_status', 'published')
+      .eq('archive', false)
+      .ilike('activity_name', `%${distinctiveToken}%`)
+      .limit(80);
+    if (error) return null;
+    return findLikelyDuplicate(payload, (data || []).map(normalizeActivity));
+  }
+
+  function openExistingDuplicate() {
+    const candidate = duplicateSubmission?.candidate;
+    if (!candidate) return;
+    setDuplicateSubmission(null);
+    setLinkForm({ ...emptyLinkForm, photos: [] });
+    setReturnScreen('add');
+    setSelectedActivity(candidate);
+    setActiveScreen('activity');
+    setNotice('This outing is already in Tiny Outings.');
+  }
+
+  async function continueDuplicateSubmission() {
+    const pending = duplicateSubmission;
+    if (!pending) return;
+    setDuplicateSubmission(null);
+    setLoading(true);
+    try {
+      await saveSubmittedActivity(pending);
+    } catch (error) {
+      setNotice(`The activity could not be added: ${error instanceof Error ? error.message : 'Please try again.'}`);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function submitActivityLink(event) {
     event.preventDefault();
     const link = submittedActivityLink(linkForm.link);
@@ -2131,40 +2217,14 @@ export default function App() {
         submission_notes: linkForm.comment.trim() || null,
         submission_rating: numericOrNull(linkForm.rating),
       };
-      const { data: insertedActivityData, error: insertError } = await supabase
-        .from('activities')
-        .insert(payload)
-        .select(activitySelectColumns)
-        .single();
-      if (insertError) {
-        setNotice(`The activity details were found, but could not be saved: ${insertError.message}`);
+      const duplicate = await findSubmissionDuplicate(payload);
+      const pendingSubmission = { activityId, payload, link, photos: linkForm.photos };
+      if (duplicate) {
+        setDuplicateSubmission({ ...pendingSubmission, candidate: duplicate.activity, confidence: duplicate.score });
         return;
       }
 
-      try {
-        await uploadActivityPhotos(activityId, linkForm.photos, null, link);
-      } catch (photoError) {
-        setNotice(`Activity added, but the photos could not be saved: ${photoError.message}`);
-        return;
-      }
-
-      setLinkForm({ ...emptyLinkForm, photos: [] });
-      if (isAdmin) {
-        // An administrator adding a listing is the manual review step. Show the
-        // live result immediately, rather than hiding their own work in drafts.
-        if (insertedActivityData) {
-          const insertedActivity = normalizeActivity(insertedActivityData);
-          setActivities((current) => [
-            insertedActivity,
-            ...current.filter((item) => String(item.activity_id) !== String(activityId)),
-          ]);
-          setSelectedActivity(insertedActivity);
-          setActiveScreen('activity');
-        }
-        setNotice(`${payload.activity_name} is live.`);
-      } else {
-        setNotice(`${payload.activity_name} was added for review.`);
-      }
+      await saveSubmittedActivity(pendingSubmission);
     } catch (error) {
       setNotice(`The activity could not be added: ${error instanceof Error ? error.message : 'Please try again.'}`);
     } finally {
@@ -2393,6 +2453,14 @@ export default function App() {
           onChange={setReportText}
           onClose={() => setReportSheetActivity(null)}
           onSubmit={submitActivityReport}
+        />
+      )}
+      {duplicateSubmission && (
+        <DuplicateSubmissionSheet
+          activity={duplicateSubmission.candidate}
+          onClose={() => setDuplicateSubmission(null)}
+          onUseExisting={openExistingDuplicate}
+          onContinue={continueDuplicateSubmission}
         />
       )}
 
@@ -3576,6 +3644,33 @@ function ReportSheet({ activity, value, submitting, onChange, onClose, onSubmit 
         <textarea value={value} onChange={(event) => onChange(event.target.value)} placeholder="Wrong details, broken link, unsuitable listing..." required />
         <button className="primary-action wide" type="submit" disabled={submitting}>{submitting ? 'Sending...' : 'Send report'}</button>
       </form>
+    </div>
+  );
+}
+
+function DuplicateSubmissionSheet({ activity, onClose, onUseExisting, onContinue }) {
+  return (
+    <div className="share-sheet-backdrop" role="presentation" onClick={onClose}>
+      <section className="duplicate-submission-sheet" role="dialog" aria-modal="true" aria-label="Possible duplicate activity" onClick={(event) => event.stopPropagation()}>
+        <div className="sheet-handle" />
+        <div className="share-sheet-heading">
+          <span>Already listed</span>
+          <button type="button" onClick={onClose} aria-label="Close duplicate check">x</button>
+        </div>
+        <p>We found an outing that looks like the same activity. Is this the one you mean</p>
+        <article className="duplicate-activity-preview">
+          <ActivityPhoto activity={activity} className="duplicate-activity-photo" />
+          <div>
+            <strong>{activity.activity_name}</strong>
+            <small>{activity.address || activity.borough || 'London'}</small>
+            <small>{activity.card_summary || activity.description || 'View the existing listing for details.'}</small>
+          </div>
+        </article>
+        <div className="duplicate-submission-actions">
+          <button className="primary-action" type="button" onClick={onUseExisting}>Yes, show this one</button>
+          <button className="secondary-button" type="button" onClick={onContinue}>No, add mine</button>
+        </div>
+      </section>
     </div>
   );
 }
