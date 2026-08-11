@@ -2318,7 +2318,32 @@ input[type='range'] {
   padding: 16px;
   border: 1px solid rgba(203, 88, 63, 0.25);
   border-radius: 28px;
-  background: linear-gradient(145deg, rgba(255, 239, 220, 0.95), rgba(255, 250, 240, 0.92));
+  background: #fffaf0;
+}
+
+.review-queue .section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.queue-refresh {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+}
+
+.queue-error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  color: var(--coral-dark);
+  background: #fff4ef;
+  font-size: 0.82rem;
+  font-weight: 750;
+  line-height: 1.35;
 }
 
 .review-queue .section-heading {

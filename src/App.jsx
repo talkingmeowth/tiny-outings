@@ -1195,6 +1195,8 @@ export default function App() {
   const [pendingFollowUsername, setPendingFollowUsername] = useState(() => followUsernameFromUrl(window.location.href));
   const [reviewQueue, setReviewQueue] = useState([]);
   const [reviewQueueLoading, setReviewQueueLoading] = useState(false);
+  const [reviewQueueError, setReviewQueueError] = useState('');
+  const [reviewQueueRefresh, setReviewQueueRefresh] = useState(0);
   const [adminSaving, setAdminSaving] = useState(false);
   // Keep Plan controls responsive while the directory catches up with a changed filter.
   const deferredFilters = useDeferredValue(filters);
@@ -1687,12 +1689,18 @@ export default function App() {
 
     async function loadReviewQueue() {
       if (!supabase || !isAdmin) {
-        if (!cancelled) setReviewQueue([]);
+        if (!cancelled) {
+          setReviewQueue([]);
+          setReviewQueueError('');
+        }
         return;
       }
       if (activeScreen !== 'add') return;
 
-      if (!cancelled) setReviewQueueLoading(true);
+      if (!cancelled) {
+        setReviewQueueLoading(true);
+        setReviewQueueError('');
+      }
       try {
         const { data, error } = await supabase
           .from('activities')
@@ -1702,12 +1710,16 @@ export default function App() {
           .order('created_at', { ascending: true });
         if (cancelled) return;
         if (error) {
+          setReviewQueueError(error.message || 'We could not load the review queue.');
           setNotice(`Review queue could not be loaded: ${error.message}`);
           return;
         }
         setReviewQueue((data || []).map(normalizeActivity));
       } catch {
-        if (!cancelled) setNotice('Review queue could not be loaded. Try again in a moment.');
+        if (!cancelled) {
+          setReviewQueueError('We could not load the review queue.');
+          setNotice('Review queue could not be loaded. Try again in a moment.');
+        }
       } finally {
         if (!cancelled) setReviewQueueLoading(false);
       }
@@ -1717,7 +1729,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [activeScreen, isAdmin]);
+  }, [activeScreen, isAdmin, reviewQueueRefresh]);
 
   useEffect(() => {
     let cancelled = false;
@@ -2415,22 +2427,14 @@ export default function App() {
     }
 
     setLinkForm({ ...emptyLinkForm, photos: [] });
-    if (isAdmin) {
-      // An administrator adding a listing is the manual review step. Show the
-      // live result immediately, rather than hiding their own work in drafts.
-      if (insertedActivityData) {
-        const insertedActivity = normalizeActivity(insertedActivityData);
-        setActivities((current) => [
-          insertedActivity,
-          ...current.filter((item) => String(item.activity_id) !== String(activityId)),
-        ]);
-        setSelectedActivity(insertedActivity);
-        setActiveScreen('activity');
-      }
-      setNotice(`${payload.activity_name} is live.`);
-    } else {
-      setNotice(`${payload.activity_name} was added for review.`);
+    if (isAdmin && insertedActivityData) {
+      const insertedActivity = normalizeActivity(insertedActivityData);
+      setReviewQueue((current) => [
+        insertedActivity,
+        ...current.filter((item) => String(item.activity_id) !== String(activityId)),
+      ]);
     }
+    setNotice(`${payload.activity_name} was sent to the review queue.`);
   }
 
   async function findSubmissionDuplicate(payload) {
@@ -2527,7 +2531,7 @@ export default function App() {
           websiteLink,
           googlePlacesLink,
           session?.user?.id || null,
-          isAdmin ? 'published' : 'draft',
+          'draft',
         ),
         activity_id: activityId,
         activity_name: enriched.activity_name,
@@ -2738,8 +2742,10 @@ export default function App() {
             isAdmin={isAdmin}
             reviewQueue={reviewQueue}
             reviewQueueLoading={reviewQueueLoading}
+            reviewQueueError={reviewQueueError}
             adminSaving={adminSaving}
             onOpenDraft={openDraftForReview}
+            onRefreshQueue={() => setReviewQueueRefresh((current) => current + 1)}
           />
         )}
 
@@ -3724,16 +3730,53 @@ function AddActivityScreen({
   isAdmin,
   reviewQueue,
   reviewQueueLoading,
+  reviewQueueError,
   adminSaving,
   onOpenDraft,
+  onRefreshQueue,
 }) {
   return (
     <section className="app-screen form-screen">
       <div className="screen-title compact">
         <span className="eyebrow">Add</span>
         <h1>Add a spot.</h1>
-        <p>{isAdmin ? 'Your additions go live straight away.' : 'Share the basics. We review every new listing first.'}</p>
+        <p>Share the basics. Every new listing is checked before it appears.</p>
       </div>
+
+      {isAdmin && (
+        <section className="review-queue" aria-live="polite">
+          <div className="section-heading">
+            <div>
+              <span>Admin review</span>
+              <h2>{reviewQueueLoading ? 'Loading submissions...' : `${reviewQueue.length} awaiting review`}</h2>
+            </div>
+            <button className="queue-refresh" type="button" onClick={onRefreshQueue} disabled={reviewQueueLoading || adminSaving}>
+              Refresh
+            </button>
+          </div>
+          {reviewQueueError && (
+            <p className="queue-error">The review queue could not load. Tap Refresh to try again.</p>
+          )}
+          {!reviewQueueLoading && !reviewQueueError && reviewQueue.length === 0 && (
+            <p className="queue-empty">Nothing is waiting right now.</p>
+          )}
+          <div className="review-list">
+            {reviewQueue.map((activity) => (
+              <article key={activity.activity_id} className="review-item">
+                <ActivityPhoto activity={activity} className="review-photo" />
+                <div>
+                  <strong>{activity.activity_name}</strong>
+                  <small>{activityPlanLabel(activity)} - {activity.address || 'Address to review'}</small>
+                  <small>{activity.submission_notes || activity.website || activity.google_link || 'No parent note'}</small>
+                </div>
+                <div className="review-actions">
+                  <button type="button" onClick={() => onOpenDraft(activity)} disabled={adminSaving}>Review draft</button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
       <form className="app-form link-only-form" onSubmit={onSubmit}>
         <label className="wide">
@@ -3798,31 +3841,6 @@ function AddActivityScreen({
           {loading ? 'Reading...' : 'Add'}
         </button>
       </form>
-
-      {isAdmin && (
-        <section className="review-queue">
-          <div className="section-heading">
-            <span>Admin review</span>
-            <h2>{reviewQueueLoading ? 'Loading submissions...' : `${reviewQueue.length} awaiting review`}</h2>
-          </div>
-          {!reviewQueueLoading && reviewQueue.length === 0 && <p className="queue-empty">Nothing waiting right now.</p>}
-          <div className="review-list">
-            {reviewQueue.map((activity) => (
-              <article key={activity.activity_id} className="review-item">
-                <ActivityPhoto activity={activity} className="review-photo" />
-                <div>
-                  <strong>{activity.activity_name}</strong>
-                  <small>{activityPlanLabel(activity)} - {activity.address || 'Address to review'}</small>
-                  <small>{activity.submission_notes || activity.website || activity.google_link || 'No parent note'}</small>
-                </div>
-                <div className="review-actions">
-                  <button type="button" onClick={() => onOpenDraft(activity)} disabled={adminSaving}>Review draft</button>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-      )}
     </section>
   );
 }
