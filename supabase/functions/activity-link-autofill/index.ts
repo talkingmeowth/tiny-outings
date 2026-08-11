@@ -190,6 +190,15 @@ function inferBorough(value: string) {
   return null;
 }
 
+function conciseCardSummary(value: string | null | undefined) {
+  const text = String(value || '').replace(/\s+/g, ' ').trim();
+  if (!text) return null;
+  const firstSentence = text.split(/(?<=[.!])\s+/)[0] || text;
+  if (firstSentence.length <= 180) return firstSentence;
+  const shortened = firstSentence.slice(0, 177).replace(/\s+\S*$/, '').trim();
+  return `${shortened}...`;
+}
+
 async function extractWebsiteMetadata(link: string, providedName?: string | null) {
   const response = await fetch(link, {
     redirect: 'follow',
@@ -232,6 +241,7 @@ async function extractWebsiteMetadata(link: string, providedName?: string | null
     age_suitability: 'Under 5s',
     borough: inferBorough(combinedText),
     description,
+    card_summary: conciseCardSummary(description),
     cost: structured.price || null,
     schedule_notes: structured.openingHours || null,
     source_url: response.url || link,

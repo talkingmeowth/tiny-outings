@@ -49,6 +49,7 @@ const activitySelectColumns = [
   'schedule_notes',
   'time_window',
   'description',
+  'card_summary',
   'cost',
   'admin_cover_image_url',
   'scraped_image_url',
@@ -282,6 +283,23 @@ function cleanDisplayText(value, fallback = '') {
   return cleaned || fallback;
 }
 
+function conciseCardSummary(activity) {
+  const description = cleanDisplayText(activity?.description);
+  if (description) {
+    const firstSentence = description.split(/(?<=[.!])\s+/)[0] || description;
+    if (firstSentence.length <= 180) return firstSentence;
+    const shortened = firstSentence.slice(0, 177).replace(/\s+\S*$/, '').trim();
+    return `${shortened}...`;
+  }
+
+  const category = cleanDisplayText(activity?.category, 'Family activity');
+  const age = cleanDisplayText(activity?.age_suitability);
+  const location = cleanDisplayText(activity?.borough || activity?.address);
+  return [category, age && `for ${age}`, location && `in ${location}`]
+    .filter(Boolean)
+    .join(' ');
+}
+
 function normalizeActivity(activity) {
   const appRating = numericOrNull(activity.app_rating);
   const googleRating = numericOrNull(activity.google_rating);
@@ -300,6 +318,7 @@ function normalizeActivity(activity) {
     address: cleanDisplayText(activity.address),
     category: cleanDisplayText(activity.category || activity.google_primary_type, 'parent friendly'),
     description: cleanDisplayText(activity.description),
+    card_summary: cleanDisplayText(activity.card_summary),
     age_suitability: cleanDisplayText(activity.age_suitability),
     availability_notes: cleanDisplayText(activity.availability_notes),
     source_name: cleanDisplayText(activity.source_name),
@@ -669,6 +688,7 @@ function fallbackActivityFromSubmittedLink(link, category) {
     google_place_uri: isGoogleLink ? link : null,
     age_suitability: 'Under 5s',
     description: 'Link saved for admin review. Add the missing details before publishing.',
+    card_summary: 'Draft saved for admin review.',
     cost: null,
     source_url: link,
   };
@@ -1011,6 +1031,7 @@ function buildSubmittedPayload(
     number_of_reviews: Number.isFinite(reviewCount) ? reviewCount : 0,
     age_suitability: enriched.age_suitability || 'Under 5s',
     description: enriched.description || null,
+    card_summary: cleanDisplayText(enriched.card_summary) || conciseCardSummary(enriched),
     cost: enriched.cost || null,
     source_name: googlePlacesLink ? 'Google Places link submission' : 'Website link submission',
     source_url: submissionLink,
@@ -1893,6 +1914,13 @@ export default function App() {
       start_time: values.start_time || null,
       end_time: values.end_time || null,
       description: values.description || null,
+      card_summary: cleanDisplayText(values.card_summary) || conciseCardSummary({
+        description: values.description,
+        category: values.category || activity.category,
+        age_suitability: values.age_suitability,
+        borough: values.borough,
+        address: values.address,
+      }),
       cost: values.cost || null,
       age_suitability: values.age_suitability || null,
       user_image_url: values.user_image_url || null,
@@ -2096,6 +2124,10 @@ export default function App() {
         activity_id: activityId,
         activity_name: enriched.activity_name,
         category: linkForm.category || enriched.category || enriched.google_primary_type || 'Classes & clubs',
+        card_summary: cleanDisplayText(enriched.card_summary) || conciseCardSummary({
+          ...enriched,
+          category: linkForm.category || enriched.category || enriched.google_primary_type,
+        }),
         submission_notes: linkForm.comment.trim() || null,
         submission_rating: numericOrNull(linkForm.rating),
       };
@@ -2916,7 +2948,7 @@ function ActivityCard({
         </div>
         <h2>{activity.activity_name}</h2>
         <p className="card-description">
-          {activity.description || 'Tap for the latest details.'}
+          {activity.card_summary || activity.description || 'Tap for the latest details.'}
         </p>
 
         <div className="card-summary">
@@ -3558,6 +3590,7 @@ function ActivityAdminEditor({ activity, saving, onSave, onArchive, onPublishDra
     start_time: String(activity.start_time || '').slice(0, 5),
     end_time: String(activity.end_time || '').slice(0, 5),
     description: activity.description || '',
+    card_summary: activity.card_summary || conciseCardSummary(activity),
     cost: activity.cost || '',
     age_suitability: activity.age_suitability || '',
     user_image_url: activity.user_image_url || '',
@@ -3576,6 +3609,7 @@ function ActivityAdminEditor({ activity, saving, onSave, onArchive, onPublishDra
       start_time: String(activity.start_time || '').slice(0, 5),
       end_time: String(activity.end_time || '').slice(0, 5),
       description: activity.description || '',
+      card_summary: activity.card_summary || conciseCardSummary(activity),
       cost: activity.cost || '',
       age_suitability: activity.age_suitability || '',
       user_image_url: activity.user_image_url || '',
@@ -3676,6 +3710,14 @@ function ActivityAdminEditor({ activity, saving, onSave, onArchive, onPublishDra
           value={form.description}
           onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
           placeholder="What parents can expect"
+        />
+      </label>
+      <label className="wide">
+        <span>Card summary</span>
+        <textarea
+          value={form.card_summary}
+          onChange={(event) => setForm((current) => ({ ...current, card_summary: event.target.value }))}
+          placeholder="Short description shown while swiping"
         />
       </label>
       <label className="wide photo-upload-field">
