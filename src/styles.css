@@ -2145,7 +2145,7 @@ input[type='range'] {
 .review-actions {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 8px;
 }
 
@@ -2161,9 +2161,9 @@ input[type='range'] {
 }
 
 .review-actions button:last-child {
-  color: #76958d;
-  border-color: rgba(179, 68, 47, 0.32);
-  background: rgba(255, 250, 240, 0.9);
+  color: #fffdf6;
+  border-color: rgba(102, 133, 120, 0.18);
+  background: var(--green);
 }
 
 .map-screen {
@@ -2324,6 +2324,40 @@ input[type='range'] {
 
 .admin-editor input {
   min-width: 0;
+}
+
+.admin-editor textarea {
+  min-height: 96px;
+}
+
+.draft-review-banner {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  color: var(--green-dark);
+  background: rgba(236, 217, 126, 0.34);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.draft-review-banner strong {
+  font-size: 0.86rem;
+}
+
+.draft-submission-note,
+.draft-submission-rating {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.draft-submission-note strong {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--green-dark);
 }
 
 .archive-listing-button {

@@ -71,6 +71,8 @@ const activitySelectColumns = [
   'public_listing_status',
   'archive',
   'submitted_by_user_id',
+  'submission_notes',
+  'submission_rating',
   'created_at',
 ].join(',');
 const statusLabels = {
@@ -80,10 +82,10 @@ const statusLabels = {
 };
 
 const emptyLinkForm = {
-  activity_name: '',
+  link: '',
   category: '',
-  website: '',
-  google_places_link: '',
+  comment: '',
+  rating: '',
   photos: [],
 };
 
@@ -302,6 +304,8 @@ function normalizeActivity(activity) {
     availability_notes: cleanDisplayText(activity.availability_notes),
     source_name: cleanDisplayText(activity.source_name),
     borough: cleanDisplayText(activity.borough),
+    submission_notes: cleanDisplayText(activity.submission_notes),
+    submission_rating: numericOrNull(activity.submission_rating),
     google_primary_type: cleanDisplayText(activity.google_primary_type),
     lat: numericOrNull(activity.lat),
     long: numericOrNull(activity.long),
@@ -620,6 +624,54 @@ function isGooglePlacesUrl(value) {
   } catch {
     return false;
   }
+}
+
+function submittedActivityLink(value) {
+  try {
+    const url = new URL(String(value || '').trim());
+    if (!['http:', 'https:'].includes(url.protocol)) return null;
+    [...url.searchParams.keys()].forEach((key) => {
+      if (/^(utm_|fbclid$|gclid$|mc_cid$|mc_eid$)/i.test(key)) {
+        url.searchParams.delete(key);
+      }
+    });
+    url.hash = '';
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+function activityNameFromSubmittedLink(link) {
+  try {
+    const url = new URL(link);
+    const searchName = ['q', 'query', 'place', 'destination']
+      .map((key) => url.searchParams.get(key))
+      .find(Boolean);
+    const placeName = url.pathname.match(/\/maps\/place\/([^/@]+)/i)?.[1];
+    const candidate = searchName || placeName || url.hostname.replace(/^www\./i, '').split('.')[0];
+    return cleanDisplayText(decodeURIComponent(candidate).replace(/[+_-]+/g, ' '), 'Activity to review');
+  } catch {
+    return 'Activity to review';
+  }
+}
+
+function fallbackActivityFromSubmittedLink(link, category) {
+  const isGoogleLink = isGooglePlacesUrl(link);
+  return {
+    activity_name: activityNameFromSubmittedLink(link),
+    address: 'Address needs review',
+    category: category || 'Classes & clubs',
+    start_time: '09:00',
+    end_time: '10:00',
+    website: isGoogleLink ? null : link,
+    google_link: isGoogleLink ? link : null,
+    google_place_uri: isGoogleLink ? link : null,
+    age_suitability: 'Under 5s',
+    description: 'Link saved for admin review. Add the missing details before publishing.',
+    cost: null,
+    source_url: link,
+  };
 }
 
 function isCoordinateGoogleMapsUrl(value) {
@@ -1412,6 +1464,7 @@ export default function App() {
         if (!cancelled) setReviewQueue([]);
         return;
       }
+      if (activeScreen !== 'add') return;
 
       if (!cancelled) setReviewQueueLoading(true);
       try {
@@ -1438,7 +1491,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [isAdmin]);
+  }, [activeScreen, isAdmin]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1653,6 +1706,12 @@ export default function App() {
     setActiveScreen('activity');
   }
 
+  function openDraftForReview(activity) {
+    setReturnScreen('add');
+    setSelectedActivity(activity);
+    setActiveScreen('activity');
+  }
+
   function closeActivity() {
     setSelectedActivity(null);
     setActiveScreen(returnScreen);
@@ -1827,7 +1886,15 @@ export default function App() {
     let adminCoverImageUrl = activity.admin_cover_image_url || null;
 
     const updates = {
+      activity_name: values.activity_name || activity.activity_name,
+      address: values.address || activity.address || 'Address needs review',
+      borough: values.borough || null,
       category: values.category || activity.category || null,
+      start_time: values.start_time || null,
+      end_time: values.end_time || null,
+      description: values.description || null,
+      cost: values.cost || null,
+      age_suitability: values.age_suitability || null,
       user_image_url: values.user_image_url || null,
       website: values.website || null,
       organiser_website: values.organiser_website || null,
@@ -1873,6 +1940,9 @@ export default function App() {
     setActivities((current) => current.map((item) => (
       String(item.activity_id) === String(updatedActivity.activity_id) ? updatedActivity : item
     )));
+    setReviewQueue((current) => current.map((item) => (
+      String(item.activity_id) === String(updatedActivity.activity_id) ? updatedActivity : item
+    )));
     setSelectedActivity(updatedActivity);
     setNotice('Listing correction saved for future importer review.');
   }
@@ -1892,6 +1962,7 @@ export default function App() {
     }
 
     setActivities((current) => current.filter((item) => String(item.activity_id) !== String(activity.activity_id)));
+    setReviewQueue((current) => current.filter((item) => String(item.activity_id) !== String(activity.activity_id)));
     closeActivity();
     setNotice('Listing archived.');
   }
@@ -1912,6 +1983,7 @@ export default function App() {
         return;
       }
       setReviewQueue((current) => current.filter((item) => String(item.activity_id) !== String(activity.activity_id)));
+      closeActivity();
       setNotice('Listing archived.');
       return;
     }
@@ -1931,7 +2003,13 @@ export default function App() {
 
     setReviewQueue((current) => current.filter((item) => String(item.activity_id) !== String(activity.activity_id)));
     if (status === 'published') {
-      setActivities((current) => [...current, normalizeActivity(data)]);
+      const updatedActivity = normalizeActivity(data);
+      setActivities((current) => (
+        current.some((item) => String(item.activity_id) === String(updatedActivity.activity_id))
+          ? current.map((item) => (String(item.activity_id) === String(updatedActivity.activity_id) ? updatedActivity : item))
+          : [...current, updatedActivity]
+      ));
+      setSelectedActivity(updatedActivity);
       setNotice('Listing approved and live.');
     } else {
       setNotice('Listing archived.');
@@ -1968,13 +2046,10 @@ export default function App() {
 
   async function submitActivityLink(event) {
     event.preventDefault();
-    const websiteLink = linkForm.website.trim();
-    const googlePlacesLink = linkForm.google_places_link.trim();
-    const link = websiteLink || googlePlacesLink;
-    const submittedName = linkForm.activity_name.trim();
+    const link = submittedActivityLink(linkForm.link);
 
     if (!link) {
-      setNotice('Add a website or Google Places link first.');
+      setNotice('Add a valid activity link first.');
       return;
     }
 
@@ -1985,37 +2060,27 @@ export default function App() {
 
     setLoading(true);
     try {
-      let enriched;
-      if (!websiteLink && isGooglePlacesUrl(googlePlacesLink)) {
-        if (!submittedName) {
-          setNotice('Add an activity name with a Google Places link.');
-          return;
-        }
-        // Google Maps blocks public page scraping. Save a reviewable draft and
-        // retain the supplied place URL instead of treating it as a website.
-        enriched = {
-          activity_name: submittedName,
-          address: 'Address to review',
-          category: linkForm.category || 'Classes & clubs',
-          website: null,
-          google_link: googlePlacesLink,
-          google_place_uri: googlePlacesLink,
-        };
-      } else {
+      const googlePlacesLink = isGooglePlacesUrl(link) ? link : '';
+      const websiteLink = googlePlacesLink ? '' : link;
+      let enriched = null;
+      try {
         const { data, error } = await supabase.functions.invoke('activity-link-autofill', {
-          body: { link, websiteLink: websiteLink || null, googlePlacesLink: googlePlacesLink || null, activityName: submittedName || null },
+          body: { link },
         });
 
         if (error) {
-          setNotice(`That link could not be read yet: ${error.message}`);
-          return;
+          throw error;
         }
         enriched = data?.activity || data;
+      } catch {
+        // A draft must not be lost just because an individual website blocks
+        // metadata extraction. The administrator can complete it in review.
+        enriched = fallbackActivityFromSubmittedLink(link, linkForm.category);
+        setNotice('The link was saved for review. Some details need checking.');
       }
 
-      if (!enriched?.activity_name || !enriched?.address) {
-        setNotice('That link needs more detail. Try the place listing link.');
-        return;
+      if (!enriched?.activity_name) {
+        enriched = fallbackActivityFromSubmittedLink(link, linkForm.category);
       }
 
       const activityId = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -2029,8 +2094,10 @@ export default function App() {
           isAdmin ? 'published' : 'draft',
         ),
         activity_id: activityId,
-        activity_name: submittedName || enriched.activity_name,
+        activity_name: enriched.activity_name,
         category: linkForm.category || enriched.category || enriched.google_primary_type || 'Classes & clubs',
+        submission_notes: linkForm.comment.trim() || null,
+        submission_rating: numericOrNull(linkForm.rating),
       };
       const { data: insertedActivityData, error: insertError } = await supabase
         .from('activities')
@@ -2251,7 +2318,7 @@ export default function App() {
             reviewQueue={reviewQueue}
             reviewQueueLoading={reviewQueueLoading}
             adminSaving={adminSaving}
-            onReview={reviewSubmittedActivity}
+            onOpenDraft={openDraftForReview}
           />
         )}
 
@@ -2269,6 +2336,7 @@ export default function App() {
             adminSaving={adminSaving}
             onSaveAdminEdits={saveAdminActivityEdits}
             onArchive={archiveAdminActivity}
+            onReviewDraft={reviewSubmittedActivity}
             onOpenShare={openShareSheet}
             onReport={openReportSheet}
             onClose={closeActivity}
@@ -3095,7 +3163,7 @@ function AddActivityScreen({
   reviewQueue,
   reviewQueueLoading,
   adminSaving,
-  onReview,
+  onOpenDraft,
 }) {
   return (
     <section className="app-screen form-screen">
@@ -3107,12 +3175,15 @@ function AddActivityScreen({
 
       <form className="app-form link-only-form" onSubmit={onSubmit}>
         <label className="wide">
-          <span>Activity name</span>
+          <span>Activity link</span>
           <input
-            value={form.activity_name}
-            onChange={(event) => setForm((current) => ({ ...current, activity_name: event.target.value }))}
-            placeholder="e.g. Saturday stay and play"
+            type="url"
+            required
+            value={form.link}
+            onChange={(event) => setForm((current) => ({ ...current, link: event.target.value }))}
+            placeholder="https://activity-website..."
           />
+          <small>Paste the activity website or its Google Maps link.</small>
         </label>
         <label className="wide">
           <span>Category</span>
@@ -3128,37 +3199,37 @@ function AddActivityScreen({
           </select>
         </label>
         <label className="wide">
-          <span>Website</span>
-          <input
-            type="url"
-            value={form.website}
-            onChange={(event) => setForm((current) => ({ ...current, website: event.target.value }))}
-            placeholder="https://activity-website..."
+          <span>Comment <em>Optional</em></span>
+          <textarea
+            value={form.comment}
+            onChange={(event) => setForm((current) => ({ ...current, comment: event.target.value }))}
+            placeholder="Anything an admin should know..."
           />
         </label>
-        <label className="wide">
-          <span>Google Places link</span>
-          <input
-            type="url"
-            value={form.google_places_link}
-            onChange={(event) => setForm((current) => ({ ...current, google_places_link: event.target.value }))}
-            placeholder="https://maps.google.com/..."
-          />
-          <small>Paste a shared Google Maps or Google Places link.</small>
+        <label>
+          <span>Rating <em>Optional</em></span>
+          <select
+            value={form.rating}
+            onChange={(event) => setForm((current) => ({ ...current, rating: event.target.value }))}
+          >
+            <option value="">No rating</option>
+            {[1, 2, 3, 4, 5].map((rating) => (
+              <option key={rating} value={rating}>{rating} out of 5</option>
+            ))}
+          </select>
         </label>
 
         <label className="wide photo-upload-field">
-          <span>Photos</span>
+          <span>Photo <em>Optional</em></span>
           <input
             type="file"
             accept="image/jpeg,image/png,image/webp"
-            multiple
             onChange={(event) => setForm((current) => ({
               ...current,
               photos: acceptedPhotoFiles(event.target.files),
             }))}
           />
-          <small>{form.photos.length ? `${form.photos.length} ready to upload` : 'Up to 5 JPG, PNG, or WebP images'}</small>
+          <small>{form.photos.length ? 'Photo ready to upload' : 'JPG, PNG, or WebP up to 8 MB'}</small>
         </label>
 
         <button className="primary-action wide" type="submit" disabled={loading}>
@@ -3180,11 +3251,10 @@ function AddActivityScreen({
                 <div>
                   <strong>{activity.activity_name}</strong>
                   <small>{activityPlanLabel(activity)} - {activity.address || 'Address to review'}</small>
-                  <small>{activity.website || activity.google_link || 'No source link'}</small>
+                  <small>{activity.submission_notes || activity.website || activity.google_link || 'No parent note'}</small>
                 </div>
                 <div className="review-actions">
-                  <button type="button" onClick={() => onReview(activity, 'published')} disabled={adminSaving}>Approve</button>
-                  <button type="button" onClick={() => onReview(activity, 'archived')} disabled={adminSaving}>Archive</button>
+                  <button type="button" onClick={() => onOpenDraft(activity)} disabled={adminSaving}>Review draft</button>
                 </div>
               </article>
             ))}
@@ -3269,6 +3339,7 @@ function ActivityDetail({
   adminSaving,
   onSaveAdminEdits,
   onArchive,
+  onReviewDraft,
   onOpenShare,
   onReport,
   onClose,
@@ -3279,6 +3350,7 @@ function ActivityDetail({
   const organiserWebsiteUrl = activity.organiser_website || null;
   const cost = activityCost(activity);
   const flexible = isFlexibleActivity(activity);
+  const isDraft = activity.public_listing_status === 'draft';
 
   return (
     <section className="app-screen activity-detail-screen">
@@ -3300,11 +3372,23 @@ function ActivityDetail({
       </div>
 
       <div className="detail-content-card">
+        {isDraft && isAdmin && (
+          <div className="draft-review-banner">
+            <strong>Draft submission</strong>
+            <span>Check the full card, correct anything needed, then publish or archive it.</span>
+          </div>
+        )}
         <p className="eyebrow">{activityPlanLabel(activity)}</p>
         <h1>{activity.activity_name}</h1>
         <p className="detail-description">
           {activity.description || 'Description coming soon. Check the links for the latest details.'}
         </p>
+        {isDraft && activity.submission_notes && (
+          <p className="draft-submission-note"><strong>Parent note</strong>{activity.submission_notes}</p>
+        )}
+        {isDraft && activity.submission_rating != null && (
+          <p className="draft-submission-rating">Parent rating: {activity.submission_rating} out of 5</p>
+        )}
 
         <div className="detail-grid">
           {flexible ? (
@@ -3366,10 +3450,11 @@ function ActivityDetail({
           saving={adminSaving}
           onSave={onSaveAdminEdits}
           onArchive={onArchive}
+          onPublishDraft={isDraft ? () => onReviewDraft(activity, 'published') : null}
         />
       )}
 
-      {signedIn ? (
+      {!isDraft && signedIn ? (
         <form className="review-card" onSubmit={submitReview}>
           <h3>Quick review</h3>
           <label>
@@ -3405,12 +3490,12 @@ function ActivityDetail({
           </label>
           <button className="primary-action" type="submit">Save</button>
         </form>
-      ) : (
+      ) : !isDraft ? (
         <section className="review-card review-signin-card">
           <div><h3>Have you been</h3><p>Sign in to leave a rating or comment.</p></div>
           <button className="primary-action" type="button" onClick={onSignIn}>Sign in to review</button>
         </section>
-      )}
+      ) : null}
     </section>
   );
 }
@@ -3463,10 +3548,18 @@ function ReportSheet({ activity, value, submitting, onChange, onClose, onSubmit 
   );
 }
 
-function ActivityAdminEditor({ activity, saving, onSave, onArchive }) {
+function ActivityAdminEditor({ activity, saving, onSave, onArchive, onPublishDraft }) {
   const [coverImageFile, setCoverImageFile] = useState(null);
   const [form, setForm] = useState({
+    activity_name: activity.activity_name || '',
+    address: activity.address || '',
+    borough: activity.borough || '',
     category: activity.category || '',
+    start_time: String(activity.start_time || '').slice(0, 5),
+    end_time: String(activity.end_time || '').slice(0, 5),
+    description: activity.description || '',
+    cost: activity.cost || '',
+    age_suitability: activity.age_suitability || '',
     user_image_url: activity.user_image_url || '',
     website: activity.website || '',
     organiser_website: activity.organiser_website || '',
@@ -3476,7 +3569,15 @@ function ActivityAdminEditor({ activity, saving, onSave, onArchive }) {
   useEffect(() => {
     setCoverImageFile(null);
     setForm({
+      activity_name: activity.activity_name || '',
+      address: activity.address || '',
+      borough: activity.borough || '',
       category: activity.category || '',
+      start_time: String(activity.start_time || '').slice(0, 5),
+      end_time: String(activity.end_time || '').slice(0, 5),
+      description: activity.description || '',
+      cost: activity.cost || '',
+      age_suitability: activity.age_suitability || '',
       user_image_url: activity.user_image_url || '',
       website: activity.website || '',
       organiser_website: activity.organiser_website || '',
@@ -3496,9 +3597,33 @@ function ActivityAdminEditor({ activity, saving, onSave, onArchive }) {
     <form className="admin-editor" onSubmit={submit}>
       <div>
         <span className="eyebrow">Admin tools</span>
-        <h2>Improve this listing</h2>
-        <p>These corrections are saved as importer feedback.</p>
+        <h2>Check this listing</h2>
+        <p>Corrections are saved as importer feedback.</p>
       </div>
+      <label className="wide">
+        <span>Activity name</span>
+        <input
+          value={form.activity_name}
+          onChange={(event) => setForm((current) => ({ ...current, activity_name: event.target.value }))}
+          required
+        />
+      </label>
+      <label className="wide">
+        <span>Address</span>
+        <input
+          value={form.address}
+          onChange={(event) => setForm((current) => ({ ...current, address: event.target.value }))}
+          required
+        />
+      </label>
+      <label>
+        <span>Borough</span>
+        <input
+          value={form.borough}
+          onChange={(event) => setForm((current) => ({ ...current, borough: event.target.value }))}
+          placeholder="e.g. Hackney"
+        />
+      </label>
       <label>
         <span>Category</span>
         <select
@@ -3512,6 +3637,46 @@ function ActivityAdminEditor({ activity, saving, onSave, onArchive }) {
             <option key={category} value={category}>{category}</option>
           ))}
         </select>
+      </label>
+      <label>
+        <span>Start time</span>
+        <input
+          type="time"
+          value={form.start_time}
+          onChange={(event) => setForm((current) => ({ ...current, start_time: event.target.value }))}
+        />
+      </label>
+      <label>
+        <span>End time</span>
+        <input
+          type="time"
+          value={form.end_time}
+          onChange={(event) => setForm((current) => ({ ...current, end_time: event.target.value }))}
+        />
+      </label>
+      <label>
+        <span>Price</span>
+        <input
+          value={form.cost}
+          onChange={(event) => setForm((current) => ({ ...current, cost: event.target.value }))}
+          placeholder="Free or GBP 8"
+        />
+      </label>
+      <label>
+        <span>Age suitability</span>
+        <input
+          value={form.age_suitability}
+          onChange={(event) => setForm((current) => ({ ...current, age_suitability: event.target.value }))}
+          placeholder="e.g. Under 5s"
+        />
+      </label>
+      <label className="wide">
+        <span>Description</span>
+        <textarea
+          value={form.description}
+          onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
+          placeholder="What parents can expect"
+        />
       </label>
       <label className="wide photo-upload-field">
         <span>Upload cover image</span>
@@ -3561,6 +3726,11 @@ function ActivityAdminEditor({ activity, saving, onSave, onArchive }) {
       <button className="primary-action" type="submit" disabled={saving}>
         {saving ? 'Saving...' : 'Save corrections'}
       </button>
+      {onPublishDraft && (
+        <button className="primary-action" type="button" onClick={onPublishDraft} disabled={saving}>
+          Publish listing
+        </button>
+      )}
       <button className="archive-listing-button" type="button" onClick={() => onArchive(activity)} disabled={saving}>
         Archive listing
       </button>

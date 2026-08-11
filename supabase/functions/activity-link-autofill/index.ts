@@ -28,6 +28,71 @@ async function resolveRedirects(link: string) {
   }
 }
 
+function canonicalListingUrl(link: string) {
+  const url = new URL(link);
+  [...url.searchParams.keys()].forEach((key) => {
+    if (/^(utm_|fbclid$|gclid$|mc_cid$|mc_eid$)/i.test(key)) {
+      url.searchParams.delete(key);
+    }
+  });
+  url.hash = '';
+  return url.toString();
+}
+
+function isGoogleMapsUrl(link: string) {
+  try {
+    const host = new URL(link).hostname.toLowerCase();
+    return host === 'maps.app.goo.gl'
+      || host === 'google.com'
+      || host.endsWith('.google.com')
+      || host.endsWith('.google.co.uk');
+  } catch {
+    return false;
+  }
+}
+
+function googleMapsListing(link: string) {
+  const url = new URL(link);
+  const query = ['q', 'query', 'place', 'destination']
+    .map((key) => url.searchParams.get(key))
+    .find(Boolean);
+  const pathName = url.pathname.match(/\/maps\/place\/([^/@]+)/i)?.[1];
+  const title = decodeURIComponent(query || pathName || 'Google Maps activity')
+    .replace(/[+_-]+/g, ' ')
+    .trim();
+
+  return {
+    activity_name: title || 'Google Maps activity',
+    address: 'Address needs review',
+    lat: null,
+    long: null,
+    category: 'Classes & clubs',
+    start_time: '09:00',
+    end_time: '10:00',
+    google_link: link,
+    website: null,
+    child_friendly_score: null,
+    app_rating: null,
+    number_of_reviews: 0,
+    age_suitability: 'Under 5s',
+    borough: null,
+    description: 'Google Maps link saved for admin review.',
+    cost: null,
+    schedule_notes: null,
+    source_url: link,
+    google_place_id: null,
+    google_place_uri: link,
+    google_photo_url: null,
+    google_rating: null,
+    google_user_rating_count: 0,
+    google_primary_type: null,
+    google_opening_hours: null,
+    google_summary: null,
+    image_url: null,
+    image_source_url: null,
+  };
+}
+
 function decodeHtml(value: string) {
   return value
     .replaceAll('&amp;', '&')
@@ -191,8 +256,10 @@ Deno.serve(async (request) => {
     const { link, activityName } = await request.json();
     if (!link || typeof link !== 'string') return jsonResponse({ error: 'Missing link.' }, 400);
 
-    const resolvedLink = await resolveRedirects(link.trim());
-    const activity = await extractWebsiteMetadata(resolvedLink, typeof activityName === 'string' ? activityName : null);
+    const resolvedLink = canonicalListingUrl(await resolveRedirects(link.trim()));
+    const activity = isGoogleMapsUrl(resolvedLink)
+      ? googleMapsListing(resolvedLink)
+      : await extractWebsiteMetadata(resolvedLink, typeof activityName === 'string' ? activityName : null);
     return jsonResponse({ activity });
   } catch (error) {
     return jsonResponse(
