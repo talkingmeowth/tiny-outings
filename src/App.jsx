@@ -1,8 +1,10 @@
-import { useDeferredValue, useEffect, useMemo, useState } from 'react';
+import { useDeferredValue, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 import { Capacitor, registerPlugin } from '@capacitor/core';
+import { App as NativeApp } from '@capacitor/app';
 import { Share } from '@capacitor/share';
 import L from 'leaflet';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
+import QRCode from 'qrcode';
 import 'leaflet/dist/leaflet.css';
 import { supabase } from './supabaseClient';
 import { googleSignInErrorMessage, signInWithNativeGoogle } from './googleAuth';
@@ -575,6 +577,21 @@ function buildICS(events) {
   ].join('\r\n');
 }
 
+function calendarEventRecord(event, userId, visibility) {
+  return {
+    user_id: userId,
+    activity_id: event.activity_id,
+    planned_date: event.planned_date,
+    day_window: event.day_window,
+    start_time: event.start_time,
+    end_time: event.end_time,
+    status: event.status,
+    visibility,
+    title_override: event.title_override || null,
+    notes: event.notes || null,
+  };
+}
+
 async function downloadICS(events) {
   if (Capacitor.isNativePlatform()) {
     for (const event of events) {
@@ -843,6 +860,28 @@ function activityShareUrl(activity) {
 function sharedActivityIdFromLocation() {
   try {
     return new URLSearchParams(window.location.search).get('activity');
+  } catch {
+    return null;
+  }
+}
+
+function profileFollowUrl(userName) {
+  const user = cleanDisplayText(userName).toLowerCase();
+  return user ? `${appDownloadPageUrl}?follow=${encodeURIComponent(user)}` : appDownloadPageUrl;
+}
+
+function profileQrUrl(userName) {
+  const user = cleanDisplayText(userName).toLowerCase();
+  return user ? `tinyoutings://follow/${encodeURIComponent(user)}` : appDownloadPageUrl;
+}
+
+function followUsernameFromUrl(value) {
+  try {
+    const url = new URL(value);
+    if (url.protocol === 'tinyoutings:' && url.hostname === 'follow') {
+      return cleanDisplayText(decodeURIComponent(url.pathname.replace(/^\//, ''))).toLowerCase() || null;
+    }
+    return cleanDisplayText(url.searchParams.get('follow')).toLowerCase() || null;
   } catch {
     return null;
   }
@@ -1124,6 +1163,8 @@ export default function App() {
   const [shortlists, setShortlists] = useState(() => loadStored('shortlists', {}));
   const [statuses, setStatuses] = useState(() => loadStored('statuses', {}));
   const [calendarEvents, setCalendarEvents] = useState(() => loadStored('calendar-events', []));
+  const calendarEventsRef = useRef(calendarEvents);
+  const [calendarSyncedUserId, setCalendarSyncedUserId] = useState(null);
   const [linkForm, setLinkForm] = useState(emptyLinkForm);
   const [reviewForm, setReviewForm] = useState(emptyReviewForm);
   const [selectedActivity, setSelectedActivity] = useState(null);
@@ -1146,6 +1187,12 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(false);
   const [profile, setProfile] = useState(null);
   const [profileSaving, setProfileSaving] = useState(false);
+  const [followingProfiles, setFollowingProfiles] = useState([]);
+  const [followerProfiles, setFollowerProfiles] = useState([]);
+  const [followingWeekEvents, setFollowingWeekEvents] = useState([]);
+  const [socialLoading, setSocialLoading] = useState(false);
+  const [socialRefresh, setSocialRefresh] = useState(0);
+  const [pendingFollowUsername, setPendingFollowUsername] = useState(() => followUsernameFromUrl(window.location.href));
   const [reviewQueue, setReviewQueue] = useState([]);
   const [reviewQueueLoading, setReviewQueueLoading] = useState(false);
   const [adminSaving, setAdminSaving] = useState(false);
@@ -1174,6 +1221,121 @@ export default function App() {
     () => new Map(allActivities.map((activity) => [String(activity.activity_id), activity])),
     [allActivities],
   );
+
+  useEffect(() => {
+    if (!supabase || !signedInUser || activeScreen !== 'calendar') {
+      if (!signedInUser) {
+        setFollowingProfiles([]);
+        setFollowerProfiles([]);
+        setFollowingWeekEvents([]);
+      }
+      return undefined;
+    }
+
+    let cancelled = false;
+    async function loadSocialWeek() {
+      setSocialLoading(true);
+      const userId = signedInUser.id;
+      const [{ data: followingRows, error: followingError }, { data: followerRows, error: followerError }] = await Promise.all([
+        supabase.from('user_follows').select('followed_user_id').eq('follower_user_id', userId),
+        supabase.from('user_follows').select('follower_user_id').eq('followed_user_id', userId),
+      ]);
+      if (cancelled) return;
+      if (followingError || followerError) {
+        setNotice('Your parent connections could not be loaded just now.');
+        setSocialLoading(false);
+        return;
+      }
+
+      const followingIds = (followingRows || []).map((row) => row.followed_user_id);
+      const followerIds = (followerRows || []).map((row) => row.follower_user_id);
+      const profileIds = [...new Set([...followingIds, ...followerIds])];
+      let profiles = [];
+      if (profileIds.length) {
+        const { data, error } = await supabase
+          .from('user_table')
+          .select('user_id,user_name,display_name,avatar_url,followers,following,default_calendar_visibility')
+          .in('user_id', profileIds);
+        if (error) {
+          setNotice('Parent profiles could not be loaded just now.');
+        } else {
+          profiles = data || [];
+        }
+      }
+      if (cancelled) return;
+
+      const profilesById = new Map(profiles.map((item) => [String(item.user_id), item]));
+      setFollowingProfiles(followingIds.map((id) => profilesById.get(String(id))).filter(Boolean));
+      setFollowerProfiles(followerIds.map((id) => profilesById.get(String(id))).filter(Boolean));
+
+      if (!followingIds.length) {
+        setFollowingWeekEvents([]);
+        setSocialLoading(false);
+        return;
+      }
+
+      const { data: events, error: eventsError } = await supabase
+        .from('calendar_events')
+        .select('calendar_event_id,user_id,activity_id,planned_date,day_window,start_time,end_time,status,visibility,title_override,notes')
+        .in('user_id', followingIds)
+        .gte('planned_date', filters.weekStart)
+        .lte('planned_date', addDaysISO(filters.weekStart, 6))
+        .order('planned_date', { ascending: true })
+        .order('start_time', { ascending: true });
+      if (cancelled) return;
+      if (eventsError) {
+        setNotice('Shared plans could not be loaded just now.');
+      } else {
+        setFollowingWeekEvents((events || [])
+          .map((event) => ({
+            ...event,
+            local_id: event.calendar_event_id,
+            activity: activityById.get(String(event.activity_id)) || null,
+            profile: profilesById.get(String(event.user_id)) || null,
+          }))
+          .filter((event) => event.activity));
+      }
+      setSocialLoading(false);
+    }
+
+    loadSocialWeek();
+    return () => { cancelled = true; };
+  }, [activeScreen, activityById, filters.weekStart, signedInUser, socialRefresh]);
+
+  useEffect(() => {
+    if (!supabase || !signedInUser || !profile?.user_id || calendarSyncedUserId === signedInUser.id) return;
+    let cancelled = false;
+
+    async function syncSavedPlan() {
+      const visibility = profile.default_calendar_visibility || 'followers';
+      const savedEvents = calendarEventsRef.current.filter((event) => event.activity_id);
+      if (!savedEvents.length) {
+        if (!cancelled) setCalendarSyncedUserId(signedInUser.id);
+        return;
+      }
+      const { data, error } = await supabase
+        .from('calendar_events')
+        .upsert(
+          savedEvents.map((event) => calendarEventRecord(event, signedInUser.id, event.visibility || visibility)),
+          { onConflict: 'user_id,planned_date,day_window' },
+        )
+        .select('calendar_event_id,activity_id,planned_date,day_window,status,visibility');
+      if (cancelled) return;
+      if (error) {
+        setNotice('Your saved week could not be shared yet. Try again in a moment.');
+        return;
+      }
+      const savedBySlot = new Map((data || []).map((event) => [`${event.planned_date}:${event.day_window}`, event]));
+      setCalendarEvents((current) => current.map((event) => {
+        const saved = savedBySlot.get(`${event.planned_date}:${event.day_window}`);
+        return saved ? { ...event, ...saved, local_id: saved.calendar_event_id, user_id: signedInUser.id } : event;
+      }));
+      setCalendarSyncedUserId(signedInUser.id);
+    }
+
+    syncSavedPlan();
+    return () => { cancelled = true; };
+  }, [calendarSyncedUserId, profile?.default_calendar_visibility, profile?.user_id, signedInUser]);
   const filteredWeekDays = useMemo(
     () => Array.from({ length: 7 }, (_, index) => addDaysISO(deferredFilters.weekStart, index)),
     [deferredFilters.weekStart],
@@ -1280,6 +1442,7 @@ export default function App() {
   useEffect(() => saveStored('shortlists', shortlists), [shortlists]);
   useEffect(() => saveStored('statuses', statuses), [statuses]);
   useEffect(() => saveStored('calendar-events', calendarEvents), [calendarEvents]);
+  useEffect(() => { calendarEventsRef.current = calendarEvents; }, [calendarEvents]);
 
   useEffect(() => {
     if (!notice) return undefined;
@@ -1311,8 +1474,34 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return undefined;
+    let active = true;
+    let listener = null;
+
+    const receiveFollowLink = (url) => {
+      const userName = followUsernameFromUrl(url);
+      if (userName) setPendingFollowUsername(userName);
+    };
+
+    NativeApp.getLaunchUrl()
+      .then((launch) => {
+        if (active && launch?.url) receiveFollowLink(launch.url);
+      })
+      .catch(() => undefined);
+    Promise.resolve(NativeApp.addListener('appUrlOpen', ({ url }) => receiveFollowLink(url)))
+      .then((handle) => { listener = handle; })
+      .catch(() => undefined);
+
+    return () => {
+      active = false;
+      listener?.remove();
+    };
+  }, []);
+
+  useEffect(() => {
     if (!supabase || !signedInUser) {
       setProfile(null);
+      setCalendarSyncedUserId(null);
       return undefined;
     }
 
@@ -1321,7 +1510,7 @@ export default function App() {
       const userId = signedInUser.id;
       let { data: ownProfile } = await supabase
         .from('user_table')
-        .select('user_id,user_name,display_name,avatar_url,followers,following')
+        .select('user_id,user_name,display_name,avatar_url,followers,following,default_calendar_visibility')
         .eq('user_id', userId)
         .maybeSingle();
 
@@ -1333,8 +1522,9 @@ export default function App() {
             user_name: profileUsername(signedInUser),
             display_name: profileDisplayName(signedInUser),
             avatar_url: signedInUser.user_metadata?.avatar_url || signedInUser.user_metadata?.picture || null,
+            default_calendar_visibility: 'followers',
           }, { onConflict: 'user_id' })
-          .select('user_id,user_name,display_name,avatar_url,followers,following')
+          .select('user_id,user_name,display_name,avatar_url,followers,following,default_calendar_visibility')
           .maybeSingle();
         ownProfile = data;
       }
@@ -1348,6 +1538,17 @@ export default function App() {
       cancelled = true;
     };
   }, [signedInUser]);
+
+  const followPendingProfile = useEffectEvent((userName) => {
+    void followProfileByUsername(userName);
+  });
+
+  useEffect(() => {
+    if (!pendingFollowUsername || !signedInUser || !profile?.user_id) return;
+    const userName = pendingFollowUsername;
+    setPendingFollowUsername(null);
+    followPendingProfile(userName);
+  }, [followPendingProfile, pendingFollowUsername, profile?.user_id, signedInUser]);
 
   useEffect(() => {
     if (!sharedActivityId || openedSharedActivity || allActivities.length === 0) return;
@@ -1685,7 +1886,7 @@ export default function App() {
   function chooseActivity(activity, status = 'booked') {
     const event = {
       local_id: `${selectedDate}-${selectedWindow}-${activity.activity_id}`,
-      user_id: null,
+      user_id: session?.user?.id || null,
       activity_id: activity.activity_id,
       activity,
       planned_date: selectedDate,
@@ -1693,6 +1894,7 @@ export default function App() {
       start_time: activity.start_time,
       end_time: activity.end_time,
       status,
+      visibility: profile?.default_calendar_visibility || 'followers',
       created_at: new Date().toISOString(),
     };
 
@@ -1703,6 +1905,7 @@ export default function App() {
     });
 
     setLocalStatus(activity, status);
+    void persistCalendarEvent(event);
     setNotice(`${activity.activity_name} added to your week as ${statusLabels[status].toLowerCase()}.`);
   }
 
@@ -1711,11 +1914,43 @@ export default function App() {
     setCalendarEvents((current) =>
       current.map((item) => (item.local_id === event.local_id ? nextEvent : item)),
     );
+    void persistCalendarEvent(nextEvent);
   }
 
   function removeEvent(event) {
     setCalendarEvents((current) => current.filter((item) => item.local_id !== event.local_id));
+    if (supabase && session?.user?.id) {
+      supabase
+        .from('calendar_events')
+        .delete()
+        .eq('user_id', session.user.id)
+        .eq('planned_date', event.planned_date)
+        .eq('day_window', event.day_window)
+        .then(({ error }) => {
+          if (error) setNotice('The plan was removed on this device but could not be updated online.');
+        });
+    }
     setNotice(`${event.activity.activity_name} removed from your calendar.`);
+  }
+
+  async function persistCalendarEvent(event) {
+    if (!supabase || !session?.user?.id || !event?.activity_id) return;
+    const visibility = event.visibility || profile?.default_calendar_visibility || 'followers';
+    const { data, error } = await supabase
+      .from('calendar_events')
+      .upsert(calendarEventRecord(event, session.user.id, visibility), { onConflict: 'user_id,planned_date,day_window' })
+      .select('calendar_event_id,user_id,activity_id,planned_date,day_window,start_time,end_time,status,visibility,title_override,notes')
+      .single();
+    if (error) {
+      setNotice('Your plan is saved here, but could not be shared yet.');
+      return;
+    }
+    setCalendarEvents((current) => current.map((item) => (
+      item.local_id === event.local_id
+        ? { ...item, ...data, local_id: data.calendar_event_id, activity: item.activity || event.activity }
+        : item
+    )));
+    setSocialRefresh((current) => current + 1);
   }
 
   function navigate(screen) {
@@ -1806,9 +2041,10 @@ export default function App() {
         user_name: userName,
         display_name: values.display_name.trim() || userName,
         avatar_url: values.avatar_url.trim() || null,
+        default_calendar_visibility: values.default_calendar_visibility || 'followers',
       })
       .eq('user_id', session.user.id)
-      .select('user_id,user_name,display_name,avatar_url,followers,following')
+      .select('user_id,user_name,display_name,avatar_url,followers,following,default_calendar_visibility')
       .single();
     setProfileSaving(false);
     if (error) {
@@ -1816,7 +2052,91 @@ export default function App() {
       return;
     }
     setProfile(data);
+    if (data.default_calendar_visibility !== profile?.default_calendar_visibility) {
+      const { error: visibilityError } = await supabase
+        .from('calendar_events')
+        .update({ visibility: data.default_calendar_visibility })
+        .eq('user_id', session.user.id);
+      if (visibilityError) {
+        setNotice('Profile saved, but your existing week visibility could not be updated yet.');
+        return;
+      }
+      setCalendarEvents((current) => current.map((event) => ({
+        ...event,
+        visibility: data.default_calendar_visibility,
+      })));
+      setSocialRefresh((current) => current + 1);
+    }
     setNotice('Profile saved.');
+  }
+
+  async function followProfileByUsername(value) {
+    const userName = cleanDisplayText(value).toLowerCase();
+    if (!supabase || !session?.user?.id || !userName) {
+      setNotice('Sign in to follow a parent.');
+      return;
+    }
+    if (userName === profile?.user_name?.toLowerCase()) {
+      setNotice('That is your own profile.');
+      return;
+    }
+
+    const { data: target, error: targetError } = await supabase
+      .from('user_table')
+      .select('user_id,user_name,display_name,avatar_url,followers,following,default_calendar_visibility')
+      .ilike('user_name', userName)
+      .maybeSingle();
+    if (targetError || !target) {
+      setNotice('We could not find that Tiny Outings parent.');
+      return;
+    }
+
+    const { error } = await supabase
+      .from('user_follows')
+      .upsert({ follower_user_id: session.user.id, followed_user_id: target.user_id }, { onConflict: 'follower_user_id,followed_user_id' });
+    if (error) {
+      setNotice(`Could not follow ${target.display_name || target.user_name}.`);
+      return;
+    }
+    setSocialRefresh((current) => current + 1);
+    setNotice(`You are following ${target.display_name || target.user_name}.`);
+  }
+
+  async function unfollowProfile(target) {
+    if (!supabase || !session?.user?.id || !target?.user_id) return;
+    const { error } = await supabase
+      .from('user_follows')
+      .delete()
+      .eq('follower_user_id', session.user.id)
+      .eq('followed_user_id', target.user_id);
+    if (error) {
+      setNotice(`Could not unfollow ${target.display_name || target.user_name}.`);
+      return;
+    }
+    setSocialRefresh((current) => current + 1);
+    setNotice(`You unfollowed ${target.display_name || target.user_name}.`);
+  }
+
+  async function shareProfile() {
+    if (!profile?.user_name) {
+      setNotice('Create a username before sharing your profile.');
+      return;
+    }
+    const data = {
+      title: `Follow ${profile.display_name || profile.user_name} on Tiny Outings`,
+      text: `Follow @${profile.user_name} to see our shared Tiny Outings week.`,
+      url: profileFollowUrl(profile.user_name),
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(data);
+        return;
+      }
+      await navigator.clipboard?.writeText(data.url);
+      setNotice('Profile link copied.');
+    } catch (error) {
+      if (error?.name !== 'AbortError') setNotice('Could not open sharing right now.');
+    }
   }
 
   async function shareActivity(activity) {
@@ -2389,12 +2709,19 @@ export default function App() {
             profile={profile}
             signedIn={Boolean(session)}
             profileSaving={profileSaving}
+            followingProfiles={followingProfiles}
+            followerProfiles={followerProfiles}
+            followingWeekEvents={followingWeekEvents}
+            socialLoading={socialLoading}
             onOpenActivity={openActivity}
             onUpdateEvent={updateEvent}
             onRemoveEvent={removeEvent}
             onSaveProfile={saveProfile}
             onSignIn={signInWithGoogle}
             onShareApp={openAppShareSheet}
+            onShareProfile={shareProfile}
+            onFollowByUsername={followProfileByUsername}
+            onUnfollow={unfollowProfile}
           />
         )}
 
@@ -3097,29 +3424,106 @@ function ShortlistPanel({
   );
 }
 
+function ProfileQrCode({ userName }) {
+  const [imageUrl, setImageUrl] = useState('');
+  const followUrl = profileQrUrl(userName);
+
+  useEffect(() => {
+    let cancelled = false;
+    QRCode.toDataURL(followUrl, {
+      width: 240,
+      margin: 1,
+      errorCorrectionLevel: 'M',
+      color: { dark: '#24443d', light: '#fffdf6' },
+    })
+      .then((url) => {
+        if (!cancelled) setImageUrl(url);
+      })
+      .catch(() => {
+        if (!cancelled) setImageUrl('');
+      });
+    return () => { cancelled = true; };
+  }, [followUrl]);
+
+  return imageUrl ? <img className="profile-qr-code" src={imageUrl} alt={`QR code to follow ${userName} on Tiny Outings`} /> : <div className="profile-qr-placeholder" aria-label="Preparing follow code" />;
+}
+
+function FollowingWeekSection({ profiles, events, loading, onOpenActivity }) {
+  const eventsByProfile = new Map();
+  events.forEach((event) => {
+    const key = String(event.user_id);
+    eventsByProfile.set(key, [...(eventsByProfile.get(key) || []), event]);
+  });
+
+  return (
+    <section className="following-week-card">
+      <div className="section-heading">
+        <span>Following</span>
+        <h2>Shared weeks</h2>
+      </div>
+      {loading ? <p className="social-empty">Loading shared plans...</p> : profiles.length === 0 ? (
+        <p className="social-empty">Follow a parent to see the week they share.</p>
+      ) : (
+        <div className="following-week-list">
+          {profiles.map((person) => {
+            const plans = eventsByProfile.get(String(person.user_id)) || [];
+            return (
+              <article className="following-week-person" key={person.user_id}>
+                <div className="following-week-person-heading">
+                  <img className="community-avatar" src={person.avatar_url || defaultProfileAvatar} alt="" onError={(event) => { event.currentTarget.src = defaultProfileAvatar; }} />
+                  <div><strong>{person.display_name || person.user_name}</strong><small>@{person.user_name}</small></div>
+                </div>
+                {plans.length ? (
+                  <div className="following-plan-list">
+                    {plans.map((event) => (
+                      <button type="button" key={event.calendar_event_id} onClick={() => onOpenActivity(event.activity)}>
+                        <span>{formatDay(event.planned_date, 'short')} - {event.day_window}</span>
+                        <strong>{event.title_override || event.activity.activity_name}</strong>
+                      </button>
+                    ))}
+                  </div>
+                ) : <small className="social-empty">No shared plans this week.</small>}
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function CalendarScreen({
   weekDays,
   calendarEvents,
   profile,
   signedIn,
   profileSaving,
+  followingProfiles,
+  followerProfiles,
+  followingWeekEvents,
+  socialLoading,
   onOpenActivity,
   onUpdateEvent,
   onRemoveEvent,
   onSaveProfile,
   onSignIn,
   onShareApp,
+  onShareProfile,
+  onFollowByUsername,
+  onUnfollow,
 }) {
   const weekEvents = calendarEvents.filter((event) => weekDays.includes(event.planned_date));
   const [editingProfile, setEditingProfile] = useState(false);
   const [exportingCalendar, setExportingCalendar] = useState(false);
-  const [form, setForm] = useState({ user_name: '', display_name: '', avatar_url: '' });
+  const [form, setForm] = useState({ user_name: '', display_name: '', avatar_url: '', default_calendar_visibility: 'followers' });
+  const [followUsername, setFollowUsername] = useState('');
 
   useEffect(() => {
     setForm({
       user_name: profile?.user_name || '',
       display_name: profile?.display_name || '',
       avatar_url: profile?.avatar_url || '',
+      default_calendar_visibility: profile?.default_calendar_visibility || 'followers',
     });
   }, [profile]);
 
@@ -3169,8 +3573,64 @@ function CalendarScreen({
           <label><span>Username</span><input value={form.user_name} onChange={(event) => setForm((current) => ({ ...current, user_name: event.target.value }))} /></label>
           <label><span>Name</span><input value={form.display_name} onChange={(event) => setForm((current) => ({ ...current, display_name: event.target.value }))} /></label>
           <label className="wide"><span>Profile photo URL</span><input type="url" value={form.avatar_url} onChange={(event) => setForm((current) => ({ ...current, avatar_url: event.target.value }))} placeholder="https://..." /></label>
+          <label className="wide"><span>Who can see your week</span><select value={form.default_calendar_visibility} onChange={(event) => setForm((current) => ({ ...current, default_calendar_visibility: event.target.value }))}><option value="followers">People who follow you</option><option value="private">Only you</option><option value="public">Everyone</option></select></label>
           <button className="primary-action wide" type="submit" disabled={profileSaving}>{profileSaving ? 'Saving...' : 'Save profile'}</button>
         </form>
+      )}
+
+      {signedIn && profile?.user_name && (
+        <section className="profile-qr-card">
+          <ProfileQrCode userName={profile.user_name} />
+          <div>
+            <span className="eyebrow">Plan together</span>
+            <strong>Share your follow code</strong>
+            <small>Parents who scan can follow you and see the week you share.</small>
+            <button type="button" className="secondary-button" onClick={onShareProfile}>Share profile</button>
+          </div>
+        </section>
+      )}
+
+      {signedIn && (
+        <section className="community-card week-community-card">
+          <div className="section-heading">
+            <span>Parents</span>
+            <h2>{socialLoading ? 'Loading your people...' : `${followerProfiles.length} followers - ${followingProfiles.length} following`}</h2>
+          </div>
+          <form className="follow-parent-form" onSubmit={(event) => { event.preventDefault(); onFollowByUsername(followUsername); setFollowUsername(''); }}>
+            <input value={followUsername} onChange={(event) => setFollowUsername(event.target.value)} placeholder="Follow a username" required />
+            <button type="submit" className="primary-action">Follow</button>
+          </form>
+          <div className="social-lists">
+            <div>
+              <strong>Following</strong>
+              {followingProfiles.length ? followingProfiles.map((person) => (
+                <div className="community-person" key={person.user_id}>
+                  <img className="community-avatar" src={person.avatar_url || defaultProfileAvatar} alt="" onError={(event) => { event.currentTarget.src = defaultProfileAvatar; }} />
+                  <div><strong>{person.display_name || person.user_name}</strong><small>@{person.user_name}</small></div>
+                  <button type="button" className="follow-button is-following" onClick={() => onUnfollow(person)}>Following</button>
+                </div>
+              )) : <small className="social-empty">Scan a parent code or add their username.</small>}
+            </div>
+            <div>
+              <strong>Followers</strong>
+              {followerProfiles.length ? followerProfiles.map((person) => (
+                <div className="community-person" key={person.user_id}>
+                  <img className="community-avatar" src={person.avatar_url || defaultProfileAvatar} alt="" onError={(event) => { event.currentTarget.src = defaultProfileAvatar; }} />
+                  <div><strong>{person.display_name || person.user_name}</strong><small>@{person.user_name}</small></div>
+                </div>
+              )) : <small className="social-empty">No followers yet. Share your code.</small>}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {signedIn && (
+        <FollowingWeekSection
+          profiles={followingProfiles}
+          events={followingWeekEvents}
+          loading={socialLoading}
+          onOpenActivity={onOpenActivity}
+        />
       )}
 
       <div className="week-export-card">
