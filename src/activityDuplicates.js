@@ -38,6 +38,63 @@ function comparableActivityUrl(value) {
   }
 }
 
+function postcode(value) {
+  return String(value || '').match(/\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b/i)?.[0]?.toUpperCase() || '';
+}
+
+function activityAddressKey(activity) {
+  const postCode = postcode(activity.postcode || activity.address);
+  return postCode || comparisonText(activity.address);
+}
+
+function duplicateKeys(activity) {
+  const name = comparisonText(activity.activity_name);
+  const address = activityAddressKey(activity);
+  const keys = new Set();
+
+  // A provider website or a Google venue can legitimately serve several
+  // different classes. Only the source listing URL identifies the listing.
+  [activity.source_url]
+    .map(comparableActivityUrl)
+    .filter(Boolean)
+    .forEach((url) => keys.add(`url:${url}`));
+
+  if (name && address) keys.add(`venue:${name}|${address}`);
+  if (name && activity.google_place_id) keys.add(`place:${activity.google_place_id}|${name}`);
+  return keys;
+}
+
+function activityCompleteness(activity) {
+  const fields = [
+    'description',
+    'card_summary',
+    'website',
+    'organiser_website',
+    'google_place_uri',
+    'google_place_id',
+    'admin_cover_image_url',
+    'user_image_url',
+    'user_uploaded_image_url',
+    'scraped_image_url',
+    'wikimedia_image_url',
+    'website_image_url',
+    'listing_image_url',
+  ];
+  return fields.reduce((score, field) => score + (activity[field] ? 1 : 0), 0)
+    + (activity.lat != null && activity.long != null ? 3 : 0)
+    + (Number(activity.number_of_reviews || activity.google_user_rating_count || 0) > 0 ? 1 : 0);
+}
+
+function preferredActivity(left, right) {
+  const leftScore = activityCompleteness(left);
+  const rightScore = activityCompleteness(right);
+  if (rightScore !== leftScore) return rightScore > leftScore ? right : left;
+
+  const leftUpdated = Date.parse(left.updated_at || left.created_at || 0) || 0;
+  const rightUpdated = Date.parse(right.updated_at || right.created_at || 0) || 0;
+  return rightUpdated > leftUpdated ? right : left;
+}
+
 function isUsefulAddress(value) {
   const normalized = comparisonText(value);
   return normalized && !normalized.includes('address needs review') && !normalized.includes('address to review');
@@ -73,4 +130,39 @@ export function findLikelyDuplicate(submission, activities) {
     .map((activity) => ({ activity, score: duplicateMatchScore(submission, activity) }))
     .filter((match) => match.score >= 0.9)
     .sort((left, right) => right.score - left.score)[0] || null;
+}
+
+// Imports can overlap while they are awaiting a later database consolidation.
+// Keep a single, most complete card in the mobile directory without hiding
+// similarly named activities that genuinely run at different venues.
+export function dedupePublishedActivities(activities) {
+  const deduplicated = [];
+  const indexByKey = new Map();
+
+  for (const activity of activities) {
+    const keys = [...duplicateKeys(activity)];
+    const matchingIndexes = [...new Set(keys.map((key) => indexByKey.get(key)).filter((index) => index != null))];
+
+    if (!matchingIndexes.length) {
+      const index = deduplicated.length;
+      deduplicated.push(activity);
+      keys.forEach((key) => indexByKey.set(key, index));
+      continue;
+    }
+
+    const index = matchingIndexes[0];
+    const winner = [...matchingIndexes.map((matchIndex) => deduplicated[matchIndex]), activity]
+      .reduce(preferredActivity);
+    deduplicated[index] = winner;
+    matchingIndexes.slice(1).forEach((matchIndex) => {
+      deduplicated[matchIndex] = null;
+      for (const [key, storedIndex] of indexByKey) {
+        if (storedIndex === matchIndex) indexByKey.set(key, index);
+      }
+    });
+    duplicateKeys(winner).forEach((key) => indexByKey.set(key, index));
+    keys.forEach((key) => indexByKey.set(key, index));
+  }
+
+  return deduplicated.filter(Boolean);
 }

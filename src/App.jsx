@@ -8,7 +8,7 @@ import QRCode from 'qrcode';
 import 'leaflet/dist/leaflet.css';
 import { supabase } from './supabaseClient';
 import { googleSignInErrorMessage, signInWithNativeGoogle } from './googleAuth';
-import { comparisonTokens, findLikelyDuplicate } from './activityDuplicates';
+import { comparisonTokens, dedupePublishedActivities, findLikelyDuplicate } from './activityDuplicates';
 import { activityCoordinates, resolveActivityCoordinates } from './activityLocation';
 import { profileQrUrl, profileShareData } from './profileSharing';
 
@@ -1292,7 +1292,10 @@ export default function App() {
   );
   const calendarDays = useMemo(() => calendarDaysForMonth(calendarMonth), [calendarMonth]);
   const activeSlot = slotKey(selectedDate, selectedWindow);
-  const allActivities = useMemo(() => activities.map(normalizeActivity), [activities]);
+  const allActivities = useMemo(
+    () => dedupePublishedActivities(activities.map(normalizeActivity)),
+    [activities],
+  );
   const activityById = useMemo(
     () => new Map(allActivities.map((activity) => [String(activity.activity_id), activity])),
     [allActivities],

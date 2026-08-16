@@ -60,6 +60,18 @@ supabase secrets set GOOGLE_MAPS_API_KEY=your_google_maps_key
 supabase functions deploy activity-link-autofill
 ```
 
+## Google Places Family Importers
+
+`google-places-family-importer` uses the server-side Google Places secret to discover three focused London directory categories: baby and child-friendly play cafes, baby swim activities, and baby sensory activities. It only saves active London results with a full address and coordinates. Cafes must pass the family-cafe safety rules; swim and sensory records must show clear child-focused provider signals. Existing Google Place IDs, source URLs, and matching name-plus-venue records are skipped before saving.
+
+Deploy it after saving `GOOGLE_PLACES_API_KEY` in Edge Function Secrets:
+
+```bash
+supabase functions deploy google-places-family-importer
+```
+
+The function accepts `POST` requests from Tiny Outings admins or a server-side service key. Its JSON body may specify a subset, for example `{ "importers": ["baby_swim"], "max_candidates": 60 }`. New and refreshed records use the existing importer review queue, and the mobile app performs an additional display dedupe for overlapping sources.
+
 In Google Cloud, enable Places API (New). The function uses server-side Place Details, Text Search, and Place Photos calls so the API key is not exposed in the mobile app. If Google does not return a photo, the function tries the activity website's Open Graph/Twitter image and stores it for activity cards.
 
 ### E10 family-friendly places import
