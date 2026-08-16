@@ -264,7 +264,7 @@ async function fetchPublishedActivities() {
   const pageSize = 1000;
   for (let offset = 0; ; offset += pageSize) {
     const response = await fetch(
-      `${supabaseUrl}/rest/v1/activities?select=${columns}&public_listing_status=eq.published&order=activity_name.asc&limit=${pageSize}&offset=${offset}`,
+      `${supabaseUrl}/rest/v1/activities?select=${columns}&public_listing_status=eq.published&archive=eq.false&order=activity_name.asc&limit=${pageSize}&offset=${offset}`,
       {
         headers: {
           apikey: supabaseAnonKey,
@@ -403,60 +403,60 @@ function imageFromHtml(html, baseUrl, activity) {
   return candidates.sort((a, b) => b.score - a.score)[0] || null;
 }
 
-async function fetchWebsiteImage(activity) {
-  const curatedImage = curatedImageForActivity(activity);
-  if (curatedImage) return { ...curatedImage, sourceKind: 'organiser' };
-
-  // A verified organiser page wins. A listing page is only used when that page
-  // cannot provide a usable image, keeping card imagery tied to the provider.
-  for (const { url: link, sourceKind } of websiteLinksForActivity(activity)) {
-    try {
-      const parsed = new URL(link);
-      if (!['http:', 'https:'].includes(parsed.protocol)) continue;
-
-      const response = await fetch(parsed.toString(), {
-        redirect: 'follow',
-        signal: AbortSignal.timeout(12000),
-        headers: {
-          'User-Agent': 'Tiny Outings activity image bot (+https://tiny-outings)',
-          Accept: 'text/html,application/xhtml+xml',
-        },
-      });
-
-      if (!response.ok) continue;
-      const contentType = response.headers.get('content-type') || '';
-      if (!contentType.includes('text/html')) continue;
-
-      const html = await response.text();
-      const feverImage = feverListingImageFromHtml(html, response.url || parsed.toString(), activity);
-      if (feverImage) {
-        return {
-          imageUrl: feverImage,
-          imageSourceUrl: response.url || parsed.toString(),
-          score: 90,
-          sourceKind,
-        };
-      }
-      const imageCandidate = imageFromHtml(html, response.url || parsed.toString(), activity);
-      if (imageCandidate) {
-        return { ...imageCandidate, imageSourceUrl: response.url || parsed.toString(), sourceKind };
-      }
-    } catch {
-      // Try the next candidate URL.
-    }
+async function fetchImageFromLink(activity, link, sourceKind) {
+  try {
+    const parsed = new URL(link);
+    if (!['http:', 'https:'].includes(parsed.protocol)) return null;
+    const response = await fetch(parsed.toString(), {
+      redirect: 'follow',
+      signal: AbortSignal.timeout(12000),
+      headers: {
+        'User-Agent': 'Tiny Outings activity image bot (+https://tiny-outings)',
+        Accept: 'text/html,application/xhtml+xml',
+      },
+    });
+    if (!response.ok || !(response.headers.get('content-type') || '').includes('text/html')) return null;
+    const pageUrl = response.url || parsed.toString();
+    const html = await response.text();
+    const feverImage = feverListingImageFromHtml(html, pageUrl, activity);
+    if (feverImage) return { imageUrl: feverImage, imageSourceUrl: pageUrl, score: 90, sourceKind };
+    const imageCandidate = imageFromHtml(html, pageUrl, activity);
+    return imageCandidate ? { ...imageCandidate, imageSourceUrl: pageUrl, sourceKind } : null;
+  } catch {
+    return null;
   }
+}
 
+async function fetchWebsiteImageCandidates(activity) {
+  const curatedImage = curatedImageForActivity(activity);
+  if (curatedImage) return [{ ...curatedImage, sourceKind: 'organiser' }];
+
+  // Preserve an image from each useful page so every importer uses both the
+  // organiser website and the listing website when they are available.
+  const images = [];
+  for (const { url: link, sourceKind } of websiteLinksForActivity(activity)) {
+    const image = await fetchImageFromLink(activity, link, sourceKind);
+    if (image) images.push(image);
+  }
+  if (images.length) return images;
   const fallback = cafeBrandLogoForActivity(activity);
-  return fallback ? { ...fallback, sourceKind: 'fallback' } : null;
+  return fallback ? [{ ...fallback, sourceKind: 'fallback' }] : [];
+}
+
+async function fetchWebsiteImage(activity) {
+  return (await fetchWebsiteImageCandidates(activity))[0] || null;
 }
 
 async function enrichActivity(activity) {
-  return enrichmentResult(activity, await fetchWebsiteImage(activity));
+  return enrichmentResult(activity, await fetchWebsiteImageCandidates(activity));
 }
 
-function enrichmentResult(activity, websiteImage) {
+function enrichmentResult(activity, websiteImages) {
+  const websiteImage = websiteImages[0] || null;
   const imageUrl = websiteImage?.imageUrl || null;
   const sourceKind = websiteImage?.sourceKind || null;
+  const organiserImage = websiteImages.find((image) => image.sourceKind === 'organiser' || image.sourceKind === 'fallback') || null;
+  const listingImage = websiteImages.find((image) => image.sourceKind === 'listing') || null;
   return {
     activity,
     source: imageUrl ? sourceKind || 'website' : 'missing',
@@ -467,8 +467,8 @@ function enrichmentResult(activity, websiteImage) {
     googleUserRatingCount: activity.google_user_rating_count,
     imageUrl,
     scrapedImageUrl: imageUrl,
-    websiteImageUrl: sourceKind === 'organiser' || sourceKind === 'fallback' ? imageUrl : null,
-    listingImageUrl: sourceKind === 'listing' ? imageUrl : null,
+    websiteImageUrl: organiserImage?.imageUrl || null,
+    listingImageUrl: listingImage?.imageUrl || null,
     imageSourceUrl: websiteImage?.imageSourceUrl || null,
   };
 }
@@ -583,7 +583,12 @@ async function main() {
     : force
     ? scopedActivities
     : missingOnly
-      ? scopedActivities.filter((activity) => !activity.scraped_image_url && !activity.website_image_url && !activity.listing_image_url && !activity.image_url)
+      ? scopedActivities.filter((activity) => (
+        !activity.image_url
+        || !activity.scraped_image_url
+        || (activity.organiser_website && !activity.website_image_url)
+        || ((activity.website || activity.source_url) && !activity.listing_image_url)
+      ))
       : scopedActivities.filter((activity) => !activity.image_url || !activity.google_photo_url);
 
   console.log(`Found ${activities.length} published activities; ${scopedActivities.length} match scope; enriching ${targets.length}.`);

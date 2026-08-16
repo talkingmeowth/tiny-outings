@@ -221,10 +221,10 @@ function rowFor(product, url, html) {
     lat: Number.isFinite(Number(geo.latitude)) ? Number(geo.latitude) : null,
     long: Number.isFinite(Number(geo.longitude)) ? Number(geo.longitude) : null,
     category: categoryFor(product),
-    // The schema requires a time. The availability note keeps these fallback
-    // values from being presented as a confirmed Fever session time.
-    start_time: hours.start || '09:00',
-    end_time: hours.end || '17:00',
+    // Unknown Fever times are deliberately shown as "Any time" instead of
+    // inventing a daytime slot.
+    start_time: hours.start || null,
+    end_time: hours.end || null,
     google_link: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`,
     website: url,
     child_friendly_score: null,

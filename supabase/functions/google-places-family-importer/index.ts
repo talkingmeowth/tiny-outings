@@ -25,6 +25,14 @@ const londonZones = [
   { name: 'Notting Hill', latitude: 51.512, longitude: -0.205 },
   { name: 'Ealing', latitude: 51.513, longitude: -0.304 },
   { name: 'Richmond', latitude: 51.46, longitude: -0.303 },
+  { name: 'Harrow', latitude: 51.581, longitude: -0.337 },
+  { name: 'Enfield', latitude: 51.652, longitude: -0.081 },
+  { name: 'Hampstead and Finchley', latitude: 51.582, longitude: -0.19 },
+  { name: 'Hammersmith and Fulham', latitude: 51.49, longitude: -0.235 },
+  { name: 'Greenwich', latitude: 51.482, longitude: 0.006 },
+  { name: 'Lewisham and Bromley', latitude: 51.436, longitude: -0.018 },
+  { name: 'Croydon', latitude: 51.375, longitude: -0.102 },
+  { name: 'Kingston and Wimbledon', latitude: 51.41, longitude: -0.245 },
 ]
 
 const profiles = {
@@ -184,12 +192,12 @@ function availability(hours: GooglePlace['regularOpeningHours']) {
     if (period.close?.hour !== undefined) ends.push(`${String(period.close.hour).padStart(2, '0')}:${String(period.close.minute || 0).padStart(2, '0')}`)
   }
   const days = [...openDays].filter(Boolean)
-  const start = starts.sort()[0] || '09:00'
-  const finalEnd = ends.sort().at(-1) || '17:00'
+  const start = starts.sort()[0] || null
+  const finalEnd = ends.sort().at(-1) || null
   return {
     days,
     start,
-    end: finalEnd <= start ? '23:59' : finalEnd,
+    end: finalEnd && start && finalEnd <= start ? '23:59' : finalEnd,
     type: days.length === 7 ? 'daily' : days.length ? 'weekly' : 'unknown',
     notes: hours?.weekdayDescriptions?.join(' | ') || 'Check the provider for current times and availability.',
   }
@@ -374,10 +382,6 @@ async function runImporter(supabase: ReturnType<typeof createClient>, apiKey: st
   const rejected: Array<{ place_id: string; name?: string; reason: string }> = []
   const candidates = [...discovered.entries()].slice(0, maxCandidates)
   for (const [placeId, queries] of candidates) {
-    if (known.placeIds.has(placeId) || known.sourceUrls.has(sourceUrl(placeId))) {
-      rejected.push({ place_id: placeId, reason: 'Already represented in the activity directory.' })
-      continue
-    }
     try {
       const place = await details(apiKey, placeId)
       const result = prepareActivity(place, profile, queries)
@@ -385,7 +389,7 @@ async function runImporter(supabase: ReturnType<typeof createClient>, apiKey: st
         rejected.push({ place_id: placeId, name: place.displayName?.text, reason: result.reason })
         continue
       }
-      if (known.activityKeys.has(knownActivityKey(result.activity as unknown as ExistingActivity))) {
+      if (known.activityKeys.has(knownActivityKey(result.activity as unknown as ExistingActivity)) && !known.placeIds.has(placeId)) {
         rejected.push({ place_id: placeId, name: place.displayName?.text, reason: 'Matching name and venue already exist.' })
         continue
       }

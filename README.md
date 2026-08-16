@@ -62,40 +62,45 @@ supabase functions deploy activity-link-autofill
 
 ## Google Places Family Importers
 
-`import-google-places-family.js` discovers three focused London directory categories: baby and child-friendly play cafes, baby swim activities, and baby sensory activities. It only saves active London results with a full address and coordinates. Cafes must pass the family-cafe safety rules; swim and sensory records must show clear child-focused provider signals. Existing Google Place IDs, source URLs, and matching name-plus-venue records are skipped before saving.
+`import-google-places-family.js` discovers three focused London directory categories: baby and child-friendly play cafes, baby swim activities, and baby sensory activities. It only saves active London results with a full address and coordinates. Cafes must pass the family-cafe safety rules; swim and sensory records must show clear child-focused provider signals. Existing Google Place IDs and source URLs update in place; only a different matching name-plus-venue record is rejected as a likely duplicate.
 
-The local importer is used by the same weekly runner as the other activity importers. Set an active server-side Google Maps Platform key as `GOOGLE_PLACES_API_KEY` in the gitignored `.env.local`, then run it on its own:
+The local importer is used by `tiny-outings-update` with the other activity importers. Set an active server-side Google Maps Platform key as `GOOGLE_PLACES_API_KEY` in the gitignored `.env.local`, then run it on its own:
 
 ```bash
 npm run activities:google-family
 ```
 
-Use `npm run activities:google-family -- --importers baby_swim --max-candidates 20` for a focused test. The weekly importer also includes this source. New and refreshed records use the existing importer review queue, and the mobile app performs an additional display dedupe for overlapping sources.
+Use `npm run activities:google-family -- --importers baby_swim --max-candidates 20` for a focused test. The update job publishes verified importer records automatically and the mobile app performs an additional display dedupe for overlapping sources.
 
 In Google Cloud, enable Places API (New). The function uses server-side Place Details, Text Search, and Place Photos calls so the API key is not exposed in the mobile app. If Google does not return a photo, the function tries the activity website's Open Graph/Twitter image and stores it for activity cards.
 
-### E10 family-friendly places import
+### London family-friendly places import
 
-To expand the directory with permanent family-friendly places around E10, enable both **Places API (New)** and **Geocoding API** for the Google Maps key, then run:
+To expand the directory with permanent family-friendly places across London, enable **Places API (New)** for the Google Maps key, then run:
 
     set GOOGLE_MAPS_API_KEY=your_server_side_key
     npm run activities:google-e10
 
-The import geocodes E10, searches a strict 10-mile (16,093 metre) radius, and combines typed Nearby Search requests for cafes, parks, playgrounds, museums, libraries and amusement centres with family-focused Text Search requests. It de-duplicates by Google place ID, excludes permanently closed venues, fetches place details and a representative photo, and writes:
+The import searches Greater London and combines typed Nearby Search requests for cafes, parks, playgrounds, museums, libraries and amusement centres with family-focused Text Search requests. It de-duplicates by Google place ID, excludes permanently closed venues, and writes:
 
 - supabase/seed/activities_google_places_e10_10_miles.generated.sql — reviewable, idempotent database upsert
 - data/google-places-e10-10-miles.generated.json — audit file, including the source centre, distance and rank inputs
 
 The generated records use the existing activities fields. Google opening hours populate the normal availability fields and the original hours JSON is kept in google_opening_hours. The script does not request or store Google review text.
 
-## Weekly Directory Refresh
+## Tiny Outings Update
 
-Run `npm.cmd run activities:weekly` to discover net-new listings and generate
-reviewable SQL. It includes image curation after importing, so new cards use
-the same representative-image rules as existing records. Add `:apply` to
-insert the results directly into Supabase with `DATABASE_URL` configured; see
-[`docs/weekly-activity-imports.md`](docs/weekly-activity-imports.md) for the
-local setup and safeguards.
+Run `npm.cmd run tiny-outings-update` to run every supported importer and the
+shared quality contract. It covers all London location searches, source and
+organiser links, website images, direct Happity schedule links, Google Place
+and Maps validation, permanent closures, broken-link removal, age guidance,
+unknown times as `Any time`, duplicate consolidation, and expired listings.
+
+Run `npm.cmd run tiny-outings-update:apply` to apply the generated SQL to the
+linked Supabase project. A Google Places key is mandatory: the job fails rather
+than silently publishing unchecked records. Importer records bypass the manual
+review queue, while community submissions stay drafts. Archived records remain
+archived even when an importer sends a later update.
 
 ## Activity Table Notes
 

@@ -59,6 +59,35 @@ where nullif(trim(website), '') is not null
   and nullif(trim(organiser_website), '') is not null
   and regexp_replace(regexp_replace(regexp_replace(lower(trim(website)), '^https?://(www\\.)?', ''), '[?#].*$', ''), '/+$', '')
       = regexp_replace(regexp_replace(regexp_replace(lower(trim(organiser_website)), '^https?://(www\\.)?', ''), '[?#].*$', ''), '/+$', '');
+
+-- Do not invent opening hours. A missing or incomplete schedule is displayed
+-- as "Any time" by the app when both values are null.
+update public.activities
+set
+  start_time = null,
+  end_time = null,
+  availability_type = 'anytime',
+  availability_notes = coalesce(nullif(availability_notes, ''), 'Times not published; check the provider before travelling.'),
+  updated_at = now()
+where coalesce(archive, false) = false
+  and (
+    (start_time is null and end_time is not null)
+    or (start_time is not null and end_time is null)
+    or (availability_type = 'unknown' and start_time in ('09:00'::time, '09:00:00'::time) and end_time in ('17:00'::time, '17:00:00'::time))
+  );
+
+-- Every listing must communicate an age recommendation. Importers should set
+-- a precise value where supplied; this is a safe family-directory fallback.
+update public.activities
+set
+  age_suitability = case
+    when lower(coalesce(category, '')) ~ '(baby sensory|baby swim|baby yoga|baby massage)' then 'Babies from birth to 18 months'
+    when lower(coalesce(category, '')) ~ '(parks|cafe|food|museum|bookshop)' then 'Babies, toddlers and their grown-ups'
+    else 'Babies, toddlers and their grown-ups'
+  end,
+  updated_at = now()
+where coalesce(archive, false) = false
+  and nullif(trim(age_suitability), '') is null;
 `;
 
 mkdirSync(dirname(outputSql), { recursive: true });
@@ -66,6 +95,6 @@ mkdirSync(dirname(outputAudit), { recursive: true });
 writeFileSync(outputSql, sql);
 writeFileSync(outputAudit, JSON.stringify({
   generated_at: new Date().toISOString(),
-  rules: ['trim whitespace and control characters', 'restore data_source from source_name', 'remove duplicate organiser website links'],
+  rules: ['trim whitespace and control characters', 'restore data_source from source_name', 'remove duplicate organiser website links', 'record unknown times as anytime', 'supply an age-suitability fallback'],
 }, null, 2) + '\n');
 console.log('Generated shared activity data-quality SQL.');

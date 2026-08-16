@@ -23,6 +23,18 @@ const zones = [
   { name: 'Highbury, Islington', center: { latitude: 51.552, longitude: -0.103 } },
   { name: 'Angel, Islington', center: { latitude: 51.532, longitude: -0.105 } },
   { name: 'Archway, Islington', center: { latitude: 51.565, longitude: -0.135 } },
+  { name: 'Camden', center: { latitude: 51.539, longitude: -0.142 } },
+  { name: 'Hampstead', center: { latitude: 51.556, longitude: -0.178 } },
+  { name: 'Enfield', center: { latitude: 51.652, longitude: -0.081 } },
+  { name: 'Harrow', center: { latitude: 51.581, longitude: -0.337 } },
+  { name: 'Ealing', center: { latitude: 51.513, longitude: -0.304 } },
+  { name: 'Hammersmith', center: { latitude: 51.492, longitude: -0.224 } },
+  { name: 'Kensington', center: { latitude: 51.499, longitude: -0.194 } },
+  { name: 'Greenwich', center: { latitude: 51.482, longitude: 0.006 } },
+  { name: 'Lewisham', center: { latitude: 51.462, longitude: -0.011 } },
+  { name: 'Bromley', center: { latitude: 51.406, longitude: 0.015 } },
+  { name: 'Croydon', center: { latitude: 51.375, longitude: -0.102 } },
+  { name: 'Kingston', center: { latitude: 51.412, longitude: -0.3 } },
 ];
 const namedParks = [
   'Jubilee Park Leyton', 'Leyton Jubilee Park', 'Abbotts Park Leyton', 'Coronation Gardens Leyton', 'Hollow Ponds',
@@ -33,7 +45,6 @@ const namedParks = [
   'Caledonian Park', 'Barnard Park Islington', 'Gillespie Park', 'Freightliners Farm',
 ];
 const parkQueries = ['parks', 'playgrounds', 'nature reserves'];
-const supportedBoroughs = new Set(['Waltham Forest', 'Hackney', 'Newham', 'Islington']);
 const acceptedPlaceTypes = new Set(['park', 'playground', 'nature_preserve', 'garden']);
 const detailsMask = 'id,displayName,formattedAddress,location,googleMapsUri,websiteUri,rating,userRatingCount,primaryType,types,regularOpeningHours,photos,businessStatus';
 const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -69,7 +80,13 @@ function availability(hours = {}) {
   const openDays = new Set();
   for (const period of hours.periods || []) if (period.open?.day !== undefined) openDays.add(dayNames[period.open.day]);
   const days = [...openDays].filter(Boolean);
-  return { days, type: days.length === 7 ? 'daily' : days.length ? 'weekly' : 'daily', notes: hours.weekdayDescriptions?.join(' | ') || 'Open space; check the park website for facilities and seasonal notices.' };
+  return { days, type: days.length === 7 ? 'daily' : days.length ? 'weekly' : 'anytime', notes: hours.weekdayDescriptions?.join(' | ') || 'Open space; check the park website for facilities and seasonal notices.' };
+}
+function isGreaterLondon(location) {
+  const lat = Number(location?.latitude);
+  const long = Number(location?.longitude);
+  return Number.isFinite(lat) && Number.isFinite(long)
+    && lat >= 51.25 && lat <= 51.75 && long >= -0.6 && long <= 0.4;
 }
 async function google(url, options = {}) {
   if (!apiKey) throw new Error('Set GOOGLE_MAPS_API_KEY before running this import.');
@@ -101,11 +118,11 @@ async function mapWithConcurrency(items, limit, mapper) {
   await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker)); return results;
 }
 function row(place) {
-  if (!place.location || place.businessStatus === 'CLOSED_PERMANENTLY') return null;
+  if (!place.location || !isGreaterLondon(place.location) || place.businessStatus === 'CLOSED_PERMANENTLY') return null;
   const types = [place.primaryType, ...(place.types || [])].filter(Boolean);
   if (!types.some((type) => acceptedPlaceTypes.has(type))) return null;
   const address = place.formattedAddress || 'London'; const hours = availability(place.regularOpeningHours); const rating = Number(place.rating || 0) || null;
-  return { activity_name: place.displayName?.text || 'Park', address, postcode: postcode(address), lat: Number(place.location.latitude), long: Number(place.location.longitude), category: 'Parks & outdoor play', start_time: '09:00', end_time: '17:00', google_link: place.googleMapsUri || null, ...parkExternalFields, child_friendly_score: rating ? Math.min(5, Math.round(rating * 10) / 10) : null, app_rating: rating, number_of_reviews: Number(place.userRatingCount || 0), age_suitability: 'Parents, babies and young children', borough: borough(address), days_of_week: hours.days, recurrence_rule: hours.days.length ? `FREQ=WEEKLY;BYDAY=${hours.days.map((day) => day.slice(0, 2).toUpperCase()).join(',')}` : null, schedule_notes: hours.notes, description: 'Park or playground for a pram walk, outdoor play, picnic, or a low-key family outing.', cost: 'Free', booking_required: false, source_name: 'Google Places API London parks directory', source_url: `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(place.id)}`, google_place_id: place.id, google_place_uri: place.googleMapsUri || null, google_photo_url: place.photos?.[0]?.name || null, google_rating: rating, google_user_rating_count: Number(place.userRatingCount || 0), google_primary_type: place.primaryType || null, google_opening_hours: place.regularOpeningHours || null, google_summary: null, activity_date: null, available_dates: [], availability_start_date: null, availability_end_date: null, available_days_of_week: hours.days, availability_type: hours.type, availability_notes: hours.notes, public_listing_status: 'published' };
+  return { activity_name: place.displayName?.text || 'Park', address, postcode: postcode(address), lat: Number(place.location.latitude), long: Number(place.location.longitude), category: 'Parks & outdoor play', start_time: null, end_time: null, google_link: place.googleMapsUri || null, ...parkExternalFields, child_friendly_score: rating ? Math.min(5, Math.round(rating * 10) / 10) : null, app_rating: rating, number_of_reviews: Number(place.userRatingCount || 0), age_suitability: 'Parents, babies and young children', borough: borough(address), days_of_week: hours.days, recurrence_rule: hours.days.length ? `FREQ=WEEKLY;BYDAY=${hours.days.map((day) => day.slice(0, 2).toUpperCase()).join(',')}` : null, schedule_notes: hours.notes, description: 'Park or playground for a pram walk, outdoor play, picnic, or a low-key family outing.', cost: 'Free', booking_required: false, source_name: 'Google Places API London parks directory', source_url: `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(place.id)}`, google_place_id: place.id, google_place_uri: place.googleMapsUri || null, google_photo_url: place.photos?.[0]?.name || null, google_rating: rating, google_user_rating_count: Number(place.userRatingCount || 0), google_primary_type: place.primaryType || null, google_opening_hours: place.regularOpeningHours || null, google_summary: null, activity_date: null, available_dates: [], availability_start_date: null, availability_end_date: null, available_days_of_week: hours.days, availability_type: hours.type, availability_notes: hours.notes, public_listing_status: 'published' };
 }
 const columns = ['activity_name','address','postcode','lat','long','category','start_time','end_time','google_link','website','child_friendly_score','app_rating','number_of_reviews','age_suitability','borough','days_of_week','recurrence_rule','schedule_notes','description','cost','booking_required','source_name','source_url','image_url','image_source_url','google_place_id','google_place_uri','google_photo_url','google_rating','google_user_rating_count','google_primary_type','google_opening_hours','google_summary','activity_date','available_dates','availability_start_date','availability_end_date','available_days_of_week','availability_type','availability_notes','public_listing_status'];
 function rowSql(item) { return columns.map((column) => { const value = item[column]; if (['lat','long','child_friendly_score','app_rating','number_of_reviews','google_rating','google_user_rating_count'].includes(column)) return value ?? 'null'; if (['days_of_week','available_dates','available_days_of_week'].includes(column)) return sqlArray(value); if (column === 'booking_required') return value ? 'true' : 'false'; if (column === 'google_opening_hours') return value ? `${sql(JSON.stringify(value))}::jsonb` : 'null'; return sql(value); }).join(', '); }
@@ -117,13 +134,12 @@ async function main() {
     }
   }
   for (const name of namedParks) for (const place of await search(name)) candidates.add(place.id);
-  const places = await mapWithConcurrency([...candidates].filter((id) => !known.ids.has(id)), 5, async (id) => row(await details(id)));
+  const places = await mapWithConcurrency([...candidates], 5, async (id) => row(await details(id)));
   const rows = places
     .filter(Boolean)
-    .filter((item) => supportedBoroughs.has(item.borough))
-    .filter((item) => !known.keys.has(`${normalized(item.activity_name)}|${item.postcode || ''}`));
+    .filter((item) => !known.keys.has(`${normalized(item.activity_name)}|${item.postcode || ''}`) || known.ids.has(item.google_place_id));
   rows.sort((left, right) => left.activity_name.localeCompare(right.activity_name));
-  const sqlText = rows.length ? `-- Generated by scripts/build-london-parks.js using official Google Places data.\n\ninsert into public.activities (\n  ${columns.join(',\n  ')}\n)\nvalues\n${rows.map((item) => `(${rowSql(item)})`).join(',\n')};\n` : '-- No new London parks found.\n';
+  const sqlText = rows.length ? `-- Generated by scripts/build-london-parks.js using official Google Places data.\n\ninsert into public.activities (\n  ${columns.join(',\n  ')}\n)\nvalues\n${rows.map((item) => `(${rowSql(item)})`).join(',\n')}\non conflict (google_place_id) where google_place_id is not null do update set\n  activity_name = excluded.activity_name,\n  address = excluded.address,\n  postcode = excluded.postcode,\n  lat = excluded.lat,\n  long = excluded.long,\n  category = excluded.category,\n  google_link = excluded.google_link,\n  google_place_uri = excluded.google_place_uri,\n  google_rating = excluded.google_rating,\n  google_user_rating_count = excluded.google_user_rating_count,\n  google_primary_type = excluded.google_primary_type,\n  google_opening_hours = excluded.google_opening_hours,\n  available_days_of_week = excluded.available_days_of_week,\n  availability_type = excluded.availability_type,\n  availability_notes = excluded.availability_notes,\n  updated_at = now();\n` : '-- No London parks found.\n';
   mkdirSync(dirname(outputSql), { recursive: true }); mkdirSync(dirname(outputAudit), { recursive: true }); writeFileSync(outputSql, sqlText); writeFileSync(outputAudit, JSON.stringify({ zones, namedParks, imported_rows: rows.length, rows }, null, 2) + '\n'); console.log(`Generated ${rows.length} London park listings.`);
 }
 main().catch((error) => { console.error(error.message); process.exit(1); });
