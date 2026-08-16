@@ -2477,6 +2477,14 @@ input[type='range'] {
   font-weight: 900;
 }
 
+.image-review-queue .review-photo-placeholder {
+  padding: 6px;
+  color: rgba(36, 52, 47, 0.62);
+  font-size: 0.68rem;
+  line-height: 1.15;
+  text-align: center;
+}
+
 .review-item > div:nth-child(2) {
   display: grid;
   min-width: 0;
@@ -2506,6 +2514,10 @@ input[type='range'] {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+}
+
+.image-review-list .review-actions {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .review-actions button {
@@ -2782,6 +2794,14 @@ input[type='range'] {
 
 .bottom-nav button.is-on {
   box-shadow: 0 10px 22px rgba(184, 213, 189, 0.18);
+}
+
+.bottom-nav.has-review {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.bottom-nav.has-review button {
+  font-size: 0.68rem;
 }
 
 @keyframes screenIn {

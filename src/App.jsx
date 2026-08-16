@@ -809,6 +809,18 @@ function activityFallbackImage(activity) {
         : '/images/family-outing-placeholder.svg';
 }
 
+function hasActivityCardImage(activity) {
+  return [
+    activity.admin_cover_image_url,
+    activity.user_image_url,
+    activity.user_uploaded_image_url,
+    activity.scraped_image_url,
+    activity.wikimedia_image_url,
+    activity.website_image_url,
+    activity.listing_image_url,
+  ].map(securePhotoUrl).some(isUsablePhotoUrl);
+}
+
 function activityPhotoUrls(activity) {
   const fallbackImage = activityFallbackImage(activity);
   const candidates = [
@@ -1271,6 +1283,7 @@ export default function App() {
   const [reviewQueueLoading, setReviewQueueLoading] = useState(false);
   const [reviewQueueError, setReviewQueueError] = useState('');
   const [reviewQueueRefresh, setReviewQueueRefresh] = useState(0);
+  const [activityRefresh, setActivityRefresh] = useState(0);
   const [adminSaving, setAdminSaving] = useState(false);
   // Keep Plan controls responsive while the directory catches up with a changed filter.
   const deferredFilters = useDeferredValue(filters);
@@ -1295,6 +1308,13 @@ export default function App() {
   const allActivities = useMemo(
     () => dedupePublishedActivities(activities.map(normalizeActivity)),
     [activities],
+  );
+  const activitiesMissingImages = useMemo(
+    () => allActivities
+      .filter((activity) => activity.public_listing_status === 'published' && !activity.archive)
+      .filter((activity) => !hasActivityCardImage(activity))
+      .sort((left, right) => left.activity_name.localeCompare(right.activity_name)),
+    [allActivities],
   );
   const activityById = useMemo(
     () => new Map(allActivities.map((activity) => [String(activity.activity_id), activity])),
@@ -1658,6 +1678,10 @@ export default function App() {
   }, [activeScreen]);
 
   useEffect(() => {
+    if (!isAdmin && activeScreen === 'review') setActiveScreen('start');
+  }, [activeScreen, isAdmin]);
+
+  useEffect(() => {
     let cancelled = false;
 
     async function loadActivities() {
@@ -1723,7 +1747,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [activityRefresh]);
 
   useEffect(() => {
     if (!supabase) return undefined;
@@ -1772,7 +1796,7 @@ export default function App() {
         }
         return;
       }
-      if (activeScreen !== 'add') return;
+      if (activeScreen !== 'review') return;
 
       if (!cancelled) {
         setReviewQueueLoading(true);
@@ -2065,6 +2089,7 @@ export default function App() {
   }
 
   function navigate(screen) {
+    if (screen === 'review' && !isAdmin) return;
     if (screen !== 'activity') {
       setSelectedActivity(null);
     }
@@ -2078,7 +2103,7 @@ export default function App() {
   }
 
   function openDraftForReview(activity) {
-    setReturnScreen('add');
+    setReturnScreen('review');
     setSelectedActivity(activity);
     setActiveScreen('activity');
   }
@@ -2381,7 +2406,9 @@ export default function App() {
       String(item.activity_id) === String(updatedActivity.activity_id) ? updatedActivity : item
     )));
     setReviewQueue((current) => current.map((item) => (
-      String(item.activity_id) === String(updatedActivity.activity_id) ? updatedActivity : item
+      String(item.activity_id) === String(updatedActivity.activity_id)
+        ? { ...item, activity: updatedActivity }
+        : item
     )));
     setSelectedActivity(updatedActivity);
     setNotice('Listing correction saved for future importer review.');
@@ -2883,14 +2910,22 @@ export default function App() {
             setForm={setLinkForm}
             onSubmit={submitActivityLink}
             loading={loading}
-            isAdmin={isAdmin}
+          />
+        )}
+
+        {activeScreen === 'review' && isAdmin && (
+          <ReviewScreen
             reviewQueue={reviewQueue}
             reviewQueueLoading={reviewQueueLoading}
             reviewQueueError={reviewQueueError}
             adminSaving={adminSaving}
             onOpenReview={openDraftForReview}
             onResolveQueueItem={markReviewQueueItemReviewed}
-            onRefreshQueue={() => setReviewQueueRefresh((current) => current + 1)}
+            missingImageActivities={activitiesMissingImages}
+            onRefresh={() => {
+              setReviewQueueRefresh((current) => current + 1);
+              setActivityRefresh((current) => current + 1);
+            }}
           />
         )}
 
@@ -2944,7 +2979,7 @@ export default function App() {
         />
       )}
 
-      <BottomNav activeScreen={activeScreen} setActiveScreen={navigate} />
+      <BottomNav activeScreen={activeScreen} setActiveScreen={navigate} isAdmin={isAdmin} />
         </>
       )}
     </div>
@@ -3887,14 +3922,6 @@ function AddActivityScreen({
   setForm,
   onSubmit,
   loading,
-  isAdmin,
-  reviewQueue,
-  reviewQueueLoading,
-  reviewQueueError,
-  adminSaving,
-  onOpenReview,
-  onResolveQueueItem,
-  onRefreshQueue,
 }) {
   return (
     <section className="app-screen form-screen">
@@ -3968,73 +3995,122 @@ function AddActivityScreen({
         </button>
       </form>
 
-      {isAdmin && (
-        <section className="review-queue" aria-live="polite">
-          <div className="section-heading">
-            <div>
-              <span>Admin review</span>
-              <h2>{reviewQueueLoading ? 'Loading review queue...' : `${reviewQueue.length} items to check`}</h2>
-            </div>
-            <button className="queue-refresh" type="button" onClick={onRefreshQueue} disabled={reviewQueueLoading || adminSaving}>
-              Refresh
-            </button>
+    </section>
+  );
+}
+
+function ReviewScreen({
+  reviewQueue,
+  reviewQueueLoading,
+  reviewQueueError,
+  adminSaving,
+  onOpenReview,
+  onResolveQueueItem,
+  missingImageActivities,
+  onRefresh,
+}) {
+  return (
+    <section className="app-screen form-screen review-screen">
+      <div className="screen-title compact">
+        <span className="eyebrow">Admin</span>
+        <h1>Review listings.</h1>
+        <p>Check incoming listings and give every card a useful image.</p>
+      </div>
+
+      <section className="review-queue" aria-live="polite">
+        <div className="section-heading">
+          <div>
+            <span>Review queue</span>
+            <h2>{reviewQueueLoading ? 'Loading review queue...' : `${reviewQueue.length} items to check`}</h2>
           </div>
-          <p className="queue-intro">User submissions stay private until approved. Importer activity is logged here so the directory stays accurate.</p>
-          {reviewQueueError && (
-            <p className="queue-error">The review queue could not load. Your add form still works. Tap Refresh to try again.</p>
-          )}
-          {!reviewQueueLoading && !reviewQueueError && reviewQueueSections.map((section) => {
-            const items = reviewQueue.filter((item) => item.queue_type === section.type);
-            return (
-              <section key={section.type} className="review-subsection">
-                <div className="review-group-heading">
-                  <div>
-                    <span>{section.title}</span>
-                    <small>{section.description}</small>
-                  </div>
-                  <strong>{items.length}</strong>
+          <button className="queue-refresh" type="button" onClick={onRefresh} disabled={reviewQueueLoading || adminSaving}>
+            Refresh
+          </button>
+        </div>
+        <p className="queue-intro">User submissions stay private until approved. Importer changes are logged here too.</p>
+        {reviewQueueError && (
+          <p className="queue-error">The review queue could not load. Tap Refresh to try again.</p>
+        )}
+        {!reviewQueueLoading && !reviewQueueError && reviewQueueSections.map((section) => {
+          const items = reviewQueue.filter((item) => item.queue_type === section.type);
+          return (
+            <section key={section.type} className="review-subsection">
+              <div className="review-group-heading">
+                <div>
+                  <span>{section.title}</span>
+                  <small>{section.description}</small>
                 </div>
-                {items.length === 0 ? (
-                  <p className="queue-empty">Nothing waiting.</p>
-                ) : (
-                  <div className="review-list">
-                    {items.map((item) => {
-                      const activity = item.activity;
-                      const isUserSubmission = item.queue_type === 'user_submission';
-                      return (
-                        <article key={item.review_queue_id} className="review-item">
-                          {activity ? (
-                            <ActivityPhoto activity={activity} className="review-photo" />
-                          ) : (
-                            <div className="review-photo review-photo-placeholder" aria-hidden="true">+</div>
+                <strong>{items.length}</strong>
+              </div>
+              {items.length === 0 ? (
+                <p className="queue-empty">Nothing waiting.</p>
+              ) : (
+                <div className="review-list">
+                  {items.map((item) => {
+                    const activity = item.activity;
+                    const isUserSubmission = item.queue_type === 'user_submission';
+                    return (
+                      <article key={item.review_queue_id} className="review-item">
+                        {activity ? (
+                          <ActivityPhoto activity={activity} className="review-photo" />
+                        ) : (
+                          <div className="review-photo review-photo-placeholder" aria-hidden="true">+</div>
+                        )}
+                        <div>
+                          <strong>{activity?.activity_name || item.summary}</strong>
+                          <small>{activity ? `${activityPlanLabel(activity)} - ${activity.address || 'Address to review'}` : (item.source_name || 'Listing no longer available')}</small>
+                          <small>{isUserSubmission ? (activity?.submission_notes || 'No parent note') : reviewQueueChangeSummary(item)}</small>
+                        </div>
+                        <div className="review-actions">
+                          {activity && (
+                            <button type="button" onClick={() => onOpenReview(activity)} disabled={adminSaving}>
+                              {isUserSubmission ? 'Review submission' : 'View listing'}
+                            </button>
                           )}
-                          <div>
-                            <strong>{activity?.activity_name || item.summary}</strong>
-                            <small>{activity ? `${activityPlanLabel(activity)} - ${activity.address || 'Address to review'}` : (item.source_name || 'Listing no longer available')}</small>
-                            <small>{isUserSubmission ? (activity?.submission_notes || 'No parent note') : reviewQueueChangeSummary(item)}</small>
-                          </div>
-                          <div className="review-actions">
-                            {activity && (
-                              <button type="button" onClick={() => onOpenReview(activity)} disabled={adminSaving}>
-                                {isUserSubmission ? 'Review submission' : 'View listing'}
-                              </button>
-                            )}
-                            {!isUserSubmission && (
-                              <button type="button" onClick={() => onResolveQueueItem(item)} disabled={adminSaving}>
-                                Mark reviewed
-                              </button>
-                            )}
-                          </div>
-                        </article>
-                      );
-                    })}
-                  </div>
-                )}
-              </section>
-            );
-          })}
-        </section>
-      )}
+                          {!isUserSubmission && (
+                            <button type="button" onClick={() => onResolveQueueItem(item)} disabled={adminSaving}>
+                              Mark reviewed
+                            </button>
+                          )}
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          );
+        })}
+      </section>
+
+      <section className="review-queue image-review-queue" aria-live="polite">
+        <div className="section-heading">
+          <div>
+            <span>Image audit</span>
+            <h2>{`${missingImageActivities.length} cards need an image`}</h2>
+          </div>
+        </div>
+        <p className="queue-intro">These listings currently use an illustration. Open one to upload a cover image or add an image URL.</p>
+        {missingImageActivities.length === 0 ? (
+          <p className="queue-empty">Every published card has an image.</p>
+        ) : (
+          <div className="review-list image-review-list">
+            {missingImageActivities.map((activity) => (
+              <article key={activity.activity_id} className="review-item">
+                <div className="review-photo review-photo-placeholder" aria-hidden="true">No image</div>
+                <div>
+                  <strong>{activity.activity_name}</strong>
+                  <small>{`${activityPlanLabel(activity)} - ${activity.address || 'Address to review'}`}</small>
+                  <small>{`Source: ${activitySourceLabel(activity)}`}</small>
+                </div>
+                <div className="review-actions">
+                  <button type="button" onClick={() => onOpenReview(activity)} disabled={adminSaving}>Add image</button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
     </section>
   );
 }
@@ -4581,17 +4657,18 @@ function StatusPill({ status }) {
   );
 }
 
-function BottomNav({ activeScreen, setActiveScreen }) {
+function BottomNav({ activeScreen, setActiveScreen, isAdmin }) {
   const items = [
     ['start', 'Plan'],
     ['swipe', 'Swipe'],
     ['calendar', 'Week'],
     ['map', 'Where'],
     ['add', 'Add'],
+    ...(isAdmin ? [['review', 'Review']] : []),
   ];
 
   return (
-    <nav className="bottom-nav" aria-label="App navigation">
+    <nav className={classNames('bottom-nav', isAdmin && 'has-review')} aria-label="App navigation">
       {items.map(([screen, label]) => (
         <button
           key={screen}
