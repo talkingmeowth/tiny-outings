@@ -916,6 +916,15 @@ function profileDisplayName(user) {
   return user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Tiny Outings parent';
 }
 
+function usernameSearchValue(value) {
+  return cleanDisplayText(value)
+    .trim()
+    .replace(/^@+/, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9_.]/g, '')
+    .slice(0, 30);
+}
+
 function activityShareUrl(activity) {
   return originalGooglePlacesUrl(activity) || googlePlaceIdUrl(activity) || googleEntryUrl(activity);
 }
@@ -1276,6 +1285,7 @@ export default function App() {
   const [followingProfiles, setFollowingProfiles] = useState([]);
   const [followerProfiles, setFollowerProfiles] = useState([]);
   const [followingWeekEvents, setFollowingWeekEvents] = useState([]);
+  const [selectedFollowingUserId, setSelectedFollowingUserId] = useState(null);
   const [socialLoading, setSocialLoading] = useState(false);
   const [socialRefresh, setSocialRefresh] = useState(0);
   const [pendingFollowUsername, setPendingFollowUsername] = useState(() => followUsernameFromUrl(window.location.href));
@@ -1327,6 +1337,7 @@ export default function App() {
         setFollowingProfiles([]);
         setFollowerProfiles([]);
         setFollowingWeekEvents([]);
+        setSelectedFollowingUserId(null);
       }
       return undefined;
     }
@@ -1366,6 +1377,9 @@ export default function App() {
       const profilesById = new Map(profiles.map((item) => [String(item.user_id), item]));
       setFollowingProfiles(followingIds.map((id) => profilesById.get(String(id))).filter(Boolean));
       setFollowerProfiles(followerIds.map((id) => profilesById.get(String(id))).filter(Boolean));
+      setSelectedFollowingUserId((current) => (
+        current && followingIds.some((id) => String(id) === String(current)) ? current : null
+      ));
 
       if (!followingIds.length) {
         setFollowingWeekEvents([]);
@@ -2206,15 +2220,59 @@ export default function App() {
     setNotice('Profile saved.');
   }
 
+  async function searchProfilesByUsername(value) {
+    const userName = usernameSearchValue(value);
+    if (!supabase || !session?.user?.id || !userName) {
+      setNotice('Enter a username to search.');
+      return [];
+    }
+
+    const { data, error } = await supabase
+      .from('user_table')
+      .select('user_id,user_name,display_name,avatar_url,followers,following,default_calendar_visibility')
+      .ilike('user_name', `${userName}%`)
+      .neq('user_id', session.user.id)
+      .order('user_name', { ascending: true })
+      .limit(8);
+    if (error) {
+      setNotice('Username search is unavailable just now. Try again in a moment.');
+      return [];
+    }
+    return data || [];
+  }
+
+  async function followProfile(target) {
+    if (!supabase || !session?.user?.id || !target?.user_id) {
+      setNotice('Sign in to follow a parent.');
+      return null;
+    }
+    if (String(target.user_id) === String(session.user.id)) {
+      setNotice('That is your own profile.');
+      return null;
+    }
+
+    const { error } = await supabase
+      .from('user_follows')
+      .upsert({ follower_user_id: session.user.id, followed_user_id: target.user_id }, { onConflict: 'follower_user_id,followed_user_id' });
+    if (error) {
+      setNotice(`Could not follow ${target.display_name || target.user_name}.`);
+      return null;
+    }
+    setSelectedFollowingUserId(target.user_id);
+    setSocialRefresh((current) => current + 1);
+    setNotice(`You are following ${target.display_name || target.user_name}.`);
+    return target;
+  }
+
   async function followProfileByUsername(value) {
-    const userName = cleanDisplayText(value).toLowerCase();
+    const userName = usernameSearchValue(value);
     if (!supabase || !session?.user?.id || !userName) {
       setNotice('Sign in to follow a parent.');
-      return;
+      return null;
     }
     if (userName === profile?.user_name?.toLowerCase()) {
       setNotice('That is your own profile.');
-      return;
+      return null;
     }
 
     const { data: target, error: targetError } = await supabase
@@ -2224,18 +2282,9 @@ export default function App() {
       .maybeSingle();
     if (targetError || !target) {
       setNotice('We could not find that Tiny Outings parent.');
-      return;
+      return null;
     }
-
-    const { error } = await supabase
-      .from('user_follows')
-      .upsert({ follower_user_id: session.user.id, followed_user_id: target.user_id }, { onConflict: 'follower_user_id,followed_user_id' });
-    if (error) {
-      setNotice(`Could not follow ${target.display_name || target.user_name}.`);
-      return;
-    }
-    setSocialRefresh((current) => current + 1);
-    setNotice(`You are following ${target.display_name || target.user_name}.`);
+    return followProfile(target);
   }
 
   async function unfollowProfile(target) {
@@ -2249,6 +2298,9 @@ export default function App() {
       setNotice(`Could not unfollow ${target.display_name || target.user_name}.`);
       return;
     }
+    setSelectedFollowingUserId((current) => (
+      String(current) === String(target.user_id) ? null : current
+    ));
     setSocialRefresh((current) => current + 1);
     setNotice(`You unfollowed ${target.display_name || target.user_name}.`);
   }
@@ -2890,12 +2942,15 @@ export default function App() {
             followingProfiles={followingProfiles}
             followerProfiles={followerProfiles}
             followingWeekEvents={followingWeekEvents}
+            selectedFollowingUserId={selectedFollowingUserId}
             socialLoading={socialLoading}
             onOpenActivity={openActivity}
             onSaveProfile={saveProfile}
             onSignIn={signInWithGoogle}
             onShareProfile={shareProfile}
-            onFollowByUsername={followProfileByUsername}
+            onSearchProfiles={searchProfilesByUsername}
+            onFollowProfile={followProfile}
+            onSelectFollowingProfile={(person) => setSelectedFollowingUserId(person?.user_id || null)}
             onUnfollow={unfollowProfile}
           />
         )}
@@ -3634,45 +3689,36 @@ function ProfileQrCode({ userName }) {
   return imageUrl ? <img className="profile-qr-code" src={imageUrl} alt={`QR code to follow ${userName} on Tiny Outings`} /> : <div className="profile-qr-placeholder" aria-label="Preparing follow code" />;
 }
 
-function FollowingWeekSection({ profiles, events, loading, onOpenActivity }) {
-  const eventsByProfile = new Map();
-  events.forEach((event) => {
-    const key = String(event.user_id);
-    eventsByProfile.set(key, [...(eventsByProfile.get(key) || []), event]);
-  });
+function FollowingWeekSection({ profile, events, loading, onOpenActivity }) {
+  const plans = profile
+    ? events.filter((event) => String(event.user_id) === String(profile.user_id))
+    : [];
 
   return (
     <section className="following-week-card">
       <div className="section-heading">
         <span>Following</span>
-        <h2>Shared weeks</h2>
+        <h2>{profile ? `${profile.display_name || profile.user_name}'s week` : 'Shared weeks'}</h2>
       </div>
-      {loading ? <p className="social-empty">Loading shared plans...</p> : profiles.length === 0 ? (
-        <p className="social-empty">Follow a parent to see the week they share.</p>
+      {loading ? <p className="social-empty">Loading shared plans...</p> : !profile ? (
+        <p className="social-empty">Choose someone you follow to see the week they share.</p>
       ) : (
-        <div className="following-week-list">
-          {profiles.map((person) => {
-            const plans = eventsByProfile.get(String(person.user_id)) || [];
-            return (
-              <article className="following-week-person" key={person.user_id}>
-                <div className="following-week-person-heading">
-                  <img className="community-avatar" src={person.avatar_url || defaultProfileAvatar} alt="" onError={(event) => { event.currentTarget.src = defaultProfileAvatar; }} />
-                  <div><strong>{person.display_name || person.user_name}</strong><small>@{person.user_name}</small></div>
-                </div>
-                {plans.length ? (
-                  <div className="following-plan-list">
-                    {plans.map((event) => (
-                      <button type="button" key={event.calendar_event_id} onClick={() => onOpenActivity(event.activity)}>
-                        <span>{formatDay(event.planned_date, 'short')} - {event.day_window}</span>
-                        <strong>{event.title_override || event.activity.activity_name}</strong>
-                      </button>
-                    ))}
-                  </div>
-                ) : <small className="social-empty">No shared plans this week.</small>}
-              </article>
-            );
-          })}
-        </div>
+        <article className="following-week-person">
+          <div className="following-week-person-heading">
+            <img className="community-avatar" src={profile.avatar_url || defaultProfileAvatar} alt="" onError={(event) => { event.currentTarget.src = defaultProfileAvatar; }} />
+            <div><strong>{profile.display_name || profile.user_name}</strong><small>@{profile.user_name}</small></div>
+          </div>
+          {plans.length ? (
+            <div className="following-plan-list">
+              {plans.map((event) => (
+                <button type="button" key={event.calendar_event_id} onClick={() => onOpenActivity(event.activity)}>
+                  <span>{formatDay(event.planned_date, 'short')} - {event.day_window}</span>
+                  <strong>{event.title_override || event.activity.activity_name}</strong>
+                </button>
+              ))}
+            </div>
+          ) : <small className="social-empty">No shared plans for this week.</small>}
+        </article>
       )}
     </section>
   );
@@ -3685,17 +3731,23 @@ function UserScreen({
   followingProfiles,
   followerProfiles,
   followingWeekEvents,
+  selectedFollowingUserId,
   socialLoading,
   onOpenActivity,
   onSaveProfile,
   onSignIn,
   onShareProfile,
-  onFollowByUsername,
+  onSearchProfiles,
+  onFollowProfile,
+  onSelectFollowingProfile,
   onUnfollow,
 }) {
   const [editingProfile, setEditingProfile] = useState(false);
   const [form, setForm] = useState({ user_name: '', display_name: '', avatar_url: '', default_calendar_visibility: 'followers' });
   const [followUsername, setFollowUsername] = useState('');
+  const [usernameResults, setUsernameResults] = useState([]);
+  const [usernameSearchMessage, setUsernameSearchMessage] = useState('');
+  const [usernameSearching, setUsernameSearching] = useState(false);
 
   useEffect(() => {
     setForm({
@@ -3705,6 +3757,30 @@ function UserScreen({
       default_calendar_visibility: profile?.default_calendar_visibility || 'followers',
     });
   }, [profile]);
+
+  async function searchUsernames(event) {
+    event.preventDefault();
+    setUsernameSearching(true);
+    setUsernameSearchMessage('');
+    const results = await onSearchProfiles(followUsername);
+    setUsernameResults(results);
+    setUsernameSearchMessage(results.length ? '' : 'No matching parent yet. Check the username and try again.');
+    setUsernameSearching(false);
+  }
+
+  async function chooseSearchResult(person) {
+    const alreadyFollowing = followingProfiles.some((item) => String(item.user_id) === String(person.user_id));
+    if (alreadyFollowing) {
+      onSelectFollowingProfile(person);
+    } else {
+      const followed = await onFollowProfile(person);
+      if (!followed) return;
+      onSelectFollowingProfile(followed);
+    }
+    setFollowUsername('');
+    setUsernameResults([]);
+    setUsernameSearchMessage('');
+  }
 
   return (
     <section className="app-screen user-screen">
@@ -3764,17 +3840,48 @@ function UserScreen({
             <span>Parents</span>
             <h2>{socialLoading ? 'Loading your people...' : `${followerProfiles.length} followers - ${followingProfiles.length} following`}</h2>
           </div>
-          <form className="follow-parent-form" onSubmit={(event) => { event.preventDefault(); onFollowByUsername(followUsername); setFollowUsername(''); }}>
-            <input value={followUsername} onChange={(event) => setFollowUsername(event.target.value)} placeholder="Follow a username" required />
-            <button type="submit" className="primary-action">Follow</button>
+          <form className="follow-parent-form" onSubmit={searchUsernames}>
+            <input
+              value={followUsername}
+              onChange={(event) => {
+                setFollowUsername(event.target.value);
+                setUsernameResults([]);
+                setUsernameSearchMessage('');
+              }}
+              placeholder="Search a username, e.g. @sam"
+              required
+            />
+            <button type="submit" className="primary-action" disabled={usernameSearching}>{usernameSearching ? 'Searching...' : 'Search'}</button>
           </form>
+          {(usernameResults.length > 0 || usernameSearchMessage) && (
+            <div className="username-search-results" role="status">
+              {usernameResults.map((person) => {
+                const alreadyFollowing = followingProfiles.some((item) => String(item.user_id) === String(person.user_id));
+                return (
+                  <button type="button" className="username-search-result" key={person.user_id} onClick={() => chooseSearchResult(person)}>
+                    <img className="community-avatar" src={person.avatar_url || defaultProfileAvatar} alt="" onError={(event) => { event.currentTarget.src = defaultProfileAvatar; }} />
+                    <span><strong>{person.display_name || person.user_name}</strong><small>@{person.user_name}</small></span>
+                    <em>{alreadyFollowing ? 'Show week' : 'Follow'}</em>
+                  </button>
+                );
+              })}
+              {usernameSearchMessage && <small className="social-empty">{usernameSearchMessage}</small>}
+            </div>
+          )}
           <div className="social-lists">
             <div>
               <strong>Following</strong>
               {followingProfiles.length ? followingProfiles.map((person) => (
-                <div className="community-person" key={person.user_id}>
-                  <img className="community-avatar" src={person.avatar_url || defaultProfileAvatar} alt="" onError={(event) => { event.currentTarget.src = defaultProfileAvatar; }} />
-                  <div><strong>{person.display_name || person.user_name}</strong><small>@{person.user_name}</small></div>
+                <div className="community-person is-selectable" key={person.user_id}>
+                  <button
+                    type="button"
+                    className={`community-person-select${String(selectedFollowingUserId) === String(person.user_id) ? ' is-selected' : ''}`}
+                    onClick={() => onSelectFollowingProfile(person)}
+                    aria-pressed={String(selectedFollowingUserId) === String(person.user_id)}
+                  >
+                    <img className="community-avatar" src={person.avatar_url || defaultProfileAvatar} alt="" onError={(event) => { event.currentTarget.src = defaultProfileAvatar; }} />
+                    <span className="community-person-copy"><strong>{person.display_name || person.user_name}</strong><small>@{person.user_name}</small></span>
+                  </button>
                   <button type="button" className="follow-button is-following" onClick={() => onUnfollow(person)}>Following</button>
                 </div>
               )) : <small className="social-empty">Scan a parent code or add their username.</small>}
@@ -3794,7 +3901,7 @@ function UserScreen({
 
       {signedIn && (
         <FollowingWeekSection
-          profiles={followingProfiles}
+          profile={followingProfiles.find((person) => String(person.user_id) === String(selectedFollowingUserId)) || null}
           events={followingWeekEvents}
           loading={socialLoading}
           onOpenActivity={onOpenActivity}
