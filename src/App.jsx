@@ -1,6 +1,7 @@
 import { useDeferredValue, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import { App as NativeApp } from '@capacitor/app';
+import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import L from 'leaflet';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
@@ -23,7 +24,6 @@ const adminEmails = new Set([
 const appDownloadPageUrl = 'https://tiny-outings-cpjh.onrender.com/';
 const defaultProfileAvatar = '/images/profile-placeholder.svg';
 const NativeGoogleSignIn = registerPlugin('TinyOutingsGoogle');
-const NativeCalendar = registerPlugin('TinyOutingsCalendar');
 // Reset outdated swipe/filter state without touching planned calendar entries.
 const planningStorageVersion = '2026-07-24-seven-plan-categories';
 const statusOptions = ['booked', 'tentative'];
@@ -578,21 +578,6 @@ function dateStampForCalendar(dateISO, time) {
   return `${dateISO.replaceAll('-', '')}T${String(time).replace(':', '')}00`;
 }
 
-function buildGoogleCalendarUrl(event) {
-  const activity = event.activity;
-  const params = new URLSearchParams({
-    action: 'TEMPLATE',
-    text: event.title_override || activity.activity_name,
-    details: `${activity.description || ''}\n\nTiny Outings status: ${statusLabels[event.status]}.`,
-    location: activity.address,
-    dates: `${dateStampForCalendar(event.planned_date, event.start_time)}/${dateStampForCalendar(
-      event.planned_date,
-      event.end_time,
-    )}`,
-  });
-  return `https://calendar.google.com/calendar/render?${params.toString()}`;
-}
-
 function cleanICS(value) {
   return String(value || '')
     .replaceAll('\\', '\\\\')
@@ -643,31 +628,35 @@ function calendarEventRecord(event, userId, visibility) {
   };
 }
 
-async function downloadICS(events) {
-  if (Capacitor.isNativePlatform()) {
-    for (const event of events) {
-      const activity = event.activity;
-      const startsAt = new Date(`${event.planned_date}T${event.start_time || '09:00'}:00`).getTime();
-      const endsAt = new Date(`${event.planned_date}T${event.end_time || event.start_time || '10:00'}:00`).getTime();
-      await NativeCalendar.addEvent({
-        title: event.title_override || activity.activity_name || 'Tiny Outing',
-        description: activity.description || 'Planned in Tiny Outings',
-        location: activity.address || '',
-        startsAt,
-        endsAt: Math.max(endsAt, startsAt + 30 * 60 * 1000),
-      });
-    }
-    return;
-  }
+async function downloadICS(events, filename) {
+  if (!events.length) throw new Error('Add at least one plan before exporting your week.');
 
   const calendar = buildICS(events);
-  const blob = new Blob([calendar], { type: 'text/calendar;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'tiny-outings-week.ics';
-  link.click();
-  URL.revokeObjectURL(url);
+  if (Capacitor.isNativePlatform()) {
+    const savedFile = await Filesystem.writeFile({
+      path: filename,
+      data: calendar,
+      directory: Directory.Cache,
+      encoding: Encoding.UTF8,
+      recursive: true,
+    });
+    await Share.share({
+      title: 'Tiny Outings weekly plan',
+      text: 'Your Tiny Outings week is attached as a calendar file.',
+      url: savedFile.uri,
+      dialogTitle: 'Export your week',
+    });
+  } else {
+    const blob = new Blob([calendar], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
 }
 
 function classNames(...names) {
@@ -3997,14 +3986,6 @@ function CalendarScreen({
                                 <option key={status} value={status}>{statusLabels[status]}</option>
                               ))}
                             </select>
-                          </div>
-                          <div className="export-actions">
-                            <a href={buildGoogleCalendarUrl(event)} target="_blank" rel="noreferrer">
-                              Google
-                            </a>
-                            <button type="button" onClick={() => exportCalendar([event], `${event.planned_date}-${event.day_window}-tiny-outings.ics`)}>
-                              ICS
-                            </button>
                             <button type="button" onClick={() => onRemoveEvent(event)}>
                               Remove
                             </button>
