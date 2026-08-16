@@ -32,7 +32,10 @@ function comparableActivityUrl(value) {
   if (!value) return '';
   try {
     const url = new URL(value);
-    return `${url.hostname.toLowerCase().replace(/^www\./, '')}${url.pathname.replace(/\/+$/, '').toLowerCase()}`;
+    [...url.searchParams.keys()].forEach((key) => {
+      if (/^(utm_|fbclid$|gclid$|mc_cid$|mc_eid$)/i.test(key)) url.searchParams.delete(key);
+    });
+    return `${url.hostname.toLowerCase().replace(/^www\./, '')}${url.pathname.replace(/\/+$/, '').toLowerCase()}${url.search}${url.hash}`;
   } catch {
     return '';
   }
@@ -47,20 +50,36 @@ function activityAddressKey(activity) {
   return postCode || comparisonText(activity.address);
 }
 
+function activityScheduleKey(activity) {
+  const dates = [
+    activity.activity_date,
+    ...(Array.isArray(activity.available_dates) ? activity.available_dates : []),
+    activity.availability_start_date,
+    activity.availability_end_date,
+  ].filter(Boolean).join(',');
+  const days = [
+    ...(Array.isArray(activity.days_of_week) ? activity.days_of_week : []),
+    ...(Array.isArray(activity.available_days_of_week) ? activity.available_days_of_week : []),
+  ].filter(Boolean).join(',');
+  const times = [activity.start_time, activity.end_time].filter(Boolean).join('-');
+  return [dates, days, times].filter(Boolean).join('|') || 'flexible';
+}
+
 function duplicateKeys(activity) {
   const name = comparisonText(activity.activity_name);
   const address = activityAddressKey(activity);
+  const schedule = activityScheduleKey(activity);
   const keys = new Set();
 
-  // A provider website or a Google venue can legitimately serve several
-  // different classes. Only the source listing URL identifies the listing.
+  // Providers can have several classes at one venue. Keep each distinct
+  // session visible and only collapse listings that also share a schedule.
   [activity.source_url]
     .map(comparableActivityUrl)
     .filter(Boolean)
-    .forEach((url) => keys.add(`url:${url}`));
+    .forEach((url) => keys.add(`url:${url}|${schedule}`));
 
-  if (name && address) keys.add(`venue:${name}|${address}`);
-  if (name && activity.google_place_id) keys.add(`place:${activity.google_place_id}|${name}`);
+  if (name && address) keys.add(`venue:${name}|${address}|${schedule}`);
+  if (name && activity.google_place_id) keys.add(`place:${activity.google_place_id}|${name}|${schedule}`);
   return keys;
 }
 
