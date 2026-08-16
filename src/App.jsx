@@ -9,6 +9,7 @@ import 'leaflet/dist/leaflet.css';
 import { supabase } from './supabaseClient';
 import { googleSignInErrorMessage, signInWithNativeGoogle } from './googleAuth';
 import { comparisonTokens, findLikelyDuplicate } from './activityDuplicates';
+import { activityCoordinates, resolveActivityCoordinates } from './activityLocation';
 import { profileQrUrl, profileShareData } from './profileSharing';
 
 const dayWindows = ['morning', 'afternoon', 'evening'];
@@ -1142,6 +1143,39 @@ function buildSubmittedPayload(
   if (enriched.postcode) payload.postcode = enriched.postcode;
   if (enriched.borough) payload.borough = enriched.borough;
   return payload;
+}
+
+function adminActivityUpdates(activity, values = {}) {
+  const manualCoordinates = activityCoordinates({ lat: values.lat, long: values.long });
+  const existingCoordinates = activityCoordinates(activity);
+  const coordinates = manualCoordinates || existingCoordinates;
+  const address = values.address || activity.address || 'Address needs review';
+
+  return {
+    activity_name: values.activity_name || activity.activity_name,
+    address,
+    borough: values.borough || null,
+    category: values.category || activity.category || null,
+    start_time: values.start_time || null,
+    end_time: values.end_time || null,
+    description: values.description || null,
+    card_summary: cleanDisplayText(values.card_summary) || conciseCardSummary({
+      description: values.description,
+      category: values.category || activity.category,
+      age_suitability: values.age_suitability,
+      borough: values.borough,
+      address,
+    }),
+    cost: values.cost || null,
+    age_suitability: values.age_suitability || null,
+    user_image_url: values.user_image_url || null,
+    website: values.website || null,
+    organiser_website: values.organiser_website || null,
+    google_link: values.google_link || null,
+    google_place_uri: values.google_link || null,
+    lat: coordinates?.lat ?? null,
+    long: coordinates?.long ?? null,
+  };
 }
 
 function acceptedPhotoFiles(fileList) {
@@ -2303,30 +2337,7 @@ export default function App() {
   async function saveAdminActivityEdits(activity, values, coverImageFile = null) {
     if (!supabase || !isAdmin) return;
     let adminCoverImageUrl = activity.admin_cover_image_url || null;
-
-    const updates = {
-      activity_name: values.activity_name || activity.activity_name,
-      address: values.address || activity.address || 'Address needs review',
-      borough: values.borough || null,
-      category: values.category || activity.category || null,
-      start_time: values.start_time || null,
-      end_time: values.end_time || null,
-      description: values.description || null,
-      card_summary: cleanDisplayText(values.card_summary) || conciseCardSummary({
-        description: values.description,
-        category: values.category || activity.category,
-        age_suitability: values.age_suitability,
-        borough: values.borough,
-        address: values.address,
-      }),
-      cost: values.cost || null,
-      age_suitability: values.age_suitability || null,
-      user_image_url: values.user_image_url || null,
-      website: values.website || null,
-      organiser_website: values.organiser_website || null,
-      google_link: values.google_link || null,
-      google_place_uri: values.google_link || null,
-    };
+    const updates = adminActivityUpdates(activity, values);
     setAdminSaving(true);
 
     if (coverImageFile) {
@@ -2433,7 +2444,7 @@ export default function App() {
     setNotice('Importer review marked as complete.');
   }
 
-  async function reviewSubmittedActivity(activity, status) {
+  async function reviewSubmittedActivity(activity, status, values = {}) {
     if (!supabase || !isAdmin) return;
     const label = status === 'published' ? 'approve' : 'archive';
     if (!window.confirm(`${label[0].toUpperCase()}${label.slice(1)} ${activity.activity_name}?`)) return;
@@ -2456,9 +2467,32 @@ export default function App() {
     }
 
     setAdminSaving(true);
+    const updates = adminActivityUpdates(activity, values);
+    let coordinates = activityCoordinates(updates);
+
+    if (!coordinates) {
+      try {
+        coordinates = await resolveActivityCoordinates(updates);
+      } catch {
+        coordinates = null;
+      }
+    }
+
+    if (!coordinates) {
+      setAdminSaving(false);
+      setNotice('Could not confirm this location. Check the address or enter both latitude and longitude in Admin tools, then publish.');
+      return;
+    }
+
     const { data, error } = await supabase
       .from('activities')
-      .update({ public_listing_status: status })
+      .update({
+        ...updates,
+        lat: coordinates.lat,
+        long: coordinates.long,
+        public_listing_status: status,
+        archive: false,
+      })
       .eq('activity_id', activity.activity_id)
       .select(activitySelectColumns)
       .single();
@@ -4187,7 +4221,7 @@ function ActivityDetail({
           saving={adminSaving}
           onSave={onSaveAdminEdits}
           onArchive={onArchive}
-          onPublishDraft={isDraft ? () => onReviewDraft(activity, 'published') : null}
+          onPublishDraft={isDraft ? (values) => onReviewDraft(activity, 'published', values) : null}
         />
       )}
 
@@ -4318,6 +4352,8 @@ function ActivityAdminEditor({ activity, saving, onSave, onArchive, onPublishDra
     activity_name: activity.activity_name || '',
     address: activity.address || '',
     borough: activity.borough || '',
+    lat: String(activity.lat ?? ''),
+    long: String(activity.long ?? ''),
     category: activity.category || '',
     start_time: String(activity.start_time || '').slice(0, 5),
     end_time: String(activity.end_time || '').slice(0, 5),
@@ -4337,6 +4373,8 @@ function ActivityAdminEditor({ activity, saving, onSave, onArchive, onPublishDra
       activity_name: activity.activity_name || '',
       address: activity.address || '',
       borough: activity.borough || '',
+      lat: String(activity.lat ?? ''),
+      long: String(activity.long ?? ''),
       category: activity.category || '',
       start_time: String(activity.start_time || '').slice(0, 5),
       end_time: String(activity.end_time || '').slice(0, 5),
@@ -4351,12 +4389,20 @@ function ActivityAdminEditor({ activity, saving, onSave, onArchive, onPublishDra
     });
   }, [activity]);
 
-  function submit(event) {
-    event.preventDefault();
-    const values = Object.fromEntries(
+  function formValues() {
+    return Object.fromEntries(
       Object.entries(form).map(([key, value]) => [key, value.trim()]),
     );
+  }
+
+  function submit(event) {
+    event.preventDefault();
+    const values = formValues();
     onSave(activity, values, coverImageFile);
+  }
+
+  function publish() {
+    onPublishDraft(formValues());
   }
 
   return (
@@ -4388,6 +4434,28 @@ function ActivityAdminEditor({ activity, saving, onSave, onArchive, onPublishDra
           value={form.borough}
           onChange={(event) => setForm((current) => ({ ...current, borough: event.target.value }))}
           placeholder="e.g. Hackney"
+        />
+      </label>
+      <label>
+        <span>Latitude</span>
+        <input
+          type="number"
+          inputMode="decimal"
+          step="any"
+          value={form.lat}
+          onChange={(event) => setForm((current) => ({ ...current, lat: event.target.value }))}
+          placeholder="Auto-filled on publish"
+        />
+      </label>
+      <label>
+        <span>Longitude</span>
+        <input
+          type="number"
+          inputMode="decimal"
+          step="any"
+          value={form.long}
+          onChange={(event) => setForm((current) => ({ ...current, long: event.target.value }))}
+          placeholder="Auto-filled on publish"
         />
       </label>
       <label>
@@ -4501,7 +4569,7 @@ function ActivityAdminEditor({ activity, saving, onSave, onArchive, onPublishDra
         {saving ? 'Saving...' : 'Save corrections'}
       </button>
       {onPublishDraft && (
-        <button className="primary-action" type="button" onClick={onPublishDraft} disabled={saving}>
+        <button className="primary-action" type="button" onClick={publish} disabled={saving}>
           Publish listing
         </button>
       )}
