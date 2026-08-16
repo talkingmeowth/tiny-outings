@@ -30,6 +30,20 @@ function cleanText(value: unknown) {
   return typeof value === 'string' ? value.replace(/\s+/g, ' ').trim() : '';
 }
 
+function sameExternalUrl(first: unknown, second: unknown) {
+  try {
+    const normalise = (value: unknown) => {
+      const url = new URL(String(value));
+      const host = url.hostname.toLowerCase().replace(/^www\./, '');
+      const path = url.pathname.replace(/\/+$/, '');
+      return `${host}${url.port ? `:${url.port}` : ''}${path}`.toLowerCase();
+    };
+    return Boolean(first && second && normalise(first) === normalise(second));
+  } catch {
+    return false;
+  }
+}
+
 async function resolveRedirects(link: string) {
   try {
     const head = await fetch(link, { method: 'HEAD', redirect: 'follow' });
@@ -128,6 +142,9 @@ function structuredListing(html: string) {
     return /event|localbusiness|organization|place/.test(type);
   }) || {};
   const geo = node.geo && typeof node.geo === 'object' ? node.geo as Record<string, unknown> : {};
+  const website = activity.website || cleanText(place.websiteUri) || null;
+  const organiserWebsite = activity.organiser_website || cleanText(place.websiteUri) || null;
+
   return {
     name: textValue(node.name),
     description: textValue(node.description),
@@ -400,8 +417,8 @@ async function enrichWithGooglePlace(activity: Record<string, any>, place: Recor
     google_link: cleanText(place.googleMapsUri) || activity.google_link || (isGoogleMapsUrl(submittedLink) ? submittedLink : null),
     google_place_uri: cleanText(place.googleMapsUri) || activity.google_place_uri || (isGoogleMapsUrl(submittedLink) ? submittedLink : null),
     google_place_id: cleanText(place.id) || activity.google_place_id || null,
-    website: activity.website || cleanText(place.websiteUri) || null,
-    organiser_website: activity.organiser_website || cleanText(place.websiteUri) || null,
+    website,
+    organiser_website: sameExternalUrl(website, organiserWebsite) ? null : organiserWebsite,
     app_rating: Number.isFinite(rating) ? rating : activity.app_rating,
     number_of_reviews: Number.isFinite(reviewCount) ? reviewCount : activity.number_of_reviews,
     google_rating: Number.isFinite(rating) ? rating : activity.google_rating,

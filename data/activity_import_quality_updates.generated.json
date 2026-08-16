@@ -1,7 +1,8 @@
 {
-  "generated_at": "2026-08-10T11:29:01.887Z",
+  "generated_at": "2026-08-16T19:30:07.133Z",
   "rules": [
     "trim whitespace and control characters",
-    "restore data_source from source_name"
+    "restore data_source from source_name",
+    "remove duplicate organiser website links"
   ]
 }

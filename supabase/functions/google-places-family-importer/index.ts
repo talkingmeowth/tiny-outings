@@ -334,7 +334,7 @@ function prepareActivity(place: GooglePlace, profile: Profile, queries: Set<stri
   const activity: PreparedActivity = {
     activity_name: name, address, postcode: postcode(address), lat: Number(place.location?.latitude), long: Number(place.location?.longitude),
     category: profile.category, start_time: hours.start, end_time: hours.end,
-    google_link: place.googleMapsUri || null, website: place.websiteUri || null, organiser_website: place.websiteUri || null,
+    google_link: place.googleMapsUri || null, website: place.websiteUri || null, organiser_website: null,
     child_friendly_score: activityScore(place), app_rating: rating, number_of_reviews: reviews,
     age_suitability: 'Babies, toddlers and their grown-ups', borough: boroughForAddress(address), days_of_week: hours.days,
     recurrence_rule: hours.days.length ? `FREQ=WEEKLY;BYDAY=${hours.days.map((day) => day.slice(0, 2).toUpperCase()).join(',')}` : null,

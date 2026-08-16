@@ -710,6 +710,20 @@ function activityWebsiteUrl(activity) {
   return activity.website || activity.source_url || activity.google_place_uri || activity.google_link || googleEntryUrl(activity);
 }
 
+function sameExternalUrl(first, second) {
+  try {
+    const normalise = (value) => {
+      const url = new URL(value);
+      const host = url.hostname.toLowerCase().replace(/^www\./, '');
+      const path = url.pathname.replace(/\/+$/, '');
+      return `${host}${url.port ? `:${url.port}` : ''}${path}`.toLowerCase();
+    };
+    return Boolean(first && second && normalise(first) === normalise(second));
+  } catch {
+    return false;
+  }
+}
+
 function isGooglePlacesUrl(value) {
   try {
     const host = new URL(value).hostname.toLowerCase();
@@ -4373,7 +4387,9 @@ function ActivityDetail({
   const googlePlacesUrl = activityShareUrl(activity);
   const mapEmbedUrl = googleMapEmbedUrl(activity);
   const websiteUrl = activityWebsiteUrl(activity);
-  const organiserWebsiteUrl = activity.organiser_website || null;
+  const organiserWebsiteUrl = sameExternalUrl(activity.website, activity.organiser_website)
+    ? null
+    : activity.organiser_website || null;
   const cost = activityCost(activity);
   const flexible = isFlexibleActivity(activity);
   const isDraft = activity.public_listing_status === 'draft';

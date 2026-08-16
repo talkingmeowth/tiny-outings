@@ -38,3 +38,14 @@ set data_source = case
 end,
 updated_at = now()
 where source_name is not null;
+
+-- A listing website and organiser website serve different purposes. Keep the
+-- organiser link only when it points somewhere different, so cards never show
+-- duplicate buttons for the same destination.
+update public.activities
+set organiser_website = null,
+    updated_at = now()
+where nullif(trim(website), '') is not null
+  and nullif(trim(organiser_website), '') is not null
+  and regexp_replace(regexp_replace(regexp_replace(lower(trim(website)), '^https?://(www\.)?', ''), '[?#].*$', ''), '/+$', '')
+      = regexp_replace(regexp_replace(regexp_replace(lower(trim(organiser_website)), '^https?://(www\.)?', ''), '[?#].*$', ''), '/+$', '');
