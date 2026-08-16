@@ -1689,6 +1689,50 @@ export default function App() {
     void followProfileByUsername(userName);
   });
 
+  const handleNativeBack = useEffectEvent(({ canGoBack }) => {
+    if (notice) {
+      setNotice('');
+      return;
+    }
+    if (shareSheetActivity || shareSheetApp) {
+      setShareSheetActivity(null);
+      setShareSheetApp(false);
+      return;
+    }
+    if (reportSheetActivity) {
+      setReportSheetActivity(null);
+      return;
+    }
+    if (duplicateSubmission) {
+      setDuplicateSubmission(null);
+      return;
+    }
+    if (activeScreen === 'activity') {
+      closeActivity();
+      return;
+    }
+    if (activeScreen === 'review') {
+      navigate('add');
+      return;
+    }
+    if (activeScreen !== 'start') {
+      navigate('start');
+      return;
+    }
+    if (canGoBack) {
+      window.history.back();
+      return;
+    }
+    void NativeApp.minimizeApp();
+  });
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return undefined;
+    const receiveNativeBack = () => handleNativeBack({ canGoBack: false });
+    window.addEventListener('tinyoutingsback', receiveNativeBack);
+    return () => window.removeEventListener('tinyoutingsback', receiveNativeBack);
+  }, [handleNativeBack]);
+
   useEffect(() => {
     if (!pendingFollowUsername || !signedInUser || !profile?.user_id) return;
     const userName = pendingFollowUsername;
