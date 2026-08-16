@@ -574,8 +574,24 @@ function formatAvailability(activity) {
   return activity.availability_type === 'unknown' ? 'Check dates' : 'Open dates vary';
 }
 
+function calendarTime(value, fallback) {
+  const match = String(value || '').match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return fallback;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (!Number.isInteger(hours) || !Number.isInteger(minutes) || hours > 23 || minutes > 59) return fallback;
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+}
+
+function endTimeAfter(startTime) {
+  const [hours, minutes] = startTime.split(':').map(Number);
+  if (hours >= 23) return '23:59';
+  return `${String(hours + 1).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+}
+
 function dateStampForCalendar(dateISO, time) {
-  return `${dateISO.replaceAll('-', '')}T${String(time).replace(':', '')}00`;
+  const [hours, minutes] = calendarTime(time, '09:00').split(':');
+  return `${dateISO.replaceAll('-', '')}T${hours}${minutes}00`;
 }
 
 function cleanICS(value) {
@@ -614,14 +630,17 @@ function buildICS(events) {
 }
 
 function calendarEventRecord(event, userId, visibility) {
+  const startTime = calendarTime(event.start_time, '09:00');
+  const requestedEndTime = calendarTime(event.end_time, '10:00');
+  const endTime = requestedEndTime > startTime ? requestedEndTime : endTimeAfter(startTime);
   return {
     user_id: userId,
     activity_id: event.activity_id,
     planned_date: event.planned_date,
-    day_window: event.day_window,
-    start_time: event.start_time,
-    end_time: event.end_time,
-    status: event.status,
+    day_window: dayWindows.includes(event.day_window) ? event.day_window : toWindow(startTime),
+    start_time: startTime,
+    end_time: endTime,
+    status: statusOptions.includes(event.status) ? event.status : 'tentative',
     visibility,
     title_override: event.title_override || null,
     notes: event.notes || null,
@@ -1309,6 +1328,10 @@ export default function App() {
     () => dedupePublishedActivities(activities.map(normalizeActivity)),
     [activities],
   );
+  const publishedActivityIds = useMemo(
+    () => new Set(activities.map((activity) => String(activity.activity_id))),
+    [activities],
+  );
   const activitiesMissingImages = useMemo(
     () => allActivities
       .filter((activity) => activity.public_listing_status === 'published' && !activity.archive)
@@ -1406,29 +1429,49 @@ export default function App() {
   }, [activeScreen, activityById, filters.weekStart, signedInUser, socialRefresh]);
 
   useEffect(() => {
-    if (!supabase || !signedInUser || !profile?.user_id || calendarSyncedUserId === signedInUser.id) return;
+    if (
+      !supabase
+      || !signedInUser
+      || !profile?.user_id
+      || calendarSyncedUserId === signedInUser.id
+      || loading
+      || activities.length === 0
+    ) return;
     let cancelled = false;
 
     async function syncSavedPlan() {
       const visibility = profile.default_calendar_visibility || 'followers';
-      const savedEvents = calendarEventsRef.current.filter((event) => event.activity_id);
+      const savedEvents = calendarEventsRef.current.filter((event) => {
+        const isForCurrentUser = !event.user_id || String(event.user_id) === String(signedInUser.id);
+        const isKnownActivity = event.activity_id && publishedActivityIds.has(String(event.activity_id));
+        const hasDate = /^\d{4}-\d{2}-\d{2}$/.test(String(event.planned_date || ''));
+        return isForCurrentUser && isKnownActivity && hasDate;
+      });
       if (!savedEvents.length) {
         if (!cancelled) setCalendarSyncedUserId(signedInUser.id);
         return;
       }
-      const { data, error } = await supabase
-        .from('calendar_events')
-        .upsert(
-          savedEvents.map((event) => calendarEventRecord(event, signedInUser.id, event.visibility || visibility)),
-          { onConflict: 'user_id,planned_date,day_window' },
-        )
-        .select('calendar_event_id,activity_id,planned_date,day_window,status,visibility');
+
+      const results = await Promise.all(savedEvents.map(async (event) => {
+        const { data, error } = await supabase
+          .from('calendar_events')
+          .upsert(
+            calendarEventRecord(event, signedInUser.id, event.visibility || visibility),
+            { onConflict: 'user_id,planned_date,day_window' },
+          )
+          .select('calendar_event_id,activity_id,planned_date,day_window,status,visibility')
+          .single();
+        return { event, data, error };
+      }));
       if (cancelled) return;
-      if (error) {
-        setNotice('Your saved week could not be shared yet. Try again in a moment.');
-        return;
+
+      const failed = results.filter((result) => result.error);
+      if (failed.length) {
+        console.warn('Some calendar plans could not sync.', failed.map(({ error }) => error));
       }
-      const savedBySlot = new Map((data || []).map((event) => [`${event.planned_date}:${event.day_window}`, event]));
+      const savedBySlot = new Map(results
+        .filter((result) => result.data)
+        .map(({ data }) => [`${data.planned_date}:${data.day_window}`, data]));
       setCalendarEvents((current) => current.map((event) => {
         const saved = savedBySlot.get(`${event.planned_date}:${event.day_window}`);
         return saved ? { ...event, ...saved, local_id: saved.calendar_event_id, user_id: signedInUser.id } : event;
@@ -1438,7 +1481,7 @@ export default function App() {
 
     syncSavedPlan();
     return () => { cancelled = true; };
-  }, [calendarSyncedUserId, profile?.default_calendar_visibility, profile?.user_id, signedInUser]);
+  }, [activities.length, calendarSyncedUserId, loading, profile?.default_calendar_visibility, profile?.user_id, publishedActivityIds, signedInUser]);
   const filteredWeekDays = useMemo(
     () => Array.from({ length: 7 }, (_, index) => addDaysISO(deferredFilters.weekStart, index)),
     [deferredFilters.weekStart],
