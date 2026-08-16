@@ -9,6 +9,8 @@ const outputAuditPath = join(root, 'data', 'activity_link_audit.generated.json')
 const useGooglePlaces = process.argv.includes('--google-places');
 const limitArgument = process.argv.find((argument) => argument.startsWith('--limit='));
 const recordLimit = limitArgument ? Number(limitArgument.slice('--limit='.length)) : null;
+const concurrencyArgument = process.argv.find((argument) => argument.startsWith('--concurrency='));
+const requestConcurrency = concurrencyArgument ? Number(concurrencyArgument.slice('--concurrency='.length)) : 16;
 const directoryHosts = new Set([
   'happity.co.uk', 'eventbrite.co.uk', 'eventbrite.com', 'feverup.com',
   'loopla.com', 'timeout.com', 'museumslondon.org', 'walthamforest.gov.uk',
@@ -60,11 +62,45 @@ function isDirectoryUrl(value) {
 
 function isGoogleMapsUrl(value) {
   const host = hostFor(value);
-  return Boolean(host && (host === 'maps.app.goo.gl' || host.endsWith('google.com') || host.endsWith('google.co.uk')));
+  return Boolean(host && (
+    host === 'maps.app.goo.gl'
+    || host === 'maps.google.com'
+    || host === 'google.com'
+    || host === 'google.co.uk'
+    || host === 'www.google.com'
+    || host === 'www.google.co.uk'
+  ));
+}
+
+function isGenericDirectoryUrl(value) {
+  try {
+    const url = new URL(value);
+    const host = url.hostname.toLowerCase().replace(/^www\./, '');
+    const path = url.pathname.replace(/\/+$/, '');
+    if (host === 'happity.co.uk') return !path.startsWith('/schedules/');
+    if (host === 'loopla.com') return path === '' || path === '/' || path.startsWith('/search');
+    if (host === 'timeout.com') return path === '' || path === '/' || path === '/london/kids';
+    if (host === 'museumslondon.org') return path === '' || path === '/' || path.includes('list-of-museums');
+    if (host === 'eventbrite.co.uk' || host === 'eventbrite.com') return path === '' || path === '/' || path.startsWith('/d/');
+    if (host === 'feverup.com') return path === '' || path === '/' || path === '/london';
+    return false;
+  } catch {
+    return true;
+  }
 }
 
 function isOfficialCandidate(value) {
   return isHttpUrl(value) && !isDirectoryUrl(value);
+}
+
+function isSpecificOfficialUrl(value) {
+  if (!isOfficialCandidate(value)) return false;
+  try {
+    const url = new URL(value);
+    return url.pathname.replace(/\/+$/, '') !== '' || url.search !== '';
+  } catch {
+    return false;
+  }
 }
 
 function sql(value) {
@@ -79,7 +115,7 @@ function statusIsBroken(status) {
   // Timeouts and connection failures can come from the current network, a
   // venue's bot protection, or a short-lived outage. Only clear a link when
   // the host has conclusively said that the page no longer exists.
-  return ['invalid_url', 'http_404', 'http_410', 'http_451'].includes(status);
+  return ['invalid_url', 'http_404', 'http_410', 'http_451', 'google_maps_url', 'redirected_to_google'].includes(status);
 }
 
 async function fetchActivities(config) {
@@ -92,7 +128,6 @@ async function fetchActivities(config) {
   for (let offset = 0; ; offset += 1000) {
     const params = new URLSearchParams({
       select,
-      archive: 'eq.false',
       order: 'activity_id.asc',
       limit: '1000',
       offset: String(offset),
@@ -102,7 +137,9 @@ async function fetchActivities(config) {
     });
     if (!response.ok) throw new Error(`Could not load activities: ${response.status}`);
     const page = await response.json();
-    records.push(...page);
+    // Older imports used NULL before archive had a false default. They remain
+    // visible in the app, so audit every record except an explicitly archived one.
+    records.push(...page.filter((activity) => activity.archive !== true));
     if (page.length < 1000 || (recordLimit && records.length >= recordLimit)) return recordLimit ? records.slice(0, recordLimit) : records;
   }
 }
@@ -138,11 +175,13 @@ async function fetchUrlStatus(url) {
       });
       fallback.body?.cancel();
       if (isNetworkFilterUrl(fallback.url)) return { status: 'network_filter', finalUrl: fallback.url };
+      if (isGoogleMapsUrl(fallback.url)) return { status: isGoogleMapsUrl(url) ? 'google_maps_url' : 'redirected_to_google', finalUrl: fallback.url };
       if (fallback.ok) return { status: 'reachable', finalUrl: fallback.url };
       if ([401, 403, 429].includes(fallback.status)) return { status: `source_blocked_${fallback.status}`, finalUrl: fallback.url };
       return { status: `http_${fallback.status}`, finalUrl: fallback.url };
     }
     if (isNetworkFilterUrl(response.url)) return { status: 'network_filter', finalUrl: response.url };
+    if (isGoogleMapsUrl(response.url)) return { status: isGoogleMapsUrl(url) ? 'google_maps_url' : 'redirected_to_google', finalUrl: response.url };
     if (response.ok) return { status: 'reachable', finalUrl: response.url };
     if ([401, 403, 429].includes(response.status)) return { status: `source_blocked_${response.status}`, finalUrl: response.url };
     return { status: `http_${response.status}`, finalUrl: response.url };
@@ -237,7 +276,7 @@ async function main() {
   };
 
   const initialUrls = [...new Set(activities.flatMap((activity) => [activity.website, activity.organiser_website]).map(canonicalUrl).filter(Boolean))];
-  await mapConcurrent(initialUrls, 10, statusFor);
+  await mapConcurrent(initialUrls, Math.max(1, requestConcurrency), statusFor);
 
   const repairs = [];
   const auditRows = [];
@@ -254,8 +293,10 @@ async function main() {
       const placeUrl = await placeWebsite(activity, config, placeCache);
       const replacement = await firstUsableUrl([
         ...urlVariants(currentWebsite),
-        canonicalUrl(activity.source_url),
-        organiserCheck && statusIsUsable(organiserCheck.status) ? currentOrganiserWebsite : null,
+        !isGenericDirectoryUrl(activity.source_url) ? canonicalUrl(activity.source_url) : null,
+        organiserCheck && statusIsUsable(organiserCheck.status) && isSpecificOfficialUrl(currentOrganiserWebsite)
+          ? currentOrganiserWebsite
+          : null,
         placeUrl,
       ].filter((candidate) => !isGoogleMapsUrl(candidate)), statusFor);
       nextWebsite = replacement;
@@ -264,11 +305,11 @@ async function main() {
 
     if (currentOrganiserWebsite && statusIsBroken(organiserCheck.status)) {
       const placeUrl = await placeWebsite(activity, config, placeCache);
-      const websiteAsOrganiser = isOfficialCandidate(currentWebsite) && statusIsUsable(websiteCheck.status)
+      const websiteAsOrganiser = isSpecificOfficialUrl(currentWebsite) && statusIsUsable(websiteCheck.status)
         ? currentWebsite
         : null;
       const replacement = await firstUsableUrl([
-        ...urlVariants(currentOrganiserWebsite, { includeRoot: true }),
+        ...urlVariants(currentOrganiserWebsite),
         websiteAsOrganiser,
         placeUrl,
       ], statusFor);
@@ -311,6 +352,8 @@ async function main() {
   }, {});
   const brokenWebsiteCount = auditRows.filter((row) => statusIsBroken(row.website_status)).length;
   const brokenOrganiserCount = auditRows.filter((row) => statusIsBroken(row.organiser_website_status)).length;
+  const googleWebsiteCount = auditRows.filter((row) => ['google_maps_url', 'redirected_to_google'].includes(row.website_status)).length;
+  const googleOrganiserCount = auditRows.filter((row) => ['google_maps_url', 'redirected_to_google'].includes(row.organiser_website_status)).length;
   const placeResults = await Promise.all([...placeCache.values()]);
   const officialPlaceWebsitesFound = placeResults.filter(Boolean).length;
   const sqlText = repairs.length
@@ -332,6 +375,8 @@ async function main() {
     organiser_website_statuses: countStatuses('organiser_website_status'),
     broken_website_links: brokenWebsiteCount,
     broken_organiser_website_links: brokenOrganiserCount,
+    google_website_links: googleWebsiteCount,
+    google_organiser_website_links: googleOrganiserCount,
     proposed_repairs: repairs.length,
     repairs,
     records: auditRows,
@@ -341,6 +386,8 @@ async function main() {
     unique_urls_checked: statusCache.size,
     broken_website_links: brokenWebsiteCount,
     broken_organiser_website_links: brokenOrganiserCount,
+    google_website_links: googleWebsiteCount,
+    google_organiser_website_links: googleOrganiserCount,
     proposed_repairs: repairs.length,
     google_places_lookup_used: useGooglePlaces,
     google_places_records_checked: placeCache.size,

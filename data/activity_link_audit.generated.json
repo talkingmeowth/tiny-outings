@@ -1,526 +1,38 @@
 {
-  "generated_at": "2026-08-16T16:18:26.632Z",
+  "generated_at": "2026-08-16T19:25:31.417Z",
   "scope": "Unarchived activities visible through the project API.",
-  "google_places_lookup_used": true,
-  "google_places_records_checked": 25,
+  "google_places_lookup_used": false,
+  "google_places_records_checked": 0,
   "google_places_official_websites_found": 0,
-  "checked_records": 2225,
-  "unique_urls_checked": 2411,
+  "checked_records": 2297,
+  "unique_urls_checked": 2292,
   "website_statuses": {
-    "source_blocked_403": 58,
-    "reachable": 743,
-    "missing": 313,
-    "source_blocked_429": 1085,
-    "http_404": 11,
-    "network_error": 6,
-    "http_410": 3,
+    "source_blocked_403": 62,
+    "reachable": 744,
+    "missing": 386,
+    "source_blocked_429": 1090,
+    "network_error": 7,
     "http_520": 1,
     "http_307": 3,
-    "timeout": 1,
+    "timeout": 3,
     "http_409": 1
   },
   "organiser_website_statuses": {
-    "network_error": 61,
-    "missing": 820,
-    "reachable": 1228,
-    "source_blocked_403": 59,
-    "http_404": 50,
+    "network_error": 60,
+    "missing": 866,
+    "reachable": 1300,
+    "source_blocked_403": 63,
     "http_520": 2,
     "http_307": 3,
-    "timeout": 1,
+    "timeout": 2,
     "http_503": 1
   },
-  "broken_website_links": 14,
-  "broken_organiser_website_links": 50,
-  "proposed_repairs": 54,
-  "repairs": [
-    {
-      "activity_id": "069ba14b-d4ca-49c8-a60a-db16b6c2b01a",
-      "activity_name": "CENTRAL LIBRARY ISLINGTON 1 BABY BOUNCE and UNDER 5S",
-      "website": "https://www.happity.co.uk/schedules/central-library-london-central-library-islington-1-baby-bounce-under-5s-thursdays-11-00-12-00",
-      "organiser_website": "https://www.islington.gov.uk/",
-      "website_status": "source_blocked_429",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "07475041-5233-4491-8b78-afbef983a73e",
-      "activity_name": "Play and learn for under 2s at Best Start Family Hub Walthamstow",
-      "website": "https://www.walthamforest.gov.uk/events/play-and-learn-under-2s-best-start-family-hub-walthamstow",
-      "organiser_website": "https://www.walthamforest.gov.uk/",
-      "website_status": "reachable",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "083b19ad-251d-4704-ac04-56c723e99e15",
-      "activity_name": "Islington Museum",
-      "website": "https://www.museumslondon.org/museum/69/islington-museum",
-      "organiser_website": "https://www.islington.gov.uk/",
-      "website_status": "http_404",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "0df07d85-04a0-4030-a67e-0bae4a32a70c",
-      "activity_name": "CENTRAL LIBRARY ISLINGTON 1 BABY BOUNCE and UNDER 5S",
-      "website": "https://www.happity.co.uk/schedules/central-library-london-central-library-islington-1-baby-bounce-under-5s-fridays-11-00-12-00",
-      "organiser_website": "https://www.islington.gov.uk/",
-      "website_status": "source_blocked_429",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "162f9563-0275-4f9e-a8ec-f0be2ad372e8",
-      "activity_name": "Lewis Carroll Library Under 5s Story and Rhyme",
-      "website": "https://findyour.islington.gov.uk/kb5/islington/directory/service.page?id=0si6hgy3SBg",
-      "organiser_website": "https://www.islington.gov.uk/",
-      "website_status": "source_blocked_403",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "1f06b9b1-3b59-428b-91b0-5b8315143cf6",
-      "activity_name": "123 Mini Chefs at Best Start Family Hub Queens Road",
-      "website": "https://www.walthamforest.gov.uk/events/123-mini-chefs-best-start-family-hub-queens-road",
-      "organiser_website": "https://www.walthamforest.gov.uk/",
-      "website_status": "reachable",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "21b361f3-8aca-4818-b1e8-4efa4789dfa3",
-      "activity_name": "Bambini s music and play 0 to1 at Queens Road",
-      "website": "https://www.walthamforest.gov.uk/",
-      "organiser_website": "https://www.walthamforest.gov.uk/",
-      "website_status": "http_410",
-      "organiser_website_status": "reachable",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "28e64fe9-8d1d-420e-9097-d8528b4a5cc9",
-      "activity_name": "BRIGHT STAR PERFORMING ARTS SCHOOL",
-      "website": "https://www.happity.co.uk/schedules/bright-star-performing-arts-school-london-forest-lane-lodge-bright-star-performing-arts-school-mondays-16-15-17-15",
-      "organiser_website": null,
-      "website_status": "source_blocked_429",
-      "organiser_website_status": "http_404",
-      "reason": "removed_broken_link"
-    },
-    {
-      "activity_id": "2c177160-9e4a-4ce4-8a08-3c240e464101",
-      "activity_name": "Pepperon Cafe",
-      "website": "https://www.pepperoncafe.co.uk/",
-      "organiser_website": "https://www.pepperoncafe.co.uk/",
-      "website_status": "reachable",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "2fb38506-6e35-49d4-a181-73152fac21c5",
-      "activity_name": "BARRE and BABY WITH ABSOLUCYFITNESS BARRE AND BABY WITH ABSOLUCYFITNESS",
-      "website": "https://www.happity.co.uk/schedules/barre-and-baby-with-absolucyfitness-london-good-shepherd-studios-barre-and-baby-with-absolucyfitness",
-      "organiser_website": null,
-      "website_status": "source_blocked_429",
-      "organiser_website_status": "http_404",
-      "reason": "removed_broken_link"
-    },
-    {
-      "activity_id": "302b1c77-3dab-4aa3-8cd0-f3743afe7db8",
-      "activity_name": "Duplo and toys play session at Leyton Library",
-      "website": "https://www.walthamforest.gov.uk/events/duplo-and-toys-play-session-leyton-library",
-      "organiser_website": "https://www.walthamforest.gov.uk/",
-      "website_status": "reachable",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "3310fafe-cce4-464c-bdaf-02b40ce81b1b",
-      "activity_name": "Mapledene Stay and Play with Soft Play",
-      "website": "https://education.hackney.gov.uk/sites/default/files/document/London%20Fields%20and%20Shoreditch%20Park%20Timetable.pdf",
-      "organiser_website": "https://education.hackney.gov.uk/",
-      "website_status": "reachable",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "33f7c029-307c-4361-9a63-10203308b827",
-      "activity_name": "BAREFOOT SCHOOL OF PERFORMING ARTS CAMDEN PETITE FEET",
-      "website": "https://www.happity.co.uk/schedules/barefoot-school-of-performing-arts-camden-london-barefoot-school-of-performing-arts-camden-petite-feet",
-      "organiser_website": null,
-      "website_status": "source_blocked_429",
-      "organiser_website_status": "http_404",
-      "reason": "removed_broken_link"
-    },
-    {
-      "activity_id": "3a500b1d-ca00-4467-915d-732e494d05ce",
-      "activity_name": "Family Cooking Club at Queens Road Family Hub",
-      "website": null,
-      "organiser_website": "https://www.walthamforest.gov.uk/",
-      "website_status": "http_410",
-      "organiser_website_status": "http_404",
-      "reason": "removed_broken_link, replacement_found"
-    },
-    {
-      "activity_id": "4ed33de4-93b9-4bfc-bbae-77ee0dd9de7e",
-      "activity_name": "PaddingtonTM Afternoon Tea London Sightseeing Tour",
-      "website": "https://feverup.com/m/602434",
-      "organiser_website": "https://b-bakery.com/",
-      "website_status": "reachable",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "4edeb7b1-2f8e-4f38-81ff-8610d2531ed2",
-      "activity_name": "Ham Yard Restaurant and Bar",
-      "website": "https://www.firmdalehotels.com/hotels/ham-yard-hotel/ham-yard-restaurant-bar",
-      "organiser_website": "https://www.firmdalehotels.com/",
-      "website_status": "reachable",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "5364d8d4-31eb-4ca9-bacc-ece2e459fb6e",
-      "activity_name": "Kids crafts at Leyton Library Tuesday",
-      "website": "https://www.walthamforest.gov.uk/events/kids-crafts-leyton-library-tuesday",
-      "organiser_website": "https://www.walthamforest.gov.uk/",
-      "website_status": "reachable",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "5a0e38e6-38e0-4d9f-83c2-88840cc869b5",
-      "activity_name": "Dads Stay and Play at Chingford Library",
-      "website": "https://www.walthamforest.gov.uk/events/dads-stay-and-play-chingford-library",
-      "organiser_website": "https://www.walthamforest.gov.uk/",
-      "website_status": "reachable",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "5c18fbcb-5a5e-4aca-a262-ebbb6ba0c2e0",
-      "activity_name": "Mapledene Messy Play with Physical Literacy",
-      "website": "https://education.hackney.gov.uk/sites/default/files/document/London%20Fields%20and%20Shoreditch%20Park%20Timetable.pdf",
-      "organiser_website": "https://education.hackney.gov.uk/",
-      "website_status": "reachable",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "5f60adb1-66ae-4862-9401-2bc30f1c3ee2",
-      "activity_name": "MUSIC EXPLORERS MUSIC EDUCATION ISLINGTON",
-      "website": "https://www.happity.co.uk/schedules/music-explorers-music-education-islington-london-st-peter-st-paul-catholic-primary-school-music-explorers-music-education-islington",
-      "organiser_website": "https://www.gsmd.ac.uk/",
-      "website_status": "source_blocked_429",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "6118c0e9-9c5b-4975-8a52-53c17faf1cbb",
-      "activity_name": "Shrek's Adventure! London",
-      "website": "https://www.timeout.com/london/attractions/shreks-adventure-london",
-      "organiser_website": "https://www.shreksadventure.com/",
-      "website_status": "http_404",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "6363e255-9854-441f-a14a-29691be3bd1e",
-      "activity_name": "FINSBURY LIBRARY UNDER 5 S",
-      "website": "https://www.happity.co.uk/schedules/finsbury-library-london-finsbury-library-under-5-s-tuesdays-11-00-12-00",
-      "organiser_website": "https://www.islington.gov.uk/",
-      "website_status": "source_blocked_429",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "6829cc1d-7e0b-460b-a647-73974d0fcb3a",
-      "activity_name": "MILDMAY LIBRARY 1 BABY BOUNCE and UNDER 5S",
-      "website": "https://www.happity.co.uk/schedules/mildmay-library-london-mildmay-library-1-baby-bounce-under-5s-tuesdays-11-00-12-00",
-      "organiser_website": "https://www.islington.gov.uk/",
-      "website_status": "source_blocked_429",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "6d87ab1d-34c4-434d-8369-c7f880c963b3",
-      "activity_name": "St James's Park",
-      "website": "https://www.timeout.com/london/attractions/st-jamess-park",
-      "organiser_website": "https://www.royalparks.org.uk/",
-      "website_status": "http_404",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "6f5b4db2-a3b2-448d-8433-efade0e7da47",
-      "activity_name": "Sensory Play and Learn at Best Start Family Hub Chingford",
-      "website": "https://www.walthamforest.gov.uk/events/sensory-play-and-learn-best-start-family-hub-chingford",
-      "organiser_website": "https://www.walthamforest.gov.uk/",
-      "website_status": "reachable",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "73d854ed-6c8e-4d5f-9bd8-3a9ccd70d6d4",
-      "activity_name": "DRAMA KIDS DRAMA KIDS NORTH LONDON",
-      "website": "https://www.happity.co.uk/schedules/drama-kids-london-catholic-church-of-our-lady-of-good-counsel-stoke-newington-drama-kids-north-london",
-      "organiser_website": "https://www.dramakids.co.uk/",
-      "website_status": "source_blocked_429",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "7523fd19-677c-439f-a471-534cbebcf6bb",
-      "activity_name": "E17ESPANOL E17 SPANISH CLASSES BEGINNERS 2 4 YEARS",
-      "website": "https://www.happity.co.uk/schedules/e17espanol-london-walthamstow-quaker-meeting-house-e17-spanish-classes-beginners-2-4-years",
-      "organiser_website": null,
-      "website_status": "source_blocked_429",
-      "organiser_website_status": "http_404",
-      "reason": "removed_broken_link"
-    },
-    {
-      "activity_id": "7e29b90d-b0de-49c5-af0d-16e964cc0153",
-      "activity_name": "Children s Film Club at Leyton Library",
-      "website": "https://www.walthamforest.gov.uk/events/childrens-film-club-leyton-library",
-      "organiser_website": "https://www.walthamforest.gov.uk/",
-      "website_status": "reachable",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "86225454-aa14-4428-ae35-d68aae35aedf",
-      "activity_name": "Abney Park Cafe by Sabel",
-      "website": "https://www.abneyparkcafe.com/",
-      "organiser_website": "https://www.sabelfood.co.uk/",
-      "website_status": "reachable",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "8636afde-c1cf-47a1-9fde-473c10c914e6",
-      "activity_name": "Lego club at Leyton Library",
-      "website": "https://www.walthamforest.gov.uk/events/lego-club-leyton-library",
-      "organiser_website": "https://www.walthamforest.gov.uk/",
-      "website_status": "reachable",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "87c62fe2-a8bb-4324-99b7-1069e8f8549f",
-      "activity_name": "NORTH LIBRARY BABY BOUNCE",
-      "website": "https://www.happity.co.uk/schedules/north-library-london-north-library-baby-bounce",
-      "organiser_website": "https://www.islington.gov.uk/",
-      "website_status": "source_blocked_429",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "8ae3e630-fd41-40d2-8d6d-3515764116c4",
-      "activity_name": "Kids Crafts at North Chingford Library Sunday",
-      "website": "https://www.walthamforest.gov.uk/events/kids-crafts-north-chingford-library-sunday",
-      "organiser_website": "https://www.walthamforest.gov.uk/",
-      "website_status": "reachable",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "8bc3182c-4391-4562-b5b2-411b335ceaa7",
-      "activity_name": "Initial sleep consultation at Best Start Family Hub Queens Road",
-      "website": null,
-      "organiser_website": "https://www.walthamforest.gov.uk/",
-      "website_status": "http_410",
-      "organiser_website_status": "http_404",
-      "reason": "removed_broken_link, replacement_found"
-    },
-    {
-      "activity_id": "8cc5925c-6bf9-46cd-8961-eeb4aa96cf4d",
-      "activity_name": "ARCHWAY LIBRARY 1 BABY BOUNCE",
-      "website": "https://www.happity.co.uk/schedules/archway-library-london-archway-library-1-baby-bounce",
-      "organiser_website": "https://www.islington.gov.uk/",
-      "website_status": "source_blocked_429",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "9f295200-2f71-4fde-a28a-2abff419ede5",
-      "activity_name": "MUMS ART CLUB",
-      "website": "https://www.happity.co.uk/schedules/mums-art-club-london-the-quaker-meeting-house-mums-art-club",
-      "organiser_website": "https://www.lauragee.co.uk/",
-      "website_status": "source_blocked_403",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "a614ea4f-3992-4893-9348-f9ed41330c3e",
-      "activity_name": "Beans and Bites",
-      "website": null,
-      "organiser_website": null,
-      "website_status": "http_404",
-      "organiser_website_status": "missing",
-      "reason": "removed_broken_link"
-    },
-    {
-      "activity_id": "a9135f92-4ef4-4e6b-a7e0-529bd8a82906",
-      "activity_name": "Children s Film Club at Lea Bridge Library",
-      "website": "https://www.walthamforest.gov.uk/events/childrens-film-club-lea-bridge-library",
-      "organiser_website": "https://www.walthamforest.gov.uk/",
-      "website_status": "reachable",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "ab69a83d-9839-4927-979d-cb45a96bcd6e",
-      "activity_name": "Bourne Hall Museum",
-      "website": "https://www.museumslondon.org/museum/146/bourne-hall-museum",
-      "organiser_website": "https://www.epsom-ewell.gov.uk/",
-      "website_status": "http_404",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "ba7bf72c-25ea-432c-b9ac-d78b4d6edf5c",
-      "activity_name": "Saturday Craft session at Hale End Library",
-      "website": "https://www.walthamforest.gov.uk/events/saturday-craft-session-hale-end-library",
-      "organiser_website": "https://www.walthamforest.gov.uk/",
-      "website_status": "reachable",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "bc419b66-0dfa-4dfd-a523-8979bb99cf1a",
-      "activity_name": "Mapledene Music and Movement - 0 to 2 years",
-      "website": "https://education.hackney.gov.uk/sites/default/files/document/London%20Fields%20and%20Shoreditch%20Park%20Timetable.pdf",
-      "organiser_website": "https://education.hackney.gov.uk/",
-      "website_status": "reachable",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "bcf0c981-b735-4335-98b6-09b15fa8d036",
-      "activity_name": "Grandparents Group at Best Start Family Hub Chingford",
-      "website": "https://www.walthamforest.gov.uk/events/grandparents-group-best-start-family-hub-chingford",
-      "organiser_website": "https://www.walthamforest.gov.uk/",
-      "website_status": "reachable",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "c359c2f8-a5f6-46a7-bc75-398624de982b",
-      "activity_name": "Golders Hill Park",
-      "website": "https://www.timeout.com/london/attractions/golders-hill-park",
-      "organiser_website": "https://www.cityoflondon.gov.uk/",
-      "website_status": "http_404",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "c831c7a1-86fe-40df-a7bd-8a04ecc48760",
-      "activity_name": "The Faraday Museum",
-      "website": "https://www.museumslondon.org/museum/53/the-faraday-museum",
-      "organiser_website": "https://www.rigb.org/",
-      "website_status": "http_404",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "cc3a3c0c-b811-4803-8efc-f760541d56da",
-      "activity_name": "Kids Crafts at Leyton Library Saturday",
-      "website": "https://www.walthamforest.gov.uk/events/kids-crafts-leyton-library-saturday",
-      "organiser_website": "https://www.walthamforest.gov.uk/",
-      "website_status": "reachable",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "cd1cd65f-339c-4339-9bf4-1a8cdd1d5056",
-      "activity_name": "Lewis Carroll Library Baby Bounce",
-      "website": "https://findyour.islington.gov.uk/kb5/islington/directory/service.page?id=0si6hgy3SBg",
-      "organiser_website": "https://www.islington.gov.uk/",
-      "website_status": "source_blocked_403",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "cf8ea2c8-1358-4a20-a2f1-1867b6098d71",
-      "activity_name": "LOVAGE",
-      "website": null,
-      "organiser_website": null,
-      "website_status": "http_404",
-      "organiser_website_status": "missing",
-      "reason": "removed_broken_link"
-    },
-    {
-      "activity_id": "de9005a7-cb20-493d-8460-45c48ea752c6",
-      "activity_name": "DOUBLE TWIST DANCE JUNIOR TWISTER 5 7YRS",
-      "website": "https://www.happity.co.uk/schedules/double-twist-dance-london-forest-gate-community-school-junior-twister-5-7yrs",
-      "organiser_website": null,
-      "website_status": "source_blocked_429",
-      "organiser_website_status": "http_404",
-      "reason": "removed_broken_link"
-    },
-    {
-      "activity_id": "e018995b-d3b3-42ad-b086-d4759499421b",
-      "activity_name": "Kids Crafts at North Chingford Library Saturday",
-      "website": "https://www.walthamforest.gov.uk/events/kids-crafts-north-chingford-library-saturday",
-      "organiser_website": "https://www.walthamforest.gov.uk/",
-      "website_status": "reachable",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "eedf9442-0dde-4915-8765-8d0b23ff6df3",
-      "activity_name": "NEWHAM CHINESE SCHOOL",
-      "website": "https://www.happity.co.uk/schedules/newham-chinese-school-london-east-ham-library-newham-chinese-school",
-      "organiser_website": null,
-      "website_status": "source_blocked_429",
-      "organiser_website_status": "http_404",
-      "reason": "removed_broken_link"
-    },
-    {
-      "activity_id": "f2a0551a-fcdf-434c-a85a-4c574f8f3bcc",
-      "activity_name": "The Sunflower Cafe and Creperie",
-      "website": null,
-      "organiser_website": null,
-      "website_status": "http_404",
-      "organiser_website_status": "missing",
-      "reason": "removed_broken_link"
-    },
-    {
-      "activity_id": "f6e60bfb-4067-46c7-947e-7ab53ad2e748",
-      "activity_name": "Go Ape Battersea",
-      "website": "https://www.timeout.com/london/things-to-do/go-ape-battersea",
-      "organiser_website": "https://goape.co.uk/",
-      "website_status": "http_404",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "fbb682ff-f850-41b3-a085-0b9b7fd43f56",
-      "activity_name": "Mini Musicians Babies and Toddlers - Autumn 2026",
-      "website": "https://www.wfmusichub.org/groups/explore/mini-musicians-baby-and-toddler",
-      "organiser_website": "https://www.walthamforest.gov.uk/",
-      "website_status": "reachable",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "fe471c61-c5e7-4211-aa99-0a32ec70d5bc",
-      "activity_name": "Hyde Park",
-      "website": "https://www.timeout.com/london/attractions/hyde-park",
-      "organiser_website": "https://www.royalparks.org.uk/",
-      "website_status": "http_404",
-      "organiser_website_status": "http_404",
-      "reason": "replacement_found"
-    },
-    {
-      "activity_id": "fe9bcd67-0987-4700-9e13-a8788036014e",
-      "activity_name": "E17ESPANOL E17 SPANISH CLASSES BEGINNERS FROM 5 YEARS OLD",
-      "website": "https://www.happity.co.uk/schedules/e17espanol-london-walthamstow-quaker-meeting-house-e17-spanish-classes-beginners-from-5-years-old",
-      "organiser_website": null,
-      "website_status": "source_blocked_429",
-      "organiser_website_status": "http_404",
-      "reason": "removed_broken_link"
-    }
-  ],
+  "broken_website_links": 0,
+  "broken_organiser_website_links": 0,
+  "google_website_links": 0,
+  "google_organiser_website_links": 0,
+  "proposed_repairs": 0,
+  "repairs": [],
   "records": [
     {
       "activity_id": "002e7e58-9a9b-4604-b62a-696d8815fbe8",
@@ -628,7 +140,7 @@
       "data_source": "Happity",
       "search_query": "RAINFOREST PLAY CLUB SOFT PLAY, 297 Haggerston Rd, London E8 4EN",
       "website": "https://www.happity.co.uk/schedules/rainforest-soft-play-london-rainforest-soft-play-cafe-soft-play-wednesdays-08-00-09-00",
-      "website_status": "reachable",
+      "website_status": "source_blocked_403",
       "organiser_website": "https://www.rainforestsoftplay.co.uk/",
       "organiser_website_status": "reachable"
     },
@@ -639,7 +151,7 @@
       "data_source": "Happity",
       "search_query": "PINK OLIVE TREE CIC WOMEN ONLY GENTLE YOGA FREE CLASS, N1C Centre, Plimsoll Building, Handyside Street, London N1C 4BQ",
       "website": "https://www.happity.co.uk/schedules/pink-olive-tree-cic-london-n1c-community-centre-women-only-_-gentle-yoga-free-class",
-      "website_status": "reachable",
+      "website_status": "source_blocked_403",
       "organiser_website": "https://www.pinkolivetree.co.uk/",
       "organiser_website_status": "reachable"
     },
@@ -672,7 +184,7 @@
       "data_source": "Happity",
       "search_query": "FLOWMOTION PILATES PREGNANCY PILATES, Knebworth Pilates Studio 9 Stevenage Road, Knebworth, Hertfordshire, SG3 6AN",
       "website": "https://www.happity.co.uk/schedules/flowmotion-pilates-knebworth-knebworth-pilates-studio-pregnancy-pilates",
-      "website_status": "reachable",
+      "website_status": "source_blocked_403",
       "organiser_website": "https://www.flowmotionpilates.co.uk/",
       "organiser_website_status": "reachable"
     },
@@ -740,6 +252,17 @@
       "website": "https://www.happity.co.uk/schedules/kiddikicks-london-london-fields-kiddikicks-racers-ages-3-5-yrs-5yrs",
       "website_status": "reachable",
       "organiser_website": "https://www.kiddikicks.co.uk/",
+      "organiser_website_status": "reachable"
+    },
+    {
+      "activity_id": "02f5439e-d9c3-4b15-bd54-38aad26dc974",
+      "activity_name": "SWIMTANK Hampstead Garden Suburb",
+      "address": "Brookland Junior School, Hill Top, London NW11 6EJ",
+      "data_source": "google_places",
+      "search_query": "SWIMTANK Hampstead Garden Suburb, Brookland Junior School, Hill Top, London NW11 6EJ",
+      "website": "http://www.swim-tank.co.uk/",
+      "website_status": "reachable",
+      "organiser_website": "http://www.swim-tank.co.uk/",
       "organiser_website_status": "reachable"
     },
     {
@@ -815,7 +338,7 @@
       "data_source": "Happity",
       "search_query": "MUSICAL HATCHLINGS WITH PELICAN MUSIC, 183 Stoke Newington Church St, London N16 0UL",
       "website": "https://www.happity.co.uk/schedules/pelican-music-london-pelican-music-musical-hatchlings-with-pelican-music",
-      "website_status": "reachable",
+      "website_status": "source_blocked_403",
       "organiser_website": "https://pelican-music.co.uk/",
       "organiser_website_status": "reachable"
     },
@@ -826,7 +349,7 @@
       "data_source": "Happity",
       "search_query": "KINDHAUS WORKSPACE AND CHILDCARE, 6a Howard Rd, London N16 8PX",
       "website": "https://www.happity.co.uk/schedules/kindhaus-london-kindhaus-workspace-and-childcare-mondays-09-00-12-00",
-      "website_status": "reachable",
+      "website_status": "source_blocked_403",
       "organiser_website": "https://www.kindhaus.co.uk/",
       "organiser_website_status": "reachable"
     },
@@ -837,7 +360,7 @@
       "data_source": "Happity",
       "search_query": "THE WARRIOR METHOD WITH ELIZA FLYNN FITNESS FOR NEW MUMS REPAIR RESTORE and RETRAIN, The Parish Church of Christ Church Highbury with St. John and St. Saviour 155 Highbury Grove, London, Greater London, N5 1SA",
       "website": "https://www.happity.co.uk/schedules/the-warrior-method-with-eliza-flynn-london-christ-church-highbury-fitness-for-new-mums-repair-restore-retrain",
-      "website_status": "reachable",
+      "website_status": "source_blocked_403",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -848,7 +371,7 @@
       "data_source": "Happity",
       "search_query": "THE MILL CHILDREN S PLAYROOM, The Mill (Community Centre), 7-11 Coppermill Lane, London, Greater London, E17 7HA",
       "website": "https://www.happity.co.uk/schedules/the-mill-london-the-mill-community-centre-children-s-playroom-fridays-10-00-15-00",
-      "website_status": "reachable",
+      "website_status": "source_blocked_403",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -859,7 +382,7 @@
       "data_source": "Happity",
       "search_query": "BABY SENSORY MIXED AGES, Laycock St, London N1 1LP",
       "website": "https://www.happity.co.uk/schedules/baby-sensory-angel-liverpool-road-community-centre-mixed-ages-thursdays-10-50-11-30",
-      "website_status": "reachable",
+      "website_status": "source_blocked_403",
       "organiser_website": "https://www.babysensory.com/",
       "organiser_website_status": "reachable"
     },
@@ -886,6 +409,17 @@
       "organiser_website_status": "missing"
     },
     {
+      "activity_id": "0467ec65-25cf-4321-b0a7-ecd8e7c7595e",
+      "activity_name": "Parliament Hill Fields Lido",
+      "address": "Parliament Hill Fields, Gordon House Rd, London NW5 1LT",
+      "data_source": "google_places",
+      "search_query": "Parliament Hill Fields Lido, Parliament Hill Fields, Gordon House Rd, London NW5 1LT",
+      "website": "https://www.cityoflondon.gov.uk/things-to-do/green-spaces/hampstead-heath/where-to-go-at-hampstead-heath/parliament-hill-lido",
+      "website_status": "reachable",
+      "organiser_website": "https://www.cityoflondon.gov.uk/things-to-do/green-spaces/hampstead-heath/where-to-go-at-hampstead-heath/parliament-hill-lido",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "046c4067-e310-4c7d-8347-986175d62d63",
       "activity_name": "Frizzante Cafe at Hackney City Farm",
       "address": "1a Goldsmiths Row, London E2 8QA",
@@ -903,7 +437,7 @@
       "data_source": "Happity",
       "search_query": "BABY SENSORY, St Michael and All Angels Hall Landsdowne Drive, London, London, E8 3ER",
       "website": "https://www.happity.co.uk/schedules/baby-sensory-london-st-michael-and-all-angels-hall-baby-sensory-wednesdays-10-35-11-25",
-      "website_status": "reachable",
+      "website_status": "source_blocked_403",
       "organiser_website": "https://www.babysensory.com/",
       "organiser_website_status": "reachable"
     },
@@ -925,7 +459,7 @@
       "data_source": "Happity",
       "search_query": "LITTLE MOVERS GYM OPEN GYM, 161-169 Essex Rd, London N1 2SN",
       "website": "https://www.happity.co.uk/schedules/little-movers-gym-london-gracepoint-little-movers-gym-thursdays-13-30-14-30",
-      "website_status": "reachable",
+      "website_status": "source_blocked_403",
       "organiser_website": "https://littlemoversgym.co.uk/",
       "organiser_website_status": "reachable"
     },
@@ -946,8 +480,8 @@
       "address": "4 Comeragh Rd, London W14 9HP",
       "data_source": "Google Places",
       "search_query": "Cole's Cafe - West Kensington, 4 Comeragh Rd, London W14 9HP",
-      "website": "https://maps.google.com/?cid=13898686148171211851&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -969,7 +503,7 @@
       "data_source": "Happity",
       "search_query": "BLOSSOM BABIES, The Hub Cafe London, Greater London, E9 7DD",
       "website": "https://www.happity.co.uk/schedules/blossom-babies-tower-hamlets-the-hub-cafe-blossom-babies-thursdays-12-30-13-15-blossom-babies-tower-hamlets-the-hub-cafe-blossom-babies-thursdays-12-30-13-15-2-2",
-      "website_status": "reachable",
+      "website_status": "source_blocked_403",
       "organiser_website": "https://blossombabies.classforkids.io/",
       "organiser_website_status": "reachable"
     },
@@ -980,7 +514,7 @@
       "data_source": "Happity",
       "search_query": "KINDHAUS STAY and PLAY ALL DAY, 6a Howard Rd, London N16 8PX",
       "website": "https://www.happity.co.uk/schedules/kindhaus-london-kindhaus-stay-play-all-day",
-      "website_status": "source_blocked_429",
+      "website_status": "source_blocked_403",
       "organiser_website": "https://www.kindhaus.co.uk/",
       "organiser_website_status": "reachable"
     },
@@ -991,7 +525,7 @@
       "data_source": "Happity",
       "search_query": "KIDS INC NURSERIES, 8 Glyn Rd, Enfield EN3 4JL",
       "website": "https://www.happity.co.uk/schedules/kids-inc-nurseries-enfield-kids-inc-nursery-kids-inc-nurseries",
-      "website_status": "source_blocked_429",
+      "website_status": "source_blocked_403",
       "organiser_website": "https://www.kidsincnurseries.co.uk/",
       "organiser_website_status": "reachable"
     },
@@ -1013,7 +547,7 @@
       "data_source": "Happity",
       "search_query": "DISCOVER CHILDREN S STORY CENTRE BABY STORYTELLING, Unit 14, stratford centre, 54a Broadway, London E15 1NG",
       "website": "https://www.happity.co.uk/schedules/discover-children-s-story-centre-london-discover-pops-up-at-stratford-centre-baby-storytelling-mondays-10-15-10-45",
-      "website_status": "source_blocked_429",
+      "website_status": "source_blocked_403",
       "organiser_website": "https://discover.org.uk/",
       "organiser_website_status": "reachable"
     },
@@ -1124,9 +658,8 @@
       "search_query": "CENTRAL LIBRARY ISLINGTON 1 BABY BOUNCE and UNDER 5S, 2 Fieldway Cres, London N5 1PF",
       "website": "https://www.happity.co.uk/schedules/central-library-london-central-library-islington-1-baby-bounce-under-5s-thursdays-11-00-12-00",
       "website_status": "source_blocked_429",
-      "organiser_website": "https://www.islington.gov.uk/libraries/library-services/children-and-young-people/baby-bounce-and-under-5s",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.islington.gov.uk/"
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "069e8101-62dc-443f-8604-b0cb907298f1",
@@ -1235,9 +768,8 @@
       "search_query": "Play and learn for under 2s at Best Start Family Hub Walthamstow, 313 Billet Rd, London E17 5PX",
       "website": "https://www.walthamforest.gov.uk/events/play-and-learn-under-2s-best-start-family-hub-walthamstow",
       "website_status": "reachable",
-      "organiser_website": "https://www.walthamforest.gov.uk/content/best-start-family-hub-walthamstow",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.walthamforest.gov.uk/"
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "075b7dca-881d-409a-abb8-b9bbceea29cd",
@@ -1262,13 +794,24 @@
       "organiser_website_status": "reachable"
     },
     {
+      "activity_id": "07bad572-5a58-4a5c-af9d-008bd8fda102",
+      "activity_name": "3s Swim School London (@ Tower Bridge)",
+      "address": "Coxson Place, Druid St, London SE1 2EZ",
+      "data_source": "google_places",
+      "search_query": "3s Swim School London (@ Tower Bridge), Coxson Place, Druid St, London SE1 2EZ",
+      "website": "http://www.3sswim.co.uk/",
+      "website_status": "reachable",
+      "organiser_website": "http://www.3sswim.co.uk/",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "07e66afb-b0d5-4798-a27c-92a2eb4c920e",
       "activity_name": "Cofanic",
       "address": "9 Dalston Ln, London E8 3DF",
       "data_source": "Google Places",
       "search_query": "Cofanic, 9 Dalston Ln, London E8 3DF",
-      "website": "https://maps.google.com/?cid=1149809644325939345&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -1278,12 +821,10 @@
       "address": "245 St John St Islington London EC1V 4NB",
       "data_source": "Museums London",
       "search_query": "Islington Museum, 245 St John St Islington London EC1V 4NB",
-      "website": "http://www.islington.gov.uk/islington/history-heritage/heritage_museum/Pages/default.aspx?extra=9",
-      "website_status": "http_404",
-      "organiser_website": "http://www.islington.gov.uk/islington/history-heritage/heritage_museum/Pages/default.aspx?extra=9",
-      "organiser_website_status": "http_404",
-      "proposed_website": "https://www.museumslondon.org/museum/69/islington-museum",
-      "proposed_organiser_website": "https://www.islington.gov.uk/"
+      "website": "https://www.museumslondon.org/museum/69/islington-museum",
+      "website_status": "reachable",
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "0850711e-60a5-4e8b-a814-c22f2bba5d91",
@@ -1396,6 +937,17 @@
       "organiser_website_status": "reachable"
     },
     {
+      "activity_id": "095107fd-4335-4299-a5e3-3794af583290",
+      "activity_name": "Swim Generation - Highbury",
+      "address": "Unit, A, Eaststand Apartments, Avenell Rd, Highbury Square, London N5 1FE",
+      "data_source": "google_places",
+      "search_query": "Swim Generation - Highbury, Unit, A, Eaststand Apartments, Avenell Rd, Highbury Square, London N5 1FE",
+      "website": "https://www.swimgeneration.co.uk/find-a-pool/fitness-first-highbury/",
+      "website_status": "reachable",
+      "organiser_website": "https://www.swimgeneration.co.uk/find-a-pool/fitness-first-highbury/",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "09527696-39ff-4f33-8a6f-612e3fc815a8",
       "activity_name": "The Milk Tree",
       "address": "The Milk Tree, 34 Barking Rd, London E16 1EQ",
@@ -1429,6 +981,17 @@
       "organiser_website_status": "missing"
     },
     {
+      "activity_id": "099dd7c0-bc5f-425d-bd56-34857bd2e0f0",
+      "activity_name": "Gem's Jams Baby Music",
+      "address": "St Paul's Church, 129 Herne Hill, London SE24 9LY",
+      "data_source": "google_places",
+      "search_query": "Gem's Jams Baby Music, St Paul's Church, 129 Herne Hill, London SE24 9LY",
+      "website": "https://gemsjams.com/",
+      "website_status": "reachable",
+      "organiser_website": "https://gemsjams.com/",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "09bf9e31-9f42-4755-87de-e83049a04c59",
       "activity_name": "Stay and play at Low Hall Nursery School",
       "address": "Low Hall Ln, London E17 8BE",
@@ -1456,8 +1019,8 @@
       "address": "426 Roman Rd, Bow, London E3 5LU",
       "data_source": "Google Places",
       "search_query": "Cafe East, 426 Roman Rd, Bow, London E3 5LU",
-      "website": "https://maps.google.com/?cid=13610886004880015846&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -1671,6 +1234,17 @@
       "organiser_website_status": "reachable"
     },
     {
+      "activity_id": "0c939f60-ecbe-43d7-a5c8-189b49945708",
+      "activity_name": "Yummy Yummy in my Tummy London",
+      "address": "56 Stoke Newington High St, London N16 7PB",
+      "data_source": "google_places",
+      "search_query": "Yummy Yummy in my Tummy London, 56 Stoke Newington High St, London N16 7PB",
+      "website": "http://yummyyummystokey.co.uk/",
+      "website_status": "network_error",
+      "organiser_website": "http://yummyyummystokey.co.uk/",
+      "organiser_website_status": "network_error"
+    },
+    {
       "activity_id": "0c9d1cdf-c339-429b-bf3f-b0590f5036eb",
       "activity_name": "Mother and More Baby Massage and Baby Yoga Stage 2",
       "address": "1-3 Brevet Parade, Honour Lea Ave, Chobham Manor, London E20 1LF",
@@ -1821,9 +1395,8 @@
       "search_query": "CENTRAL LIBRARY ISLINGTON 1 BABY BOUNCE and UNDER 5S, 2 Fieldway Cres, London N5 1PF",
       "website": "https://www.happity.co.uk/schedules/central-library-london-central-library-islington-1-baby-bounce-under-5s-fridays-11-00-12-00",
       "website_status": "source_blocked_429",
-      "organiser_website": "https://www.islington.gov.uk/libraries/library-services-for-families-children-and-young-people/baby-bounce-under-5s-and-toy-libraries",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.islington.gov.uk/"
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "0e0ee74b-461d-451f-bbd4-1342856436a2",
@@ -2238,8 +1811,8 @@
       "address": "116 Upper St, London N1 1AP",
       "data_source": "Google Places",
       "search_query": "SELV ROASTERY, 116 Upper St, London N1 1AP",
-      "website": "https://maps.google.com/?cid=3893669951552759646&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -2359,8 +1932,8 @@
       "address": "58 Essex Rd, London N1 8LR",
       "data_source": "Google Places",
       "search_query": "The Mokapot House, 58 Essex Rd, London N1 8LR",
-      "website": "https://maps.google.com/?cid=17593821463951556296&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -2519,6 +2092,17 @@
       "organiser_website_status": "missing"
     },
     {
+      "activity_id": "13e7220c-d74a-4e3e-8de3-b34dcd91504e",
+      "activity_name": "Happy Parents Happy Baby Antenatal Classes - Hackney",
+      "address": "Victoria Park Village, 111 Lauriston Rd, London E9 7DA",
+      "data_source": "google_places",
+      "search_query": "Happy Parents Happy Baby Antenatal Classes - Hackney, Victoria Park Village, 111 Lauriston Rd, London E9 7DA",
+      "website": "https://happyparentshappybaby.com/locations/p/hackney",
+      "website_status": "reachable",
+      "organiser_website": "https://happyparentshappybaby.com/locations/p/hackney",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "1410df39-ff2e-4f3e-b731-ed0868748afd",
       "activity_name": "Stokey Garden and Flower Store",
       "address": "113 Stoke Newington Church St, London N16 0UD",
@@ -2528,6 +2112,17 @@
       "website_status": "reachable",
       "organiser_website": null,
       "organiser_website_status": "missing"
+    },
+    {
+      "activity_id": "1414fc98-cefc-4654-80d1-fec3bb961577",
+      "activity_name": "Leyton Leisure Centre",
+      "address": "763 High Rd. Leyton, London E10 5AB",
+      "data_source": "google_places",
+      "search_query": "Leyton Leisure Centre, 763 High Rd. Leyton, London E10 5AB",
+      "website": "https://www.better.org.uk/leisure-centre/london/waltham-forest/leyton-leisure-centre?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
+      "website_status": "reachable",
+      "organiser_website": "https://www.better.org.uk/leisure-centre/london/waltham-forest/leyton-leisure-centre?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
+      "organiser_website_status": "reachable"
     },
     {
       "activity_id": "14170cbc-3fdf-4f7f-8518-b7481530afe4",
@@ -2546,8 +2141,8 @@
       "address": "80 Wallis Rd, London E9 5LN",
       "data_source": "Google Places",
       "search_query": "Vaffancoffee, 80 Wallis Rd, London E9 5LN",
-      "website": "https://maps.google.com/?cid=16597689819819479238&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -2812,9 +2407,8 @@
       "search_query": "Lewis Carroll Library Under 5s Story and Rhyme, 166 Copenhagen St, London N1 0ST",
       "website": "https://findyour.islington.gov.uk/kb5/islington/directory/service.page?id=0si6hgy3SBg",
       "website_status": "source_blocked_403",
-      "organiser_website": "https://www.islington.gov.uk/libraries/library-branches/lewis-carroll-library",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.islington.gov.uk/"
+      "organiser_website": "https://findyour.islington.gov.uk/kb5/islington/directory/service.page?id=0si6hgy3SBg",
+      "organiser_website_status": "source_blocked_403"
     },
     {
       "activity_id": "163337b2-a73f-44d0-b9df-cb3d11bb1201",
@@ -3002,6 +2596,17 @@
       "website_status": "source_blocked_429",
       "organiser_website": null,
       "organiser_website_status": "missing"
+    },
+    {
+      "activity_id": "180f4bfd-02a0-4682-abb9-de345d7250dd",
+      "activity_name": "Baby Sensory Balham and Clapham",
+      "address": "197 Balham High Rd, London SW12 9BE",
+      "data_source": "google_places",
+      "search_query": "Baby Sensory Balham and Clapham, 197 Balham High Rd, London SW12 9BE",
+      "website": "http://www.babysensory.com/balham",
+      "website_status": "reachable",
+      "organiser_website": "http://www.babysensory.com/balham",
+      "organiser_website_status": "reachable"
     },
     {
       "activity_id": "18405cbe-c3a2-4e6a-bac8-2b6690249756",
@@ -3207,8 +2812,8 @@
       "address": "158 Seven Sisters Rd, Finsbury Park, London N7 7PL",
       "data_source": "Google Places",
       "search_query": "One Way Cafe London, 158 Seven Sisters Rd, Finsbury Park, London N7 7PL",
-      "website": "https://maps.google.com/?cid=15484990872596332128&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -3224,13 +2829,24 @@
       "organiser_website_status": "reachable"
     },
     {
+      "activity_id": "195d61c6-b3da-4625-9b4c-c69530e641a8",
+      "activity_name": "Dulwich Baby Sensory",
+      "address": "39 Honor Oak Rd, London SE23 3SH",
+      "data_source": "google_places",
+      "search_query": "Dulwich Baby Sensory, 39 Honor Oak Rd, London SE23 3SH",
+      "website": "http://www.babysensory.com/dulwich",
+      "website_status": "reachable",
+      "organiser_website": "http://www.babysensory.com/dulwich",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "199d9e22-148b-4e25-94cb-e0cbd38f8388",
       "activity_name": "Family Cafe",
       "address": "Family Cafe, 175 Camberwell New Rd, London SE5 0TJ",
       "data_source": "Google Places",
       "search_query": "Family Cafe, Family Cafe, 175 Camberwell New Rd, London SE5 0TJ",
-      "website": "https://maps.google.com/?cid=7155300435623074633&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -3310,6 +2926,17 @@
       "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
+    },
+    {
+      "activity_id": "1a1bef21-a573-4c4a-ad00-ed76de2f4a1f",
+      "activity_name": "Baby Sensory Hampstead Garden Suburb",
+      "address": "Free Church Hall, Northway, London NW11 6PB",
+      "data_source": "google_places",
+      "search_query": "Baby Sensory Hampstead Garden Suburb, Free Church Hall, Northway, London NW11 6PB",
+      "website": "http://www.babysensory.com/muswell-hill",
+      "website_status": "reachable",
+      "organiser_website": "http://www.babysensory.com/muswell-hill",
+      "organiser_website_status": "reachable"
     },
     {
       "activity_id": "1a33707b-d942-4a8a-b1cd-b01369363c32",
@@ -3818,6 +3445,17 @@
       "organiser_website_status": "missing"
     },
     {
+      "activity_id": "1ebcc047-4725-43ce-a5a4-ee09280c0c2a",
+      "activity_name": "Cally Pool and Gym",
+      "address": "229 Caledonian Rd, London N1 0NH",
+      "data_source": "google_places",
+      "search_query": "Cally Pool and Gym, 229 Caledonian Rd, London N1 0NH",
+      "website": "https://www.better.org.uk/leisure-centre/london/islington/cally?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
+      "website_status": "reachable",
+      "organiser_website": "https://www.better.org.uk/leisure-centre/london/islington/cally?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "1ec92179-2f22-47de-9d5c-287b758bcf7f",
       "activity_name": "TARAMGA STUDIO PREGNANCY FLOW",
       "address": "Taramga studio, 4, 6 Hooker's Rd, London E17 6DP",
@@ -3847,9 +3485,8 @@
       "search_query": "123 Mini Chefs at Best Start Family Hub Queens Road, 215 Queens Rd, London E17 8PJ",
       "website": "https://www.walthamforest.gov.uk/events/123-mini-chefs-best-start-family-hub-queens-road",
       "website_status": "reachable",
-      "organiser_website": "https://www.walthamforest.gov.uk/content/best-start-family-hubs",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.walthamforest.gov.uk/"
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "1f4b1f5d-b9f2-4446-b34b-395565fa488d",
@@ -4132,11 +3769,10 @@
       "address": "215 Queens Rd, London E17 8PJ",
       "data_source": "Better Start for Life",
       "search_query": "Bambini s music and play 0 to1 at Queens Road, 215 Queens Rd, London E17 8PJ",
-      "website": "https://www.walthamforest.gov.uk/events/bambinis-music-and-play-0-to1-queens-road",
-      "website_status": "http_410",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": "https://www.walthamforest.gov.uk/",
-      "organiser_website_status": "reachable",
-      "proposed_website": "https://www.walthamforest.gov.uk/"
+      "organiser_website_status": "reachable"
     },
     {
       "activity_id": "21bff484-4744-4abf-a872-86bfd0173dc8",
@@ -4213,6 +3849,17 @@
       "website": "https://www.walthamforest.gov.uk/events/play-and-learn-under-2s-best-start-family-hub-chingford",
       "website_status": "reachable",
       "organiser_website": "https://www.walthamforest.gov.uk/",
+      "organiser_website_status": "reachable"
+    },
+    {
+      "activity_id": "22675764-02a2-42ce-9d5a-b121c47af34c",
+      "activity_name": "San Marino Coffee",
+      "address": "668 High Rd Leytonstone, Bushwood, London E11 3AA",
+      "data_source": "google_places",
+      "search_query": "San Marino Coffee, 668 High Rd Leytonstone, Bushwood, London E11 3AA",
+      "website": "http://sanmarinocafe.uk/",
+      "website_status": "reachable",
+      "organiser_website": "http://sanmarinocafe.uk/",
       "organiser_website_status": "reachable"
     },
     {
@@ -4861,9 +4508,8 @@
       "search_query": "BRIGHT STAR PERFORMING ARTS SCHOOL, Magpie Cl, London E7 9DE",
       "website": "https://www.happity.co.uk/schedules/bright-star-performing-arts-school-london-forest-lane-lodge-bright-star-performing-arts-school-mondays-16-15-17-15",
       "website_status": "source_blocked_429",
-      "organiser_website": "https://brightstarpas.wixsite.com/brightstarpas",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": null
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "292c039d-e20e-4652-b2f0-e1074d20d4fb",
@@ -5269,9 +4915,8 @@
       "search_query": "Pepperon Cafe, Pepperon Cafe, 72 Lancaster Rd, London W11 1QR",
       "website": "https://www.pepperoncafe.co.uk/",
       "website_status": "reachable",
-      "organiser_website": "https://pepperoncafe21.wixsite.com/pepperoncafe",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.pepperoncafe.co.uk/"
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "2c50ea15-3b1d-4e01-864a-76ab669cbecb",
@@ -5589,9 +5234,8 @@
       "search_query": "BARRE and BABY WITH ABSOLUCYFITNESS BARRE AND BABY WITH ABSOLUCYFITNESS, Good Shepherd Studios, 15A Davies Ln, Bushwood, London E11 3DR",
       "website": "https://www.happity.co.uk/schedules/barre-and-baby-with-absolucyfitness-london-good-shepherd-studios-barre-and-baby-with-absolucyfitness",
       "website_status": "source_blocked_429",
-      "organiser_website": "https://absolucyfitness.com/",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": null
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "2ff4ba86-ec3d-4409-ad63-58ce925ceeb5",
@@ -5632,8 +5276,8 @@
       "address": "Entrance on, 31 Grove Terrace, Highgate Rd, London NW5 1PL",
       "data_source": "Google Places",
       "search_query": "Funny Weather books + coffee, Entrance on, 31 Grove Terrace, Highgate Rd, London NW5 1PL",
-      "website": "https://maps.google.com/?cid=17799468016285262044&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": "https://www.instagram.com/funnyweatherbooks/",
       "organiser_website_status": "reachable"
     },
@@ -5656,9 +5300,8 @@
       "search_query": "Duplo and toys play session at Leyton Library, High Rd, London E10 5QH",
       "website": "https://www.walthamforest.gov.uk/events/duplo-and-toys-play-session-leyton-library",
       "website_status": "reachable",
-      "organiser_website": "https://www.walthamforest.gov.uk/libraries/leyton-library",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.walthamforest.gov.uk/"
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "303c852c-7520-4b13-b361-f14efbf0f855",
@@ -5831,8 +5474,8 @@
       "address": "98 Portland Rd, London W11 4QL",
       "data_source": "Google Places",
       "search_query": "St Clair Cafe, 98 Portland Rd, London W11 4QL",
-      "website": "https://maps.google.com/?cid=3522012580491659242&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -5998,9 +5641,8 @@
       "search_query": "Mapledene Stay and Play with Soft Play, 54 Mapledene Rd, London E8 3LE",
       "website": "https://education.hackney.gov.uk/sites/default/files/document/London%20Fields%20and%20Shoreditch%20Park%20Timetable.pdf",
       "website_status": "reachable",
-      "organiser_website": "https://education.hackney.gov.uk/content/mapledene-and-queensbridge-childrens-centre",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://education.hackney.gov.uk/"
+      "organiser_website": "https://education.hackney.gov.uk/sites/default/files/document/London%20Fields%20and%20Shoreditch%20Park%20Timetable.pdf",
+      "organiser_website_status": "reachable"
     },
     {
       "activity_id": "33206534-3252-4ca3-aebf-0b7fd2e33922",
@@ -6069,6 +5711,17 @@
       "organiser_website_status": "missing"
     },
     {
+      "activity_id": "337ce01a-2743-44c4-9a01-a57c09ffd641",
+      "activity_name": "SEND and Sensory",
+      "address": "19 C Orford Rd, London E17 9NL",
+      "data_source": "google_places",
+      "search_query": "SEND and Sensory, 19 C Orford Rd, London E17 9NL",
+      "website": "https://www.send-and-sensory.com/",
+      "website_status": "reachable",
+      "organiser_website": "https://www.send-and-sensory.com/",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "338c1396-8f51-4347-979e-56c8ba649024",
       "activity_name": "Holland Park Toddlers Playground",
       "address": "London W8 6LU",
@@ -6113,6 +5766,17 @@
       "organiser_website_status": "reachable"
     },
     {
+      "activity_id": "33ad9f33-f19d-4fd8-bfb1-5e298a65cc2c",
+      "activity_name": "Mirella",
+      "address": "839 High Rd Leytonstone, Bushwood, London E11 1HL",
+      "data_source": "google_places",
+      "search_query": "Mirella, 839 High Rd Leytonstone, Bushwood, London E11 1HL",
+      "website": "https://mirellarestaurant.co.uk/",
+      "website_status": "reachable",
+      "organiser_website": "https://mirellarestaurant.co.uk/",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "33ef1373-13db-4738-8d36-91ab9031466d",
       "activity_name": "COOK WITH KASPER TUFNELL PARK",
       "address": "31 Carleton Rd, London N7 0HJ",
@@ -6131,9 +5795,8 @@
       "search_query": "BAREFOOT SCHOOL OF PERFORMING ARTS CAMDEN PETITE FEET, 2 Patshull Rd, London NW5 2LB",
       "website": "https://www.happity.co.uk/schedules/barefoot-school-of-performing-arts-camden-london-barefoot-school-of-performing-arts-camden-petite-feet",
       "website_status": "source_blocked_429",
-      "organiser_website": "https://bpacamden.wixsite.com/bpa-camden",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": null
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "33f86427-ce4d-4e1d-9a85-4fa14a33b998",
@@ -6339,8 +6002,8 @@
       "address": "142 Stoke Newington Church St, London N16 0JU",
       "data_source": "Google Places",
       "search_query": "Church Street Bookshop, 142 Stoke Newington Church St, London N16 0JU",
-      "website": "https://maps.google.com/?cid=2402319294368833409&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -6427,8 +6090,8 @@
       "address": "121 Stoke Newington Church St, London N16 0UH",
       "data_source": "Google Places",
       "search_query": "CoffeeKlatch, 121 Stoke Newington Church St, London N16 0UH",
-      "website": "https://maps.google.com/?cid=9055957394356831123&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -6460,8 +6123,8 @@
       "address": "145 Blackstock Rd, Finsbury Park, London N4 2JS",
       "data_source": "Google Places",
       "search_query": "Caffeine Corner, 145 Blackstock Rd, Finsbury Park, London N4 2JS",
-      "website": "https://maps.google.com/?cid=17535621311570251350&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -6474,6 +6137,17 @@
       "website": "https://www.happity.co.uk/schedules/blossom-babies-tower-hamlets-the-hub-cafe-blossom-toddler-very-active-crawlers-walkers-up-to-36-months",
       "website_status": "source_blocked_429",
       "organiser_website": "https://blossombabies.classforkids.io/",
+      "organiser_website_status": "reachable"
+    },
+    {
+      "activity_id": "37ea9be7-9aef-4f08-8f17-2321a0702a79",
+      "activity_name": "The Maqam Centre",
+      "address": "Wrentham Ave, London NW10 3HJ",
+      "data_source": "google_places",
+      "search_query": "The Maqam Centre, Wrentham Ave, London NW10 3HJ",
+      "website": "https://themaqamcentre.com/",
+      "website_status": "reachable",
+      "organiser_website": "https://themaqamcentre.com/",
       "organiser_website_status": "reachable"
     },
     {
@@ -6592,8 +6266,8 @@
       "address": "228 St Paul's Rd, London N1 2LJ",
       "data_source": "Google Places",
       "search_query": "Fig Tree Cafe, 228 St Paul's Rd, London N1 2LJ",
-      "website": "https://maps.google.com/?cid=16072577379277019079&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -6658,12 +6332,10 @@
       "address": "215 Queens Rd, London E17 8PJ",
       "data_source": "Better Start for Life",
       "search_query": "Family Cooking Club at Queens Road Family Hub, 215 Queens Rd, London E17 8PJ",
-      "website": "https://www.walthamforest.gov.uk/events/family-cooking-club-queens-road-family-hub",
-      "website_status": "http_410",
-      "organiser_website": "https://www.walthamforest.gov.uk/content/your-best-start-family-hub-locations",
-      "organiser_website_status": "http_404",
-      "proposed_website": null,
-      "proposed_organiser_website": "https://www.walthamforest.gov.uk/"
+      "website": null,
+      "website_status": "missing",
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "3a6bd57e-7e4e-4cf5-9879-cefa276885c6",
@@ -6726,8 +6398,8 @@
       "address": "203 Well St, London E9 6QU",
       "data_source": "Google Places",
       "search_query": "Well Street Kitchen London, 203 Well St, London E9 6QU",
-      "website": "https://maps.google.com/?cid=7626980089940746374&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -6751,6 +6423,17 @@
       "website": "https://www.happity.co.uk/schedules/moon-women-s-health-london-moon-holistic-mother-child-clinic",
       "website_status": "source_blocked_429",
       "organiser_website": "https://www.mwhealth.co.uk/",
+      "organiser_website_status": "reachable"
+    },
+    {
+      "activity_id": "3b5e83dd-0876-4de2-b63e-7eab59020cf3",
+      "activity_name": "Swimkidz The Garden",
+      "address": "The Garden Pool SE1, Marlborough Grove, London SE1 5JT",
+      "data_source": "google_places",
+      "search_query": "Swimkidz The Garden, The Garden Pool SE1, Marlborough Grove, London SE1 5JT",
+      "website": "https://www.swimkidz.co.uk/swimming-lessons/Bermondsey/129/",
+      "website_status": "reachable",
+      "organiser_website": "https://www.swimkidz.co.uk/swimming-lessons/Bermondsey/129/",
       "organiser_website_status": "reachable"
     },
     {
@@ -6875,6 +6558,17 @@
       "organiser_website_status": "reachable"
     },
     {
+      "activity_id": "3ca1e532-eed2-49fc-977c-d4ab5f37a2cf",
+      "activity_name": "Baby College Norwood",
+      "address": "The Old Fire Station, 2A Norwood High St, Norwood, London SE27 9NS",
+      "data_source": "google_places",
+      "search_query": "Baby College Norwood, The Old Fire Station, 2A Norwood High St, Norwood, London SE27 9NS",
+      "website": "https://babycollege.co.uk/location/baby-college-lewisham",
+      "website_status": "reachable",
+      "organiser_website": "https://babycollege.co.uk/location/baby-college-lewisham",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "3cb62bb0-7d0f-4450-a10e-4359d5c0a8ec",
       "activity_name": "Children's Bookshop London",
       "address": "29 Fortis Green Rd, Muswell Hill, London N10 3HP",
@@ -6902,8 +6596,8 @@
       "address": "158 Tollington Park, Finsbury Park, London N4 3AD",
       "data_source": "Google Places",
       "search_query": "The Front Room, 158 Tollington Park, Finsbury Park, London N4 3AD",
-      "website": "https://maps.google.com/?cid=3907560927260442071&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -7139,6 +6833,17 @@
       "organiser_website_status": "missing"
     },
     {
+      "activity_id": "3e98809a-196c-481c-98d3-376b7a31c482",
+      "activity_name": "Water Babies at The Brook School",
+      "address": "Adams Rd, London N17 6HW",
+      "data_source": "google_places",
+      "search_query": "Water Babies at The Brook School, Adams Rd, London N17 6HW",
+      "website": "https://www.waterbabies.co.uk/baby-swimming/london-north/brook-school/",
+      "website_status": "reachable",
+      "organiser_website": "https://www.waterbabies.co.uk/baby-swimming/london-north/brook-school/",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "3e98d72c-95b9-45bf-b655-59379020dbda",
       "activity_name": "Kids Crafts at Higham Hill Library Saturday",
       "address": "N Countess Rd, London E17 5HS",
@@ -7287,8 +6992,8 @@
       "address": "679 High Rd. Leyton, London E10 6RA",
       "data_source": "Google Places",
       "search_query": "Coccole Tiramisu Leyton, 679 High Rd. Leyton, London E10 6RA",
-      "website": "https://maps.google.com/?cid=6864144452573005046&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -7302,6 +7007,17 @@
       "website_status": "reachable",
       "organiser_website": null,
       "organiser_website_status": "missing"
+    },
+    {
+      "activity_id": "400b8106-5a2f-4e72-89e4-6aa501b7922e",
+      "activity_name": "La Farola Cafe and Bistro",
+      "address": "101 Upper St, London N1 1QN",
+      "data_source": "google_places",
+      "search_query": "La Farola Cafe and Bistro, 101 Upper St, London N1 1QN",
+      "website": "http://lafarolacafe.co.uk/",
+      "website_status": "reachable",
+      "organiser_website": "http://lafarolacafe.co.uk/",
+      "organiser_website_status": "reachable"
     },
     {
       "activity_id": "402b0127-ec80-4147-8f4a-d65cc00d1311",
@@ -7324,6 +7040,17 @@
       "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
+    },
+    {
+      "activity_id": "4042a17a-20a9-473f-9b9f-16ad08c1b457",
+      "activity_name": "London Fields Lido",
+      "address": "London Fields West Side, London E8 3EU",
+      "data_source": "google_places",
+      "search_query": "London Fields Lido, London Fields West Side, London E8 3EU",
+      "website": "https://www.better.org.uk/leisure-centre/london/hackney/london-fields-lido?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
+      "website_status": "reachable",
+      "organiser_website": "https://www.better.org.uk/leisure-centre/london/hackney/london-fields-lido?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
+      "organiser_website_status": "reachable"
     },
     {
       "activity_id": "404af4a5-9de3-4135-b003-591a854cc0e6",
@@ -7353,8 +7080,8 @@
       "address": "200A New N Rd, London N1 7BJ",
       "data_source": "Google Places",
       "search_query": "Cooks and Books, 200A New N Rd, London N1 7BJ",
-      "website": "https://maps.google.com/?cid=8880125413615024614&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -7491,6 +7218,17 @@
       "organiser_website_status": "reachable"
     },
     {
+      "activity_id": "420cce61-dcb5-4ee5-b713-7e2ce20516d1",
+      "activity_name": "Clissold Leisure Centre",
+      "address": "63 Clissold Rd, London N16 9EX",
+      "data_source": "google_places",
+      "search_query": "Clissold Leisure Centre, 63 Clissold Rd, London N16 9EX",
+      "website": "https://www.better.org.uk/leisure-centre/london/hackney/clissold-leisure-centre?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
+      "website_status": "reachable",
+      "organiser_website": "https://www.better.org.uk/leisure-centre/london/hackney/clissold-leisure-centre?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "4233a6a8-0096-40bb-aed4-03048838e00c",
       "activity_name": "THE CASTLE PLAY SPACE CIC PLAY AND PORTRAIT SPECIAL SESSION",
       "address": "370 Grove Green Rd, London E11 4AJ",
@@ -7521,6 +7259,17 @@
       "website": "https://www.happity.co.uk/schedules/the-little-dance-academy-walthamstow-the-woodside-primary-academy-the-little-dance-academy-bop-street-dance",
       "website_status": "source_blocked_429",
       "organiser_website": "https://thelittledanceacademy.com/",
+      "organiser_website_status": "reachable"
+    },
+    {
+      "activity_id": "428dd941-9628-47d2-a95f-685b03ec5b61",
+      "activity_name": "Swim Islington",
+      "address": "8 Highbury Grove, London N5 2EQ",
+      "data_source": "google_places",
+      "search_query": "Swim Islington, 8 Highbury Grove, London N5 2EQ",
+      "website": "http://swimislington.co.uk/",
+      "website_status": "reachable",
+      "organiser_website": "http://swimislington.co.uk/",
       "organiser_website_status": "reachable"
     },
     {
@@ -7574,7 +7323,7 @@
       "data_source": "Happity",
       "search_query": "THE LITTLE DANCE ACADEMY BALLET BUNNIES, The Woodside Primary Academy Barrett Road, Walthamstow, London, E17 3ND",
       "website": "https://www.happity.co.uk/schedules/the-little-dance-academy-walthamstow-the-woodside-primary-academy-the-little-dance-academy-ballet-bunnies",
-      "website_status": "reachable",
+      "website_status": "source_blocked_429",
       "organiser_website": "https://thelittledanceacademy.com/",
       "organiser_website_status": "reachable"
     },
@@ -7607,7 +7356,7 @@
       "data_source": "Happity",
       "search_query": "WHITTINGTON PARK COMMUNITY CENTRE CUBS and SCOUTS, Yerbury Rd, Archway, London N19 4RS",
       "website": "https://www.happity.co.uk/schedules/whittington-park-community-centre-london-whittington-community-centre-cubs-scouts",
-      "website_status": "source_blocked_403",
+      "website_status": "source_blocked_429",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -7617,8 +7366,8 @@
       "address": "80 Mare St, London E8 3SG",
       "data_source": "Google Places",
       "search_query": "Bungalows Cafe Hackney, 80 Mare St, London E8 3SG",
-      "website": "https://maps.google.com/?cid=6708759487824497771&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -7826,8 +7575,8 @@
       "address": "50 Cross St, London N1 2BA",
       "data_source": "Google Places",
       "search_query": "Of Books and Love, 50 Cross St, London N1 2BA",
-      "website": "https://maps.google.com/?cid=2611729015766884142&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": "https://www.ofbooksandlove.co.uk/",
       "organiser_website_status": "reachable"
     },
@@ -8085,6 +7834,17 @@
       "organiser_website_status": "reachable"
     },
     {
+      "activity_id": "489d0d7e-d28d-43e2-82b4-d37e3c968b82",
+      "activity_name": "Happy Parents Happy Baby Antenatal Classes - Camden and Primrose Hill",
+      "address": "22 Chalcot Road Camden, & NW1 8LL",
+      "data_source": "google_places",
+      "search_query": "Happy Parents Happy Baby Antenatal Classes - Camden and Primrose Hill, 22 Chalcot Road Camden, & NW1 8LL",
+      "website": "https://happyparentshappybaby.com/locations/p/camden",
+      "website_status": "reachable",
+      "organiser_website": "https://happyparentshappybaby.com/locations/p/camden",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "48dd7864-10ee-46a9-b256-f8732af3c3fb",
       "activity_name": "TUMBLE TOTS TODDLERS",
       "address": "Wanstead House Community Association, London E11 2NT",
@@ -8107,6 +7867,17 @@
       "organiser_website_status": "missing"
     },
     {
+      "activity_id": "4911b80a-4efb-43a8-aee5-27e6cb8b2647",
+      "activity_name": "East Ham Leisure Centre",
+      "address": "East Ham Leisure Centre, 324 Barking Rd, London E6 2RT",
+      "data_source": "google_places",
+      "search_query": "East Ham Leisure Centre, East Ham Leisure Centre, 324 Barking Rd, London E6 2RT",
+      "website": "https://www.better.org.uk/leisure-centre/london/newham/east-ham-leisure-centre?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
+      "website_status": "reachable",
+      "organiser_website": "https://www.better.org.uk/leisure-centre/london/newham/east-ham-leisure-centre?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "4918c525-ccf0-46e7-9c8d-10df8f211e97",
       "activity_name": "PAPER DRESS LIMITED PARENT and BABY YOGA",
       "address": "352 Mare St, London E8 1HR",
@@ -8123,8 +7894,8 @@
       "address": "71 Newington Green Rd, London N1 4QU",
       "data_source": "Google Places",
       "search_query": "CoCoFee, 71 Newington Green Rd, London N1 4QU",
-      "website": "https://maps.google.com/?cid=11950682785400622643&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -8195,6 +7966,17 @@
       "organiser_website_status": "missing"
     },
     {
+      "activity_id": "49e26f0e-35b5-4fed-bc57-035046dae061",
+      "activity_name": "\"Les Petits Dauphins\" Swimming lessons for babies and kids",
+      "address": "Chestnuts Primary School, La Rose Ln, London N15 3AS",
+      "data_source": "google_places",
+      "search_query": "\"Les Petits Dauphins\" Swimming lessons for babies and kids, Chestnuts Primary School, La Rose Ln, London N15 3AS",
+      "website": "http://www.lespetitsdauphins.co.uk/",
+      "website_status": "reachable",
+      "organiser_website": "http://www.lespetitsdauphins.co.uk/",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "49edd285-e422-4903-88e8-fcb763df7788",
       "activity_name": "Lee Valley White Water Centre",
       "address": "Station Rd, Herts, EN9 1AB",
@@ -8203,6 +7985,17 @@
       "website": "http://www.gowhitewater.co.uk/",
       "website_status": "reachable",
       "organiser_website": "http://www.gowhitewater.co.uk/",
+      "organiser_website_status": "reachable"
+    },
+    {
+      "activity_id": "49f1bce0-6260-4325-b7a3-056eebf4384e",
+      "activity_name": "Swimming Nature",
+      "address": "The Maqam Centre, London NW10 3HJ",
+      "data_source": "google_places",
+      "search_query": "Swimming Nature, The Maqam Centre, London NW10 3HJ",
+      "website": "https://swimmingnature.com/",
+      "website_status": "reachable",
+      "organiser_website": "https://swimmingnature.com/",
       "organiser_website_status": "reachable"
     },
     {
@@ -8675,9 +8468,8 @@
       "search_query": "PaddingtonTM Afternoon Tea London Sightseeing Tour, Trafalgar Square, London",
       "website": "https://feverup.com/m/602434",
       "website_status": "reachable",
-      "organiser_website": "https://london.b-bakery.com/afternoon-tea-bus-tours/paddington-afternoon-tea-bus-tour/",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://b-bakery.com/"
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "4edeb7b1-2f8e-4f38-81ff-8610d2531ed2",
@@ -8687,9 +8479,8 @@
       "search_query": "Ham Yard Restaurant and Bar, 1 Ham Yard, London W1D 7DT",
       "website": "https://www.firmdalehotels.com/hotels/ham-yard-hotel/ham-yard-restaurant-bar",
       "website_status": "reachable",
-      "organiser_website": "https://www.firmdalehotels.com/hotels/london/ham-yard-hotel/restaurant-and-bar/",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.firmdalehotels.com/"
+      "organiser_website": "https://www.firmdalehotels.com/hotels/ham-yard-hotel/ham-yard-restaurant-bar",
+      "organiser_website_status": "reachable"
     },
     {
       "activity_id": "4ef05251-f49d-48db-bc21-8056546a25cd",
@@ -9128,9 +8919,8 @@
       "search_query": "Kids crafts at Leyton Library Tuesday, High Rd, London E10 5QH",
       "website": "https://www.walthamforest.gov.uk/events/kids-crafts-leyton-library-tuesday",
       "website_status": "reachable",
-      "organiser_website": "https://www.walthamforest.gov.uk/libraries/leyton-library",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.walthamforest.gov.uk/"
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "538a2645-16d2-4617-acfb-d47c770c0c12",
@@ -9153,6 +8943,17 @@
       "website_status": "reachable",
       "organiser_website": null,
       "organiser_website_status": "missing"
+    },
+    {
+      "activity_id": "53a20cf4-f792-4751-a5b1-47619d166747",
+      "activity_name": "Lido Summer Swim School",
+      "address": "Gordon House Rd, London NW5 1LT",
+      "data_source": "google_places",
+      "search_query": "Lido Summer Swim School, Gordon House Rd, London NW5 1LT",
+      "website": "http://www.lidosummerswimschool.com/",
+      "website_status": "reachable",
+      "organiser_website": "http://www.lidosummerswimschool.com/",
+      "organiser_website_status": "reachable"
     },
     {
       "activity_id": "53ad4f08-166c-4328-9ac9-d4a271a9b2c0",
@@ -9397,6 +9198,17 @@
       "organiser_website_status": "source_blocked_403"
     },
     {
+      "activity_id": "56f5861e-d66c-485a-bfee-14374c510008",
+      "activity_name": "Water Babies at George Green's School",
+      "address": "George Green School, 100 Manchester Rd, London E14 3DW",
+      "data_source": "google_places",
+      "search_query": "Water Babies at George Green's School, George Green School, 100 Manchester Rd, London E14 3DW",
+      "website": "https://www.waterbabies.co.uk/baby-swimming/london-north-east/george-greens-school-isle-of-dogs/",
+      "website_status": "reachable",
+      "organiser_website": "https://www.waterbabies.co.uk/baby-swimming/london-north-east/george-greens-school-isle-of-dogs/",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "57335e43-2c92-4585-b97e-a3e83a3c1eff",
       "activity_name": "HELLO MARTIN AVRIL MINI AVENTURIERS 0 18 MONTHS MES PREMIERS PAS EN MUSIQUE",
       "address": "51 Barnsbury St, London N1 1TP",
@@ -9457,8 +9269,8 @@
       "address": "37 Orford Rd, 9NL E17 9NL",
       "data_source": "Google Places",
       "search_query": "Bern's and the beans, 37 Orford Rd, 9NL E17 9NL",
-      "website": "https://maps.google.com/?cid=58267927267980011&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -9545,8 +9357,8 @@
       "address": "4 Eastern Rd, London E17 9DU",
       "data_source": "Google Places",
       "search_query": "Urban Bites, 4 Eastern Rd, London E17 9DU",
-      "website": "https://maps.google.com/?cid=14024394787525327142&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -9683,6 +9495,17 @@
       "organiser_website_status": "missing"
     },
     {
+      "activity_id": "595aed5b-1340-4e03-978b-d0af2865b669",
+      "activity_name": "Bump and Baby Club Antenatal Classes in Bermondsey",
+      "address": "The Bermondsey Square Hotel, 9 Bermondsey Sq, London SE1 3UN",
+      "data_source": "google_places",
+      "search_query": "Bump and Baby Club Antenatal Classes in Bermondsey, The Bermondsey Square Hotel, 9 Bermondsey Sq, London SE1 3UN",
+      "website": "https://bumpandbabyclub.com/?utm_source=gbp&utm_medium=organic&utm_campaign=gbp_bermondsey",
+      "website_status": "reachable",
+      "organiser_website": "https://bumpandbabyclub.com/?utm_source=gbp&utm_medium=organic&utm_campaign=gbp_bermondsey",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "596361fc-3e01-47b2-948e-56568a23e656",
       "activity_name": "Pleasure Gardens Play Areas",
       "address": "London E15 2DU",
@@ -9734,9 +9557,8 @@
       "search_query": "Dads Stay and Play at Chingford Library, The Grn, London E4 7EN",
       "website": "https://www.walthamforest.gov.uk/events/dads-stay-and-play-chingford-library",
       "website_status": "reachable",
-      "organiser_website": "https://www.walthamforest.gov.uk/libraries/library-events",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.walthamforest.gov.uk/"
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "5a1e2044-d9a1-4873-80e5-1ec47369eef0",
@@ -9893,17 +9715,6 @@
       "organiser_website_status": "reachable"
     },
     {
-      "activity_id": "5b50a5bd-dfd0-475b-815d-fe8b898ec7fc",
-      "activity_name": "123 GREEK ENGLISH PLAYGROUP",
-      "address": "Upper St, London N1 2TX",
-      "data_source": "Happity",
-      "search_query": "123 GREEK ENGLISH PLAYGROUP, Upper St, London N1 2TX",
-      "website": "https://www.happity.co.uk/schedules/123-greek-english-playgroup-london-st-mary-s-church-123-greek-english-playgroup",
-      "website_status": "source_blocked_429",
-      "organiser_website": null,
-      "organiser_website_status": "missing"
-    },
-    {
       "activity_id": "5c06e697-b4ad-4bba-b0e8-d06313be6540",
       "activity_name": "FREEDOM FIGHTERS ARTS PARENT and CHILD DANCE",
       "address": "Freedom Fighters Arts Redvers Street, London, Greater London, N1 6NE",
@@ -9933,9 +9744,8 @@
       "search_query": "Mapledene Messy Play with Physical Literacy, 54 Mapledene Rd, London E8 3LE",
       "website": "https://education.hackney.gov.uk/sites/default/files/document/London%20Fields%20and%20Shoreditch%20Park%20Timetable.pdf",
       "website_status": "reachable",
-      "organiser_website": "https://education.hackney.gov.uk/content/childrens-centres",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://education.hackney.gov.uk/"
+      "organiser_website": "https://education.hackney.gov.uk/sites/default/files/document/London%20Fields%20and%20Shoreditch%20Park%20Timetable.pdf",
+      "organiser_website_status": "reachable"
     },
     {
       "activity_id": "5c2d3548-cedf-4f2a-a522-db6d70e605af",
@@ -10220,9 +10030,8 @@
       "search_query": "MUSIC EXPLORERS MUSIC EDUCATION ISLINGTON, St Peter & St Paul Catholic Primary School Compton Street, London, Greater London, EC1V 0EU",
       "website": "https://www.happity.co.uk/schedules/music-explorers-music-education-islington-london-st-peter-st-paul-catholic-primary-school-music-explorers-music-education-islington",
       "website_status": "source_blocked_429",
-      "organiser_website": "https://www.gsmd.ac.uk/guildhall-young-artists/islington",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.gsmd.ac.uk/"
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "5f6a4f7d-1aaa-49ce-9566-39826c13a2db",
@@ -10308,7 +10117,7 @@
       "data_source": "Happity",
       "search_query": "MINI MOZART BABY S FIRST LULLABY IN HIGHBURY BABIES, The Parish Church of Christ Church Highbury with St. John and St. Saviour 155 Highbury Grove, London, Greater London, N5 1SA",
       "website": "https://www.happity.co.uk/schedules/mini-mozart-london-the-parish-church-of-christ-church-highbury-with-st-john-and-st-saviour-baby-s-first-lullaby-in-highbury-babies",
-      "website_status": "source_blocked_403",
+      "website_status": "source_blocked_429",
       "organiser_website": "https://www.minimozart.com/",
       "organiser_website_status": "reachable"
     },
@@ -10461,12 +10270,10 @@
       "address": "County Hall, London, SE1 7PB",
       "data_source": "Time Out",
       "search_query": "Shrek's Adventure! London, County Hall, London, SE1 7PB",
-      "website": "https://www.shreksadventure.com/london",
-      "website_status": "http_404",
-      "organiser_website": "https://www.shreksadventure.com/london",
-      "organiser_website_status": "http_404",
-      "proposed_website": "https://www.timeout.com/london/attractions/shreks-adventure-london",
-      "proposed_organiser_website": "https://www.shreksadventure.com/"
+      "website": "https://www.timeout.com/london/attractions/shreks-adventure-london",
+      "website_status": "reachable",
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "6144e6e7-9339-4851-a00c-0a236b9dc4dd",
@@ -10612,6 +10419,17 @@
       "organiser_website_status": "missing"
     },
     {
+      "activity_id": "6260ae4d-6905-4408-b4ef-ad6192227c1e",
+      "activity_name": "Love to Swim",
+      "address": "Crowne Plaza Hotel - Docklands, Western Gateway, London E16 1AL",
+      "data_source": "google_places",
+      "search_query": "Love to Swim, Crowne Plaza Hotel - Docklands, Western Gateway, London E16 1AL",
+      "website": "http://www.lovetoswim.co.uk/",
+      "website_status": "reachable",
+      "organiser_website": "http://www.lovetoswim.co.uk/",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "62b9af46-7cd6-41dd-83e1-deefbea194d0",
       "activity_name": "Sawmill",
       "address": "51-53 W Ham Ln, London E15 4PH",
@@ -10672,8 +10490,8 @@
       "address": "1C Oaklands Grove, London W12 0JD",
       "data_source": "Google Places",
       "search_query": "Proud Mary's, 1C Oaklands Grove, London W12 0JD",
-      "website": "https://maps.google.com/?cid=11593715140484523580&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -10685,9 +10503,8 @@
       "search_query": "FINSBURY LIBRARY UNDER 5 S, Finsbury Library 245 Saint John Street, London, Greater London, EC1V 4NB",
       "website": "https://www.happity.co.uk/schedules/finsbury-library-london-finsbury-library-under-5-s-tuesdays-11-00-12-00",
       "website_status": "source_blocked_429",
-      "organiser_website": "https://www.islington.gov.uk/libraries/your-local-libraries/finsbury-library",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.islington.gov.uk/"
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "63768b59-3526-48be-bdac-1b84e41415da",
@@ -10753,6 +10570,17 @@
       "website": "https://www.happity.co.uk/schedules/the-little-dance-academy-london-walthamstow-school-for-girls-the-little-dance-academy-parent-and-me",
       "website_status": "source_blocked_429",
       "organiser_website": "https://thelittledanceacademy.com/",
+      "organiser_website_status": "reachable"
+    },
+    {
+      "activity_id": "64233301-3f57-4a25-b535-3fdf0a1bbf84",
+      "activity_name": "Britannia Leisure Centre",
+      "address": "Pitfield St, London N1 5FT",
+      "data_source": "google_places",
+      "search_query": "Britannia Leisure Centre, Pitfield St, London N1 5FT",
+      "website": "https://www.better.org.uk/leisure-centre/london/hackney/britannia-leisure-centre?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
+      "website_status": "reachable",
+      "organiser_website": "https://www.better.org.uk/leisure-centre/london/hackney/britannia-leisure-centre?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
       "organiser_website_status": "reachable"
     },
     {
@@ -10897,6 +10725,17 @@
       "website_status": "reachable",
       "organiser_website": "https://cuppapug.com/",
       "organiser_website_status": "reachable"
+    },
+    {
+      "activity_id": "65b76ddf-09ec-4db2-a364-a62fd6b2c0ad",
+      "activity_name": "Sensory play at the Natural History Museum",
+      "address": "Cromwell Road, South Kensington, London, SW7 5BD",
+      "data_source": "other",
+      "search_query": "Sensory play at the Natural History Museum, Cromwell Road, South Kensington, London, SW7 5BD",
+      "website": "https://www.nhm.ac.uk/events/adventure-babies.html?utm_source=meta&utm_medium=paid-social&utm_campaign=winterevents&utm_content=winterevents-parents-adventurebabies&utm_placement=Instagram_Stories&utm_id=6908169347721&utm_term=6908169348121&fbclid=PAaWdyZATn_jdwZG9mAmV4dG4DYWVtATAAYWRpZAAAL9Mz5hZFc3J0YwZhcHBfaWQPNTY3MDY3MzQzMzUyNDI3AAGnCzXoNLylS2JLQOJqhUeUjd_sNgR6skS3KzpBE1W5fskosU3n5DErXHPktmc_aem_ii_PsLtwBAMyjhDHHsu6BA",
+      "website_status": "reachable",
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "65c60e2e-81e0-4c47-8a34-bc9f56cc457a",
@@ -11058,8 +10897,8 @@
       "address": "215 High St, London E17 7BH",
       "data_source": "Google Places",
       "search_query": "Mego Coffee House, 215 High St, London E17 7BH",
-      "website": "https://maps.google.com/?cid=8270693834295689405&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -11148,9 +10987,8 @@
       "search_query": "MILDMAY LIBRARY 1 BABY BOUNCE and UNDER 5S, 21-23 Mildmay Park, London N1 4NA",
       "website": "https://www.happity.co.uk/schedules/mildmay-library-london-mildmay-library-1-baby-bounce-under-5s-tuesdays-11-00-12-00",
       "website_status": "source_blocked_429",
-      "organiser_website": "https://www.islington.gov.uk/libraries/your-local-libraries/mildmay-library",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.islington.gov.uk/"
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "684ff48b-09db-470f-af80-2ca967ca1962",
@@ -11191,8 +11029,8 @@
       "address": "10 Blackstock Rd, Finsbury Park, London N4 2DW",
       "data_source": "Google Places",
       "search_query": "River Lane Cafe, 10 Blackstock Rd, Finsbury Park, London N4 2DW",
-      "website": "https://maps.google.com/?cid=4726385840035913472&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -11230,6 +11068,17 @@
       "organiser_website_status": "missing"
     },
     {
+      "activity_id": "68cdefe4-0ef3-4c25-8a22-a6567e5fcf08",
+      "activity_name": "Hartbeeps Primrose Hill",
+      "address": "Primrose Hill Community Centre, Primrose Hill NW1 8TN",
+      "data_source": "google_places",
+      "search_query": "Hartbeeps Primrose Hill, Primrose Hill Community Centre, Primrose Hill NW1 8TN",
+      "website": "https://www.hartbeeps.com/north-west-london/venues/primrose-hill-community-centre",
+      "website_status": "source_blocked_403",
+      "organiser_website": "https://www.hartbeeps.com/north-west-london/venues/primrose-hill-community-centre",
+      "organiser_website_status": "source_blocked_403"
+    },
+    {
       "activity_id": "68eb13eb-e428-4ce1-82eb-bb332dbb9fbf",
       "activity_name": "THE TOY PROJECT PRE SCHOOL STORIES THROUGH ART",
       "address": "93 Junction Rd, Archway, London N19 5QX",
@@ -11261,6 +11110,17 @@
       "website_status": "http_307",
       "organiser_website": "https://lef-beautifulbooks.co.uk/",
       "organiser_website_status": "http_307"
+    },
+    {
+      "activity_id": "6919feb4-09dc-45c7-a5a0-59a7a5c56e3b",
+      "activity_name": "Le Delice",
+      "address": "114 Hoe St, London E17 4QR",
+      "data_source": "google_places",
+      "search_query": "Le Delice, 114 Hoe St, London E17 4QR",
+      "website": "http://www.ledelicee17.co.uk/",
+      "website_status": "reachable",
+      "organiser_website": "http://www.ledelicee17.co.uk/",
+      "organiser_website_status": "reachable"
     },
     {
       "activity_id": "692ede9c-84aa-4854-88e1-040da950f60d",
@@ -11338,6 +11198,17 @@
       "website_status": "source_blocked_429",
       "organiser_website": "https://www.minimozart.com/",
       "organiser_website_status": "reachable"
+    },
+    {
+      "activity_id": "69f308d6-3d7d-47a8-9129-d8dbaea786fb",
+      "activity_name": "Ray Park Cafe",
+      "address": "Ray Park Cafe James Leal Centre Ray Park, Snakes Ln E, London IG8 7JF",
+      "data_source": "google_places",
+      "search_query": "Ray Park Cafe, Ray Park Cafe James Leal Centre Ray Park, Snakes Ln E, London IG8 7JF",
+      "website": null,
+      "website_status": "missing",
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "6a0a39e9-2740-42cb-94c1-d3ba9b26a8ac",
@@ -11609,12 +11480,10 @@
       "address": "Horse Guards Parade, London, SW1A 2BJ",
       "data_source": "Time Out",
       "search_query": "St James's Park, Horse Guards Parade, London, SW1A 2BJ",
-      "website": "http://www.royalparks.org.uk/parks/st_james_park",
-      "website_status": "http_404",
-      "organiser_website": "http://www.royalparks.org.uk/parks/st_james_park",
-      "organiser_website_status": "http_404",
-      "proposed_website": "https://www.timeout.com/london/attractions/st-jamess-park",
-      "proposed_organiser_website": "https://www.royalparks.org.uk/"
+      "website": "https://www.timeout.com/london/attractions/st-jamess-park",
+      "website_status": "reachable",
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "6db05b55-6ce9-443c-b962-99c2fe9158ea",
@@ -11800,9 +11669,8 @@
       "search_query": "Sensory Play and Learn at Best Start Family Hub Chingford, 5 Oaks Grove, London E4 6EY",
       "website": "https://www.walthamforest.gov.uk/events/sensory-play-and-learn-best-start-family-hub-chingford",
       "website_status": "reachable",
-      "organiser_website": "https://www.walthamforest.gov.uk/content/best-start-family-hubs",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.walthamforest.gov.uk/"
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "6f751ab6-20f8-4c1b-9a95-b70aea5b6ce2",
@@ -11898,8 +11766,8 @@
       "address": "160 Green Lanes, London N16 9DL",
       "data_source": "Google Places",
       "search_query": "Olivia Cafe, 160 Green Lanes, London N16 9DL",
-      "website": "https://maps.google.com/?cid=11569581691199843425&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -11986,8 +11854,8 @@
       "address": "199, 199A Stockwell Rd, London SW9 9SJ",
       "data_source": "Google Places",
       "search_query": "Satos Kitchen Brixton, 199, 199A Stockwell Rd, London SW9 9SJ",
-      "website": "https://maps.google.com/?cid=12457041405622932666&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -12119,7 +11987,7 @@
       "data_source": "Happity",
       "search_query": "YOGAHOME POSTNATAL PILATES, 14 Allen Rd, London N16 8SD",
       "website": "https://www.happity.co.uk/schedules/yogahome-london-yogahome-postnatal-pilates",
-      "website_status": "source_blocked_403",
+      "website_status": "source_blocked_429",
       "organiser_website": "https://yogahome.com/",
       "organiser_website_status": "reachable"
     },
@@ -12274,9 +12142,8 @@
       "search_query": "DRAMA KIDS DRAMA KIDS NORTH LONDON, Our lady of Good Council, 24 Bouverie Rd, London N16 0AJ",
       "website": "https://www.happity.co.uk/schedules/drama-kids-london-catholic-church-of-our-lady-of-good-counsel-stoke-newington-drama-kids-north-london",
       "website_status": "source_blocked_429",
-      "organiser_website": "https://www.dramakids.co.uk/north-london.html",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.dramakids.co.uk/"
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "73dc0282-a359-4f00-920c-c8b534d68f0a",
@@ -12310,6 +12177,17 @@
       "website_status": "source_blocked_429",
       "organiser_website": "https://www.miniathletics.com/",
       "organiser_website_status": "reachable"
+    },
+    {
+      "activity_id": "7400b2d0-fa67-4d4e-b448-2309b00df4ec",
+      "activity_name": "Water Babies at Golden Lane Campus",
+      "address": "101 Whitecross St, London EC1Y 8JA",
+      "data_source": "google_places",
+      "search_query": "Water Babies at Golden Lane Campus, 101 Whitecross St, London EC1Y 8JA",
+      "website": null,
+      "website_status": "missing",
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "741aa1bf-3522-4656-a03c-2a430e40f7f0",
@@ -12418,9 +12296,8 @@
       "search_query": "E17ESPANOL E17 SPANISH CLASSES BEGINNERS 2 4 YEARS, 1A Jewel Rd, London E17 4QU",
       "website": "https://www.happity.co.uk/schedules/e17espanol-london-walthamstow-quaker-meeting-house-e17-spanish-classes-beginners-2-4-years",
       "website_status": "source_blocked_429",
-      "organiser_website": "https://e17espanol.wixsite.com/e17espanol",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": null
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "75621bc5-6133-47f2-97a9-6ba9149c3e9b",
@@ -12467,6 +12344,17 @@
       "organiser_website_status": "reachable"
     },
     {
+      "activity_id": "75eb0767-b3d8-404a-85f1-5c9b620da229",
+      "activity_name": "Kentish Town Sports Centre",
+      "address": "Grafton Rd, London NW5 3DU",
+      "data_source": "google_places",
+      "search_query": "Kentish Town Sports Centre, Grafton Rd, London NW5 3DU",
+      "website": "https://www.better.org.uk/leisure-centre/london/camden/kentish-town-sports-centre?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
+      "website_status": "reachable",
+      "organiser_website": "https://www.better.org.uk/leisure-centre/london/camden/kentish-town-sports-centre?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "76048405-4ee2-4138-989e-4427071fb13d",
       "activity_name": "LYRIC DANCE AND PERFORMING ARTS SCHOOL PREPARATORY BALLET",
       "address": "Oban Cl, London E13 8SJ",
@@ -12486,6 +12374,17 @@
       "website": "https://www.happity.co.uk/schedules/adventure-babies-london-prideaux-house-community-centre-little-babies",
       "website_status": "source_blocked_429",
       "organiser_website": "https://www.adventurebabies.co.uk/",
+      "organiser_website_status": "reachable"
+    },
+    {
+      "activity_id": "7623b87d-3cbc-40e7-9113-ef2a9a1d55f7",
+      "activity_name": "Full of Beans Soft Play and Cafe",
+      "address": "2 Quay Walk, Wembley HA0 1DY",
+      "data_source": "google_places",
+      "search_query": "Full of Beans Soft Play and Cafe, 2 Quay Walk, Wembley HA0 1DY",
+      "website": "https://www.fullofbeans.com/",
+      "website_status": "reachable",
+      "organiser_website": "https://www.fullofbeans.com/",
       "organiser_website_status": "reachable"
     },
     {
@@ -12555,6 +12454,17 @@
       "organiser_website_status": "missing"
     },
     {
+      "activity_id": "7668354f-49cf-4217-be45-6e78bdb89f83",
+      "activity_name": "Rainbow Soft Play and Cafe",
+      "address": "Rainbow Soft Play & Cafe, Bramley Rd, London N14 4PE",
+      "data_source": "google_places",
+      "search_query": "Rainbow Soft Play and Cafe, Rainbow Soft Play & Cafe, Bramley Rd, London N14 4PE",
+      "website": "https://rainbowsoftplay.com/",
+      "website_status": "reachable",
+      "organiser_website": "https://rainbowsoftplay.com/",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "768b17b8-63e6-411c-91db-2673f3f44eac",
       "activity_name": "MONKEY MUSIC SUMMER BABIES HOLIDAY WORKSHOP",
       "address": "Northchurch Terrace, London N1 4DA",
@@ -12571,8 +12481,8 @@
       "address": "8 Forest Rd, London E17 6JJ",
       "data_source": "Google Places",
       "search_query": "Deja Brew Cafe - Blackhorse Road, 8 Forest Rd, London E17 6JJ",
-      "website": "https://maps.google.com/?cid=17499308370628437876&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -12610,6 +12520,17 @@
       "organiser_website_status": "reachable"
     },
     {
+      "activity_id": "7740be82-607c-41be-ac24-cb3ea6e3cac6",
+      "activity_name": "Baby Sensory Leytonstone",
+      "address": "55 Wallwood Rd, London E11 1AY",
+      "data_source": "google_places",
+      "search_query": "Baby Sensory Leytonstone, 55 Wallwood Rd, London E11 1AY",
+      "website": "https://www.babysensory.com/wanstead/",
+      "website_status": "reachable",
+      "organiser_website": "https://www.babysensory.com/wanstead/",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "774e19a1-2069-4c27-ba84-a97713e09a09",
       "activity_name": "Starbucks Coffee",
       "address": "2 Western Gateway, London E16 1DR",
@@ -12619,6 +12540,28 @@
       "website_status": "reachable",
       "organiser_website": null,
       "organiser_website_status": "missing"
+    },
+    {
+      "activity_id": "7762bc00-6f91-43fb-8557-2a22f0adb518",
+      "activity_name": "Megan's at the Sorting Office (Islington Square)",
+      "address": "6 Esther Anne Pl, London N1 1WL",
+      "data_source": "google_places",
+      "search_query": "Megan's at the Sorting Office (Islington Square), 6 Esther Anne Pl, London N1 1WL",
+      "website": "https://megans.co.uk/locations/megans-at-the-sorting-office/",
+      "website_status": "reachable",
+      "organiser_website": "https://megans.co.uk/locations/megans-at-the-sorting-office/",
+      "organiser_website_status": "reachable"
+    },
+    {
+      "activity_id": "776f14c1-0239-40e3-aadf-508a57784615",
+      "activity_name": "Water Babies at Stephen Hawking School E2",
+      "address": "St Jude's Rd, London E2 9RL",
+      "data_source": "google_places",
+      "search_query": "Water Babies at Stephen Hawking School E2, St Jude's Rd, London E2 9RL",
+      "website": "https://www.waterbabies.co.uk/baby-swimming/london-north-east/stephen-hawking-sch-bethnal-green/",
+      "website_status": "reachable",
+      "organiser_website": "https://www.waterbabies.co.uk/baby-swimming/london-north-east/stephen-hawking-sch-bethnal-green/",
+      "organiser_website_status": "reachable"
     },
     {
       "activity_id": "77933d9f-1e68-4f35-bff4-b7d4a2177e0b",
@@ -12791,8 +12734,8 @@
       "address": "Martin's Courtyard, The Yards, 17 Slingsby Pl, London WC2E 9AB",
       "data_source": "Google Places",
       "search_query": "The Yards Covent Garden, Martin's Courtyard, The Yards, 17 Slingsby Pl, London WC2E 9AB",
-      "website": "https://maps.google.com/?cid=3876561023704003493&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -12868,8 +12811,8 @@
       "address": "15B Blenheim Cres, London W11 2EE",
       "data_source": "Google Places",
       "search_query": "The Notting Hill Bookshop Cafe, 15B Blenheim Cres, London W11 2EE",
-      "website": "https://maps.google.com/?cid=3703529165190999060&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -13072,6 +13015,17 @@
       "organiser_website_status": "missing"
     },
     {
+      "activity_id": "7caa0310-cb28-45f1-b39c-696e3b7bbd9b",
+      "activity_name": "Love To Swim",
+      "address": "Stepney All Saints Secondary School, Stepney Way, Stepney Green, London E1 0RH",
+      "data_source": "google_places",
+      "search_query": "Love To Swim, Stepney All Saints Secondary School, Stepney Way, Stepney Green, London E1 0RH",
+      "website": "http://www.lovetoswim.co.uk/",
+      "website_status": "reachable",
+      "organiser_website": "http://www.lovetoswim.co.uk/",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "7d074c4b-b011-4219-9ab5-6432a193a7dc",
       "activity_name": "GAIL's Bakery Millennium Bridge",
       "address": "Peter's Hill, London EC4V 4AU",
@@ -13145,9 +13099,8 @@
       "search_query": "Children s Film Club at Leyton Library, High Rd, London E10 5QH",
       "website": "https://www.walthamforest.gov.uk/events/childrens-film-club-leyton-library",
       "website_status": "reachable",
-      "organiser_website": "https://www.walthamforest.gov.uk/libraries/leyton-library",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.walthamforest.gov.uk/"
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "7edfb13e-0807-4373-8e54-3092a81b6ed2",
@@ -13486,7 +13439,7 @@
       "data_source": "Happity",
       "search_query": "Mums Art Club, 1A Jewel Rd, London E17 4QU",
       "website": "https://www.happity.co.uk/schedules/mums-art-club-london-the-quaker-meeting-house-mums-art-club",
-      "website_status": "source_blocked_403",
+      "website_status": "source_blocked_429",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -13722,24 +13675,13 @@
       "organiser_website_status": "reachable"
     },
     {
-      "activity_id": "852dc623-b186-455e-a1a5-c6becf6be4eb",
-      "activity_name": "ALWAYS BE CREATIVE LTD ALWAYS BE CREATIVE HOLIDAY CAMP",
-      "address": "48b Bouverie Rd, London N16 0AJ",
-      "data_source": "Happity",
-      "search_query": "ALWAYS BE CREATIVE LTD ALWAYS BE CREATIVE HOLIDAY CAMP, 48b Bouverie Rd, London N16 0AJ",
-      "website": "https://www.happity.co.uk/schedules/always-be-creative-ltd-london-48b-bouverie-rd-always-be-creative-holiday-camp",
-      "website_status": "source_blocked_429",
-      "organiser_website": "http://www.alwaysbecreative.co.uk/",
-      "organiser_website_status": "network_error"
-    },
-    {
       "activity_id": "854cffa1-9bab-40e3-9b73-3eadb6f867fa",
       "activity_name": "FREEDOM FIGHTERS ARTS STREET DANCE",
       "address": "Freedom Fighters Arts, Redvers St, London N1 6NE",
       "data_source": "Happity",
       "search_query": "FREEDOM FIGHTERS ARTS STREET DANCE, Freedom Fighters Arts, Redvers St, London N1 6NE",
       "website": "https://www.happity.co.uk/schedules/freedom-fighters-arts-london-freedom-fighters-arts-street-dance-wednesdays-16-00-16-50",
-      "website_status": "source_blocked_429",
+      "website_status": "source_blocked_403",
       "organiser_website": "https://www.freedomfightersarts.com/",
       "organiser_website_status": "reachable"
     },
@@ -13771,8 +13713,8 @@
       "address": "134 Aylward St, Stepney Green, London E1 0QW",
       "data_source": "Google Places",
       "search_query": "Cabin, 134 Aylward St, Stepney Green, London E1 0QW",
-      "website": "https://maps.google.com/?cid=12840145304555191086&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -13783,7 +13725,7 @@
       "data_source": "Happity",
       "search_query": "WALTHAMSTOW TOY LIBRARY AND PLAY CENTRE STAY AND PLAY SESSION, 6-8 Somers Rd, London E17 6RX",
       "website": "https://www.happity.co.uk/schedules/walthamstow-toy-library-and-play-centre-london-walthamstow-toy-library-stay-and-play-session-mondays-13-30-15-00",
-      "website_status": "source_blocked_429",
+      "website_status": "reachable",
       "organiser_website": "https://www.walthamstowtoylibrary.org/",
       "organiser_website_status": "reachable"
     },
@@ -13861,9 +13803,8 @@
       "search_query": "Abney Park Cafe by Sabel, Abney Park cafe, Stoke Newington High St, London N16 0LH",
       "website": "https://www.abneyparkcafe.com/",
       "website_status": "reachable",
-      "organiser_website": "https://sabelfood.co.uk/abney-park-cafe",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.sabelfood.co.uk/"
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "8636afde-c1cf-47a1-9fde-473c10c914e6",
@@ -13873,9 +13814,8 @@
       "search_query": "Lego club at Leyton Library, High Rd, London E10 5QH",
       "website": "https://www.walthamforest.gov.uk/events/lego-club-leyton-library",
       "website_status": "reachable",
-      "organiser_website": "https://www.walthamforest.gov.uk/libraries/leyton-library",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.walthamforest.gov.uk/"
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "8642b430-accd-4230-b15e-ebbddf886d02",
@@ -14006,9 +13946,8 @@
       "search_query": "NORTH LIBRARY BABY BOUNCE, Manor Gardens, London N7 6JX",
       "website": "https://www.happity.co.uk/schedules/north-library-london-north-library-baby-bounce",
       "website_status": "source_blocked_429",
-      "organiser_website": "https://www.islington.gov.uk/libraries/library-branches/north-library",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.islington.gov.uk/"
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "87c803fb-09c0-405e-acd5-b100d82eb9ef",
@@ -14033,6 +13972,17 @@
       "organiser_website_status": "missing"
     },
     {
+      "activity_id": "87fd5d4e-39e4-44b7-be29-928fa3b30edf",
+      "activity_name": "Baby Sensory Southwark",
+      "address": "161 Shakespeare Rd, London SE24 0PY",
+      "data_source": "google_places",
+      "search_query": "Baby Sensory Southwark, 161 Shakespeare Rd, London SE24 0PY",
+      "website": "https://www.babysensory.com/southwark/class-info",
+      "website_status": "reachable",
+      "organiser_website": "https://www.babysensory.com/southwark/class-info",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "8805b508-0c7a-4bfd-98ca-ab3e45bbd970",
       "activity_name": "THULA MAMA SINGING WITH BABIES",
       "address": "6 Hooker's Rd, London E17 6DP",
@@ -14055,6 +14005,17 @@
       "organiser_website_status": "reachable"
     },
     {
+      "activity_id": "88b2862b-d02e-41ad-9092-b11d23094c67",
+      "activity_name": "Newham Leisure Centre",
+      "address": "Newham Leisure Centre, 281 Prince Regent Ln, London E13 8SD",
+      "data_source": "google_places",
+      "search_query": "Newham Leisure Centre, Newham Leisure Centre, 281 Prince Regent Ln, London E13 8SD",
+      "website": "https://www.better.org.uk/leisure-centre/london/newham/newham-leisure-centre?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
+      "website_status": "reachable",
+      "organiser_website": "https://www.better.org.uk/leisure-centre/london/newham/newham-leisure-centre?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "88bf6b1a-cd78-469d-a158-5cc54c6f5f79",
       "activity_name": "LYRIC DANCE AND PERFORMING ARTS SCHOOL INTRODUCTION TO PERFORMING ARTS CLASSES",
       "address": "Community Centre, 627 Barking Rd, London E13 9EZ",
@@ -14063,6 +14024,17 @@
       "website": "https://www.happity.co.uk/schedules/lyric-dance-and-performing-arts-school-london-newham-african-caribbean-resource-centre-introduction-to-performing-arts-classes",
       "website_status": "source_blocked_429",
       "organiser_website": "https://lyricdance.com/",
+      "organiser_website_status": "reachable"
+    },
+    {
+      "activity_id": "88f4cfdd-156e-456b-975c-d8ce0070d941",
+      "activity_name": "Leytonstone Leisure Centre",
+      "address": "Cathall Rd, London E11 4LA",
+      "data_source": "google_places",
+      "search_query": "Leytonstone Leisure Centre, Cathall Rd, London E11 4LA",
+      "website": "https://www.better.org.uk/leisure-centre/london/waltham-forest/leytonstone-leisure-centre?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
+      "website_status": "reachable",
+      "organiser_website": "https://www.better.org.uk/leisure-centre/london/waltham-forest/leytonstone-leisure-centre?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
       "organiser_website_status": "reachable"
     },
     {
@@ -14093,8 +14065,8 @@
       "address": "2 Reginald Rd, London E7 9HS",
       "data_source": "Google Places",
       "search_query": "Tamping Grounds, 2 Reginald Rd, London E7 9HS",
-      "website": "https://maps.google.com/?cid=18178666973213947020&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -14214,8 +14186,8 @@
       "address": "50 Allen Rd, London N16 8RZ",
       "data_source": "Google Places",
       "search_query": "Bodega 50, 50 Allen Rd, London N16 8RZ",
-      "website": "https://maps.google.com/?cid=17768954028505342287&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -14315,9 +14287,8 @@
       "search_query": "Kids Crafts at North Chingford Library Sunday, The Grn, London E4 7EN",
       "website": "https://www.walthamforest.gov.uk/events/kids-crafts-north-chingford-library-sunday",
       "website_status": "reachable",
-      "organiser_website": "https://www.walthamforest.gov.uk/libraries/chingford-library",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.walthamforest.gov.uk/"
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "8ae95a25-e7f7-4bb0-9bba-3ba5ed757889",
@@ -14386,6 +14357,17 @@
       "organiser_website_status": "reachable"
     },
     {
+      "activity_id": "8b741c42-20af-456b-b0a5-b35a8b1d163e",
+      "activity_name": "Ribbons and Taylor",
+      "address": "157 Stoke Newington Church St, London N16 0UH",
+      "data_source": "google_places",
+      "search_query": "Ribbons and Taylor, 157 Stoke Newington Church St, London N16 0UH",
+      "website": null,
+      "website_status": "missing",
+      "organiser_website": null,
+      "organiser_website_status": "missing"
+    },
+    {
       "activity_id": "8b95cb0b-229a-40d1-8847-e1525a80988a",
       "activity_name": "Haggerston Park",
       "address": "Yorkton St, London E2 8NH",
@@ -14402,12 +14384,10 @@
       "address": "215 Queens Rd, London E17 8PJ",
       "data_source": "Better Start for Life",
       "search_query": "Initial sleep consultation at Best Start Family Hub Queens Road, 215 Queens Rd, London E17 8PJ",
-      "website": "https://www.walthamforest.gov.uk/events/initial-sleep-consultation-best-start-family-hub-queens-road",
-      "website_status": "http_410",
-      "organiser_website": "https://www.walthamforest.gov.uk/content/best-start-family-hubs",
-      "organiser_website_status": "http_404",
-      "proposed_website": null,
-      "proposed_organiser_website": "https://www.walthamforest.gov.uk/"
+      "website": null,
+      "website_status": "missing",
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "8c03dcd0-2ed1-4ea5-8f57-71d101b801e9",
@@ -14472,9 +14452,8 @@
       "search_query": "ARCHWAY LIBRARY 1 BABY BOUNCE, Hamlyn House, Highgate Hl, Archway, London N19 5PH",
       "website": "https://www.happity.co.uk/schedules/archway-library-london-archway-library-1-baby-bounce",
       "website_status": "source_blocked_429",
-      "organiser_website": "https://www.islington.gov.uk/libraries/library-services/children-and-families/baby-bounce-under-5s-and-toy-libraries",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.islington.gov.uk/"
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "8d383a7c-2e24-41f2-9584-ef25cfc4b251",
@@ -14526,8 +14505,8 @@
       "address": "55 St Helens Gardens, London W10 6LN",
       "data_source": "Google Places",
       "search_query": "Adriana's Cafe and Eatery, 55 St Helens Gardens, London W10 6LN",
-      "website": "https://maps.google.com/?cid=6960239074345842769&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -14944,8 +14923,8 @@
       "address": "1 Principal Place, Worship St, London EC2A 2FA",
       "data_source": "Google Places",
       "search_query": "children's books, 1 Principal Place, Worship St, London EC2A 2FA",
-      "website": "https://maps.google.com/?cid=10844958466843514902&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -14978,7 +14957,7 @@
       "data_source": "Happity",
       "search_query": "PERFORM PETER PAN DRAMA DANCE and SINGING HOLIDAY COURSE FOR 4 10S, 186 Grove Rd., Old Ford, London E3 5TG",
       "website": "https://www.happity.co.uk/schedules/perform-london-victoria-park-baptist-church-peter-pan-drama-dance-singing-holiday-course-for-4-10s",
-      "website_status": "source_blocked_403",
+      "website_status": "source_blocked_429",
       "organiser_website": "https://www.perform.org.uk/",
       "organiser_website_status": "reachable"
     },
@@ -15159,6 +15138,28 @@
       "organiser_website_status": "reachable"
     },
     {
+      "activity_id": "94d28cc2-5934-42b9-a15d-c0c0f18689be",
+      "activity_name": "Bump and Baby Club Antenatal Classes in Belsize Park and Primrose Hill",
+      "address": "90 Gloucester Ave., London NW1 8HX",
+      "data_source": "google_places",
+      "search_query": "Bump and Baby Club Antenatal Classes in Belsize Park and Primrose Hill, 90 Gloucester Ave., London NW1 8HX",
+      "website": "https://bumpandbabyclub.com/?utm_source=gbp&utm_medium=organic&utm_campaign=gbp_belsize_park",
+      "website_status": "reachable",
+      "organiser_website": "https://bumpandbabyclub.com/?utm_source=gbp&utm_medium=organic&utm_campaign=gbp_belsize_park",
+      "organiser_website_status": "reachable"
+    },
+    {
+      "activity_id": "94f9c6a6-44a9-4deb-816c-65959b3a25c2",
+      "activity_name": "Swimming Nature - Chingford",
+      "address": "2 Morrison Ave, London E4 8SA",
+      "data_source": "google_places",
+      "search_query": "Swimming Nature - Chingford, 2 Morrison Ave, London E4 8SA",
+      "website": "https://swimmingnature.com/our-pools",
+      "website_status": "reachable",
+      "organiser_website": "https://swimmingnature.com/our-pools",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "9506d211-a417-407d-b50f-1397932b58c9",
       "activity_name": "Keir Hardie Play Area",
       "address": "38 Radland Rd, London E16 1LN",
@@ -15197,8 +15198,8 @@
       "address": "36-38 Well St, London E9 7PX",
       "data_source": "Google Places",
       "search_query": "Number 1 Cafe Hackney, 36-38 Well St, London E9 7PX",
-      "website": "https://maps.google.com/?cid=2903139118390447352&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -15241,8 +15242,8 @@
       "address": "Mayfield Rd, London N8 9LP",
       "data_source": "Google Places",
       "search_query": "Stationers Park Cafe, Mayfield Rd, London N8 9LP",
-      "website": "https://maps.google.com/?cid=16031034116219792954&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -15252,8 +15253,8 @@
       "address": "3A Barnsbury Rd, London N1 0HG",
       "data_source": "Google Places",
       "search_query": "Coffee Berry, 3A Barnsbury Rd, London N1 0HG",
-      "website": "https://maps.google.com/?cid=3769196558018123416&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -15277,6 +15278,17 @@
       "website": "https://www.happity.co.uk/schedules/perform-london-golden-lane-community-hall-perform-tuesdays-16-00-17-00",
       "website_status": "source_blocked_429",
       "organiser_website": "https://www.perform.org.uk/",
+      "organiser_website_status": "reachable"
+    },
+    {
+      "activity_id": "9636734b-a7bb-4550-89d7-420a3b93a60b",
+      "activity_name": "Swimming Nature - Highbury",
+      "address": "Unit, A, Fitness First Highbury, East Stand, Avenell Rd, Highbury Square, London N5 1FE",
+      "data_source": "google_places",
+      "search_query": "Swimming Nature - Highbury, Unit, A, Fitness First Highbury, East Stand, Avenell Rd, Highbury Square, London N5 1FE",
+      "website": "https://www.swimmingnature.com/our-pools/",
+      "website_status": "reachable",
+      "organiser_website": "https://www.swimmingnature.com/our-pools/",
       "organiser_website_status": "reachable"
     },
     {
@@ -15495,7 +15507,7 @@
       "data_source": "Google Places",
       "search_query": "Barnes Bookshop, 98 Church Rd, London SW13 0DQ",
       "website": "http://www.barnesbookshop.com/",
-      "website_status": "reachable",
+      "website_status": "timeout",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -15604,8 +15616,8 @@
       "address": "4 Crouch Hill, Finsbury Park, London N4 4AU",
       "data_source": "Google Places",
       "search_query": "Eva Crouch Hill, 4 Crouch Hill, Finsbury Park, London N4 4AU",
-      "website": "https://maps.google.com/?cid=18364380726833600828&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -16132,8 +16144,8 @@
       "address": "179 Francis Rd, London E10 6NQ",
       "data_source": "Google Places",
       "search_query": "Tamping Grounds, 179 Francis Rd, London E10 6NQ",
-      "website": "https://maps.google.com/?cid=1073544571568038120&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -16232,10 +16244,9 @@
       "data_source": "Happity",
       "search_query": "MUMS ART CLUB, 1A Jewel Rd, London E17 4QU",
       "website": "https://www.happity.co.uk/schedules/mums-art-club-london-the-quaker-meeting-house-mums-art-club",
-      "website_status": "source_blocked_403",
-      "organiser_website": "https://www.lauragee.co.uk/mums-art-club",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.lauragee.co.uk/"
+      "website_status": "source_blocked_429",
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "9f81e7a5-3881-4a5e-88ad-266bdb01d624",
@@ -16414,6 +16425,17 @@
       "organiser_website_status": "missing"
     },
     {
+      "activity_id": "a090b77e-cf19-4511-89cd-d274195c3576",
+      "activity_name": "Pancras Square Leisure",
+      "address": "5 Pancras Sq, London N1C 4AG",
+      "data_source": "google_places",
+      "search_query": "Pancras Square Leisure, 5 Pancras Sq, London N1C 4AG",
+      "website": "https://www.better.org.uk/leisure-centre/london/camden/pancras-square?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
+      "website_status": "reachable",
+      "organiser_website": "https://www.better.org.uk/leisure-centre/london/camden/pancras-square?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "a0b3c55e-1a34-45e3-8b6f-3840f1b1afd8",
       "activity_name": "Bach to Baby Half Term Concert, East Dulwich",
       "address": "St John the Evangelist, 62A East Dulwich Road, East Dulwich, SE22 9AT",
@@ -16497,7 +16519,7 @@
       "data_source": "Happity",
       "search_query": "LISA GILBERT ACADEMY OF BALLET AND PERFORMING ARTS PRE SCHOOL ACRO GYMNASTICS, Old Bethnal Green Rd, London E2 6PR",
       "website": "https://www.happity.co.uk/schedules/lisa-gilbert-academy-of-ballet-and-performing-arts-london-oaklands-secondary-school-pre-school-acro-gymnastics",
-      "website_status": "source_blocked_403",
+      "website_status": "source_blocked_429",
       "organiser_website": "https://www.lgacademy.co.uk/",
       "organiser_website_status": "reachable"
     },
@@ -16716,8 +16738,8 @@
       "address": "17 London Rd, Elephant and Castle, London SE1 6JX",
       "data_source": "Google Places",
       "search_query": "Art Cafe London, 17 London Rd, Elephant and Castle, London SE1 6JX",
-      "website": "https://maps.google.com/?cid=3820322347442806564&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -16931,16 +16953,26 @@
       "organiser_website_status": "reachable"
     },
     {
+      "activity_id": "a5aa5aa9-7d2d-44ff-adef-693075a66a4f",
+      "activity_name": "Water Babies at Whitefields Academy School",
+      "address": "MacDonald Rd, London E17 4AZ",
+      "data_source": "google_places",
+      "search_query": "Water Babies at Whitefields Academy School, MacDonald Rd, London E17 4AZ",
+      "website": "https://www.waterbabies.co.uk/",
+      "website_status": "reachable",
+      "organiser_website": "https://www.waterbabies.co.uk/",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "a614ea4f-3992-4893-9348-f9ed41330c3e",
       "activity_name": "Beans and Bites",
       "address": "244 Morning Ln, London E9 6RQ",
       "data_source": "Google Places",
       "search_query": "Beans and Bites, 244 Morning Ln, London E9 6RQ",
-      "website": "https://goo.gl/maps/XXXX",
-      "website_status": "http_404",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
-      "organiser_website_status": "missing",
-      "proposed_website": null
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "a6441b2d-49a8-4f62-b158-073eebcff398",
@@ -17192,9 +17224,19 @@
       "search_query": "Children s Film Club at Lea Bridge Library, Lea Bridge Library, Lea Bridge Road, London E10 7HU",
       "website": "https://www.walthamforest.gov.uk/events/childrens-film-club-lea-bridge-library",
       "website_status": "reachable",
-      "organiser_website": "https://www.walthamforest.gov.uk/libraries/events-and-bookings",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.walthamforest.gov.uk/"
+      "organiser_website": null,
+      "organiser_website_status": "missing"
+    },
+    {
+      "activity_id": "a9294415-eca5-47db-a89e-313c7dc9779d",
+      "activity_name": "Toddler Sense Balham",
+      "address": "197 Balham High Rd, London SW17 8AN",
+      "data_source": "google_places",
+      "search_query": "Toddler Sense Balham, 197 Balham High Rd, London SW17 8AN",
+      "website": "https://www.toddlersense.com/balham",
+      "website_status": "reachable",
+      "organiser_website": "https://www.toddlersense.com/balham",
+      "organiser_website_status": "reachable"
     },
     {
       "activity_id": "a95e0c2b-8de9-4f87-8808-8d4bf15d30c3",
@@ -17301,8 +17343,8 @@
       "address": "495 Barking Rd, London E6 2LN",
       "data_source": "Google Places",
       "search_query": "Friendly Cafe / Cozy Beans Cafe, 495 Barking Rd, London E6 2LN",
-      "website": "https://maps.google.com/?cid=7026637310476698315&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -17340,17 +17382,26 @@
       "organiser_website_status": "missing"
     },
     {
+      "activity_id": "ab10f281-5fc3-4a58-86fe-dc156ba58e56",
+      "activity_name": "Swimming Nature - Southwark",
+      "address": "Darwin Court, 1 Crail Row, London SE17 1AD",
+      "data_source": "google_places",
+      "search_query": "Swimming Nature - Southwark, Darwin Court, 1 Crail Row, London SE17 1AD",
+      "website": "https://www.swimmingnature.com/our-pools/darwin-court-peabody.html",
+      "website_status": "source_blocked_403",
+      "organiser_website": "https://www.swimmingnature.com/our-pools/darwin-court-peabody.html",
+      "organiser_website_status": "source_blocked_403"
+    },
+    {
       "activity_id": "ab69a83d-9839-4927-979d-cb45a96bcd6e",
       "activity_name": "Bourne Hall Museum",
       "address": "Spring Street Ewell Surrey KT17 1UF",
       "data_source": "Museums London",
       "search_query": "Bourne Hall Museum, Spring Street Ewell Surrey KT17 1UF",
-      "website": "http://www.epsom-ewell.gov.uk/EEBC/Leisure+and+Culture/Bourne+Hall/Museums+and+galleries/",
-      "website_status": "http_404",
-      "organiser_website": "http://www.epsom-ewell.gov.uk/EEBC/Leisure+and+Culture/Bourne+Hall/Museums+and+galleries/",
-      "organiser_website_status": "http_404",
-      "proposed_website": "https://www.museumslondon.org/museum/146/bourne-hall-museum",
-      "proposed_organiser_website": "https://www.epsom-ewell.gov.uk/"
+      "website": "https://www.museumslondon.org/museum/146/bourne-hall-museum",
+      "website_status": "reachable",
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "ab750991-10a7-4589-8228-8d80e480cb77",
@@ -17427,6 +17478,17 @@
       "website": "https://www.happity.co.uk/schedules/soccerdays-woodford-woodford-memorial-yellow-class",
       "website_status": "source_blocked_429",
       "organiser_website": "https://www.soccerdays.co.uk/",
+      "organiser_website_status": "reachable"
+    },
+    {
+      "activity_id": "ac0d9db5-a6b8-4fd4-9bfe-d04a7b15c317",
+      "activity_name": "Chingford Baby Sensory",
+      "address": "Mornington Hall, The Green Walk, London E4 7EN",
+      "data_source": "google_places",
+      "search_query": "Chingford Baby Sensory, Mornington Hall, The Green Walk, London E4 7EN",
+      "website": "https://www.babysensory.com/loughton",
+      "website_status": "reachable",
+      "organiser_website": "https://www.babysensory.com/loughton",
       "organiser_website_status": "reachable"
     },
     {
@@ -17524,7 +17586,7 @@
       "data_source": "Happity",
       "search_query": "FOXES CLUB FOOTBALL 5 7 YEARS, The Highams Park",
       "website": "https://www.happity.co.uk/schedules/foxes-club-woodford-green-the-highams-park-football-5-7-years",
-      "website_status": "source_blocked_403",
+      "website_status": "source_blocked_429",
       "organiser_website": "https://foxesclub.com/",
       "organiser_website_status": "reachable"
     },
@@ -17560,6 +17622,17 @@
       "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
+    },
+    {
+      "activity_id": "ad769c38-5930-464b-9ba3-544d67a6e4a7",
+      "activity_name": "Swim Now",
+      "address": "10 Godliman St, London EC4V 5AJ",
+      "data_source": "google_places",
+      "search_query": "Swim Now, 10 Godliman St, London EC4V 5AJ",
+      "website": "https://www.swimnow.co.uk/london-swimming-lessons/",
+      "website_status": "reachable",
+      "organiser_website": "https://www.swimnow.co.uk/london-swimming-lessons/",
+      "organiser_website_status": "reachable"
     },
     {
       "activity_id": "ad809915-385a-4f44-b076-295c8e7768bb",
@@ -17705,6 +17778,17 @@
       "organiser_website_status": "reachable"
     },
     {
+      "activity_id": "aea10772-c4f7-4995-8190-aadf269d5149",
+      "activity_name": "St Johns Wood Swim School",
+      "address": "83 Allitsen Rd, London NW8 7AS",
+      "data_source": "google_places",
+      "search_query": "St Johns Wood Swim School, 83 Allitsen Rd, London NW8 7AS",
+      "website": "http://www.stjohnswoodswimschool.com/",
+      "website_status": "reachable",
+      "organiser_website": "http://www.stjohnswoodswimschool.com/",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "aebba1e3-d615-44a2-9b5b-3f81a5c4c03f",
       "activity_name": "CREATIVE ARTS KIDS BALLET AND CREATIVE DANCE 5 7Y",
       "address": "16 Northwold Rd, London N16 7HR",
@@ -17755,7 +17839,7 @@
       "data_source": "Happity",
       "search_query": "TODDLER SENSE NEW EXPLORERS 13 MONTHS TO 2 YEARS, 114 High Rd, London E18 2QS",
       "website": "https://www.happity.co.uk/schedules/toddler-sense-south-woodford-south-woodford-library-and-gym-toddler-sense-new-explorers-13-months-to-2-years",
-      "website_status": "source_blocked_403",
+      "website_status": "source_blocked_429",
       "organiser_website": "https://www.toddlersense.com/",
       "organiser_website_status": "reachable"
     },
@@ -17853,8 +17937,8 @@
       "address": "277 Green Lanes, Finsbury Park, London N4 2EX",
       "data_source": "Google Places",
       "search_query": "Dream Cafe, 277 Green Lanes, Finsbury Park, London N4 2EX",
-      "website": "https://maps.google.com/?cid=7635344913902519598&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -17953,8 +18037,19 @@
       "data_source": "Happity",
       "search_query": "PERFORM PETER PAN DRAMA DANCE and SINGING HOLIDAY COURSE FOR 4 10S, Golden Lane Estate Community Centre, Golden Lane Estate, London EC1Y 0SA",
       "website": "https://www.happity.co.uk/schedules/perform-london-golden-lane-community-hall-peter-pan-drama-dance-singing-holiday-course-for-4-10s",
-      "website_status": "source_blocked_429",
+      "website_status": "source_blocked_403",
       "organiser_website": "https://www.perform.org.uk/",
+      "organiser_website_status": "reachable"
+    },
+    {
+      "activity_id": "b07f9887-25cb-4eb7-8c42-95b3c2e0789c",
+      "activity_name": "Baby Sensory Wanstead/Leytonstone",
+      "address": "Friends Meeting House, Bush Rd, London E11 3AU",
+      "data_source": "google_places",
+      "search_query": "Baby Sensory Wanstead/Leytonstone, Friends Meeting House, Bush Rd, London E11 3AU",
+      "website": "https://www.babysensory.com/wanstead/",
+      "website_status": "reachable",
+      "organiser_website": "https://www.babysensory.com/wanstead/",
       "organiser_website_status": "reachable"
     },
     {
@@ -18304,8 +18399,8 @@
       "address": "261 Hoe St, London E17 9PT",
       "data_source": "Google Places",
       "search_query": "Green Area Roastery, 261 Hoe St, London E17 9PT",
-      "website": "https://maps.google.com/?cid=1213116342253869744&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -18329,17 +18424,6 @@
       "website": "https://www.happity.co.uk/schedules/dance-studio-nika-chingford-south-chingford-congregational-church-dance-studio-nika",
       "website_status": "source_blocked_429",
       "organiser_website": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGMsPE7UikFA8BdphxvUmf_0HfsVMDxyHNWJQuoaTwsL3puHqNflcrBeOsbK_HClmOkhGL5oOYHbFYiDm42S7k1AddbMnbJk0cWv60tkMyiyIHzZhXP7B1t",
-      "organiser_website_status": "reachable"
-    },
-    {
-      "activity_id": "b520bdca-2f7a-449b-a312-b9cac50d491d",
-      "activity_name": "FORM PERSONAL TRAININGMUM AND BABY POSTNATAL GROUP PT SESSIONS FORM MUM AND BABY POSTNATAL GROUP PT SESSIONS MONDAY",
-      "address": "Form 8 Broadway Market Mews, London, Greater London, E8 4TS",
-      "data_source": "Happity",
-      "search_query": "FORM PERSONAL TRAININGMUM AND BABY POSTNATAL GROUP PT SESSIONS FORM MUM AND BABY POSTNATAL GROUP PT SESSIONS MONDAY, Form 8 Broadway Market Mews, London, Greater London, E8 4TS",
-      "website": "https://www.happity.co.uk/schedules/form-personal-trainingmum-and-baby-postnatal-group-pt-sessions-london-form-personal-training-form-mum-and-baby-postnatal-group-pt-sessions-monday",
-      "website_status": "source_blocked_429",
-      "organiser_website": "https://www.formpersonaltraining.co.uk/",
       "organiser_website_status": "reachable"
     },
     {
@@ -18629,6 +18713,17 @@
       "organiser_website_status": "reachable"
     },
     {
+      "activity_id": "b821f846-0c53-4184-beab-84c8c7eb2cf1",
+      "activity_name": "Mare Street Market Hackney",
+      "address": "117 Mare St, London E8 4RU",
+      "data_source": "google_places",
+      "search_query": "Mare Street Market Hackney, 117 Mare St, London E8 4RU",
+      "website": "https://marestreetmarket.com/hackney/",
+      "website_status": "reachable",
+      "organiser_website": "https://marestreetmarket.com/hackney/",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "b84982bb-9169-4452-b66a-b3cbac0be65d",
       "activity_name": "LOVE STORY BIRTH PREGNANCY YOGA",
       "address": "Dane Pl, Bow, London E3 5EJ",
@@ -18799,8 +18894,8 @@
       "address": "Maida Vale Station, Forecourt, Randolph Ave., London W9 1JS",
       "data_source": "Google Places",
       "search_query": "SO Cafe London, Maida Vale Station, Forecourt, Randolph Ave., London W9 1JS",
-      "website": "https://maps.google.com/?cid=477174656761338256&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -18845,9 +18940,8 @@
       "search_query": "Saturday Craft session at Hale End Library, Castle Ave, London E4 9QD",
       "website": "https://www.walthamforest.gov.uk/events/saturday-craft-session-hale-end-library",
       "website_status": "reachable",
-      "organiser_website": "https://www.walthamforest.gov.uk/libraries/hale-end-library",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.walthamforest.gov.uk/"
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "baa4b9a5-5a26-474c-a1df-cec88861ffa5",
@@ -18921,8 +19015,8 @@
       "address": "23 Kirkdale Rd, Bushwood, London E11 1HP",
       "data_source": "Google Places",
       "search_query": "No.23 Cafe, 23 Kirkdale Rd, Bushwood, London E11 1HP",
-      "website": "https://maps.google.com/?cid=12335943411081357162&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -18965,8 +19059,8 @@
       "address": "100 Tottenhall Rd, London N13 6DG",
       "data_source": "Google Places",
       "search_query": "The Yard Rock, 100 Tottenhall Rd, London N13 6DG",
-      "website": "https://maps.google.com/?cid=14568475151062825566&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -19011,9 +19105,8 @@
       "search_query": "Mapledene Music and Movement - 0 to 2 years, 54 Mapledene Rd, London E8 3LE",
       "website": "https://education.hackney.gov.uk/sites/default/files/document/London%20Fields%20and%20Shoreditch%20Park%20Timetable.pdf",
       "website_status": "reachable",
-      "organiser_website": "https://education.hackney.gov.uk/content/childrens-centres",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://education.hackney.gov.uk/"
+      "organiser_website": "https://education.hackney.gov.uk/sites/default/files/document/London%20Fields%20and%20Shoreditch%20Park%20Timetable.pdf",
+      "organiser_website_status": "reachable"
     },
     {
       "activity_id": "bc52512f-3a6a-45fe-81ae-0f5134a230a5",
@@ -19067,9 +19160,8 @@
       "search_query": "Grandparents Group at Best Start Family Hub Chingford, 5 Oaks Grove, London E4 6EY",
       "website": "https://www.walthamforest.gov.uk/events/grandparents-group-best-start-family-hub-chingford",
       "website_status": "reachable",
-      "organiser_website": "https://www.walthamforest.gov.uk/content/best-start-family-hubs",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.walthamforest.gov.uk/"
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "bcfda34c-78a3-4869-8fb3-bf68a664671f",
@@ -19143,8 +19235,8 @@
       "address": "Wells Terrace, Finsbury Park, London N4 2AL",
       "data_source": "Google Places",
       "search_query": "Arch cafe, Wells Terrace, Finsbury Park, London N4 2AL",
-      "website": "https://maps.google.com/?cid=7040619013195116224&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -19180,6 +19272,17 @@
       "website_status": "source_blocked_429",
       "organiser_website": "https://www.hartbeeps.com/",
       "organiser_website_status": "source_blocked_403"
+    },
+    {
+      "activity_id": "be423fac-b338-4da1-9b1e-e48b2de74669",
+      "activity_name": "Kinder Island Soft Play",
+      "address": "Studio 4, 121 Monier Rd, Fish Island, London E3 2PS",
+      "data_source": "google_places",
+      "search_query": "Kinder Island Soft Play, Studio 4, 121 Monier Rd, Fish Island, London E3 2PS",
+      "website": "https://kinderisland.co.uk/",
+      "website_status": "reachable",
+      "organiser_website": "https://kinderisland.co.uk/",
+      "organiser_website_status": "reachable"
     },
     {
       "activity_id": "be64c0e4-07d7-4570-8281-9e96cc5c3364",
@@ -19462,8 +19565,8 @@
       "address": "24 Stoneway Walk, London E3 5SH",
       "data_source": "Google Places",
       "search_query": "Alia's Cafe, 24 Stoneway Walk, London E3 5SH",
-      "website": "https://maps.google.com/?cid=6429589855895145501&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -19485,7 +19588,7 @@
       "data_source": "Happity",
       "search_query": "MOON WOMEN S HEALTH POSTNATAL YOGA, Ground Floor, Shop, 63 Chetwynd Rd, London NW5 1BX",
       "website": "https://www.happity.co.uk/schedules/moon-women-s-health-london-moon-postnatal-yoga",
-      "website_status": "source_blocked_403",
+      "website_status": "source_blocked_429",
       "organiser_website": "https://www.mwhealth.co.uk/",
       "organiser_website_status": "reachable"
     },
@@ -19649,12 +19752,10 @@
       "address": "Golders Green, London, NW11 7QP",
       "data_source": "Time Out",
       "search_query": "Golders Hill Park, Golders Green, London, NW11 7QP",
-      "website": "http://www.cityoflondon.gov.uk/things-to-do/green-spaces/hampstead-heath/golders-hill-park/Pages/default.aspx",
-      "website_status": "http_404",
-      "organiser_website": "http://www.cityoflondon.gov.uk/things-to-do/green-spaces/hampstead-heath/golders-hill-park/Pages/default.aspx",
-      "organiser_website_status": "http_404",
-      "proposed_website": "https://www.timeout.com/london/attractions/golders-hill-park",
-      "proposed_organiser_website": "https://www.cityoflondon.gov.uk/"
+      "website": "https://www.timeout.com/london/attractions/golders-hill-park",
+      "website_status": "reachable",
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "c39271d3-b383-400b-b470-f13149f1c9d3",
@@ -19718,9 +19819,9 @@
       "data_source": "Google Places",
       "search_query": "Crave Lab - Cafe and Grill, 1 Leytonstone Rd, London E15 1JA",
       "website": "https://cravelab.co.uk/",
-      "website_status": "reachable",
+      "website_status": "timeout",
       "organiser_website": "https://cravelab.co.uk/",
-      "organiser_website_status": "reachable"
+      "organiser_website_status": "timeout"
     },
     {
       "activity_id": "c47cfc08-088b-4296-8bbf-5fabeb400896",
@@ -19754,6 +19855,17 @@
       "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
+    },
+    {
+      "activity_id": "c52ca724-d312-4aa2-a876-76ae59103fb3",
+      "activity_name": "Baby Sensory Woolwich-Greenwich",
+      "address": "House Community Centre, Shooters Hill, Shrewsbury SE18 3EG",
+      "data_source": "google_places",
+      "search_query": "Baby Sensory Woolwich-Greenwich, House Community Centre, Shooters Hill, Shrewsbury SE18 3EG",
+      "website": "https://www.babysensory.com/woolwich-greenwich",
+      "website_status": "reachable",
+      "organiser_website": "https://www.babysensory.com/woolwich-greenwich",
+      "organiser_website_status": "reachable"
     },
     {
       "activity_id": "c531864b-ee03-42ff-a121-d5192ef01862",
@@ -20003,12 +20115,10 @@
       "address": "The Royal Institution of Great Britain 21 Albemarle Street Mayfair London W1S 4BS",
       "data_source": "Museums London",
       "search_query": "The Faraday Museum, The Royal Institution of Great Britain 21 Albemarle Street Mayfair London W1S 4BS",
-      "website": "http://www.rigb.org/museum",
-      "website_status": "http_404",
-      "organiser_website": "http://www.rigb.org/museum",
-      "organiser_website_status": "http_404",
-      "proposed_website": "https://www.museumslondon.org/museum/53/the-faraday-museum",
-      "proposed_organiser_website": "https://www.rigb.org/"
+      "website": "https://www.museumslondon.org/museum/53/the-faraday-museum",
+      "website_status": "reachable",
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "c856634c-11e5-47b1-b853-2cc0c387cba6",
@@ -20110,6 +20220,17 @@
       "organiser_website_status": "reachable"
     },
     {
+      "activity_id": "c935a67a-ee35-4755-8628-8ddaf2b81c4e",
+      "activity_name": "Baby Sensory Muswell Hill",
+      "address": "CUFOS, Top of, The Avenue, London N10 2QE",
+      "data_source": "google_places",
+      "search_query": "Baby Sensory Muswell Hill, CUFOS, Top of, The Avenue, London N10 2QE",
+      "website": "http://www.babysensory.com/muswell-hill",
+      "website_status": "reachable",
+      "organiser_website": "http://www.babysensory.com/muswell-hill",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "c93b0c97-97a8-4bfd-8fe9-70fa9660223f",
       "activity_name": "Mirabelle Gardens Playground",
       "address": "East Village, London E20 1BX",
@@ -20119,6 +20240,17 @@
       "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
+    },
+    {
+      "activity_id": "c95a027c-d9c7-4ae0-8580-95f4fd1e84ca",
+      "activity_name": "The Blue Legume Stoke Newington",
+      "address": "St Mary's Court, 101 Stoke Newington Church St, London N16 0UD",
+      "data_source": "google_places",
+      "search_query": "The Blue Legume Stoke Newington, St Mary's Court, 101 Stoke Newington Church St, London N16 0UD",
+      "website": "https://www.thebluelegume.com/",
+      "website_status": "reachable",
+      "organiser_website": "https://www.thebluelegume.com/",
+      "organiser_website_status": "reachable"
     },
     {
       "activity_id": "c95f49b9-907e-4d82-a7f0-149efeea031f",
@@ -20269,8 +20401,8 @@
       "address": "247 Globe Rd, Bethnal Green, London E2 0HU",
       "data_source": "Google Places",
       "search_query": "Jambala Secondhand Charity Bookshop, 247 Globe Rd, Bethnal Green, London E2 0HU",
-      "website": "https://maps.google.com/?cid=17411183449771846693&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": "https://lbc.org.uk/",
       "organiser_website_status": "reachable"
     },
@@ -20335,8 +20467,8 @@
       "address": "1 Chapel Market, London N1 9EZ",
       "data_source": "Google Places",
       "search_query": "Casa Fabrizi (formerly Alpino Cafe), 1 Chapel Market, London N1 9EZ",
-      "website": "https://maps.google.com/?cid=9103744484793821456&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -20368,8 +20500,8 @@
       "address": "Albany Rd, London EN3 5UD",
       "data_source": "Google Places",
       "search_query": "Albany Park Community Cafe, Albany Rd, London EN3 5UD",
-      "website": "https://maps.google.com/?cid=16602438585309523122&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -20392,9 +20524,8 @@
       "search_query": "Kids Crafts at Leyton Library Saturday, High Rd, London E10 5QH",
       "website": "https://www.walthamforest.gov.uk/events/kids-crafts-leyton-library-saturday",
       "website_status": "reachable",
-      "organiser_website": "https://www.walthamforest.gov.uk/libraries/leyton-library",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.walthamforest.gov.uk/"
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "cc410efc-7733-4abd-90fd-e3f22cd06e5c",
@@ -20503,9 +20634,8 @@
       "search_query": "Lewis Carroll Library Baby Bounce, 166 Copenhagen St, London N1 0ST",
       "website": "https://findyour.islington.gov.uk/kb5/islington/directory/service.page?id=0si6hgy3SBg",
       "website_status": "source_blocked_403",
-      "organiser_website": "https://www.islington.gov.uk/libraries/library-branches/lewis-carroll-childrens-library",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.islington.gov.uk/"
+      "organiser_website": "https://findyour.islington.gov.uk/kb5/islington/directory/service.page?id=0si6hgy3SBg",
+      "organiser_website_status": "source_blocked_403"
     },
     {
       "activity_id": "cd6800dd-4fad-44e6-8d33-23f3d48fc89c",
@@ -20557,8 +20687,8 @@
       "address": "477a High Rd. Leyton, London E10 5EL",
       "data_source": "Google Places",
       "search_query": "Mola Break, 477a High Rd. Leyton, London E10 5EL",
-      "website": "https://maps.google.com/?cid=14304697133685718363&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -20700,8 +20830,8 @@
       "address": "Childrens Books, London E20 1EH",
       "data_source": "Google Places",
       "search_query": "Childrens Books, Childrens Books, London E20 1EH",
-      "website": "https://maps.google.com/?cid=18275525137646485928&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": "https://www.foyles.co.uk/",
       "organiser_website_status": "source_blocked_403"
     },
@@ -20711,11 +20841,10 @@
       "address": "33 Topsfield Parade, London N8 8PT",
       "data_source": "Google Places",
       "search_query": "LOVAGE, 33 Topsfield Parade, London N8 8PT",
-      "website": "https://www.bistrolovage.com/",
-      "website_status": "http_404",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
-      "organiser_website_status": "missing",
-      "proposed_website": null
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "cfce07a6-30c5-4f88-86f5-ad4d1792d2c3",
@@ -20922,7 +21051,7 @@
       "data_source": "Happity",
       "search_query": "BABY SENSORY OLDER BABIES, Leytonstone United Free Church 55 Wallwood Road, London, Greater London, E11 1AY",
       "website": "https://www.happity.co.uk/schedules/baby-sensory-london-leytonstone-united-free-church-older-babies-thursdays-10-10-10-50",
-      "website_status": "source_blocked_403",
+      "website_status": "source_blocked_429",
       "organiser_website": "https://www.babysensory.com/",
       "organiser_website_status": "reachable"
     },
@@ -21108,8 +21237,8 @@
       "address": "4 - 5 Shepherd's Bush Market, London W12 8DG",
       "data_source": "Google Places",
       "search_query": "Sweet Caroline, 4 - 5 Shepherd's Bush Market, London W12 8DG",
-      "website": "https://maps.google.com/?cid=5704857249548939956&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -21153,7 +21282,7 @@
       "data_source": "Happity",
       "search_query": "IVY STREET FAMILY CENTRE, Ivy Street Family Centre, 54 Ivy Street, London N1 5JE",
       "website": "https://www.happity.co.uk/schedules/ivy-street-family-centre-london-united-kingdom-ivy-street-family-centre-tuesdays-13-00-15-00",
-      "website_status": "source_blocked_429",
+      "website_status": "reachable",
       "organiser_website": "https://www.ivystreetfamilycentre.org.uk/",
       "organiser_website_status": "reachable"
     },
@@ -21185,8 +21314,8 @@
       "address": "The Mall, The Stratford Centre, London E15 1XQ",
       "data_source": "Google Places",
       "search_query": "Centre Cafe, The Mall, The Stratford Centre, London E15 1XQ",
-      "website": "https://maps.google.com/?cid=12075195794290169510&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -21219,7 +21348,7 @@
       "data_source": "Happity",
       "search_query": "ST AUGUSTINE S CHURCH HIGHBURY STAC TOTS, 108 Highbury New Park, London N5 2DR",
       "website": "https://www.happity.co.uk/schedules/stac-tots-london-st-augustine-s-church-stac-tots",
-      "website_status": "source_blocked_429",
+      "website_status": "source_blocked_403",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -21254,6 +21383,17 @@
       "website": "https://www.happity.co.uk/schedules/razzamataz-theatre-schools-london-the-excelsior-academy-cst-trust-razz-minis",
       "website_status": "source_blocked_429",
       "organiser_website": "https://hackney.razzamataz.co.uk/",
+      "organiser_website_status": "reachable"
+    },
+    {
+      "activity_id": "d699b1df-af90-4ac1-8d11-bac75ef3c72f",
+      "activity_name": "Swiss Cottage Leisure Centre",
+      "address": "4a Adelaide Rd, London NW3 3NF",
+      "data_source": "google_places",
+      "search_query": "Swiss Cottage Leisure Centre, 4a Adelaide Rd, London NW3 3NF",
+      "website": "https://www.better.org.uk/leisure-centre/london/camden/swiss-cottage-leisure-centre?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
+      "website_status": "reachable",
+      "organiser_website": "https://www.better.org.uk/leisure-centre/london/camden/swiss-cottage-leisure-centre?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
       "organiser_website_status": "reachable"
     },
     {
@@ -21482,8 +21622,8 @@
       "address": "Manor House, 327a Green Lanes, Finsbury Park, London N4 1BZ",
       "data_source": "Google Places",
       "search_query": "Park View Cafe, Manor House, 327a Green Lanes, Finsbury Park, London N4 1BZ",
-      "website": "https://maps.google.com/?cid=1948178397003552946&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -21691,8 +21831,8 @@
       "address": "160 Hoe St, London E17 4QH",
       "data_source": "Google Places",
       "search_query": "L'Hirondelle, 160 Hoe St, London E17 4QH",
-      "website": "https://maps.google.com/?cid=518029648345149894&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -22078,9 +22218,8 @@
       "search_query": "DOUBLE TWIST DANCE JUNIOR TWISTER 5 7YRS, Forest Ln, London E7 9BB",
       "website": "https://www.happity.co.uk/schedules/double-twist-dance-london-forest-gate-community-school-junior-twister-5-7yrs",
       "website_status": "source_blocked_429",
-      "organiser_website": "http://www.doubletwistdance.co.uk/",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": null
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "de96de44-ec9c-437c-b18e-ed13795d4ef9",
@@ -22092,6 +22231,17 @@
       "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
+    },
+    {
+      "activity_id": "de9e164d-3c30-4acd-b47d-0efd34df7873",
+      "activity_name": "Highbury Leisure Centre",
+      "address": "Highbury Cres, London N5 1RR",
+      "data_source": "google_places",
+      "search_query": "Highbury Leisure Centre, Highbury Cres, London N5 1RR",
+      "website": "https://www.better.org.uk/leisure-centre/london/islington/highbury?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
+      "website_status": "reachable",
+      "organiser_website": "https://www.better.org.uk/leisure-centre/london/islington/highbury?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
+      "organiser_website_status": "reachable"
     },
     {
       "activity_id": "dec7c603-7080-44f8-95b0-376d0d9bec9a",
@@ -22154,8 +22304,8 @@
       "address": "100 Essex Rd, London N1 8LU",
       "data_source": "Google Places",
       "search_query": "Leaf Cafe Bistro, 100 Essex Rd, London N1 8LU",
-      "website": "https://maps.google.com/?cid=1451960583990720529&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -22222,9 +22372,8 @@
       "search_query": "Kids Crafts at North Chingford Library Saturday, The Grn, London E4 7EN",
       "website": "https://www.walthamforest.gov.uk/events/kids-crafts-north-chingford-library-saturday",
       "website_status": "reachable",
-      "organiser_website": "https://www.walthamforest.gov.uk/libraries/library-events",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.walthamforest.gov.uk/"
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "e02c14ce-075b-400b-83bb-ee6191bc6cc5",
@@ -22453,7 +22602,7 @@
       "data_source": "Happity",
       "search_query": "RUSSIAN LANGUAGE SCHOOL RUSSIAN LANGUAGE GCSE EXAM PREPARATION, Pitchford St, London E15 4RZ",
       "website": "https://www.happity.co.uk/schedules/znayka-academy-russian-language-centre-notting-hill-gate-stratford-online-london-school-21-russian-language-gcse-exam-preparation",
-      "website_status": "source_blocked_403",
+      "website_status": "source_blocked_429",
       "organiser_website": "https://znayka-academy.com/",
       "organiser_website_status": "reachable"
     },
@@ -22782,8 +22931,8 @@
       "address": "38 Golders Green Rd, London NW11 8LL",
       "data_source": "Google Places",
       "search_query": "The Book Warehouse London, 38 Golders Green Rd, London NW11 8LL",
-      "website": "https://maps.google.com/?cid=4850045118241966592&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -22997,6 +23146,17 @@
       "organiser_website_status": "missing"
     },
     {
+      "activity_id": "e7a48af4-6c3e-48b7-a835-7a97ab8cb145",
+      "activity_name": "The London Play Den",
+      "address": "London NW2 6BH, UK",
+      "data_source": "google_places",
+      "search_query": "The London Play Den, London NW2 6BH, UK",
+      "website": "http://www.theplaydengroup.com/",
+      "website_status": "reachable",
+      "organiser_website": "http://www.theplaydengroup.com/",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "e7c00942-45d1-44e6-8c39-c5e328ce9318",
       "activity_name": "GAIL's Bakery Balham",
       "address": "1, Station Parade, 1 Balham High Rd, London SW12 9AZ",
@@ -23028,6 +23188,17 @@
       "website_status": "source_blocked_429",
       "organiser_website": null,
       "organiser_website_status": "missing"
+    },
+    {
+      "activity_id": "e7ea00ab-939d-4655-95ab-0fe1b7a8c9a9",
+      "activity_name": "Acoustic Brasserie",
+      "address": "97 Stoke Newington Church St, London N16 0UD",
+      "data_source": "google_places",
+      "search_query": "Acoustic Brasserie, 97 Stoke Newington Church St, London N16 0UD",
+      "website": "http://www.acousticbrasserie.co.uk/",
+      "website_status": "reachable",
+      "organiser_website": "http://www.acousticbrasserie.co.uk/",
+      "organiser_website_status": "reachable"
     },
     {
       "activity_id": "e7f2e656-bd4d-417a-83ba-d9f20ff2ef4a",
@@ -23104,7 +23275,7 @@
       "website": "https://www.happity.co.uk/schedules/baby-me-ballet-london-le-dance-studio-baby-me-ballet",
       "website_status": "source_blocked_429",
       "organiser_website": "https://www.ledancestudio.co.uk/",
-      "organiser_website_status": "network_error"
+      "organiser_website_status": "reachable"
     },
     {
       "activity_id": "e87dc9cc-253f-42e8-bb2d-4d583d28cbea",
@@ -23338,6 +23509,17 @@
       "organiser_website_status": "reachable"
     },
     {
+      "activity_id": "eade3226-375a-498d-8549-302cc36eff33",
+      "activity_name": "Food Hall @ 17 and Central",
+      "address": "17&Central, Food Hall @ 17&Central, Selborne Rd, London E17 7JR",
+      "data_source": "google_places",
+      "search_query": "Food Hall @ 17 and Central, 17&Central, Food Hall @ 17&Central, Selborne Rd, London E17 7JR",
+      "website": "https://17foodhall.co.uk/",
+      "website_status": "reachable",
+      "organiser_website": "https://17foodhall.co.uk/",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "eaed5f14-811f-434e-9d16-3a7fe0ea3fa5",
       "activity_name": "BRING YOUR BABY BRING YOUR BABY GUIDED LONDON WALK WOMEN FROM HAGGERSTON and HOXTON S HISTORY",
       "address": "London E8 4DY, UK",
@@ -23432,7 +23614,7 @@
       "data_source": "Happity",
       "search_query": "PETITE PERFORMERS JUNIOR TAP, 24 White Lion St, London N1 9PD",
       "website": "https://www.happity.co.uk/schedules/petite-performers-london-the-claremont-project-junior-tap",
-      "website_status": "source_blocked_403",
+      "website_status": "source_blocked_429",
       "organiser_website": "https://www.thepetiteperformers.com/",
       "organiser_website_status": "reachable"
     },
@@ -23519,8 +23701,8 @@
       "address": "17a Lower Marsh, London SE1 7RJ",
       "data_source": "Google Places",
       "search_query": "Enough to Feed an Elephant, 17a Lower Marsh, London SE1 7RJ",
-      "website": "https://maps.google.com/?cid=8446882494174652419&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -23587,9 +23769,8 @@
       "search_query": "NEWHAM CHINESE SCHOOL, East Ham Library 328 Barking Road, London, Greater London, E6 2RT",
       "website": "https://www.happity.co.uk/schedules/newham-chinese-school-london-east-ham-library-newham-chinese-school",
       "website_status": "source_blocked_429",
-      "organiser_website": "http://www.eastlondonculturesschoolcic.org/ncs",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": null
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "eee37e45-c30c-41c4-b490-b3adffec1560",
@@ -23757,6 +23938,17 @@
       "organiser_website_status": "reachable"
     },
     {
+      "activity_id": "f00d21fa-86c7-418d-bd5c-5d0dcf9f3bdf",
+      "activity_name": "Water Babies at Bridge School",
+      "address": "251 Hungerford Rd, London N7 9LD",
+      "data_source": "google_places",
+      "search_query": "Water Babies at Bridge School, 251 Hungerford Rd, London N7 9LD",
+      "website": "https://www.waterbabies.co.uk/baby-swimming/london-north-east/bridge-school-holloway/",
+      "website_status": "reachable",
+      "organiser_website": "https://www.waterbabies.co.uk/baby-swimming/london-north-east/bridge-school-holloway/",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "f01a8312-6db8-4d47-8e72-cee5edac3726",
       "activity_name": "Blighty",
       "address": "35-37 Blackstock Rd, Finsbury Park, London N4 2JF",
@@ -23773,8 +23965,8 @@
       "address": "232-234, High Rd. Leyton, London E10 5PS",
       "data_source": "Google Places",
       "search_query": "Palmeira Cafe, Bar and Deli, 232-234, High Rd. Leyton, London E10 5PS",
-      "website": "https://maps.google.com/?cid=15642104188890967161&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -23861,8 +24053,8 @@
       "address": "La Bakerie, 119A High St., London E11 2RL",
       "data_source": "Google Places",
       "search_query": "La Bakerie, La Bakerie, 119A High St., London E11 2RL",
-      "website": "https://maps.google.com/?cid=17567908981658446076&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "website_status": "reachable",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -23993,11 +24185,10 @@
       "address": "777-779 High Rd Leytonstone, Bushwood, London E11 4QS",
       "data_source": "Google Places",
       "search_query": "The Sunflower Cafe and Creperie, 777-779 High Rd Leytonstone, Bushwood, London E11 4QS",
-      "website": "https://www.thesunflower.cafe/",
-      "website_status": "http_404",
+      "website": null,
+      "website_status": "missing",
       "organiser_website": null,
-      "organiser_website_status": "missing",
-      "proposed_website": null
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "f2a1dec9-b8cd-4f53-bda5-7b132db9e792",
@@ -24324,12 +24515,10 @@
       "address": "Battersea Park, London, SW11 4NJ",
       "data_source": "Time Out",
       "search_query": "Go Ape Battersea, Battersea Park, London, SW11 4NJ",
-      "website": "https://goape.co.uk/days-out/london/battersea",
-      "website_status": "http_404",
-      "organiser_website": "https://goape.co.uk/days-out/london/battersea",
-      "organiser_website_status": "http_404",
-      "proposed_website": "https://www.timeout.com/london/things-to-do/go-ape-battersea",
-      "proposed_organiser_website": "https://goape.co.uk/"
+      "website": "https://www.timeout.com/london/things-to-do/go-ape-battersea",
+      "website_status": "reachable",
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "f6f4bb12-9cae-4734-ba06-86a757db5ae6",
@@ -24497,6 +24686,17 @@
       "organiser_website_status": "reachable"
     },
     {
+      "activity_id": "f8cbc986-2bed-4b2e-9766-1326a384a57d",
+      "activity_name": "Swim Now",
+      "address": "2 Morrison Ave, London E4 8SA",
+      "data_source": "google_places",
+      "search_query": "Swim Now, 2 Morrison Ave, London E4 8SA",
+      "website": "https://www.swimnow.co.uk/london-swimming-lessons/",
+      "website_status": "reachable",
+      "organiser_website": "https://www.swimnow.co.uk/london-swimming-lessons/",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "f8dabfea-9b9c-49cb-9981-d7ff277a6ca4",
       "activity_name": "Hayward Adventure Playground",
       "address": "15 Market Rd, London N7 9PL",
@@ -24547,7 +24747,7 @@
       "data_source": "Happity",
       "search_query": "WOMEN S HEATH STAMFORD HILL CIC WOMEN S TAI CHI CLASS, Springfield, London E5 9EF",
       "website": "https://www.happity.co.uk/schedules/women-s-heath-stamford-hill-cic-london-the-glass-house-women-s-tai-chi-class",
-      "website_status": "source_blocked_403",
+      "website_status": "source_blocked_429",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
@@ -24724,9 +24924,8 @@
       "search_query": "Mini Musicians Babies and Toddlers - Autumn 2026, 18A Orford Rd, London E17 9LN",
       "website": "https://www.wfmusichub.org/groups/explore/mini-musicians-baby-and-toddler",
       "website_status": "reachable",
-      "organiser_website": "https://walthamforest.gov.uk/service/music-service",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": "https://www.walthamforest.gov.uk/"
+      "organiser_website": "https://www.wfmusichub.org/groups/explore/mini-musicians-baby-and-toddler",
+      "organiser_website_status": "reachable"
     },
     {
       "activity_id": "fbfbd2f7-87c0-4f77-b664-0e938cbf500c",
@@ -24828,6 +25027,17 @@
       "organiser_website_status": "reachable"
     },
     {
+      "activity_id": "fcf957e9-e066-4847-9913-7d4fc6769d2c",
+      "activity_name": "Chingford Leisure Centre",
+      "address": "Unit 4, larkswood leisure park, New Rd, London E4 9EY",
+      "data_source": "google_places",
+      "search_query": "Chingford Leisure Centre, Unit 4, larkswood leisure park, New Rd, London E4 9EY",
+      "website": "https://www.better.org.uk/leisure-centre/london/waltham-forest/chingford-leisure-centre?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
+      "website_status": "reachable",
+      "organiser_website": "https://www.better.org.uk/leisure-centre/london/waltham-forest/chingford-leisure-centre?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "fd07608b-1067-4442-9bc0-609f9dc2c71c",
       "activity_name": "NIGHTINGALE SCHOOL OF DANCE TOTS BALLET",
       "address": "Elizabeth House 2 Hurlock Street, London, Greater London, N5 1ED",
@@ -24858,6 +25068,17 @@
       "website": "https://www.happity.co.uk/schedules/showkids-theatre-school-london-round-chapel-old-school-rooms-showkids-clapton",
       "website_status": "source_blocked_429",
       "organiser_website": "https://showkids.co.uk/",
+      "organiser_website_status": "reachable"
+    },
+    {
+      "activity_id": "fd53ef42-4a2a-4aa2-a328-8d1cd77496a6",
+      "activity_name": "Baby Sensory Canary Wharf, Wapping and Bow",
+      "address": "St Pauls Church, St Stephen's Rd, Bow, London E3 5JL",
+      "data_source": "google_places",
+      "search_query": "Baby Sensory Canary Wharf, Wapping and Bow, St Pauls Church, St Stephen's Rd, Bow, London E3 5JL",
+      "website": "http://www.babysensory.com/en/classdetails/canarywharf",
+      "website_status": "reachable",
+      "organiser_website": "http://www.babysensory.com/en/classdetails/canarywharf",
       "organiser_website_status": "reachable"
     },
     {
@@ -24938,17 +25159,26 @@
       "organiser_website_status": "missing"
     },
     {
+      "activity_id": "fe320b90-531a-4bc9-bc29-af0197225946",
+      "activity_name": "Atherton Leisure Centre",
+      "address": "189 Romford Rd, London E15 4JF",
+      "data_source": "google_places",
+      "search_query": "Atherton Leisure Centre, 189 Romford Rd, London E15 4JF",
+      "website": "https://www.better.org.uk/leisure-centre/london/newham/atherton-leisure-centre?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
+      "website_status": "reachable",
+      "organiser_website": "https://www.better.org.uk/leisure-centre/london/newham/atherton-leisure-centre?utm_source=google&utm_medium=organic&utm_campaign=google_my_business",
+      "organiser_website_status": "reachable"
+    },
+    {
       "activity_id": "fe471c61-c5e7-4211-aa99-0a32ec70d5bc",
       "activity_name": "Hyde Park",
       "address": "London, W2 4RU",
       "data_source": "Time Out",
       "search_query": "Hyde Park, London, W2 4RU",
-      "website": "http://www.royalparks.org.uk/parks/hyde_park",
-      "website_status": "http_404",
-      "organiser_website": "http://www.royalparks.org.uk/parks/hyde_park",
-      "organiser_website_status": "http_404",
-      "proposed_website": "https://www.timeout.com/london/attractions/hyde-park",
-      "proposed_organiser_website": "https://www.royalparks.org.uk/"
+      "website": "https://www.timeout.com/london/attractions/hyde-park",
+      "website_status": "reachable",
+      "organiser_website": null,
+      "organiser_website_status": "missing"
     },
     {
       "activity_id": "fe4ffb50-2f82-4517-a2f2-2c1ac59474f6",
@@ -25002,9 +25232,19 @@
       "search_query": "E17ESPANOL E17 SPANISH CLASSES BEGINNERS FROM 5 YEARS OLD, 1A Jewel Rd, London E17 4QU",
       "website": "https://www.happity.co.uk/schedules/e17espanol-london-walthamstow-quaker-meeting-house-e17-spanish-classes-beginners-from-5-years-old",
       "website_status": "source_blocked_429",
-      "organiser_website": "https://e17espanol.wixsite.com/e17espanol",
-      "organiser_website_status": "http_404",
-      "proposed_organiser_website": null
+      "organiser_website": null,
+      "organiser_website_status": "missing"
+    },
+    {
+      "activity_id": "fecc366d-66c8-4d41-9ba0-c6862e1181e0",
+      "activity_name": "Water Babies at Chestnuts Primary School",
+      "address": "La Rose Ln, London N15 3AS",
+      "data_source": "google_places",
+      "search_query": "Water Babies at Chestnuts Primary School, La Rose Ln, London N15 3AS",
+      "website": "https://www.waterbabies.co.uk/classes/london-north/chestnuts-primary-school",
+      "website_status": "reachable",
+      "organiser_website": "https://www.waterbabies.co.uk/classes/london-north/chestnuts-primary-school",
+      "organiser_website_status": "reachable"
     },
     {
       "activity_id": "fed8c2fb-b4f3-4e6c-bb2d-716bfeb608e3",
@@ -25035,7 +25275,7 @@
       "data_source": "Happity",
       "search_query": "SENSPIRED MESSY PLAY, The Wilds, Northgate Rd, Barking IG11 0AN",
       "website": "https://www.happity.co.uk/schedules/senspired-barking-the-wilds-at-barking-riverside-messy-play",
-      "website_status": "source_blocked_403",
+      "website_status": "source_blocked_429",
       "organiser_website": null,
       "organiser_website_status": "missing"
     },
