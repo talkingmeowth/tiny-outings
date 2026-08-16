@@ -1159,7 +1159,7 @@ function adminActivityUpdates(activity, values = {}) {
     start_time: values.start_time || null,
     end_time: values.end_time || null,
     description: values.description || null,
-    card_summary: cleanDisplayText(values.card_summary) || conciseCardSummary({
+    card_summary: cleanDisplayText(values.card_summary) || activity.card_summary || conciseCardSummary({
       description: values.description,
       category: values.category || activity.category,
       age_suitability: values.age_suitability,
@@ -4358,7 +4358,6 @@ function ActivityAdminEditor({ activity, saving, onSave, onArchive, onPublishDra
     start_time: String(activity.start_time || '').slice(0, 5),
     end_time: String(activity.end_time || '').slice(0, 5),
     description: activity.description || '',
-    card_summary: activity.card_summary || conciseCardSummary(activity),
     cost: activity.cost || '',
     age_suitability: activity.age_suitability || '',
     user_image_url: activity.user_image_url || '',
@@ -4379,7 +4378,6 @@ function ActivityAdminEditor({ activity, saving, onSave, onArchive, onPublishDra
       start_time: String(activity.start_time || '').slice(0, 5),
       end_time: String(activity.end_time || '').slice(0, 5),
       description: activity.description || '',
-      card_summary: activity.card_summary || conciseCardSummary(activity),
       cost: activity.cost || '',
       age_suitability: activity.age_suitability || '',
       user_image_url: activity.user_image_url || '',
@@ -4510,14 +4508,6 @@ function ActivityAdminEditor({ activity, saving, onSave, onArchive, onPublishDra
           value={form.description}
           onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
           placeholder="What parents can expect"
-        />
-      </label>
-      <label className="wide">
-        <span>Card summary</span>
-        <textarea
-          value={form.card_summary}
-          onChange={(event) => setForm((current) => ({ ...current, card_summary: event.target.value }))}
-          placeholder="Short description shown while swiping"
         />
       </label>
       <label className="wide photo-upload-field">
