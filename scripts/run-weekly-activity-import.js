@@ -12,6 +12,23 @@ const helpRequested = process.argv.includes('--help') || process.argv.includes('
 const outputDirectory = join(root, 'data', 'weekly-imports');
 const auditPath = join(outputDirectory, `${runDate}.json`);
 
+function readDotEnv(name) {
+  try {
+    return Object.fromEntries(readFileSync(join(root, name), 'utf8').replace(/^\uFEFF/, '')
+      .split(/\r?\n/).filter((line) => line && !line.trim().startsWith('#') && line.includes('='))
+      .map((line) => {
+        const index = line.indexOf('=');
+        return [line.slice(0, index).trim(), line.slice(index + 1).trim().replace(/^['"]|['"]$/g, '')];
+      }));
+  } catch {
+    return {};
+  }
+}
+
+const localEnv = readDotEnv('.env.local');
+const googleApiKey = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY
+  || localEnv.GOOGLE_PLACES_API_KEY || localEnv.GOOGLE_MAPS_API_KEY || localEnv.VITE_GOOGLE_MAPS_API_KEY;
+
 const sources = [
   {
     name: 'happity',
@@ -62,6 +79,12 @@ const sources = [
     requiresGoogleKey: true,
   },
   {
+    name: 'google-places-family',
+    script: 'import-google-places-family.js',
+    output: join(root, 'supabase', 'seed', 'activities_google_places_family.generated.sql'),
+    requiresGoogleKey: true,
+  },
+  {
     name: 'local-parks',
     script: 'build-london-parks.js',
     output: join(root, 'supabase', 'seed', 'activities_london_parks_20260711.generated.sql'),
@@ -105,7 +128,7 @@ Required for --apply (one of):
   SUPABASE_ACCESS_TOKEN        Uses the linked Supabase project (uses Supabase CLI)
 
 Required for Google Places:
-  GOOGLE_MAPS_API_KEY or GOOGLE_PLACES_API_KEY
+  GOOGLE_MAPS_API_KEY or GOOGLE_PLACES_API_KEY (environment or .env.local)
 
 The Eventbrite importer reads VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY
 from the environment or .env.local to avoid re-importing existing source URLs.
@@ -117,7 +140,7 @@ function runSource(source) {
   if (source.name === 'image-curation' && skipImageCuration) {
     return { name: source.name, status: 'skipped', reason: 'Skipped with --skip-image-curation.' };
   }
-  if (source.requiresGoogleKey && !(process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_PLACES_API_KEY)) {
+  if (source.requiresGoogleKey && !googleApiKey) {
     return { name: source.name, status: 'skipped', reason: 'Skipped: this source requires Google services, which are disabled.' };
   }
 
@@ -125,7 +148,7 @@ function runSource(source) {
   const result = spawnSync(process.execPath, [join(root, 'scripts', source.script), ...(source.args || [])], {
     cwd: root,
     encoding: 'utf8',
-    env: { ...process.env, ACTIVITY_IMPORT_RUN_DATE: runDate },
+    env: { ...process.env, GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY || googleApiKey, ACTIVITY_IMPORT_RUN_DATE: runDate },
   });
   const succeeded = result.status === 0;
 

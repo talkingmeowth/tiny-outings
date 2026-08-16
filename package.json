@@ -13,6 +13,7 @@
     "activities:best-start": "node scripts/import-waltham-forest-best-start.js",
     "activities:best-start:recurring": "node scripts/refresh-better-start-recurring-availability.js",
     "activities:google-e10": "node scripts/build-google-places-e10.js",
+    "activities:google-family": "node scripts/import-google-places-family.js",
     "activities:images": "node scripts/enrich-activity-images.js --audit",
     "activities:images:missing": "node scripts/enrich-activity-images.js --missing-only",
     "activities:images:wikimedia": "node scripts/populate-wikimedia-images.js",
