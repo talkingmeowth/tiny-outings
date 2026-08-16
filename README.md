@@ -124,6 +124,8 @@ Google-enriched activities can also store `google_place_id`, `google_place_uri`,
 
 `npm.cmd run activities:images` is the single activity-image extractor and audit. It reads published activities from Supabase, prefers a relevant image from `organiser_website`, then falls back to `website` and `source_url` listing pages. It upgrades HTTP image links to HTTPS, rejects logos, icons, SVGs, tracking pixels, app-download graphics, and other interface assets, and scores candidates for relevance, resolution, and cafe interiors or food.
 
+`npm.cmd run activities:audit-websites` checks every unarchived activity's `website` and `organiser_website` over the network. It keeps links that block automated requests, replaces confirmed broken links with an already-verified source or organiser link where possible, and otherwise clears the broken field. The generated SQL is written to `supabase/seed/activity_link_repairs.generated.sql`. Use `npm.cmd run activities:audit-websites:places` only when a Google Places key is available and the additional Places API lookup cost is acceptable; it adds the official Place website as a replacement candidate.
+
 The command writes an idempotent SQL file to `supabase/seed/activity_image_updates.generated.sql`. Review and apply that SQL to Supabase after each run. Use `npm.cmd run activities:images:missing` to only fill activities that do not yet have a website image.
 
 Availability is stored with:

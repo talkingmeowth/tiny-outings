@@ -38,6 +38,8 @@
     "activities:audit-cards": "node scripts/audit-activity-card-readiness.js",
     "activities:audit-duplicates": "node scripts/audit-cross-source-duplicates.js",
     "activities:repair-websites": "node scripts/repair-broken-activity-websites.js",
+    "activities:audit-websites": "node scripts/audit-activity-websites.js",
+    "activities:audit-websites:places": "node scripts/audit-activity-websites.js --google-places",
     "activities:weekly": "node scripts/run-weekly-activity-import.js",
     "activities:weekly:apply": "node scripts/run-weekly-activity-import.js --apply",
     "render:download": "node scripts/prepare-render-download.js",
