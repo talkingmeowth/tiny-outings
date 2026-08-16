@@ -1130,6 +1130,7 @@ function buildSubmittedPayload(
     end_time: enriched.end_time || '10:00',
     google_link: googlePlacesLink || enriched.google_link || enriched.google_place_uri || null,
     website: enriched.website || websiteLink || null,
+    organiser_website: enriched.organiser_website || null,
     child_friendly_score: numericOrNull(enriched.child_friendly_score),
     app_rating: appRating,
     number_of_reviews: Number.isFinite(reviewCount) ? reviewCount : 0,

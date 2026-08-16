@@ -1,6 +1,6 @@
 /* global process */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   isClearCafeLogoCandidate as sharedCafeLogoCandidate,
@@ -43,7 +43,10 @@ const localEnv = readDotEnv('.env.local');
 const supabaseUrl = process.env.VITE_SUPABASE_URL || localEnv.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || localEnv.VITE_SUPABASE_ANON_KEY;
 const categoryFilter = process.env.ACTIVITY_IMAGE_CATEGORY || null;
-const sourceNameFilter = process.env.ACTIVITY_IMAGE_SOURCE_NAME || null;
+const sourceNameFilters = String(process.env.ACTIVITY_IMAGE_SOURCE_NAME || '')
+  .split(',')
+  .map((value) => value.trim())
+  .filter(Boolean);
 const organiserWebsiteFilter = process.env.ACTIVITY_IMAGE_ORGANISER_WEBSITE || null;
 const verbose = process.env.ACTIVITY_IMAGE_VERBOSE === 'true';
 
@@ -188,19 +191,33 @@ function sqlString(value) {
 
 function websiteLinksForActivity(activity) {
   const links = [
-    activity.organiser_website,
-    activity.website,
-    activity.source_url,
-  ].filter((link) => link && !/google\./i.test(link));
+    { url: activity.organiser_website, sourceKind: 'organiser' },
+    { url: activity.website, sourceKind: 'listing' },
+    { url: activity.source_url, sourceKind: 'listing' },
+  ];
 
   // Fever's listing page contains the activity-specific image, while an
   // organiser home page often only has generic brand artwork.
   if (activity.source_name === 'Fever London family listings') {
-    return [...new Set([activity.website, activity.source_url, activity.organiser_website]
-      .filter((link) => link && !/google\./i.test(link)))];
+    links.splice(0, links.length,
+      { url: activity.website, sourceKind: 'listing' },
+      { url: activity.source_url, sourceKind: 'listing' },
+      { url: activity.organiser_website, sourceKind: 'organiser' },
+    );
   }
 
-  return [...new Set(links)];
+  const seen = new Set();
+  return links.filter(({ url }) => {
+    if (!url || /google\./i.test(url)) return false;
+    try {
+      const canonical = new URL(url).toString();
+      if (seen.has(canonical)) return false;
+      seen.add(canonical);
+      return true;
+    } catch {
+      return false;
+    }
+  });
 }
 
 function normaliseFeverImageUrl(imageUrl, activity) {
@@ -238,6 +255,9 @@ async function fetchPublishedActivities() {
     'google_rating',
     'google_user_rating_count',
     'image_url',
+    'scraped_image_url',
+    'website_image_url',
+    'listing_image_url',
     'image_source_url',
   ].join(',');
   const activities = [];
@@ -385,12 +405,11 @@ function imageFromHtml(html, baseUrl, activity) {
 
 async function fetchWebsiteImage(activity) {
   const curatedImage = curatedImageForActivity(activity);
-  if (curatedImage) return curatedImage;
+  if (curatedImage) return { ...curatedImage, sourceKind: 'organiser' };
 
-  // Compare both official organiser and listing sources. This avoids letting a
-  // usable but generic logo or graphic beat a stronger session or venue photo.
-  const candidates = [];
-  for (const link of websiteLinksForActivity(activity)) {
+  // A verified organiser page wins. A listing page is only used when that page
+  // cannot provide a usable image, keeping card imagery tied to the provider.
+  for (const { url: link, sourceKind } of websiteLinksForActivity(activity)) {
     try {
       const parsed = new URL(link);
       if (!['http:', 'https:'].includes(parsed.protocol)) continue;
@@ -411,18 +430,24 @@ async function fetchWebsiteImage(activity) {
       const html = await response.text();
       const feverImage = feverListingImageFromHtml(html, response.url || parsed.toString(), activity);
       if (feverImage) {
-        candidates.push({ imageUrl: feverImage, imageSourceUrl: response.url || parsed.toString(), score: 90 });
+        return {
+          imageUrl: feverImage,
+          imageSourceUrl: response.url || parsed.toString(),
+          score: 90,
+          sourceKind,
+        };
       }
       const imageCandidate = imageFromHtml(html, response.url || parsed.toString(), activity);
       if (imageCandidate) {
-        candidates.push({ ...imageCandidate, imageSourceUrl: response.url || parsed.toString() });
+        return { ...imageCandidate, imageSourceUrl: response.url || parsed.toString(), sourceKind };
       }
     } catch {
       // Try the next candidate URL.
     }
   }
 
-  return candidates.sort((left, right) => right.score - left.score)[0] || cafeBrandLogoForActivity(activity);
+  const fallback = cafeBrandLogoForActivity(activity);
+  return fallback ? { ...fallback, sourceKind: 'fallback' } : null;
 }
 
 async function enrichActivity(activity) {
@@ -430,17 +455,26 @@ async function enrichActivity(activity) {
 }
 
 function enrichmentResult(activity, websiteImage) {
+  const imageUrl = websiteImage?.imageUrl || null;
+  const sourceKind = websiteImage?.sourceKind || null;
   return {
     activity,
-    source: websiteImage?.imageUrl ? 'website' : 'missing',
+    source: imageUrl ? sourceKind || 'website' : 'missing',
     googlePlaceId: activity.google_place_id,
     googlePlaceUri: activity.google_place_uri,
     googlePhotoUrl: null,
     googleRating: activity.google_rating,
     googleUserRatingCount: activity.google_user_rating_count,
-    imageUrl: websiteImage?.imageUrl || null,
+    imageUrl,
+    scrapedImageUrl: imageUrl,
+    websiteImageUrl: sourceKind === 'organiser' || sourceKind === 'fallback' ? imageUrl : null,
+    listingImageUrl: sourceKind === 'listing' ? imageUrl : null,
     imageSourceUrl: websiteImage?.imageSourceUrl || null,
   };
+}
+
+export async function findWebsiteImage(activity) {
+  return fetchWebsiteImage(activity);
 }
 
 function updateValuesSql(enriched) {
@@ -452,6 +486,9 @@ function updateValuesSql(enriched) {
     `${enriched.googleRating ?? 'null'}::numeric`,
     `${enriched.googleUserRatingCount ?? 'null'}::integer`,
     `${sqlString(enriched.imageUrl)}::text`,
+    `${sqlString(enriched.scrapedImageUrl)}::text`,
+    `${sqlString(enriched.websiteImageUrl)}::text`,
+    `${sqlString(enriched.listingImageUrl)}::text`,
     `${sqlString(enriched.imageSourceUrl)}::text`,
   ].join(', ');
 }
@@ -467,6 +504,9 @@ function bulkUpdateSql(enrichedRows, overwriteImages = false) {
   google_rating,
   google_user_rating_count,
   image_url,
+  scraped_image_url,
+  website_image_url,
+  listing_image_url,
   image_source_url
 ) as (
   values
@@ -479,6 +519,9 @@ set
   google_photo_url = ${overwriteImages ? 'null' : 'coalesce(image_updates.google_photo_url, activities.google_photo_url)'},
   google_rating = coalesce(image_updates.google_rating, activities.google_rating),
   google_user_rating_count = coalesce(image_updates.google_user_rating_count, activities.google_user_rating_count),
+  scraped_image_url = ${overwriteImages ? 'image_updates.scraped_image_url' : 'coalesce(image_updates.scraped_image_url, activities.scraped_image_url)'},
+  website_image_url = ${overwriteImages ? 'image_updates.website_image_url' : 'coalesce(image_updates.website_image_url, activities.website_image_url)'},
+  listing_image_url = ${overwriteImages ? 'image_updates.listing_image_url' : 'coalesce(image_updates.listing_image_url, activities.listing_image_url)'},
   image_url = ${overwriteImages ? 'image_updates.image_url' : 'coalesce(image_updates.image_url, activities.image_url)'},
   image_source_url = ${overwriteImages ? 'image_updates.image_source_url' : 'coalesce(image_updates.image_source_url, activities.image_source_url)'},
   updated_at = now()
@@ -532,7 +575,7 @@ async function main() {
   const activities = await fetchPublishedActivities();
   const scopedActivities = activities.filter((activity) => (
     (!categoryFilter || activity.category === categoryFilter)
-    && (!sourceNameFilter || activity.source_name === sourceNameFilter)
+    && (!sourceNameFilters.length || sourceNameFilters.includes(activity.source_name))
     && (!organiserWebsiteFilter || activity.organiser_website === organiserWebsiteFilter)
   ));
   const targets = websiteOnly
@@ -540,7 +583,7 @@ async function main() {
     : force
     ? scopedActivities
     : missingOnly
-      ? scopedActivities.filter((activity) => !activity.image_url && !activity.google_photo_url)
+      ? scopedActivities.filter((activity) => !activity.scraped_image_url && !activity.website_image_url && !activity.listing_image_url && !activity.image_url)
       : scopedActivities.filter((activity) => !activity.image_url || !activity.google_photo_url);
 
   console.log(`Found ${activities.length} published activities; ${scopedActivities.length} match scope; enriching ${targets.length}.`);
@@ -580,6 +623,9 @@ async function main() {
       source_name: result.activity.source_name,
       organiser_website: result.activity.organiser_website,
       previous_image_url: result.activity.image_url,
+      scraped_image_url: result.scrapedImageUrl,
+      website_image_url: result.websiteImageUrl,
+      listing_image_url: result.listingImageUrl,
       image_url: result.imageUrl,
       image_source_url: result.imageSourceUrl,
       status: result.source,
@@ -594,7 +640,9 @@ async function main() {
   console.log(JSON.stringify(summary, null, 2));
 }
 
-main().catch((error) => {
-  console.error(error.message);
-  process.exit(1);
-});
+if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
+  main().catch((error) => {
+    console.error(error.message);
+    process.exit(1);
+  });
+}
