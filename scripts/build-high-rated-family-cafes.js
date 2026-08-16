@@ -3,6 +3,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isFamilyCafePlace } from './lib/activity-import-policy.js';
+import { googlePlacesJson } from './lib/google-places-client.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const outputSql = join(root, 'supabase', 'seed', 'activities_high_rated_family_cafes_20260711.generated.sql');
@@ -129,13 +130,7 @@ function availability(hours = {}) {
 
 async function google(url, options = {}) {
   if (!apiKey) throw new Error('Missing GOOGLE_MAPS_API_KEY.');
-  const response = await fetch(url, {
-    ...options,
-    signal: AbortSignal.timeout(20000),
-    headers: { ...(options.headers || {}), 'X-Goog-Api-Key': apiKey },
-  });
-  if (!response.ok) throw new Error(`Google Places returned ${response.status}: ${(await response.text()).slice(0, 300)}`);
-  return response.json();
+  return googlePlacesJson(url, apiKey, { ...options, signal: AbortSignal.timeout(30000) });
 }
 
 async function discover(area, textQuery) {
@@ -307,7 +302,7 @@ async function main() {
   rows.sort((left, right) => right.google_rating - left.google_rating || right.google_user_rating_count - left.google_user_rating_count);
   mkdirSync(dirname(outputSql), { recursive: true });
   mkdirSync(dirname(outputAudit), { recursive: true });
-  writeFileSync(outputSql, buildSql(rows));
+  writeFileSync(outputSql, buildSql(rows).replace('on conflict (google_place_id) where google_place_id is not null do update set', 'on conflict (source_url) do update set'));
   writeFileSync(outputAudit, JSON.stringify({ areas, minimum_rating: 4.4, minimum_review_count: 50, rows }, null, 2) + '\n');
   console.log(`Generated ${rows.length} high-rated family cafe listings.`);
 }

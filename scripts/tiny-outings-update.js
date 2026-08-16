@@ -7,8 +7,10 @@ import { fileURLToPath } from 'node:url';
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const runDate = process.env.ACTIVITY_IMPORT_RUN_DATE || new Date().toISOString().slice(0, 10);
 const applyChanges = process.argv.includes('--apply');
+const applyOnly = process.argv.includes('--apply-only');
 const skipImages = process.argv.includes('--skip-images');
 const helpRequested = process.argv.includes('--help') || process.argv.includes('-h');
+const googleJobCooldownMs = Math.max(0, Number.parseInt(process.env.GOOGLE_PLACES_JOB_COOLDOWN_MS || '65000', 10) || 0);
 const outputDirectory = join(root, 'data', 'tiny-outings-update');
 const auditPath = join(outputDirectory, `${runDate}.json`);
 
@@ -57,7 +59,7 @@ const jobs = [
 ];
 
 function printHelp() {
-  console.log(`Usage: npm run tiny-outings-update -- [--apply] [--skip-images]
+  console.log(`Usage: npm run tiny-outings-update -- [--apply] [--apply-only] [--skip-images]
 
 Runs every supported Tiny Outings importer across London and then applies the
 same shared quality contract to all results:
@@ -72,7 +74,8 @@ GOOGLE_PLACES_API_KEY is unavailable; it never silently publishes unchecked
 records. Existing archives are protected by the database trigger.
 
 With --apply, SQL is applied to DATABASE_URL with psql or the linked Supabase
-project with the Supabase CLI.`);
+project with the Supabase CLI. --apply-only reuses the latest generated SQL
+without contacting source websites or Google Places again.`);
 }
 
 function runJob(job) {
@@ -105,6 +108,11 @@ function runJob(job) {
   };
 }
 
+function waitSynchronously(milliseconds) {
+  if (milliseconds <= 0) return;
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, milliseconds);
+}
+
 function hasDatabaseChanges(filePath) {
   return existsSync(filePath) && /\b(?:insert|update|delete)\s+(?:into\s+)?public\.activities\b/i.test(readFileSync(filePath, 'utf8'));
 }
@@ -131,7 +139,25 @@ if (helpRequested) {
   process.exit(0);
 }
 
-const results = jobs.map(runJob);
+const results = [];
+if (applyOnly) {
+  for (const job of jobs) {
+    const output = join(root, job.output);
+    results.push(existsSync(output)
+      ? { name: job.name, status: 'generated', output, message: 'Using latest generated SQL without re-importing.' }
+      : { name: job.name, status: 'failed', output, reason: 'Generated SQL is missing; run the full update first.' });
+  }
+} else {
+  let lastGoogleJobFinishedAt = 0;
+  for (const job of jobs) {
+    if (job.google && lastGoogleJobFinishedAt) {
+      waitSynchronously(Math.max(0, googleJobCooldownMs - (Date.now() - lastGoogleJobFinishedAt)));
+    }
+    const result = runJob(job);
+    results.push(result);
+    if (job.google) lastGoogleJobFinishedAt = Date.now();
+  }
+}
 const failed = results.filter((result) => result.status === 'failed');
 
 if (applyChanges && failed.length === 0) {

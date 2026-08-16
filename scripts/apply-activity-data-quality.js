@@ -66,7 +66,7 @@ update public.activities
 set
   start_time = null,
   end_time = null,
-  availability_type = 'anytime',
+  availability_type = 'unknown',
   availability_notes = coalesce(nullif(availability_notes, ''), 'Times not published; check the provider before travelling.'),
   updated_at = now()
 where coalesce(archive, false) = false

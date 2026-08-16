@@ -2,6 +2,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { googlePlacesJson } from './lib/google-places-client.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const outputSql = join(root, 'supabase', 'seed', 'activity_google_places_validation.generated.sql');
@@ -113,17 +114,15 @@ async function fetchActivities() {
 }
 
 async function googleRequest(url, { fieldMask: requestedFieldMask = fieldMask, ...options } = {}) {
-  const response = await fetch(url, {
+  const body = await googlePlacesJson(url, googleApiKey, {
     ...options,
     signal: AbortSignal.timeout(20000),
     headers: {
-      'X-Goog-Api-Key': googleApiKey,
       'X-Goog-FieldMask': requestedFieldMask,
       ...(options.headers || {}),
     },
   });
-  if (!response.ok) return { ok: false, status: response.status, body: (await response.text()).slice(0, 300) };
-  return { ok: true, body: await response.json() };
+  return { ok: true, body };
 }
 
 async function getPlace(placeId) {

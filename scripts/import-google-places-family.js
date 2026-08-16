@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isFamilyCafePlace } from './lib/activity-import-policy.js';
 import { findWebsiteImage } from './enrich-activity-images.js';
+import { googlePlacesJson } from './lib/google-places-client.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const outputSql = join(root, 'supabase', 'seed', 'activities_google_places_family.generated.sql');
@@ -192,19 +193,7 @@ function childFriendlyScore(place) {
 
 async function google(url, options = {}) {
   if (!apiKey) throw new Error('Missing GOOGLE_PLACES_API_KEY, GOOGLE_MAPS_API_KEY, or VITE_GOOGLE_MAPS_API_KEY.');
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    const response = await fetch(url, {
-      ...options,
-      signal: AbortSignal.timeout(25000),
-      headers: { ...(options.headers || {}), 'X-Goog-Api-Key': apiKey },
-    });
-    if (response.ok) return response.json();
-    if (![429, 500, 502, 503, 504].includes(response.status) || attempt === 2) {
-      throw new Error(`Google Places returned ${response.status}: ${(await response.text()).slice(0, 250)}`);
-    }
-    await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)));
-  }
-  throw new Error('Google Places did not return a result.');
+  return googlePlacesJson(url, apiKey, { ...options, signal: AbortSignal.timeout(30000) });
 }
 
 async function discover(zone, query) {

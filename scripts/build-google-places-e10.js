@@ -1,13 +1,15 @@
 /* global process */
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isFamilyCafePlace } from './lib/activity-import-policy.js';
+import { googlePlacesJson } from './lib/google-places-client.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const outputSql = join(root, 'supabase', 'seed', 'activities_google_places_e10_10_miles.generated.sql');
 const outputAudit = join(root, 'data', 'google-places-e10-10-miles.generated.json');
 const apiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_PLACES_API_KEY;
+const fromAudit = process.argv.includes('--from-audit');
 const londonQuery = 'London, United Kingdom';
 const londonCenter = { latitude: 51.5072, longitude: -0.1276 };
 const radiusMeters = 35000;
@@ -91,24 +93,22 @@ function availability(hours = {}) {
     if (period.close?.hour !== undefined) ends.push(String(period.close.hour).padStart(2, '0') + ':' + String(period.close.minute || 0).padStart(2, '0'));
   }
   const listedDays = [...openDays].filter(Boolean);
+  const start = starts.sort()[0] || null;
+  const end = ends.sort().at(-1) || null;
   return {
     days: listedDays,
     type: listedDays.length === 7 ? 'daily' : listedDays.length ? 'weekly' : 'unknown',
-    start: starts.sort()[0] || null,
-    end: ends.sort().at(-1) || null,
+    start,
+    // Activities cannot store an end before its start. Google uses 00:00 for
+    // midnight closing, so represent that overnight boundary as 23:59.
+    end: end && start && end <= start ? '23:59' : end,
     notes: Array.isArray(hours.weekdayDescriptions) ? hours.weekdayDescriptions.join(' | ') : 'Check venue opening times.',
   };
 }
 
 async function google(url, options = {}) {
   if (!apiKey) fail('Set GOOGLE_MAPS_API_KEY before running this import.');
-  const response = await fetch(url, {
-    ...options,
-    signal: AbortSignal.timeout(30000),
-    headers: { ...(options.headers || {}), 'X-Goog-Api-Key': apiKey },
-  });
-  if (!response.ok) fail('Google request failed (' + response.status + '): ' + (await response.text()).slice(0, 500));
-  return response.json();
+  return googlePlacesJson(url, apiKey, { ...options, signal: AbortSignal.timeout(30000) });
 }
 
 async function searchNearby(center, type) {
@@ -231,7 +231,7 @@ function buildSql(rows) {
     + '-- Official Google Places API discovery across Greater London.\n\n'
     + 'insert into public.activities (\n  ' + columns.join(',\n  ') + '\n)\nvalues\n'
     + rows.map((row) => '(' + rowSql(row) + ')').join(',\n')
-    + '\non conflict (google_place_id) where google_place_id is not null do update set\n'
+    + '\non conflict (source_url) do update set\n'
     + '  activity_name = excluded.activity_name,\n  address = excluded.address,\n  postcode = excluded.postcode,\n'
     + '  lat = excluded.lat,\n  long = excluded.long,\n  category = excluded.category,\n'
     + '  start_time = excluded.start_time,\n  end_time = excluded.end_time,\n  google_link = excluded.google_link,\n'
@@ -248,6 +248,17 @@ function buildSql(rows) {
 }
 
 async function main() {
+  if (fromAudit) {
+    const audit = JSON.parse(readFileSync(outputAudit, 'utf8'));
+    const rows = (audit.rows || []).map((row) => ({
+      ...row,
+      end_time: row.start_time && row.end_time && row.end_time <= row.start_time ? '23:59' : row.end_time,
+    }));
+    if (!rows.length) fail('The existing Google Places audit has no rows to rebuild.');
+    writeFileSync(outputSql, buildSql(rows));
+    console.log('Rebuilt ' + rows.length + ' activity rows from the existing Google Places audit.');
+    return;
+  }
   const center = londonCenter;
   const candidates = new Map();
   for (const type of types) for (const place of await searchNearby(center, type)) candidates.set(place.id, place);
