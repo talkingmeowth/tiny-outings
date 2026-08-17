@@ -1893,6 +1893,22 @@ export default function App() {
   }, [activityRefresh]);
 
   useEffect(() => {
+    // Realtime updates can be delayed when a phone puts the app in the
+    // background. Refresh on return so newly archived listings disappear.
+    const refreshVisibleActivities = () => {
+      if (document.visibilityState === 'visible') {
+        setActivityRefresh((current) => current + 1);
+      }
+    };
+    window.addEventListener('focus', refreshVisibleActivities);
+    document.addEventListener('visibilitychange', refreshVisibleActivities);
+    return () => {
+      window.removeEventListener('focus', refreshVisibleActivities);
+      document.removeEventListener('visibilitychange', refreshVisibleActivities);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!supabase) return undefined;
 
     const channel = supabase
