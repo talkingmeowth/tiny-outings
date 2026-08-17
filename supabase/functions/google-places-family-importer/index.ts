@@ -162,6 +162,24 @@ function sourceUrl(placeId: string) {
   return `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(placeId)}`
 }
 
+function officialWebsiteUrl(value: unknown) {
+  try {
+    const url = new URL(String(value || '').trim())
+    if (!['http:', 'https:'].includes(url.protocol)) return null
+    const host = url.hostname.toLowerCase().replace(/^www\./, '')
+    if (
+      host === 'google.com'
+      || host === 'google.co.uk'
+      || host.endsWith('.google.com')
+      || host.endsWith('.google.co.uk')
+      || host === 'maps.app.goo.gl'
+    ) return null
+    return url.toString()
+  } catch {
+    return null
+  }
+}
+
 function isGreaterLondon(location: GooglePlace['location']) {
   const latitude = Number(location?.latitude)
   const longitude = Number(location?.longitude)
@@ -350,12 +368,12 @@ function prepareActivity(place: GooglePlace, profile: Profile, queries: Set<stri
   const activity: PreparedActivity = {
     activity_name: name, address, postcode: postcode(address), lat: Number(place.location?.latitude), long: Number(place.location?.longitude),
     category: profile.category, start_time: hours.start, end_time: hours.end,
-    google_link: place.googleMapsUri || null, website: place.websiteUri || null, organiser_website: null,
+    google_link: place.googleMapsUri || null, website: officialWebsiteUrl(place.websiteUri), organiser_website: null,
     child_friendly_score: activityScore(place), app_rating: rating, number_of_reviews: reviews,
     age_suitability: 'Babies, toddlers and their grown-ups', borough: boroughForAddress(address), days_of_week: hours.days,
     recurrence_rule: hours.days.length ? `FREQ=WEEKLY;BYDAY=${hours.days.map((day) => day.slice(0, 2).toUpperCase()).join(',')}` : null,
     schedule_notes: hours.notes, description: profile.description, cost: profile.cost, booking_required: profile.bookingRequired,
-    source_name: profile.sourceName, source_url: sourceUrl(placeId), image_url: null, image_source_url: place.websiteUri || null,
+    source_name: profile.sourceName, source_url: sourceUrl(placeId), image_url: null, image_source_url: officialWebsiteUrl(place.websiteUri),
     google_place_id: placeId, google_place_uri: place.googleMapsUri || null, google_photo_url: null,
     google_rating: rating, google_user_rating_count: reviews, google_primary_type: place.primaryType || null,
     google_opening_hours: place.regularOpeningHours || null, google_summary: place.editorialSummary?.text || null,

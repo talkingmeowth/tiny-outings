@@ -2,7 +2,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { isFamilyCafePlace } from './lib/activity-import-policy.js';
+import { isFamilyCafePlace, officialWebsiteUrl } from './lib/activity-import-policy.js';
 import { googlePlacesJson } from './lib/google-places-client.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -197,7 +197,7 @@ function toRow(place, area, discoveryTerms, named) {
     start_time: hours.start,
     end_time: hours.end,
     google_link: place.googleMapsUri || null,
-    website: place.websiteUri || null,
+    website: officialWebsiteUrl(place.websiteUri),
     child_friendly_score: Math.min(5, Math.round((rating + 0.5) * 10) / 10),
     app_rating: rating,
     number_of_reviews: reviewCount,
@@ -212,7 +212,7 @@ function toRow(place, area, discoveryTerms, named) {
     source_name: 'Google Places API family cafe and bakery discovery',
     source_url: `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(place.id)}`,
     image_url: null,
-    image_source_url: place.websiteUri || place.googleMapsUri || null,
+    image_source_url: officialWebsiteUrl(place.websiteUri) || place.googleMapsUri || null,
     google_place_id: place.id,
     google_place_uri: place.googleMapsUri || null,
     google_photo_url: place.photos?.[0]?.name || null,

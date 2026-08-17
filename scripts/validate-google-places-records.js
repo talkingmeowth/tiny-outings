@@ -3,6 +3,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { googlePlacesJson } from './lib/google-places-client.js';
+import { officialWebsiteUrl } from './lib/activity-import-policy.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const outputSql = join(root, 'supabase', 'seed', 'activity_google_places_validation.generated.sql');
@@ -160,7 +161,7 @@ function valuesForPlace(activity, place) {
     longitude: place.location?.longitude,
     placeId: place.id,
     placeUri: place.googleMapsUri,
-    website: place.websiteUri || null,
+    website: officialWebsiteUrl(place.websiteUri),
     rating: place.rating ?? null,
     reviews: place.userRatingCount ?? null,
     primaryType: place.primaryType || null,

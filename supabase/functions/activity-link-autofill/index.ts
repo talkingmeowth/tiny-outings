@@ -79,6 +79,16 @@ function isGoogleMapsUrl(link: string) {
   }
 }
 
+function officialWebsiteUrl(value: unknown) {
+  try {
+    const url = new URL(String(value || '').trim());
+    if (!['http:', 'https:'].includes(url.protocol) || isGoogleMapsUrl(url.toString())) return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
 function decodeHtml(value: string) {
   return value
     .replaceAll('&amp;', '&')
@@ -142,9 +152,6 @@ function structuredListing(html: string) {
     return /event|localbusiness|organization|place/.test(type);
   }) || {};
   const geo = node.geo && typeof node.geo === 'object' ? node.geo as Record<string, unknown> : {};
-  const website = activity.website || cleanText(place.websiteUri) || null;
-  const organiserWebsite = activity.organiser_website || cleanText(place.websiteUri) || null;
-
   return {
     name: textValue(node.name),
     description: textValue(node.description),
@@ -296,7 +303,9 @@ async function extractWebsiteMetadata(link: string, providedName?: string | null
     },
   });
   const contentType = response.headers.get('content-type') || '';
-  if (!response.ok || !contentType.includes('text/html')) throw new Error('The link did not return a public web page.');
+  if (!response.ok || !contentType.includes('text/html') || isGoogleMapsUrl(response.url || link)) {
+    throw new Error('The link did not return a public activity website.');
+  }
 
   const html = await response.text();
   const structured = structuredListing(html);
@@ -320,7 +329,7 @@ async function extractWebsiteMetadata(link: string, providedName?: string | null
     category: inferCategory(combinedText),
     google_link: null,
     google_place_uri: null,
-    website: response.url || link,
+    website: officialWebsiteUrl(response.url || link),
     organiser_website: null,
     borough: inferBorough(combinedText),
     description,
@@ -400,6 +409,8 @@ async function enrichWithGooglePlace(activity: Record<string, any>, place: Recor
   const longitude = Number(place.location?.longitude);
   const rating = Number(place.rating);
   const reviewCount = Number(place.userRatingCount);
+  const website = officialWebsiteUrl(activity.website) || officialWebsiteUrl(place.websiteUri);
+  const organiserWebsite = officialWebsiteUrl(activity.organiser_website);
 
   const borough = inferBorough(address)
     || boroughFromAddressComponents(place.addressComponents)
@@ -447,7 +458,7 @@ Deno.serve(async (request) => {
       try {
         activity = await extractWebsiteMetadata(resolvedLink, typeof activityName === 'string' ? activityName : null);
       } catch {
-        activity = { ...basicGoogleListing(resolvedLink), website: resolvedLink, source_url: resolvedLink };
+        activity = { ...basicGoogleListing(resolvedLink), website: officialWebsiteUrl(resolvedLink), source_url: resolvedLink };
       }
     }
 

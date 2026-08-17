@@ -2,7 +2,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { isFamilyCafePlace } from './lib/activity-import-policy.js';
+import { isFamilyCafePlace, officialWebsiteUrl } from './lib/activity-import-policy.js';
 import { googlePlacesJson } from './lib/google-places-client.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -170,7 +170,7 @@ async function activity(place, center) {
     start_time: hours.start,
     end_time: hours.end,
     google_link: place.googleMapsUri || null,
-    website: place.websiteUri || null,
+    website: officialWebsiteUrl(place.websiteUri),
     child_friendly_score: score(place),
     app_rating: null,
     number_of_reviews: Number(place.userRatingCount || 0),

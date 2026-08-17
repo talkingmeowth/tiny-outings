@@ -38,6 +38,27 @@ function normaliseName(value) {
     .trim();
 }
 
+// Google and Maps links are useful in the dedicated Google Places fields, but
+// they are never an activity's own website. Keeping this check central stops
+// importers from turning a failed Maps fallback into a misleading Website button.
+export function officialWebsiteUrl(value) {
+  try {
+    const url = new URL(String(value || '').trim());
+    if (!['http:', 'https:'].includes(url.protocol)) return null;
+    const host = url.hostname.toLowerCase().replace(/^www\./, '');
+    if (
+      host === 'google.com'
+      || host === 'google.co.uk'
+      || host.endsWith('.google.com')
+      || host.endsWith('.google.co.uk')
+      || host === 'maps.app.goo.gl'
+    ) return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
 export function isFamilyCafePlace(place) {
   if (!place || place.businessStatus === 'CLOSED_PERMANENTLY') return false;
   const types = [place.primaryType, ...(place.types || [])]

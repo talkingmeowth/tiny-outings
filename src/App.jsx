@@ -711,7 +711,7 @@ function googleMapEmbedUrl(activity) {
 }
 
 function activityWebsiteUrl(activity) {
-  return activity.website || activity.source_url || activity.google_place_uri || activity.google_link || googleEntryUrl(activity);
+  return isOfficialWebsiteUrl(activity.website);
 }
 
 function sameExternalUrl(first, second) {
@@ -737,6 +737,16 @@ function isGooglePlacesUrl(value) {
       || host.endsWith('.google.co.uk');
   } catch {
     return false;
+  }
+}
+
+function isOfficialWebsiteUrl(value) {
+  try {
+    const url = new URL(String(value || '').trim());
+    if (!['http:', 'https:'].includes(url.protocol) || isGooglePlacesUrl(url.toString())) return null;
+    return url.toString();
+  } catch {
+    return null;
   }
 }
 
@@ -1159,8 +1169,8 @@ function buildSubmittedPayload(
     start_time: enriched.start_time || '09:00',
     end_time: enriched.end_time || '10:00',
     google_link: googlePlacesLink || enriched.google_link || enriched.google_place_uri || null,
-    website: enriched.website || websiteLink || null,
-    organiser_website: enriched.organiser_website || null,
+    website: isOfficialWebsiteUrl(enriched.website) || isOfficialWebsiteUrl(websiteLink),
+    organiser_website: isOfficialWebsiteUrl(enriched.organiser_website),
     child_friendly_score: numericOrNull(enriched.child_friendly_score),
     app_rating: appRating,
     number_of_reviews: Number.isFinite(reviewCount) ? reviewCount : 0,
@@ -1221,8 +1231,8 @@ function adminActivityUpdates(activity, values = {}) {
     cost: values.cost || null,
     age_suitability: values.age_suitability || null,
     user_image_url: values.user_image_url || null,
-    website: values.website || null,
-    organiser_website: values.organiser_website || null,
+    website: isOfficialWebsiteUrl(values.website),
+    organiser_website: isOfficialWebsiteUrl(values.organiser_website),
     google_link: values.google_link || null,
     google_place_uri: values.google_link || null,
     lat: coordinates?.lat ?? null,
@@ -4395,7 +4405,7 @@ function ActivityDetail({
   const googlePlacesUrl = activityShareUrl(activity);
   const mapEmbedUrl = googleMapEmbedUrl(activity);
   const websiteUrl = activityWebsiteUrl(activity);
-  const organiserWebsiteUrl = sameExternalUrl(activity.website, activity.organiser_website)
+  const organiserWebsiteUrl = !isOfficialWebsiteUrl(activity.organiser_website) || sameExternalUrl(activity.website, activity.organiser_website)
     ? null
     : activity.organiser_website || null;
   const cost = activityCost(activity);
@@ -4476,7 +4486,7 @@ function ActivityDetail({
         )}
 
         <div className="external-links detail-links">
-          <a href={websiteUrl} target="_blank" rel="noreferrer">Website</a>
+          {websiteUrl && <a href={websiteUrl} target="_blank" rel="noreferrer">Website</a>}
           {organiserWebsiteUrl && (
             <a href={organiserWebsiteUrl} target="_blank" rel="noreferrer">Organiser site</a>
           )}

@@ -2,6 +2,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { officialWebsiteUrl } from './lib/activity-import-policy.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const auditPath = join(root, 'data', 'activity_card_readiness_audit.generated.json');
@@ -15,14 +16,6 @@ function readEnv() {
       const index = line.indexOf('=');
       return [line.slice(0, index).trim(), line.slice(index + 1).trim().replace(/^['"]|['"]$/g, '')];
     }));
-}
-
-function isHttp(value) {
-  try {
-    return ['http:', 'https:'].includes(new URL(String(value)).protocol);
-  } catch {
-    return false;
-  }
 }
 
 function sql(value) {
@@ -66,8 +59,8 @@ async function main() {
   for (const activity of activities) {
     const place = await placeDetails(activity.google_place_id, apiKey);
     if (!place) continue;
-    const replacement = isHttp(place.websiteUri) ? place.websiteUri : place.googleMapsUri;
-    if (!replacement || replacement === activity.website) continue;
+    const replacement = officialWebsiteUrl(place.websiteUri);
+    if (replacement === activity.website) continue;
     updates.push({ activityId: activity.activity_id, activityName: activity.activity_name, website: replacement, googlePlaceUri: place.googleMapsUri || activity.google_place_uri || activity.google_link });
   }
   const sqlText = updates.length

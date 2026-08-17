@@ -60,6 +60,33 @@ where nullif(trim(website), '') is not null
   and regexp_replace(regexp_replace(regexp_replace(lower(trim(website)), '^https?://(www\\.)?', ''), '[?#].*$', ''), '/+$', '')
       = regexp_replace(regexp_replace(regexp_replace(lower(trim(organiser_website)), '^https?://(www\\.)?', ''), '[?#].*$', ''), '/+$', '');
 
+-- Maps URLs are navigation references, not provider websites. This safety net
+-- covers legacy and future importer output after every manual update run.
+with links as (
+  select
+    activity_id,
+    website,
+    organiser_website,
+    website ~* '^https?://((www\\.)?(google\\.(com|co\\.uk))|maps\\.google\\.com|maps\\.app\\.goo\\.gl)(/|$)' as website_is_google,
+    organiser_website ~* '^https?://((www\\.)?(google\\.(com|co\\.uk))|maps\\.google\\.com|maps\\.app\\.goo\\.gl)(/|$)' as organiser_is_google
+  from public.activities
+)
+update public.activities as activity
+set
+  website = case
+    when links.website_is_google and coalesce(links.organiser_is_google, false) = false then links.organiser_website
+    when links.website_is_google then null
+    else activity.website
+  end,
+  organiser_website = case
+    when links.organiser_is_google or links.website_is_google then null
+    else activity.organiser_website
+  end,
+  updated_at = now()
+from links
+where activity.activity_id = links.activity_id
+  and (coalesce(links.website_is_google, false) or coalesce(links.organiser_is_google, false));
+
 -- Do not invent opening hours. A missing or incomplete schedule is displayed
 -- as "Any time" by the app when both values are null.
 update public.activities
