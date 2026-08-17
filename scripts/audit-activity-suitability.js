@@ -26,12 +26,11 @@ const genericNonActivityTypes = new Set([
 
 const adultOnlyText = /\b(adults?[- ]only|adult[- ]only|18\+|over[- ]18s?|club night|nightclub|casino|poker night|striptease|burlesque|pole dancing|wine tasting|cocktail masterclass|bottomless brunch|pub quiz|beer festival|craft beer|sports bar|shisha|hookah|vape|tobacco|liquor store)\b/i;
 const familySignal = /\b(baby|babies|toddler|toddlers|child|children|kids?|family|families|parent|play|story|rhyme|sensory|swim|museum|park|garden|zoo|farm|bookshop|soft play)\b/i;
-const indoorPlayAdultVenue = /\b(arcade|virtual reality|vr gaming|gaming lounge|gaming cafe|escape room|casino)\b/i;
+const indoorPlayAdultVenue = /\b(arcade|virtual reality|vr gaming|gaming lounge|gaming cafe|escape room|casino|gravity max|sandbox vr|crystal maze|\bclays\b)\b/i;
 // The app is for everyday local plans, not full-day resorts, theme parks, or
 // high-ropes attractions. Keep local play spaces and splash pads by matching
 // named large attractions rather than broad place types such as water_park.
 const largeDestinationText = /\b(theme park|amusement park|legoland|chessington world|thorpe park|alton towers|babylon park|go ape|old macdonald'?s farm)\b/i;
-
 function env() {
   const path = join(root, '.env.local');
   return Object.fromEntries(readFileSync(path, 'utf8').replace(/^\uFEFF/, '').split(/\r?\n/)
@@ -44,6 +43,14 @@ function env() {
 
 function text(activity) {
   return [activity.activity_name, activity.description, activity.category, activity.google_summary, activity.website]
+    .filter(Boolean).join(' ');
+}
+
+function activityText(activity) {
+  // Category is importer metadata, not evidence that a venue actually offers
+  // a child-focused activity. Do not let labels such as "family activity"
+  // satisfy the suitability check for a generic venue.
+  return [activity.activity_name, activity.description, activity.google_summary, activity.website]
     .filter(Boolean).join(' ');
 }
 
@@ -83,8 +90,7 @@ function assess(activity) {
   const source = String(activity.source_name || '').trim().toLowerCase();
   const category = String(activity.category || '').trim().toLowerCase();
   const primaryType = String(activity.google_primary_type || '').trim().toLowerCase();
-
-  const hasFamilySignal = familySignal.test(content);
+  const hasFamilySignal = familySignal.test(activityText(activity));
   if (alwaysUnsuitableTypes.has(primaryType)) reasons.push(`Google Places type '${primaryType}' is not child or family suitable`);
   // A pub, bar or club can legitimately host a parent-and-baby session, so
   // only archive it when the listing itself has no child or family signal.
@@ -104,8 +110,14 @@ function assess(activity) {
   if (source === 'google places api' && genericNonActivityTypes.has(primaryType)) {
     reasons.push(`Generic Google Places '${primaryType}' venue, not a child-focused listing`);
   }
-  if (source === 'google places api' && category === 'family activity' && !hasFamilySignal) {
+  if (source === 'google places api' && category.startsWith('family activit') && !hasFamilySignal) {
     reasons.push('Generic Google Places venue has no child or family activity signal');
+  }
+  if (source === 'google places api'
+    && category === 'indoor play'
+    && !hasFamilySignal
+    && !['indoor_playground', 'amusement_center', 'park'].includes(primaryType)) {
+    reasons.push('Generic Google Places indoor-play venue has no child activity signal');
   }
   if (source === 'google places api london family directory'
     && primaryType.includes('restaurant')
