@@ -27,6 +27,10 @@ const genericNonActivityTypes = new Set([
 const adultOnlyText = /\b(adults?[- ]only|adult[- ]only|18\+|over[- ]18s?|club night|nightclub|casino|poker night|striptease|burlesque|pole dancing|wine tasting|cocktail masterclass|bottomless brunch|pub quiz|beer festival|craft beer|sports bar|shisha|hookah|vape|tobacco|liquor store)\b/i;
 const familySignal = /\b(baby|babies|toddler|toddlers|child|children|kids?|family|families|parent|play|story|rhyme|sensory|swim|museum|park|garden|zoo|farm|bookshop|soft play)\b/i;
 const indoorPlayAdultVenue = /\b(arcade|virtual reality|vr gaming|gaming lounge|gaming cafe|escape room|casino)\b/i;
+// The app is for everyday local plans, not full-day resorts, theme parks, or
+// high-ropes attractions. Keep local play spaces and splash pads by matching
+// named large attractions rather than broad place types such as water_park.
+const largeDestinationText = /\b(theme park|amusement park|legoland|chessington world|thorpe park|alton towers|babylon park|go ape|old macdonald'?s farm)\b/i;
 
 function env() {
   const path = join(root, '.env.local');
@@ -89,6 +93,9 @@ function assess(activity) {
   }
   if (adultOnlyText.test(content) && !hasFamilySignal) {
     reasons.push('Listing text indicates an adult-only or alcohol-led activity');
+  }
+  if (largeDestinationText.test(content)) {
+    reasons.push('Large destination or theme-park-style attraction is outside the everyday local outings scope');
   }
 
   // The retired generic importer created venues rather than activities. This
