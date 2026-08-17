@@ -10,6 +10,7 @@ import 'leaflet/dist/leaflet.css';
 import { supabase } from './supabaseClient';
 import { googleSignInErrorMessage, signInWithNativeGoogle } from './googleAuth';
 import { comparisonTokens, dedupePublishedActivities, findLikelyDuplicate } from './activityDuplicates';
+import { activityImageUrls, hasActivityImage, securePhotoUrl, shareListingImages } from './activityImages';
 import { activityCoordinates, resolveActivityCoordinates } from './activityLocation';
 import { profileQrUrl, profileShareData } from './profileSharing';
 
@@ -825,19 +826,6 @@ function originalGooglePlacesUrl(activity) {
     .find((url) => isGooglePlacesUrl(url) && !isCoordinateGoogleMapsUrl(url)) || null;
 }
 
-function isUsablePhotoUrl(url) {
-  if (!url) return false;
-  const value = String(url);
-  return ![
-    'image.thum.io',
-    's.wordpress.com/mshots',
-  ].some((blocked) => value.includes(blocked));
-}
-
-function securePhotoUrl(url) {
-  return String(url || '').replace(/^http:\/\//i, 'https://');
-}
-
 function activityFallbackImage(activity) {
   const category = String(activity.category || '').toLowerCase();
   return category.includes('park')
@@ -850,33 +838,16 @@ function activityFallbackImage(activity) {
 }
 
 function hasActivityCardImage(activity) {
-  return [
-    activity.admin_cover_image_url,
-    activity.user_image_url,
-    activity.user_uploaded_image_url,
-    activity.scraped_image_url,
-    activity.organiser_website_downloaded_image,
-    activity.website_downloaded_image,
-    activity.wikimedia_image_url,
-    activity.website_image_url,
-    activity.listing_image_url,
-  ].map(securePhotoUrl).some(isUsablePhotoUrl);
+  return Boolean(activity.shared_card_image_url) || hasActivityImage(activity);
 }
 
 function activityPhotoUrls(activity) {
   const fallbackImage = activityFallbackImage(activity);
   const candidates = [
-    activity.admin_cover_image_url,
-    activity.user_image_url,
-    activity.user_uploaded_image_url,
-    activity.scraped_image_url,
-    activity.organiser_website_downloaded_image,
-    activity.website_downloaded_image,
-    activity.wikimedia_image_url,
-    activity.website_image_url,
-    activity.listing_image_url,
+    activity.shared_card_image_url,
+    ...activityImageUrls(activity),
     fallbackImage,
-  ].map(securePhotoUrl).filter(isUsablePhotoUrl);
+  ].filter(Boolean);
 
   return [...new Set(candidates)];
 }
@@ -1379,7 +1350,7 @@ export default function App() {
   const calendarDays = useMemo(() => calendarDaysForMonth(calendarMonth), [calendarMonth]);
   const activeSlot = slotKey(selectedDate, selectedWindow);
   const allActivities = useMemo(
-    () => dedupePublishedActivities(activities.map(normalizeActivity)),
+    () => dedupePublishedActivities(shareListingImages(activities.map(normalizeActivity))),
     [activities],
   );
   const publishedActivityIds = useMemo(

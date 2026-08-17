@@ -50,6 +50,20 @@ function activityAddressKey(activity) {
   return postCode || comparisonText(activity.address);
 }
 
+// Time is intentionally excluded. A recurring listing can run several times
+// each week, but it should retain one recognisable image across every slot.
+export function activityImageGroupKey(activity) {
+  const name = comparisonText(activity.activity_name);
+  const address = activityAddressKey(activity);
+  if (name && address) return `venue:${name}|${address}`;
+
+  const sourceUrl = comparableActivityUrl(activity.source_url).replace(/#.*/, '');
+  if (sourceUrl) return `url:${sourceUrl}`;
+
+  if (name && activity.google_place_id) return `place:${activity.google_place_id}|${name}`;
+  return `activity:${String(activity.activity_id || '')}`;
+}
+
 function activityScheduleKey(activity) {
   const dates = [
     activity.activity_date,
