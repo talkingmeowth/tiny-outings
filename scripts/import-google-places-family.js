@@ -105,7 +105,7 @@ const profiles = {
 const detailFieldMask = [
   'id', 'displayName', 'formattedAddress', 'location', 'googleMapsUri', 'websiteUri',
   'rating', 'userRatingCount', 'primaryType', 'types', 'regularOpeningHours', 'businessStatus',
-  'goodForChildren', 'editorialSummary', 'photos',
+  'goodForChildren', 'editorialSummary', 'addressComponents', 'photos',
 ].join(',');
 
 const columns = [
@@ -162,11 +162,19 @@ function selectNewCandidates(discovered, known, maxCandidates) {
     .slice(0, maxCandidates);
 }
 
-function isGreaterLondon(location) {
-  const latitude = Number(location?.latitude);
-  const longitude = Number(location?.longitude);
-  return Number.isFinite(latitude) && Number.isFinite(longitude)
+function isGreaterLondon(place) {
+  const latitude = Number(place.location?.latitude);
+  const longitude = Number(place.location?.longitude);
+  const hasLondonCoordinate = Number.isFinite(latitude) && Number.isFinite(longitude)
     && latitude >= 51.28 && latitude <= 51.72 && longitude >= -0.56 && longitude <= 0.35;
+  if (!hasLondonCoordinate) return false;
+
+  const administrativeAreas = (place.addressComponents || [])
+    .filter((component) => (component.types || []).includes('administrative_area_level_2'))
+    .map((component) => normalized(component.longText || component.shortText));
+  // Coordinate bounds alone pull in nearby Surrey, Essex and Hertfordshire
+  // venues. New Places returns Greater London at administrative level 2.
+  return administrativeAreas.includes('greater london') || administrativeAreas.includes('city of london');
 }
 
 function boroughForAddress(address) {
@@ -215,9 +223,13 @@ function hasProfileSignal(place, profileId) {
     return place.goodForChildren === true || /\b(baby|child|children|kid|kids|toddler|family)\b/.test(value);
   }
   if (profileId === 'play_cafes') {
+    // Google search can surface VR and gaming arcades for "play cafe" queries.
+    // They are not suitable matches for a parent-and-child play cafe directory.
+    if (/\b(arcade|virtual reality|vr gaming|gaming lounge|gaming cafe|escape room)\b/.test(value)) return false;
     const hasPlay = /\b(play[ -]?cafe|cafe[ -]?play|soft[ -]?play|play space|playhouse|play den|playroom|indoor playground|kids play|children s play|toddler play)\b/.test(value);
     const hasCafe = /\b(cafe|coffee|bakery|food|kitchen|restaurant)\b/.test(value);
-    return hasPlay && hasCafe;
+    const hasFamilySignal = place.goodForChildren === true || /\b(baby|child|children|kid|kids|toddler|family|soft[ -]?play|play[ -]?cafe|playroom)\b/.test(value);
+    return hasPlay && hasCafe && hasFamilySignal;
   }
   if (profileId === 'baby_swim') {
     return /\b(baby|toddler|infant|parent child|water babies|puddle ducks|little fishes|swim|swimming|aqua)\b/.test(value)
@@ -284,7 +296,7 @@ function prepareActivity(place, profileId, queryTerms) {
   const name = String(place.displayName?.text || '').trim();
   const address = String(place.formattedAddress || '').trim();
   const placeId = String(place.id || '').trim();
-  if (!name || !address || !placeId || !isGreaterLondon(place.location)) return { reason: 'Missing a name, London address, place ID, or verified coordinate.' };
+  if (!name || !address || !placeId || !isGreaterLondon(place)) return { reason: 'Missing a name, Greater London address, place ID, or verified coordinate.' };
   if (place.businessStatus === 'CLOSED_PERMANENTLY') return { reason: 'Permanently closed.' };
   if (['family_cafes', 'play_cafes'].includes(profileId) && !isFamilyCafePlace(place)) return { reason: 'Failed child-friendly cafe quality checks.' };
   if (!hasProfileSignal(place, profileId)) return { reason: `Missing a clear ${profileId.replace('_', ' ')} signal.` };
