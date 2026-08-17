@@ -33,9 +33,14 @@ The mobile app filters the swipe deck by the selected planning week/day and only
 
 Activity cards use the first available image source in this order:
 
-- `google_photo_url` from Google Places.
-- `image_url`, usually an activity website Open Graph/Twitter image found by the Edge Function.
-- A website-derived preview generated from the activity website/source URL.
+- `admin_cover_image_url` and parent-provided images.
+- `scraped_image_url` from the shared activity image extractor.
+- `organiser_website_downloaded_image`, a durable Supabase Storage copy from the official organiser site.
+- `website_downloaded_image`, a durable Supabase Storage copy from the official activity or listing page.
+- `wikimedia_image_url`, `website_image_url`, and `listing_image_url`.
+- A category illustration when no vetted image source is available.
+
+The downloader only accepts JPEG, PNG, WebP, or AVIF images smaller than 8 MB and rejects interface graphics, social-media icons, tracking pixels, and other non-activity assets.
 
 ## Visibility
 

@@ -123,11 +123,13 @@ The table includes the requested core fields:
 
 It also includes MVP-supporting fields for filtering and provenance: `borough`, `postcode`, `days_of_week`, `recurrence_rule`, `time_window`, `location`, `source_url`, and search indexes.
 
-Google-enriched activities can also store `google_place_id`, `google_place_uri`, `google_photo_url`, `google_rating`, `google_user_rating_count`, `google_primary_type`, `google_opening_hours`, and `google_summary`. Cards use the audited `image_url` field and fall back to a category illustration when no suitable website image is available.
+Google-enriched activities can also store `google_place_id`, `google_place_uri`, `google_photo_url`, `google_rating`, `google_user_rating_count`, `google_primary_type`, `google_opening_hours`, and `google_summary`. Activity images also have source-specific `website_image_url`, `listing_image_url`, `website_downloaded_image`, and `organiser_website_downloaded_image` fields. The downloaded fields are stable public Supabase Storage copies of vetted official images.
 
 ## Activity Image Extractor
 
 `npm.cmd run activities:images` is the single activity-image extractor and audit. It reads published activities from Supabase, prefers a relevant image from `organiser_website`, then falls back to `website` and `source_url` listing pages. It upgrades HTTP image links to HTTPS, rejects logos, icons, SVGs, tracking pixels, app-download graphics, and other interface assets, and scores candidates for relevance, resolution, and cafe interiors or food.
+
+After `tiny-outings-update --apply` has applied the source data, it automatically runs `activities:images:download`. This manually-triggered, admin-protected job retries the official organiser page and then the activity/listing page for cards that still have no usable image. It saves a vetted JPEG, PNG, WebP, or AVIF file in the `activity-images` Supabase Storage bucket and writes the public URL to `organiser_website_downloaded_image` or `website_downloaded_image`. Set the same secret in `.env.local` and Supabase Edge Function secrets as `TINY_OUTINGS_IMAGE_JOB_SECRET`; never expose it in the app build.
 
 `npm.cmd run activities:audit-websites` checks every unarchived activity's `website` and `organiser_website` over the network. It keeps links that block automated requests, replaces confirmed broken links with an already-verified source or organiser link where possible, and otherwise clears the broken field. The generated SQL is written to `supabase/seed/activity_link_repairs.generated.sql`. Use `npm.cmd run activities:audit-websites:places` only when a Google Places key is available and the additional Places API lookup cost is acceptable; it adds the official Place website as a replacement candidate.
 

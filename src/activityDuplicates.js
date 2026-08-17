@@ -95,6 +95,8 @@ function activityCompleteness(activity) {
     'user_image_url',
     'user_uploaded_image_url',
     'scraped_image_url',
+    'organiser_website_downloaded_image',
+    'website_downloaded_image',
     'wikimedia_image_url',
     'website_image_url',
     'listing_image_url',

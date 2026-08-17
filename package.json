@@ -16,6 +16,7 @@
     "activities:google-family": "node scripts/import-google-places-family.js",
     "activities:images": "node scripts/enrich-activity-images.js --audit",
     "activities:images:missing": "node scripts/enrich-activity-images.js --missing-only",
+    "activities:images:download": "node scripts/download-activity-website-images.js",
     "activities:images:wikimedia": "node scripts/populate-wikimedia-images.js",
     "activities:images:wikimedia:parks": "node scripts/populate-wikimedia-images.js --parks-only",
     "activities:images:wikimedia:repair": "node scripts/repair-wikimedia-image-urls.js",

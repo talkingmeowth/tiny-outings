@@ -58,6 +58,17 @@ const jobs = [
   { name: 'archive-expired', script: 'archive-expired-activities.js', output: 'supabase/seed/activity_expired_listing_archives.generated.sql' },
 ];
 
+// This job writes image files through a service-role Edge Function, so it
+// must run after generated SQL has been applied to the linked project.
+const postApplyJobs = [
+  {
+    name: 'download-website-images',
+    script: 'download-activity-website-images.js',
+    output: 'data/activity_website_image_downloads.generated.json',
+    optional: 'images',
+  },
+];
+
 function printHelp() {
   console.log(`Usage: npm run tiny-outings-update -- [--apply] [--apply-only] [--skip-images]
 
@@ -65,6 +76,7 @@ Runs every supported Tiny Outings importer across London and then applies the
 same shared quality contract to all results:
   - source and organiser website discovery, direct Happity listing repair, and link health checks
   - website and organiser image extraction using the shared image-quality policy
+  - durable download of missing official website images into Supabase Storage
   - Google Places identity, Maps location, canonical link, and permanent-closure validation
   - age suitability and "Any time" completion for unknown availability
   - existing-record updates, cross-source duplicate consolidation, and expiry archiving
@@ -174,6 +186,29 @@ if (applyChanges && failed.length === 0) {
       break;
     }
   }
+
+  if (failed.length === 0) {
+    for (const job of postApplyJobs) {
+      if (job.optional === 'images' && skipImages) {
+        results.push({ name: job.name, status: 'skipped', reason: 'Skipped with --skip-images.' });
+        continue;
+      }
+      const result = runJob(job);
+      results.push(result);
+      if (result.status === 'failed') {
+        failed.push(result);
+        break;
+      }
+    }
+  }
+} else if (!applyChanges) {
+  for (const job of postApplyJobs) {
+    results.push({
+      name: job.name,
+      status: 'skipped',
+      reason: 'Runs after --apply because it writes stable image files to Supabase Storage.',
+    });
+  }
 }
 
 mkdirSync(outputDirectory, { recursive: true });
@@ -185,6 +220,7 @@ writeFileSync(auditPath, JSON.stringify({
   google_places_validation: 'required',
   manual_review: 'not required for importer records',
   archive_protection: 'database trigger preserves archive=true and archived status',
+  downloaded_website_images: 'post-apply Edge Function stores vetted images from organiser and listing websites',
   jobs: results,
 }, null, 2) + '\n');
 
