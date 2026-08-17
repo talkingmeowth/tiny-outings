@@ -25,7 +25,7 @@ const appDownloadPageUrl = 'https://tiny-outings-cpjh.onrender.com/';
 const defaultProfileAvatar = '/images/profile-placeholder.svg';
 const NativeGoogleSignIn = registerPlugin('TinyOutingsGoogle');
 // Reset outdated swipe/filter state without touching planned calendar entries.
-const planningStorageVersion = '2026-07-24-seven-plan-categories';
+const planningStorageVersion = '2026-08-17-family-activities-filter';
 const statusOptions = ['booked', 'tentative'];
 const activitySelectColumns = [
   'activity_id',
@@ -167,6 +167,7 @@ const activityInterestOptions = [
   'Movement & wellbeing',
   'Museums & culture',
   'Bookshops',
+  'Family activities',
   'Events',
 ];
 
@@ -1085,6 +1086,7 @@ function activityPlanLabel(activity) {
   const category = String(activity.category || '').toLowerCase();
   const filters = Array.isArray(activity.plan_filters) ? activity.plan_filters.join(' ').toLowerCase() : '';
   const value = `${category} ${filters} ${activity.google_primary_type || ''} ${activity.activity_name || ''}`.toLowerCase();
+  const categoryAndFilters = `${category} ${filters}`;
 
   // Historic plan filters group Bookshops under Food & socials. The card tag
   // should still expose the more useful, specific Bookshops category.
@@ -1096,6 +1098,7 @@ function activityPlanLabel(activity) {
   if (/stay|family hub|play centre/.test(value)) return 'Stay & play';
   if (/dance|movement|yoga|swim|fitness/.test(value)) return 'Movement & wellbeing';
   if (/museum|culture/.test(value)) return 'Museums & culture';
+  if (/family activit/.test(categoryAndFilters)) return 'Family activities';
   return 'Classes & clubs';
 }
 
