@@ -1084,14 +1084,14 @@ function activityPlanLabel(activity) {
 
   const category = String(activity.category || '').toLowerCase();
   const filters = Array.isArray(activity.plan_filters) ? activity.plan_filters.join(' ').toLowerCase() : '';
-  const value = `${category} ${filters}`;
+  const value = `${category} ${filters} ${activity.google_primary_type || ''} ${activity.activity_name || ''}`.toLowerCase();
 
   // Historic plan filters group Bookshops under Food & socials. The card tag
   // should still expose the more useful, specific Bookshops category.
   if (/bookshop|book shop|bookstore|book store/.test(value)) return 'Bookshops';
   if (/play[ -]?cafe|soft[ -]?play[ -]?cafe/.test(value)) return 'Play cafes';
   if (/baby swim|infant swim|toddler swim|parent.*swim|water babies|puddle ducks/.test(value)) return 'Baby swim';
-  if (/cafe|coffee|food|lunch|bakery/.test(value)) return 'Cafes & food';
+  if (/cafe|coffee|food|lunch|bakery|restaurant|bistro|brasserie|diner|eatery/.test(value)) return 'Cafes & food';
   if (/park|outdoor/.test(value)) return 'Parks & outdoor play';
   if (/stay|soft play|family hub|play centre/.test(value)) return 'Stay & play';
   if (/dance|movement|yoga|swim|fitness/.test(value)) return 'Movement & wellbeing';

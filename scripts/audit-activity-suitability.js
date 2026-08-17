@@ -107,6 +107,11 @@ function assess(activity) {
   if (source === 'google places api' && category === 'family activity' && !hasFamilySignal) {
     reasons.push('Generic Google Places venue has no child or family activity signal');
   }
+  if (source === 'google places api london family directory'
+    && primaryType.includes('restaurant')
+    && !category.includes('cafe')) {
+    reasons.push('Generic Google Places restaurant is not classified as a child-friendly cafe');
+  }
   if (category === 'indoor play' && indoorPlayAdultVenue.test(content)) {
     reasons.push('Indoor play listing is an adult gaming or arcade venue');
   }
