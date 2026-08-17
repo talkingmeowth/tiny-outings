@@ -53,6 +53,7 @@ const jobs = [
   { name: 'validate-google-places', script: 'validate-google-places-records.js', args: ['--full'], output: 'supabase/seed/activity_google_places_validation.generated.sql', google: true },
   { name: 'audit-websites', script: 'audit-activity-websites.js', output: 'supabase/seed/activity_link_repairs.generated.sql' },
   { name: 'data-quality', script: 'apply-activity-data-quality.js', output: 'supabase/seed/activity_import_quality_updates.generated.sql' },
+  { name: 'category-audit', script: 'audit-activity-categories.js', output: 'data/activity_category_audit.generated.json' },
   { name: 'family-suitability', script: 'audit-activity-suitability.js', output: 'supabase/seed/activity_suitability_archives.generated.sql' },
   { name: 'cross-source-deduplication', script: 'audit-cross-source-duplicates.js', output: 'supabase/seed/activity_cross_source_duplicate_consolidation.generated.sql' },
   { name: 'archive-expired', script: 'archive-expired-activities.js', output: 'supabase/seed/activity_expired_listing_archives.generated.sql' },

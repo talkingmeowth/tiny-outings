@@ -36,6 +36,7 @@
     "activities:happity": "node scripts/import-happity-schedules.js",
     "activities:audit-swipe": "node scripts/audit-swipe-visibility.js",
     "activities:audit-plan-filters": "node scripts/audit-activity-plan-filters.js",
+    "activities:audit-categories": "node scripts/audit-activity-categories.js",
     "activities:audit-cards": "node scripts/audit-activity-card-readiness.js",
     "activities:audit-suitability": "node scripts/audit-activity-suitability.js",
     "activities:audit-duplicates": "node scripts/audit-cross-source-duplicates.js",

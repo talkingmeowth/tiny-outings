@@ -1090,8 +1090,9 @@ function activityPlanLabel(activity) {
 
   // Historic plan filters group Bookshops under Food & socials. The card tag
   // should still expose the more useful, specific Bookshops category.
+  if (category === 'events') return 'Events';
   if (/bookshop|book shop|bookstore|book store/.test(value)) return 'Bookshops';
-  if (/play[ -]?cafe|soft[ -]?play|playroom|role play|indoor play/.test(value)) return 'Play cafes';
+  if (/play[ -]?cafe|soft[ -]?play|playroom|indoor play/.test(value)) return 'Play cafes';
   if (/baby swim|infant swim|toddler swim|parent.*swim|water babies|puddle ducks/.test(value)) return 'Baby swim';
   if (/cafe|coffee|food|lunch|bakery|restaurant|bistro|brasserie|diner|eatery/.test(value)) return 'Cafes & food';
   if (/park|outdoor/.test(value)) return 'Parks & outdoor play';
@@ -1146,7 +1147,6 @@ function isEventSource(activity) {
     activity.data_source,
     activity.source_name,
     activity.source_url,
-    activity.website,
   ].filter(Boolean).join(' '));
 }
 
