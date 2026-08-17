@@ -25,6 +25,7 @@ const genericNonActivityTypes = new Set([
 ]);
 
 const adultOnlyText = /\b(adults?[- ]only|adult[- ]only|18\+|over[- ]18s?|club night|nightclub|casino|poker night|striptease|burlesque|pole dancing|wine tasting|cocktail masterclass|bottomless brunch|pub quiz|beer festival|craft beer|sports bar|shisha|hookah|vape|tobacco|liquor store)\b/i;
+const antenatalClassText = /\bantenatal\b/i;
 const familySignal = /\b(baby|babies|toddler|toddlers|child|children|kids?|family|families|parent|play|story|rhyme|sensory|swim|museum|park|garden|zoo|farm|bookshop|soft play)\b/i;
 const indoorPlayAdultVenue = /\b(arcade|virtual reality|vr gaming|gaming lounge|gaming cafe|escape room|casino|gravity max|sandbox vr|crystal maze|\bclays\b)\b/i;
 // The app is for everyday local plans, not full-day resorts, theme parks, or
@@ -91,6 +92,9 @@ function assess(activity) {
   const category = String(activity.category || '').trim().toLowerCase();
   const primaryType = String(activity.google_primary_type || '').trim().toLowerCase();
   const hasFamilySignal = familySignal.test(activityText(activity));
+  if (antenatalClassText.test(`${activity.activity_name || ''} ${activity.category || ''}`)) {
+    reasons.push('Antenatal classes are outside the baby and child outings directory');
+  }
   if (alwaysUnsuitableTypes.has(primaryType)) reasons.push(`Google Places type '${primaryType}' is not child or family suitable`);
   // A pub, bar or club can legitimately host a parent-and-baby session, so
   // only archive it when the listing itself has no child or family signal.
