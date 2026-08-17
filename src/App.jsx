@@ -1089,11 +1089,11 @@ function activityPlanLabel(activity) {
   // Historic plan filters group Bookshops under Food & socials. The card tag
   // should still expose the more useful, specific Bookshops category.
   if (/bookshop|book shop|bookstore|book store/.test(value)) return 'Bookshops';
-  if (/play[ -]?cafe|soft[ -]?play[ -]?cafe/.test(value)) return 'Play cafes';
+  if (/play[ -]?cafe|soft[ -]?play|playroom|role play/.test(value)) return 'Play cafes';
   if (/baby swim|infant swim|toddler swim|parent.*swim|water babies|puddle ducks/.test(value)) return 'Baby swim';
   if (/cafe|coffee|food|lunch|bakery|restaurant|bistro|brasserie|diner|eatery/.test(value)) return 'Cafes & food';
   if (/park|outdoor/.test(value)) return 'Parks & outdoor play';
-  if (/stay|soft play|family hub|play centre/.test(value)) return 'Stay & play';
+  if (/stay|family hub|play centre/.test(value)) return 'Stay & play';
   if (/dance|movement|yoga|swim|fitness/.test(value)) return 'Movement & wellbeing';
   if (/museum|culture/.test(value)) return 'Museums & culture';
   return 'Classes & clubs';
