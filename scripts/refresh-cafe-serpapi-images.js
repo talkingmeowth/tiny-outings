@@ -85,9 +85,13 @@ async function main() {
     batches.push(batch);
     cursor = batch.next_cursor || null;
     console.log(`Cafe image batch ${batches.length}: ${batch.updated || 0}/${batch.processed || 0} updated. Next cursor: ${cursor || 'complete'}`);
-    if ((batch.results || []).some((result) => result.status === 'rate-limited')) {
+    const rateLimitedIndex = (batch.results || []).findIndex((result) => result.status === 'rate-limited');
+    if (rateLimitedIndex >= 0) {
       stoppedForRateLimit = true;
-      resumeCursor = requestCursor;
+      // Resume immediately before the first unprocessed record. Without this,
+      // a partial rate-limited batch would spend searches on already-saved rows.
+      resumeCursor = batch.results[rateLimitedIndex - 1]?.activity_id || requestCursor;
+      cursor = resumeCursor;
       console.log(`SerpAPI rate limit reached. Resume from: ${resumeCursor || 'start'}`);
       break;
     }
