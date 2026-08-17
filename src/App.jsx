@@ -1091,7 +1091,7 @@ function activityPlanLabel(activity) {
   // Historic plan filters group Bookshops under Food & socials. The card tag
   // should still expose the more useful, specific Bookshops category.
   if (/bookshop|book shop|bookstore|book store/.test(value)) return 'Bookshops';
-  if (/play[ -]?cafe|soft[ -]?play|playroom|role play/.test(value)) return 'Play cafes';
+  if (/play[ -]?cafe|soft[ -]?play|playroom|role play|indoor play/.test(value)) return 'Play cafes';
   if (/baby swim|infant swim|toddler swim|parent.*swim|water babies|puddle ducks/.test(value)) return 'Baby swim';
   if (/cafe|coffee|food|lunch|bakery|restaurant|bistro|brasserie|diner|eatery/.test(value)) return 'Cafes & food';
   if (/park|outdoor/.test(value)) return 'Parks & outdoor play';
@@ -4692,7 +4692,7 @@ function ActivityAdminEditor({ activity, saving, onSave, onArchive, onPublishDra
     borough: activity.borough || '',
     lat: String(activity.lat ?? ''),
     long: String(activity.long ?? ''),
-    category: activity.category || '',
+    category: activityPlanLabel({ ...activity, plan_label: null }),
     start_time: String(activity.start_time || '').slice(0, 5),
     end_time: String(activity.end_time || '').slice(0, 5),
     description: activity.description || '',
@@ -4712,7 +4712,7 @@ function ActivityAdminEditor({ activity, saving, onSave, onArchive, onPublishDra
       borough: activity.borough || '',
       lat: String(activity.lat ?? ''),
       long: String(activity.long ?? ''),
-      category: activity.category || '',
+      category: activityPlanLabel({ ...activity, plan_label: null }),
       start_time: String(activity.start_time || '').slice(0, 5),
       end_time: String(activity.end_time || '').slice(0, 5),
       description: activity.description || '',
@@ -4800,9 +4800,6 @@ function ActivityAdminEditor({ activity, saving, onSave, onArchive, onPublishDra
           value={form.category}
           onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))}
         >
-          {!activityInterestOptions.includes(form.category) && form.category && (
-            <option value={form.category}>{form.category}</option>
-          )}
           {activityInterestOptions.map((category) => (
             <option key={category} value={category}>{category}</option>
           ))}
