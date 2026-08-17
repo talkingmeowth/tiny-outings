@@ -78,10 +78,10 @@ In Google Cloud, enable Places API (New). The function uses server-side Place De
 
 To expand the directory with permanent family-friendly places across London, enable **Places API (New)** for the Google Maps key, then run:
 
-    set GOOGLE_MAPS_API_KEY=your_server_side_key
-    npm run activities:google-e10
+    set GOOGLE_PLACES_API_KEY=your_server_side_key
+    npm run activities:google-family
 
-The import searches Greater London and combines typed Nearby Search requests for cafes, parks, playgrounds, museums, libraries and amusement centres with family-focused Text Search requests. It de-duplicates by Google place ID, excludes permanently closed venues, and writes:
+The importer searches focused categories such as family cafes, play cafes, baby swimming and baby sensory. It verifies Greater London boundaries, excludes permanently closed venues and irrelevant gaming venues, and de-duplicates by Google place ID. Generic venue discovery has been retired because a venue alone is not evidence of a suitable child-focused activity.
 
 - supabase/seed/activities_google_places_e10_10_miles.generated.sql — reviewable, idempotent database upsert
 - data/google-places-e10-10-miles.generated.json — audit file, including the source centre, distance and rank inputs

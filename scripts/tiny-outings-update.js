@@ -43,7 +43,6 @@ const jobs = [
   { name: 'loopla', script: 'import-loopla-london.js', output: 'supabase/seed/activities_loopla_london.generated.sql' },
   { name: 'museums-london', script: 'import-museums-london.js', output: 'supabase/seed/activities_museums_london.generated.sql' },
   { name: 'time-out-london-kids', script: 'import-timeout-london-kids.js', output: 'supabase/seed/activities_timeout_london_kids.generated.sql' },
-  { name: 'google-places-london', script: 'build-google-places-e10.js', output: 'supabase/seed/activities_google_places_e10_10_miles.generated.sql', google: true },
   { name: 'google-places-family', script: 'import-google-places-family.js', output: 'supabase/seed/activities_google_places_family.generated.sql', google: true },
   { name: 'london-parks', script: 'build-london-parks.js', output: 'supabase/seed/activities_london_parks_20260711.generated.sql', google: true },
   { name: 'family-cafes-and-bakeries', script: 'build-high-rated-family-cafes.js', output: 'supabase/seed/activities_high_rated_family_cafes_20260711.generated.sql', google: true },
