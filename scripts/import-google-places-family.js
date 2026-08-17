@@ -56,11 +56,19 @@ const londonZones = [
 ];
 
 const profiles = {
-  play_cafes: {
+  family_cafes: {
     category: 'Child-friendly cafes',
+    sourceName: 'Google Places baby and child friendly cafe importer',
+    queries: ['baby friendly cafe', 'child friendly cafe', 'family friendly cafe'],
+    description: 'A child-friendly cafe found through Google Places for a relaxed outing with babies and young children.',
+    cost: 'Cafe purchases',
+    bookingRequired: false,
+  },
+  play_cafes: {
+    category: 'Play cafes',
     sourceName: 'Google Places baby and child friendly play cafes importer',
-    queries: ['baby friendly cafe', 'child friendly play cafe', 'soft play cafe'],
-    description: 'A cafe or play cafe found through Google Places for a relaxed outing with babies and young children.',
+    queries: ['child friendly play cafe', 'soft play cafe', 'play cafe'],
+    description: 'A child-friendly play cafe found through Google Places for a relaxed outing with babies and young children.',
     cost: 'Cafe purchases or play session fees',
     bookingRequired: false,
   },
@@ -173,8 +181,11 @@ function placeText(place) {
 
 function hasProfileSignal(place, profileId) {
   const value = placeText(place);
+  if (profileId === 'family_cafes') {
+    return place.goodForChildren === true || /\b(baby|child|children|kid|kids|toddler|family)\b/.test(value);
+  }
   if (profileId === 'play_cafes') {
-    return place.goodForChildren === true || /\b(baby|child|children|kid|kids|toddler|family|play cafe|soft play|play)\b/.test(value);
+    return /\b(play[ -]?cafe|soft[ -]?play|play space|playhouse|play den)\b/.test(value);
   }
   if (profileId === 'baby_swim') {
     return /\b(baby|toddler|infant|parent child|water babies|puddle ducks|little fishes|swim|swimming|aqua)\b/.test(value)
@@ -243,7 +254,7 @@ function prepareActivity(place, profileId, queryTerms) {
   const placeId = String(place.id || '').trim();
   if (!name || !address || !placeId || !isGreaterLondon(place.location)) return { reason: 'Missing a name, London address, place ID, or verified coordinate.' };
   if (place.businessStatus === 'CLOSED_PERMANENTLY') return { reason: 'Permanently closed.' };
-  if (profileId === 'play_cafes' && !isFamilyCafePlace(place)) return { reason: 'Failed child-friendly cafe quality checks.' };
+  if (['family_cafes', 'play_cafes'].includes(profileId) && !isFamilyCafePlace(place)) return { reason: 'Failed child-friendly cafe quality checks.' };
   if (!hasProfileSignal(place, profileId)) return { reason: `Missing a clear ${profileId.replace('_', ' ')} signal.` };
 
   const hours = availability(place.regularOpeningHours);
@@ -456,12 +467,12 @@ async function runProfile(profileId, known, maxCandidates) {
 
 async function main() {
   if (process.argv.includes('--help') || process.argv.includes('-h')) {
-    console.log('Usage: node scripts/import-google-places-family.js [--importers play_cafes,baby_swim,baby_sensory] [--max-candidates 60]');
+    console.log('Usage: node scripts/import-google-places-family.js [--importers family_cafes,play_cafes,baby_swim,baby_sensory] [--max-candidates 60]');
     return;
   }
   const requested = option('--importers', Object.keys(profiles).join(',')).split(',').map((value) => value.trim()).filter(Boolean);
   const importerIds = [...new Set(requested)].filter((id) => Object.hasOwn(profiles, id));
-  if (!importerIds.length) throw new Error('Choose play_cafes, baby_swim, or baby_sensory.');
+  if (!importerIds.length) throw new Error('Choose family_cafes, play_cafes, baby_swim, or baby_sensory.');
   const maxCandidates = Math.min(Math.max(Number(option('--max-candidates', '60')) || 60, 1), 100);
   const known = await existingActivities();
   const results = [];

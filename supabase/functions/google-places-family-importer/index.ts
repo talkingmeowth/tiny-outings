@@ -36,13 +36,23 @@ const londonZones = [
 ]
 
 const profiles = {
+  family_cafes: {
+    id: 'family_cafes',
+    label: 'baby and child friendly cafes',
+    category: 'Child-friendly cafes',
+    sourceName: 'Google Places baby and child friendly cafe importer',
+    queries: ['baby friendly cafe', 'child friendly cafe', 'family friendly cafe'],
+    description: 'A child-friendly cafe found through Google Places for a relaxed outing with babies and young children.',
+    cost: 'Cafe purchases',
+    bookingRequired: false,
+  },
   play_cafes: {
     id: 'play_cafes',
     label: 'baby and child friendly play cafes',
-    category: 'Child-friendly cafes',
+    category: 'Play cafes',
     sourceName: 'Google Places baby and child friendly play cafes importer',
-    queries: ['baby friendly cafe', 'child friendly play cafe', 'soft play cafe'],
-    description: 'A cafe or play cafe found through Google Places for a relaxed outing with babies and young children.',
+    queries: ['child friendly play cafe', 'soft play cafe', 'play cafe'],
+    description: 'A child-friendly play cafe found through Google Places for a relaxed outing with babies and young children.',
     cost: 'Cafe purchases or play session fees',
     bookingRequired: false,
   },
@@ -254,8 +264,11 @@ function isFamilyCafe(place: GooglePlace) {
 
 function hasProfileSignal(place: GooglePlace, profile: Profile) {
   const value = placeText(place)
+  if (profile.id === 'family_cafes') {
+    return place.goodForChildren === true || /\b(baby|child|children|kid|kids|toddler|family)\b/.test(value)
+  }
   if (profile.id === 'play_cafes') {
-    return place.goodForChildren === true || /\b(baby|child|children|kid|kids|toddler|family|play cafe|soft play|play)\b/.test(value)
+    return /\b(play[ -]?cafe|soft[ -]?play|play space|playhouse|play den)\b/.test(value)
   }
   if (profile.id === 'baby_swim') {
     return /\b(baby|toddler|infant|parent child|water babies|puddle ducks|little fishes|swim|swimming|aqua)\b/.test(value)
@@ -359,7 +372,7 @@ function prepareActivity(place: GooglePlace, profile: Profile, queries: Set<stri
   const placeId = text(place.id)
   if (!name || !address || !placeId || !isGreaterLondon(place.location)) return { reason: 'Missing a name, London address, place ID, or verified coordinate.' }
   if (place.businessStatus === 'CLOSED_PERMANENTLY') return { reason: 'Permanently closed.' }
-  if (profile.id === 'play_cafes' && !isFamilyCafe(place)) return { reason: 'Failed child-friendly cafe quality checks.' }
+  if (['family_cafes', 'play_cafes'].includes(profile.id) && !isFamilyCafe(place)) return { reason: 'Failed child-friendly cafe quality checks.' }
   if (!hasProfileSignal(place, profile)) return { reason: `Missing a clear ${profile.label} signal.` }
 
   const hours = availability(place.regularOpeningHours)

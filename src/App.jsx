@@ -159,6 +159,8 @@ const preconnectedImageOrigins = new Set();
 
 const activityInterestOptions = [
   'Cafes & food',
+  'Play cafes',
+  'Baby swim',
   'Parks & outdoor play',
   'Stay & play',
   'Classes & clubs',
@@ -187,6 +189,7 @@ function defaultFilters() {
     interests: [...activityInterestOptions],
     source: [],
     ageRange: 'all',
+    activitySearch: '',
   };
 }
 
@@ -1062,6 +1065,19 @@ function activityMatchesInterests(activity, selectedCategories, allCategoriesSel
   return selectedCategories.has(activity.plan_label || activityPlanLabel(activity));
 }
 
+function activityMatchesSearch(activity, value) {
+  const query = cleanDisplayText(value).toLowerCase();
+  if (!query) return true;
+  const searchable = [
+    activity.activity_name,
+    activity.category,
+    activity.borough,
+    activity.description,
+    activity.card_summary,
+  ].map((item) => cleanDisplayText(item).toLowerCase()).join(' ');
+  return query.split(/\s+/).filter(Boolean).every((term) => searchable.includes(term));
+}
+
 function activityPlanLabel(activity) {
   if (activity.plan_label) return activity.plan_label;
   if (isEventListing(activity)) return 'Events';
@@ -1073,6 +1089,8 @@ function activityPlanLabel(activity) {
   // Historic plan filters group Bookshops under Food & socials. The card tag
   // should still expose the more useful, specific Bookshops category.
   if (/bookshop|book shop|bookstore|book store/.test(value)) return 'Bookshops';
+  if (/play[ -]?cafe|soft[ -]?play[ -]?cafe/.test(value)) return 'Play cafes';
+  if (/baby swim|infant swim|toddler swim|parent.*swim|water babies|puddle ducks/.test(value)) return 'Baby swim';
   if (/cafe|coffee|food|lunch|bakery/.test(value)) return 'Cafes & food';
   if (/park|outdoor/.test(value)) return 'Parks & outdoor play';
   if (/stay|soft play|family hub|play centre/.test(value)) return 'Stay & play';
@@ -1290,6 +1308,7 @@ export default function App() {
       ageRange: ageFilterOptions.some((option) => option.value === stored.ageRange)
         ? stored.ageRange
         : defaults.ageRange,
+      activitySearch: typeof stored.activitySearch === 'string' ? stored.activitySearch : defaults.activitySearch,
     };
   });
   const [calendarMonth, setCalendarMonth] = useState(() => monthStartISO(startOfWeekISO(todayISO())));
@@ -1537,9 +1556,10 @@ export default function App() {
         && !activity.archive
         && activityMatchesInterests(activity, selectedCategorySet, allCategoriesSelected)
         && (selectedSourceSet.size === 0 || selectedSourceSet.has(activitySourceLabel(activity)))
-        && activityMatchesAge(activity, deferredFilters.ageRange);
+        && activityMatchesAge(activity, deferredFilters.ageRange)
+        && activityMatchesSearch(activity, deferredFilters.activitySearch);
     }),
-    [activitiesWithDistance, selectedCategorySet, allCategoriesSelected, deferredFilters.ageRange, selectedSourceSet],
+    [activitiesWithDistance, selectedCategorySet, allCategoriesSelected, deferredFilters.activitySearch, deferredFilters.ageRange, selectedSourceSet],
   );
   const distanceMatchedActivities = useMemo(
     () => !userLocation
@@ -3332,6 +3352,16 @@ function StartScreen({
             ))}
           </div>
         </div>
+
+        <label className="field-group activity-search-field">
+          <span>Find an activity</span>
+          <input
+            type="search"
+            value={filters.activitySearch || ''}
+            onChange={(event) => setFilters((current) => ({ ...current, activitySearch: event.target.value }))}
+            placeholder="Try a name, place or activity"
+          />
+        </label>
 
         <div className="field-group source-filter">
           <span>Source</span>
