@@ -219,8 +219,16 @@ function isFamilyCafe(place: GooglePlace) {
   const rating = Number(place.rating || 0)
   const reviews = Number(place.userRatingCount || 0)
   if (place.businessStatus === 'CLOSED_PERMANENTLY') return false
-  if (/\b(bar|pub|night club|casino|liquor store)\b/.test(types)) return false
-  if (['elite cafe', 'forest bistro cafe 1'].includes(name)) return false
+  if (/\b(bar|bar and grill|pub|night club|casino|liquor store|dog cafe)\b/.test(types)) return false
+  if ([
+    'elite cafe',
+    'forest bistro cafe 1',
+    'goods office',
+    'park brew and kitchen',
+    'cuppapug',
+    'stone mini market',
+    'yardarm',
+  ].includes(name)) return false
   if (!/\b(cafe|coffee|bakery|restaurant|amusement center|playground)\b/.test(types)) return false
   if (reviews >= 10 && rating > 0 && rating < 3.8) return false
   return true

@@ -4,6 +4,8 @@ export { normaliseWalthamForestEventImageUrl } from './activity-image-policy.js'
 
 const unsuitableFamilyCafeTypes = new Set([
   'bar',
+  'bar_and_grill',
+  'dog_cafe',
   'pub',
   'night_club',
   'casino',
@@ -18,6 +20,13 @@ const excludedFamilyCafePlaceIds = new Set([
 const excludedFamilyCafeNames = new Set([
   'elite cafe',
   'forest bistro cafe 1',
+  // Past editorial decisions. Keep these exact names out even if Google later
+  // assigns them a more general cafe type.
+  'goods office',
+  'park brew and kitchen',
+  'cuppapug',
+  'stone mini market',
+  'yardarm',
 ]);
 
 function normaliseName(value) {
@@ -31,7 +40,10 @@ function normaliseName(value) {
 
 export function isFamilyCafePlace(place) {
   if (!place || place.businessStatus === 'CLOSED_PERMANENTLY') return false;
-  if (unsuitableFamilyCafeTypes.has(place.primaryType)) return false;
+  const types = [place.primaryType, ...(place.types || [])]
+    .map((type) => String(type || '').toLowerCase())
+    .filter(Boolean);
+  if (types.some((type) => unsuitableFamilyCafeTypes.has(type))) return false;
   if (excludedFamilyCafePlaceIds.has(place.id)) return false;
   return !excludedFamilyCafeNames.has(normaliseName(place.displayName?.text));
 }
