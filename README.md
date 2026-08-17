@@ -95,6 +95,8 @@ shared quality contract. It covers all London location searches, source and
 organiser links, website images, direct Happity schedule links, Google Place
 and Maps validation, permanent closures, broken-link removal, age guidance,
 unknown times as `Any time`, duplicate consolidation, and expired listings.
+It also archives high-confidence adult-only and generic non-activity venues;
+specialist children’s events at a venue are not removed by this rule.
 
 Run `npm.cmd run tiny-outings-update:apply` to apply the generated SQL to the
 linked Supabase project. A Google Places key is mandatory: the job fails rather

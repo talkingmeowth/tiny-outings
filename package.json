@@ -37,6 +37,7 @@
     "activities:audit-swipe": "node scripts/audit-swipe-visibility.js",
     "activities:audit-plan-filters": "node scripts/audit-activity-plan-filters.js",
     "activities:audit-cards": "node scripts/audit-activity-card-readiness.js",
+    "activities:audit-suitability": "node scripts/audit-activity-suitability.js",
     "activities:audit-duplicates": "node scripts/audit-cross-source-duplicates.js",
     "activities:repair-websites": "node scripts/repair-broken-activity-websites.js",
     "activities:audit-websites": "node scripts/audit-activity-websites.js",
