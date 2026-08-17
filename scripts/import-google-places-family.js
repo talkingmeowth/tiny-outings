@@ -53,6 +53,14 @@ const londonZones = [
   { name: 'Lewisham and Bromley', latitude: 51.436, longitude: -0.018 },
   { name: 'Croydon', latitude: 51.375, longitude: -0.102 },
   { name: 'Kingston and Wimbledon', latitude: 51.41, longitude: -0.245 },
+  { name: 'Barnet', latitude: 51.625, longitude: -0.2 },
+  { name: 'Tower Hamlets', latitude: 51.52, longitude: -0.035 },
+  { name: 'Westminster', latitude: 51.515, longitude: -0.145 },
+  { name: 'Wandsworth', latitude: 51.46, longitude: -0.19 },
+  { name: 'Hounslow and Hillingdon', latitude: 51.5, longitude: -0.41 },
+  { name: 'Barking and Dagenham', latitude: 51.54, longitude: 0.125 },
+  { name: 'Redbridge and Havering', latitude: 51.58, longitude: 0.14 },
+  { name: 'Bexley', latitude: 51.45, longitude: 0.15 },
 ];
 
 const profiles = {
@@ -67,7 +75,11 @@ const profiles = {
   play_cafes: {
     category: 'Play cafes',
     sourceName: 'Google Places baby and child friendly play cafes importer',
-    queries: ['child friendly play cafe', 'soft play cafe', 'play cafe'],
+    queries: [
+      'play cafe', 'child friendly play cafe', 'baby play cafe', 'toddler play cafe',
+      'soft play cafe', 'soft play and cafe', 'indoor play cafe', 'kids play cafe',
+      'playroom cafe', 'cafe with soft play', 'family play cafe',
+    ],
     description: 'A child-friendly play cafe found through Google Places for a relaxed outing with babies and young children.',
     cost: 'Cafe purchases or play session fees',
     bookingRequired: false,
@@ -132,6 +144,24 @@ function activityKey(activity) {
   return `${normalized(activity.activity_name)}|${postcode(activity.postcode || activity.address) || normalized(activity.address)}`;
 }
 
+function discoveryHash(value) {
+  let hash = 5381;
+  for (const character of String(value)) hash = ((hash * 33) ^ character.charCodeAt(0)) >>> 0;
+  return hash;
+}
+
+function selectNewCandidates(discovered, known, maxCandidates) {
+  // Results are returned zone-by-zone. A stable hash avoids concentrating a
+  // capped batch in the first few zones while retaining reproducible audits.
+  return [...discovered.entries()]
+    .filter(([placeId]) => !known.placeIds.has(placeId))
+    .sort(([leftId, leftTerms], [rightId, rightTerms]) => {
+      const matchDifference = rightTerms.size - leftTerms.size;
+      return matchDifference || discoveryHash(leftId) - discoveryHash(rightId);
+    })
+    .slice(0, maxCandidates);
+}
+
 function isGreaterLondon(location) {
   const latitude = Number(location?.latitude);
   const longitude = Number(location?.longitude);
@@ -185,7 +215,9 @@ function hasProfileSignal(place, profileId) {
     return place.goodForChildren === true || /\b(baby|child|children|kid|kids|toddler|family)\b/.test(value);
   }
   if (profileId === 'play_cafes') {
-    return /\b(play[ -]?cafe|soft[ -]?play|play space|playhouse|play den)\b/.test(value);
+    const hasPlay = /\b(play[ -]?cafe|cafe[ -]?play|soft[ -]?play|play space|playhouse|play den|playroom|indoor playground|kids play|children s play|toddler play)\b/.test(value);
+    const hasCafe = /\b(cafe|coffee|bakery|food|kitchen|restaurant)\b/.test(value);
+    return hasPlay && hasCafe;
   }
   if (profileId === 'baby_swim') {
     return /\b(baby|toddler|infant|parent child|water babies|puddle ducks|little fishes|swim|swimming|aqua)\b/.test(value)
@@ -213,7 +245,7 @@ async function discover(zone, query) {
     headers: { 'Content-Type': 'application/json', 'X-Goog-FieldMask': 'places.id' },
     body: JSON.stringify({
       textQuery: `${query} in ${zone.name}, London`,
-      maxResultCount: 8,
+      maxResultCount: 20,
       languageCode: 'en-GB',
       regionCode: 'GB',
       locationBias: { circle: { center: { latitude: zone.latitude, longitude: zone.longitude }, radius: 5500 } },
@@ -420,7 +452,8 @@ async function runProfile(profileId, known, maxCandidates) {
 
   const rows = [];
   const rejected = [];
-  for (const [placeId, terms] of [...discovered.entries()].slice(0, maxCandidates)) {
+  const candidates = selectNewCandidates(discovered, known, maxCandidates);
+  for (const [placeId, terms] of candidates) {
     try {
       const place = await details(placeId);
       const result = prepareActivity(place, profileId, terms);
@@ -429,8 +462,6 @@ async function runProfile(profileId, known, maxCandidates) {
         continue;
       }
       // A different Google Place at the same named venue is a likely duplicate.
-      // The exact same Place ID is deliberately retained so its current details
-      // can update the existing source_url record through the UPSERT below.
       if (known.activityKeys.has(activityKey(result.activity)) && !known.placeIds.has(placeId)) {
         rejected.push({ place_id: placeId, name: result.activity.activity_name, reason: 'Matching name and venue already exist.' });
         continue;
@@ -456,7 +487,7 @@ async function runProfile(profileId, known, maxCandidates) {
     importer: profileId,
     category: profiles[profileId].category,
     discovered: discovered.size,
-    inspected: Math.min(discovered.size, maxCandidates),
+    inspected: candidates.length,
     imported_or_refreshed: rows.length,
     skipped_or_rejected: rejected.length,
     discovery_errors: discoveryErrors,
@@ -467,13 +498,13 @@ async function runProfile(profileId, known, maxCandidates) {
 
 async function main() {
   if (process.argv.includes('--help') || process.argv.includes('-h')) {
-    console.log('Usage: node scripts/import-google-places-family.js [--importers family_cafes,play_cafes,baby_swim,baby_sensory] [--max-candidates 60]');
+    console.log('Usage: node scripts/import-google-places-family.js [--importers family_cafes,play_cafes,baby_swim,baby_sensory] [--max-candidates 100]');
     return;
   }
   const requested = option('--importers', Object.keys(profiles).join(',')).split(',').map((value) => value.trim()).filter(Boolean);
   const importerIds = [...new Set(requested)].filter((id) => Object.hasOwn(profiles, id));
   if (!importerIds.length) throw new Error('Choose family_cafes, play_cafes, baby_swim, or baby_sensory.');
-  const maxCandidates = Math.min(Math.max(Number(option('--max-candidates', '60')) || 60, 1), 100);
+  const maxCandidates = Math.min(Math.max(Number(option('--max-candidates', '100')) || 100, 1), 200);
   const known = await existingActivities();
   const results = [];
   for (const profileId of importerIds) results.push(await runProfile(profileId, known, maxCandidates));
