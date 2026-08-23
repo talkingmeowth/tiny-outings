@@ -27,6 +27,7 @@ const defaultProfileAvatar = '/images/profile-placeholder.svg';
 const NativeGoogleSignIn = registerPlugin('TinyOutingsGoogle');
 // Reset outdated swipe/filter state without touching planned calendar entries.
 const planningStorageVersion = '2026-08-17-family-activities-filter';
+const onboardingStorageKey = 'onboarding-complete';
 const statusOptions = ['booked', 'tentative'];
 const activitySelectColumns = [
   'activity_id',
@@ -1313,6 +1314,7 @@ export default function App() {
   // A guest choice lasts only for the open app session. On a fresh launch,
   // signed-out people always start at the account screen.
   const [entryChoice, setEntryChoice] = useState(null);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(() => loadStored(onboardingStorageKey, false) === true);
   const [authLoading, setAuthLoading] = useState(false);
   const [profile, setProfile] = useState(null);
   const [profileSaving, setProfileSaving] = useState(false);
@@ -2276,6 +2278,11 @@ export default function App() {
     setEntryChoice('guest');
   }
 
+  function completeOnboarding() {
+    saveStored(onboardingStorageKey, true);
+    setHasCompletedOnboarding(true);
+  }
+
   async function signOut() {
     if (!supabase) return;
     const { error } = await supabase.auth.signOut();
@@ -2954,7 +2961,9 @@ export default function App() {
 
   return (
     <div className="phone-app">
-      {!session && !entryChoice ? (
+      {!hasCompletedOnboarding && (session || entryChoice) ? (
+        <OnboardingScreen onComplete={completeOnboarding} />
+      ) : !session && !entryChoice ? (
         <WelcomeScreen
           authLoading={authLoading}
           onSignIn={signInWithGoogle}
@@ -3176,6 +3185,43 @@ function WelcomeScreen({ authLoading, onSignIn, onContinueAsGuest }) {
         <button className="welcome-guest" type="button" onClick={onContinueAsGuest}>Continue as guest</button>
       </div>
       <p className="welcome-note">Guest plans stay on this device.</p>
+    </main>
+  );
+}
+
+function OnboardingScreen({ onComplete }) {
+  return (
+    <main className="onboarding-screen" aria-labelledby="onboarding-title">
+      <div className="onboarding-doodle onboarding-doodle-sun" aria-hidden="true" />
+      <div className="onboarding-doodle onboarding-doodle-scribble" aria-hidden="true" />
+      <p className="onboarding-kicker">A quick tour</p>
+      <h1 id="onboarding-title">Your week, made easier.</h1>
+      <p className="onboarding-intro">Tiny Outings helps London families turn a blank week into small, good plans.</p>
+
+      <ol className="onboarding-steps">
+        <li>
+          <span className="onboarding-step-number">1</span>
+          <div><strong>Plan your week</strong><p>Choose a week, your distance and the kinds of outing you fancy.</p></div>
+        </li>
+        <li>
+          <span className="onboarding-step-number">2</span>
+          <div><strong>Swipe through ideas</strong><p>Swipe right to save an idea for morning, afternoon or evening. Swipe left to pass.</p></div>
+        </li>
+        <li>
+          <span className="onboarding-step-number">3</span>
+          <div><strong>Pick your favourites</strong><p>Choose from your saved shortlist and see the finished plan in Week.</p></div>
+        </li>
+        <li>
+          <span className="onboarding-step-number">4</span>
+          <div><strong>Explore and share</strong><p>Use Where to spot nearby activity hubs, then share a plan when it is ready.</p></div>
+        </li>
+      </ol>
+
+      <div className="onboarding-actions">
+        <button className="onboarding-start" type="button" onClick={onComplete}>Let's plan</button>
+        <button className="onboarding-skip" type="button" onClick={onComplete}>Skip for now</button>
+      </div>
+      <p className="onboarding-note">You can sign in whenever you want to follow parents, review places and save your profile.</p>
     </main>
   );
 }
