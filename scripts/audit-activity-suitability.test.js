@@ -40,3 +40,20 @@ test('keeps an explicitly child-focused restaurant activity', () => {
     activity_name: 'Family story time at The Kitchen',
   })), []);
 });
+
+test('archives an explicit greasy-spoon cafe', () => {
+  const reasons = activitySuitabilityReasons(googleCafeListing({
+    activity_name: 'Workers Cafe',
+    google_primary_type: 'cafe',
+    google_summary: 'Comfy spot with all-day breakfast, grills and burgers.',
+  }));
+  assert.ok(reasons.includes('Explicit greasy-spoon cafe is outside the family cafe directory'));
+});
+
+test('keeps a family cafe that serves breakfast', () => {
+  assert.deepEqual(activitySuitabilityReasons(googleCafeListing({
+    activity_name: 'The Little Play Cafe',
+    google_primary_type: 'cafe',
+    google_summary: 'Baby-friendly play space serving breakfast and cake.',
+  })), []);
+});

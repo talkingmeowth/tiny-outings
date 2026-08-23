@@ -46,6 +46,9 @@ const indoorPlayAdultVenue = /\b(arcade|virtual reality|vr gaming|gaming lounge|
 const largeDestinationText = /\b(theme park|amusement park|legoland|chessington world|thorpe park|alton towers|babylon park|go ape|old macdonald'?s farm)\b/i;
 const cafeVenueName = /\b(caf[eé]|coffee|espresso|bakery|tea room|tearoom|play cafe|soft play)\b/i;
 const explicitChildActivityName = /\b(baby|toddler|child|children|kids?|family|playgroup|stay and play)\b/i;
+// Keep this deliberately narrow. Many good independent cafes serve breakfast,
+// so only explicit greasy-spoon venue names are excluded automatically.
+const greasySpoonVenueName = /\b(greasy spoon|workers?[ -]caf[e\u00e9]|builders?[ -]caf[e\u00e9]|transport[ -]caf[e\u00e9]|truck[- ]stop[ -]caf[e\u00e9])\b/i;
 function env() {
   const path = join(root, '.env.local');
   return Object.fromEntries(readFileSync(path, 'utf8').replace(/^\uFEFF/, '').split(/\r?\n/)
@@ -148,6 +151,11 @@ export function activitySuitabilityReasons(activity) {
     && !cafeVenueName.test(String(activity.activity_name || ''))
     && !explicitChildActivityName.test(`${activity.activity_name || ''} ${activity.google_summary || ''}`)) {
     reasons.push('Google Places listing is a restaurant or takeaway rather than a cafe');
+  }
+  if ((category.includes('cafe') || category.includes('food'))
+    && greasySpoonVenueName.test(String(activity.activity_name || ''))
+    && !explicitChildActivityName.test(`${activity.activity_name || ''} ${activity.google_summary || ''}`)) {
+    reasons.push('Explicit greasy-spoon cafe is outside the family cafe directory');
   }
   if (category === 'indoor play' && indoorPlayAdultVenue.test(content)) {
     reasons.push('Indoor play listing is an adult gaming or arcade venue');
