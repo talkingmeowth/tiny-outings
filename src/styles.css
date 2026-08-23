@@ -5610,6 +5610,7 @@ textarea {
 }
 
 .search-result-photo {
+  position: relative;
   width: 82px;
   height: 82px;
   overflow: hidden;

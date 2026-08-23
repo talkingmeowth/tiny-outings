@@ -11,6 +11,7 @@ import { supabase } from './supabaseClient';
 import { googleSignInErrorMessage, signInWithNativeGoogle } from './googleAuth';
 import { shareContent } from './shareContent';
 import { shouldOpenSearchOnKey } from './searchInteraction';
+import { activityNameMatchesSearch, sortActivityNameSearchResults } from './activitySearch';
 import { comparisonTokens, dedupePublishedActivities, findLikelyDuplicate } from './activityDuplicates';
 import { activityImageUrls, hasActivityImage, securePhotoUrl, shareListingImages } from './activityImages';
 import { activityCoordinates, resolveActivityCoordinates } from './activityLocation';
@@ -1040,19 +1041,6 @@ function activityMatchesInterests(activity, selectedCategories, allCategoriesSel
   return selectedCategories.has(activity.plan_label || activityPlanLabel(activity));
 }
 
-function activityMatchesSearch(activity, value) {
-  const query = cleanDisplayText(value).toLowerCase();
-  if (!query) return true;
-  const searchable = [
-    activity.activity_name,
-    activity.category,
-    activity.borough,
-    activity.description,
-    activity.card_summary,
-  ].map((item) => cleanDisplayText(item).toLowerCase()).join(' ');
-  return query.split(/\s+/).filter(Boolean).every((term) => searchable.includes(term));
-}
-
 function activityPlanLabel(activity) {
   if (activity.plan_label) return activity.plan_label;
   if (isEventListing(activity)) return 'Events';
@@ -1540,10 +1528,9 @@ export default function App() {
         && !hiddenActivityIdSet.has(String(activity.activity_id))
         && activityMatchesInterests(activity, selectedCategorySet, allCategoriesSelected)
         && (selectedSourceSet.size === 0 || selectedSourceSet.has(activitySourceLabel(activity)))
-        && activityMatchesAge(activity, deferredFilters.ageRange)
-        && activityMatchesSearch(activity, deferredFilters.activitySearch);
+        && activityMatchesAge(activity, deferredFilters.ageRange);
     }),
-    [activitiesWithDistance, hiddenActivityIdSet, selectedCategorySet, allCategoriesSelected, deferredFilters.activitySearch, deferredFilters.ageRange, selectedSourceSet],
+    [activitiesWithDistance, hiddenActivityIdSet, selectedCategorySet, allCategoriesSelected, deferredFilters.ageRange, selectedSourceSet],
   );
   const distanceMatchedActivities = useMemo(
     () => !userLocation
@@ -1576,6 +1563,21 @@ export default function App() {
       (activity) => filteredWeekDays.some((day) => isActivityAvailableOn(activity, day)),
     ),
     [sharedFilteredActivities, filteredWeekDays],
+  );
+  const searchResultsActivities = useMemo(
+    () => sortActivityNameSearchResults(
+      allActivities.filter((activity) => (
+        activity.public_listing_status === 'published'
+          && !activity.archive
+          && !hiddenActivityIdSet.has(String(activity.activity_id))
+          // Directory search must always honour the visible selected week,
+          // rather than the deferred filters used to keep Plan taps responsive.
+          && weekDays.some((day) => isActivityAvailableOn(activity, day))
+          && activityNameMatchesSearch(activity, filters.activitySearch)
+      )),
+      filters.activitySearch,
+    ),
+    [allActivities, filters.activitySearch, hiddenActivityIdSet, weekDays],
   );
   const filteredActivities = useMemo(
     () => sharedFilteredActivities.filter(
@@ -3046,7 +3048,13 @@ export default function App() {
             onRequestLocation={requestLocation}
             onShowAll={showAllActivities}
             onResetBrowsing={resetBrowsingState}
-            onOpenSearch={() => navigate('search')}
+            onOpenSearch={() => {
+              if (!cleanDisplayText(filters.activitySearch)) {
+                setNotice('Enter an activity name to search the selected week.');
+                return;
+              }
+              navigate('search');
+            }}
             onStart={() => navigate('swipe')}
           />
         )}
@@ -3054,7 +3062,7 @@ export default function App() {
         {activeScreen === 'search' && (
           <SearchResultsScreen
             query={filters.activitySearch}
-            activities={sharedFilteredActivities}
+            activities={searchResultsActivities}
             onBack={() => navigate('start')}
             onOpenActivity={openActivity}
             onHideActivity={hideActivityFromBrowsing}
@@ -3602,7 +3610,7 @@ function SearchResultsScreen({ query, activities, onBack, onOpenActivity, onHide
       <div className="screen-title compact">
         <span className="eyebrow">Directory search</span>
         <h1>{searchTerm ? `Results for ${searchTerm}` : 'All matching outings'}</h1>
-        <p>{activities.length} outing{activities.length === 1 ? '' : 's'} match your current filters.</p>
+        <p>{activities.length} outing{activities.length === 1 ? '' : 's'} match this name in your selected week.</p>
       </div>
 
       <button className="secondary-button search-back-button" type="button" onClick={onBack}>Back to plan</button>
@@ -3633,7 +3641,7 @@ function SearchResultsScreen({ query, activities, onBack, onOpenActivity, onHide
       ) : (
         <div className="empty-list">
           <strong>No matching outings</strong>
-          <span>Try a different name or loosen one of the Plan filters.</span>
+          <span>Try a more specific activity name or choose a different week.</span>
         </div>
       )}
     </section>
