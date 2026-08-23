@@ -26,7 +26,11 @@ with expired as (
     )
 )
 update public.activities as activity
-set public_listing_status = 'archived', updated_at = now()
+set archive = true,
+    public_listing_status = 'archived',
+    archive_reason = 'Expired listing dates',
+    archived_at = coalesce(activity.archived_at, now()),
+    updated_at = now()
 from expired
 where activity.activity_id = expired.activity_id;
 `;

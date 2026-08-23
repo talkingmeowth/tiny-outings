@@ -5549,3 +5549,142 @@ textarea {
   border-radius: 50%;
   transform: rotate(-12deg);
 }
+
+.activity-search-field {
+  display: grid;
+  gap: 9px;
+}
+
+.search-results-button,
+.hide-activity-button {
+  justify-self: start;
+  min-height: 40px;
+  padding-inline: 17px;
+  color: var(--green-dark);
+  background-color: #e2efdf;
+  font-weight: 850;
+}
+
+.search-results-screen {
+  display: grid;
+  gap: 16px;
+}
+
+.search-results-screen .screen-title h1 {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.search-back-button {
+  justify-self: start;
+}
+
+.search-results-list {
+  display: grid;
+  gap: 10px;
+}
+
+.search-result-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  border-radius: 22px;
+  background-color: var(--paper);
+  box-shadow: var(--shadow);
+}
+
+.search-result-open {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 82px minmax(0, 1fr);
+  gap: 11px;
+  align-items: center;
+  padding: 0;
+  color: var(--ink);
+  background-color: transparent;
+  box-shadow: none;
+  text-align: left;
+}
+
+.search-result-photo {
+  width: 82px;
+  height: 82px;
+  overflow: hidden;
+  border-radius: 17px;
+  background-color: #dcecef;
+}
+
+.search-result-photo .activity-photo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.search-result-copy {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.search-result-copy small {
+  overflow: hidden;
+  color: var(--coral-dark);
+  font-size: 0.67rem;
+  font-weight: 850;
+  letter-spacing: 0.045em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.search-result-copy strong {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 1rem;
+  line-height: 1.18;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.search-result-copy > span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.search-result-hide {
+  min-height: 38px;
+  padding-inline: 12px;
+  color: var(--coral-dark);
+  background-color: #f7ded6;
+  box-shadow: none;
+  font-size: 0.76rem;
+  font-weight: 850;
+}
+
+.swipe-screen > .hide-activity-button {
+  justify-self: center;
+  margin-top: -4px;
+  background-color: #f7ded6;
+  color: var(--coral-dark);
+}
+
+.detail-actions .hide-activity-button {
+  width: 100%;
+  background-color: #f7ded6;
+  color: var(--coral-dark);
+}
+
+@media (max-width: 380px) {
+  .search-result-open {
+    grid-template-columns: 68px minmax(0, 1fr);
+  }
+
+  .search-result-photo {
+    width: 68px;
+    height: 68px;
+  }
+}

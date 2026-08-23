@@ -4,21 +4,6 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-const googlePlaceFieldMask = [
-  'id',
-  'displayName',
-  'formattedAddress',
-  'addressComponents',
-  'location',
-  'googleMapsUri',
-  'websiteUri',
-  'primaryType',
-  'editorialSummary',
-  'rating',
-  'userRatingCount',
-  'regularOpeningHours',
-].join(',');
-
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -28,20 +13,6 @@ function jsonResponse(body: unknown, status = 200) {
 
 function cleanText(value: unknown) {
   return typeof value === 'string' ? value.replace(/\s+/g, ' ').trim() : '';
-}
-
-function sameExternalUrl(first: unknown, second: unknown) {
-  try {
-    const normalise = (value: unknown) => {
-      const url = new URL(String(value));
-      const host = url.hostname.toLowerCase().replace(/^www\./, '');
-      const path = url.pathname.replace(/\/+$/, '');
-      return `${host}${url.port ? `:${url.port}` : ''}${path}`.toLowerCase();
-    };
-    return Boolean(first && second && normalise(first) === normalise(second));
-  } catch {
-    return false;
-  }
 }
 
 async function resolveRedirects(link: string) {
@@ -194,17 +165,6 @@ function normaliseLondonBorough(value: unknown) {
   return borough || null;
 }
 
-function boroughFromAddressComponents(components: unknown) {
-  if (!Array.isArray(components)) return null;
-  const borough = components.find((component) => {
-    const types = Array.isArray(component?.types) ? component.types : [];
-    const name = cleanText(component?.longText || component?.long_name);
-    return (types.includes('administrative_area_level_2') || types.includes('administrative_area_level_3'))
-      && /borough|city of london|westminster|kensington|chelsea/i.test(name);
-  });
-  return borough ? normaliseLondonBorough(borough.longText || borough.long_name) : null;
-}
-
 function postcodeFromAddress(address: string) {
   return address.match(/\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b/i)?.[0]?.toUpperCase().replace(/\s+/g, ' ') || null;
 }
@@ -222,26 +182,6 @@ async function boroughFromPostcode(address: string) {
   } catch {
     return null;
   }
-}
-
-async function reverseGeocodeBorough(latitude: number, longitude: number) {
-  const apiKey = Deno.env.get('GOOGLE_MAPS_API_KEY') || Deno.env.get('GOOGLE_PLACES_API_KEY');
-  if (!apiKey || !Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
-  try {
-    const url = new URL('https://maps.googleapis.com/maps/api/geocode/json');
-    url.searchParams.set('latlng', `${latitude},${longitude}`);
-    url.searchParams.set('key', apiKey);
-    const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
-    if (!response.ok) return null;
-    const body = await response.json();
-    for (const result of body.results || []) {
-      const borough = boroughFromAddressComponents(result.address_components);
-      if (borough) return borough;
-    }
-  } catch {
-    // Boroughs remain optional when the Geocoding API is not enabled.
-  }
-  return null;
 }
 
 function conciseCardSummary(value: string | null | undefined) {
@@ -294,6 +234,15 @@ function basicGoogleListing(link: string) {
   };
 }
 
+function embeddedGoogleMapsLink(html: string, baseUrl: string) {
+  const matches = html.matchAll(/<a\b[^>]*href=["']([^"']+)["'][^>]*>/gi);
+  for (const match of matches) {
+    const candidate = absoluteUrl(match[1], baseUrl);
+    if (candidate && isGoogleMapsUrl(candidate)) return candidate;
+  }
+  return null;
+}
+
 async function extractWebsiteMetadata(link: string, providedName?: string | null) {
   const response = await fetch(link, {
     redirect: 'follow',
@@ -317,8 +266,11 @@ async function extractWebsiteMetadata(link: string, providedName?: string | null
   const description = structured.description || metaValue(html, ['og:description', 'twitter:description', 'description']);
   const imageValue = structured.image || metaValue(html, ['og:image', 'og:image:url', 'twitter:image', 'twitter:image:src']);
   const imageUrl = imageValue ? absoluteUrl(imageValue, response.url || link) : null;
+  const googlePlacesLink = embeddedGoogleMapsLink(html, response.url || link);
   const address = structured.address || metaValue(html, ['place:location:address', 'og:street-address']) || 'Address needs review';
   const combinedText = `${title} ${description || ''} ${address} ${response.url || link}`;
+  // Postcodes.io identifies the council from the supplied address without using Google APIs.
+  const borough = inferBorough(combinedText) || await boroughFromPostcode(address);
 
   return {
     ...basicGoogleListing(link),
@@ -327,11 +279,11 @@ async function extractWebsiteMetadata(link: string, providedName?: string | null
     lat: structured.latitude,
     long: structured.longitude,
     category: inferCategory(combinedText),
-    google_link: null,
-    google_place_uri: null,
+    google_link: googlePlacesLink,
+    google_place_uri: googlePlacesLink,
     website: officialWebsiteUrl(response.url || link),
     organiser_website: null,
-    borough: inferBorough(combinedText),
+    borough,
     description,
     card_summary: conciseCardSummary(description),
     cost: structured.price || null,
@@ -339,106 +291,6 @@ async function extractWebsiteMetadata(link: string, providedName?: string | null
     source_url: response.url || link,
     image_url: imageUrl,
     image_source_url: imageUrl ? response.url || link : null,
-  };
-}
-
-function googlePlaceIdFromLink(link: string) {
-  try {
-    const url = new URL(link);
-    const directId = url.searchParams.get('place_id') || url.searchParams.get('placeId');
-    const query = ['q', 'query', 'destination'].map((key) => url.searchParams.get(key)).find(Boolean) || '';
-    return directId || decodeURIComponent(query).match(/place_id:([^&\s]+)/i)?.[1] || null;
-  } catch {
-    return decodeURIComponent(link).match(/place_id:([^&\s]+)/i)?.[1] || null;
-  }
-}
-
-function googleSearchText(link: string) {
-  try {
-    const url = new URL(link);
-    const query = ['q', 'query', 'place', 'destination']
-      .map((key) => url.searchParams.get(key))
-      .find(Boolean);
-    const pathName = url.pathname.match(/\/maps\/place\/([^/@]+)/i)?.[1];
-    return cleanText(decodeURIComponent(query || pathName || '').replace(/[+_-]+/g, ' '));
-  } catch {
-    return '';
-  }
-}
-
-async function googlePlaceLookup(activity: Record<string, unknown>, originalLink: string) {
-  const apiKey = Deno.env.get('GOOGLE_MAPS_API_KEY') || Deno.env.get('GOOGLE_PLACES_API_KEY');
-  if (!apiKey) return null;
-
-  const headers = { 'Content-Type': 'application/json', 'X-Goog-Api-Key': apiKey };
-  const placeId = googlePlaceIdFromLink(originalLink);
-  try {
-    if (placeId) {
-      const response = await fetch(
-        `https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}?languageCode=en-GB&regionCode=GB`,
-        { headers: { ...headers, 'X-Goog-FieldMask': googlePlaceFieldMask } },
-      );
-      return response.ok ? await response.json() : null;
-    }
-
-    const parts = [
-      cleanText(activity.activity_name),
-      cleanText(activity.address) === 'Address needs review' ? '' : cleanText(activity.address),
-      googleSearchText(originalLink),
-    ].filter(Boolean);
-    const textQuery = [...new Set(parts)].join(', ');
-    if (!textQuery) return null;
-    const response = await fetch('https://places.googleapis.com/v1/places:searchText', {
-      method: 'POST',
-      headers: { ...headers, 'X-Goog-FieldMask': `places.${googlePlaceFieldMask.split(',').join(',places.')}` },
-      body: JSON.stringify({ textQuery, maxResultCount: 1, languageCode: 'en-GB', regionCode: 'GB' }),
-    });
-    if (!response.ok) return null;
-    return (await response.json()).places?.[0] || null;
-  } catch {
-    // A Maps restriction must never prevent a parent from sending a draft.
-    return null;
-  }
-}
-
-async function enrichWithGooglePlace(activity: Record<string, any>, place: Record<string, any> | null, submittedLink: string) {
-  if (!place) return activity;
-  const address = cleanText(place.formattedAddress) || activity.address;
-  const description = activity.description || cleanText(place.editorialSummary?.text) || null;
-  const latitude = Number(place.location?.latitude);
-  const longitude = Number(place.location?.longitude);
-  const rating = Number(place.rating);
-  const reviewCount = Number(place.userRatingCount);
-  const website = officialWebsiteUrl(activity.website) || officialWebsiteUrl(place.websiteUri);
-  const organiserWebsite = officialWebsiteUrl(activity.organiser_website);
-
-  const borough = inferBorough(address)
-    || boroughFromAddressComponents(place.addressComponents)
-    || activity.borough
-    || await boroughFromPostcode(address)
-    || await reverseGeocodeBorough(latitude, longitude);
-
-  return {
-    ...activity,
-    activity_name: cleanText(activity.activity_name) || cleanText(place.displayName?.text) || 'Activity needs review',
-    address,
-    lat: Number.isFinite(latitude) ? latitude : activity.lat,
-    long: Number.isFinite(longitude) ? longitude : activity.long,
-    borough,
-    google_link: cleanText(place.googleMapsUri) || activity.google_link || (isGoogleMapsUrl(submittedLink) ? submittedLink : null),
-    google_place_uri: cleanText(place.googleMapsUri) || activity.google_place_uri || (isGoogleMapsUrl(submittedLink) ? submittedLink : null),
-    google_place_id: cleanText(place.id) || activity.google_place_id || null,
-    website,
-    organiser_website: sameExternalUrl(website, organiserWebsite) ? null : organiserWebsite,
-    app_rating: Number.isFinite(rating) ? rating : activity.app_rating,
-    number_of_reviews: Number.isFinite(reviewCount) ? reviewCount : activity.number_of_reviews,
-    google_rating: Number.isFinite(rating) ? rating : activity.google_rating,
-    google_user_rating_count: Number.isFinite(reviewCount) ? reviewCount : activity.google_user_rating_count,
-    google_primary_type: cleanText(place.primaryType) || activity.google_primary_type || null,
-    google_opening_hours: place.regularOpeningHours || activity.google_opening_hours || null,
-    google_summary: cleanText(place.editorialSummary?.text) || activity.google_summary || null,
-    description,
-    card_summary: activity.card_summary || conciseCardSummary(description),
   };
 }
 
@@ -462,8 +314,10 @@ Deno.serve(async (request) => {
       }
     }
 
-    const place = await googlePlaceLookup(activity, resolvedLink);
-    return jsonResponse({ activity: await enrichWithGooglePlace(activity, place, resolvedLink) });
+    // User submissions never spend Google Maps API quota. The draft records
+    // the submitted Google Maps link or a link embedded by the official page
+    // for an administrator to verify before publication.
+    return jsonResponse({ activity });
   } catch (error) {
     return jsonResponse(
       { error: error instanceof Error ? error.message : 'Activity autofill failed.' },

@@ -11,6 +11,7 @@
     "lint": "eslint .",
     "activities:expanded": "node scripts/build-expanded-activities-seed.js",
     "activities:best-start": "node scripts/import-waltham-forest-best-start.js",
+    "activities:family-hubs-london": "node scripts/import-london-family-hubs.js",
     "activities:best-start:recurring": "node scripts/refresh-better-start-recurring-availability.js",
     "activities:google-family": "node scripts/import-google-places-family.js",
     "activities:images": "node scripts/enrich-activity-images.js --audit",

@@ -32,11 +32,13 @@ const googleApiKey = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAP
   || localEnv.GOOGLE_PLACES_API_KEY || localEnv.GOOGLE_MAPS_API_KEY || localEnv.VITE_GOOGLE_MAPS_API_KEY;
 
 // Sources run first, followed by common enrichment and validation. Every
-// generated SQL file is idempotent: new source URLs insert, familiar ones
-// update in place, and database triggers preserve a human archive decision.
+// generated SQL file is idempotent: a new source URL is held as a draft for
+// admin review, familiar records are refreshed in place, and database
+// triggers preserve a human archive decision.
 const jobs = [
   { name: 'happity', script: 'import-happity-schedules.js', output: 'supabase/seed/activities_happity_schedules.generated.sql' },
   { name: 'better-start-for-life', script: 'import-waltham-forest-best-start.js', output: 'supabase/seed/activities_waltham_forest_best_start_live.generated.sql', google: true },
+  { name: 'london-family-hubs', script: 'import-london-family-hubs.js', output: 'supabase/seed/activities_london_family_hubs.generated.sql', google: true },
   { name: 'eventbrite', script: 'import-eventbrite-baby-london.js', output: 'supabase/seed/activities_eventbrite_london_baby_20260711.generated.sql', google: true },
   { name: 'fever', script: 'import-fever-london-family.js', output: 'supabase/seed/activities_fever_london_family_20260711.generated.sql' },
   { name: 'fever-availability', script: 'enrich-fever-availability.js', output: 'supabase/seed/fever_availability_updates.generated.sql' },
@@ -87,11 +89,12 @@ same shared quality contract to all results:
   - durable download of missing official website images into Supabase Storage
   - Google Places identity, Maps location, canonical link, and permanent-closure validation
   - age suitability and "Any time" completion for unknown availability
-  - existing-record updates, cross-source duplicate consolidation, and expiry archiving
+  - existing-record updates, cross-source duplicate consolidation, and expiry archiving with reasons
 
 Google Places validation is mandatory. The job fails if GOOGLE_MAPS_API_KEY or
 GOOGLE_PLACES_API_KEY is unavailable; it never silently publishes unchecked
-records. Existing archives are protected by the database trigger.
+records. New importer listings are draft review items; existing archives are
+protected by the database trigger.
 
 With --apply, SQL is applied to DATABASE_URL with psql or the linked Supabase
 project with the Supabase CLI. --apply-only reuses the latest generated SQL
@@ -226,7 +229,7 @@ writeFileSync(auditPath, JSON.stringify({
   generated_at: new Date().toISOString(),
   applied_to_database: applyChanges && failed.length === 0,
   google_places_validation: 'required',
-  manual_review: 'not required for importer records',
+  manual_review: 'new importer and user-submitted listings are queued as drafts for administrator review',
   archive_protection: 'database trigger preserves archive=true and archived status',
   downloaded_website_images: 'post-apply Edge Function stores vetted images from organiser and listing websites',
   jobs: results,

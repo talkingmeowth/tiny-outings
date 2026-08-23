@@ -1292,6 +1292,7 @@ export default function App() {
   const [swipes, setSwipes] = useState(() => loadStored('swipes', {}));
   const [shortlists, setShortlists] = useState(() => loadStored('shortlists', {}));
   const [statuses, setStatuses] = useState(() => loadStored('statuses', {}));
+  const [hiddenActivityIds, setHiddenActivityIds] = useState(() => loadStored('hidden-activity-ids', []));
   const [calendarEvents, setCalendarEvents] = useState(() => loadStored('calendar-events', []));
   const calendarEventsRef = useRef(calendarEvents);
   const [calendarSyncedUserId, setCalendarSyncedUserId] = useState(null);
@@ -1338,6 +1339,10 @@ export default function App() {
     [deferredFilters.interests],
   );
   const allCategoriesSelected = selectedCategorySet.size === activityInterestOptions.length;
+  const hiddenActivityIdSet = useMemo(
+    () => new Set(hiddenActivityIds.map(String)),
+    [hiddenActivityIds],
+  );
   const selectedSourceSet = useMemo(
     () => new Set(deferredFilters.source),
     [deferredFilters.source],
@@ -1530,12 +1535,13 @@ export default function App() {
     () => activitiesWithDistance.filter((activity) => {
       return activity.public_listing_status === 'published'
         && !activity.archive
+        && !hiddenActivityIdSet.has(String(activity.activity_id))
         && activityMatchesInterests(activity, selectedCategorySet, allCategoriesSelected)
         && (selectedSourceSet.size === 0 || selectedSourceSet.has(activitySourceLabel(activity)))
         && activityMatchesAge(activity, deferredFilters.ageRange)
         && activityMatchesSearch(activity, deferredFilters.activitySearch);
     }),
-    [activitiesWithDistance, selectedCategorySet, allCategoriesSelected, deferredFilters.activitySearch, deferredFilters.ageRange, selectedSourceSet],
+    [activitiesWithDistance, hiddenActivityIdSet, selectedCategorySet, allCategoriesSelected, deferredFilters.activitySearch, deferredFilters.ageRange, selectedSourceSet],
   );
   const distanceMatchedActivities = useMemo(
     () => !userLocation
@@ -1615,6 +1621,7 @@ export default function App() {
   useEffect(() => saveStored('swipes', swipes), [swipes]);
   useEffect(() => saveStored('shortlists', shortlists), [shortlists]);
   useEffect(() => saveStored('statuses', statuses), [statuses]);
+  useEffect(() => saveStored('hidden-activity-ids', hiddenActivityIds), [hiddenActivityIds]);
   useEffect(() => saveStored('calendar-events', calendarEvents), [calendarEvents]);
   useEffect(() => { calendarEventsRef.current = calendarEvents; }, [calendarEvents]);
 
@@ -2066,6 +2073,30 @@ export default function App() {
     setShortlists({});
     setStatuses({});
     setNotice('Your swipe deck is fresh again. Calendar plans stayed put.');
+  }
+
+  function hideActivityFromBrowsing(activity) {
+    if (!activity) return;
+    const activityId = String(activity.activity_id);
+    setHiddenActivityIds((current) => (current.includes(activityId) ? current : [...current, activityId]));
+    setSwipes((current) => Object.fromEntries(
+      Object.entries(current).map(([key, items]) => [
+        key,
+        (items || []).filter((item) => String(item.activity_id) !== activityId),
+      ]),
+    ));
+    setShortlists((current) => Object.fromEntries(
+      Object.entries(current).map(([key, ids]) => [
+        key,
+        (ids || []).filter((id) => String(id) !== activityId),
+      ]),
+    ));
+    setStatuses((current) => Object.fromEntries(
+      Object.entries(current).filter(([key]) => !key.endsWith(`:${activityId}`)),
+    ));
+    setDragState({ activityId: null, startX: null, offsetX: 0 });
+    if (String(selectedActivity?.activity_id) === activityId) closeActivity();
+    setNotice(`${activity.activity_name} will not appear in your browsing again.`);
   }
 
   function setLocalStatus(activity, status) {
@@ -3020,7 +3051,18 @@ export default function App() {
             onRequestLocation={requestLocation}
             onShowAll={showAllActivities}
             onResetBrowsing={resetBrowsingState}
+            onOpenSearch={() => navigate('search')}
             onStart={() => navigate('swipe')}
+          />
+        )}
+
+        {activeScreen === 'search' && (
+          <SearchResultsScreen
+            query={filters.activitySearch}
+            activities={sharedFilteredActivities}
+            onBack={() => navigate('start')}
+            onOpenActivity={openActivity}
+            onHideActivity={hideActivityFromBrowsing}
           />
         )}
 
@@ -3048,6 +3090,7 @@ export default function App() {
             onChoose={chooseActivity}
             onOpenActivity={openActivity}
             onReportActivity={openReportSheet}
+            onHideActivity={hideActivityFromBrowsing}
           />
         )}
 
@@ -3129,6 +3172,7 @@ export default function App() {
             onReviewDraft={reviewSubmittedActivity}
             onOpenShare={openShareSheet}
             onReport={openReportSheet}
+            onHideActivity={hideActivityFromBrowsing}
             onClose={closeActivity}
           />
         )}
@@ -3244,6 +3288,7 @@ function StartScreen({
   onRequestLocation,
   onShowAll,
   onResetBrowsing,
+  onOpenSearch,
   onStart,
 }) {
   const isWalkMode = filters.distanceMode === 'walk';
@@ -3397,6 +3442,9 @@ function StartScreen({
             onChange={(event) => setFilters((current) => ({ ...current, activitySearch: event.target.value }))}
             placeholder="Try a name, place or activity"
           />
+          <button className="search-results-button" type="button" onClick={onOpenSearch}>
+            Search directory
+          </button>
         </label>
 
         <div className="field-group source-filter">
@@ -3546,6 +3594,51 @@ function StartScreen({
   );
 }
 
+function SearchResultsScreen({ query, activities, onBack, onOpenActivity, onHideActivity }) {
+  const searchTerm = cleanDisplayText(query);
+  return (
+    <section className="app-screen search-results-screen">
+      <div className="screen-title compact">
+        <span className="eyebrow">Directory search</span>
+        <h1>{searchTerm ? `Results for ${searchTerm}` : 'All matching outings'}</h1>
+        <p>{activities.length} outing{activities.length === 1 ? '' : 's'} match your current filters.</p>
+      </div>
+
+      <button className="secondary-button search-back-button" type="button" onClick={onBack}>Back to plan</button>
+
+      {activities.length ? (
+        <div className="search-results-list">
+          {activities.map((activity, index) => (
+            <article className="search-result-card" key={activity.activity_id}>
+              <button className="search-result-open" type="button" onClick={() => onOpenActivity(activity)}>
+                <ActivityPhoto activity={activity} className="search-result-photo" priority={index < 3} />
+                <span className="search-result-copy">
+                  <small>{activityPlanLabel(activity)} - {activitySourceLabel(activity)}</small>
+                  <strong>{activity.activity_name}</strong>
+                  <span>{isFlexibleActivity(activity) ? 'Anytime' : `${activity.start_time} to ${activity.end_time}`}</span>
+                </span>
+              </button>
+              <button
+                className="search-result-hide"
+                type="button"
+                onClick={() => onHideActivity(activity)}
+                aria-label={`Do not show ${activity.activity_name} again`}
+              >
+                Hide
+              </button>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div className="empty-list">
+          <strong>No matching outings</strong>
+          <span>Try a different name or loosen one of the Plan filters.</span>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function SwipeScreen({
   weekDays,
   selectedDate,
@@ -3569,6 +3662,7 @@ function SwipeScreen({
   onChoose,
   onOpenActivity,
   onReportActivity,
+  onHideActivity,
 }) {
   const topActivity = deckActivities[0];
 
@@ -3680,6 +3774,14 @@ function SwipeScreen({
           Save
         </button>
       </div>
+      <button
+        className="hide-activity-button"
+        type="button"
+        disabled={!topActivity}
+        onClick={() => onHideActivity(topActivity)}
+      >
+        Don't show this again
+      </button>
 
       <ShortlistPanel
         selectedDate={selectedDate}
@@ -4466,6 +4568,7 @@ function ActivityDetail({
   onReviewDraft,
   onOpenShare,
   onReport,
+  onHideActivity,
   onClose,
 }) {
   const googlePlacesUrl = activityShareUrl(activity);
@@ -4566,6 +4669,9 @@ function ActivityDetail({
           </button>
           <button className="report-launcher" type="button" onClick={() => onReport(activity)}>
             Report a listing
+          </button>
+          <button className="hide-activity-button" type="button" onClick={() => onHideActivity(activity)}>
+            Don't show this again
           </button>
         </div>
       </div>

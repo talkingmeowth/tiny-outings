@@ -239,6 +239,8 @@ where activity.activity_id = verified_places.activity_id;
 update public.activities
 set archive = true,
     public_listing_status = 'archived',
+    archive_reason = 'Google Places marked this listing permanently closed',
+    archived_at = coalesce(archived_at, now()),
     updated_at = now()
 where activity_id in (${archives.map((row) => `${sql(row.activity.activity_id)}::uuid`).join(', ')});
 `
