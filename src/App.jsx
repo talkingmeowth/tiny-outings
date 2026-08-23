@@ -3266,7 +3266,6 @@ function OnboardingScreen({ onComplete }) {
 
       <div className="onboarding-actions">
         <button className="onboarding-start" type="button" onClick={onComplete}>Let's plan</button>
-        <button className="onboarding-skip" type="button" onClick={onComplete}>Skip for now</button>
       </div>
       <p className="onboarding-note">You can sign in whenever you want to follow parents, review places and save your profile.</p>
     </main>

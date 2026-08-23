@@ -5499,8 +5499,7 @@ textarea {
   padding-top: 20px;
 }
 
-.onboarding-start,
-.onboarding-skip {
+.onboarding-start {
   min-height: 52px;
   font-weight: 900;
 }
@@ -5508,11 +5507,6 @@ textarea {
 .onboarding-start {
   color: var(--paper);
   background-color: var(--green-dark);
-}
-
-.onboarding-skip {
-  color: var(--green-dark);
-  background-color: #e9f1e5;
 }
 
 .onboarding-note {
