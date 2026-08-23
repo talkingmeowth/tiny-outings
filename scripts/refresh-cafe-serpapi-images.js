@@ -4,7 +4,13 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
-const outputPath = join(root, 'data', 'cafe_serpapi_image_refresh.generated.json');
+const scope = process.argv.includes('--scope') && process.argv[process.argv.indexOf('--scope') + 1] === 'cafes'
+  ? 'cafes'
+  : 'all';
+const refreshExisting = process.argv.includes('--refresh-existing');
+const outputPath = join(root, 'data', scope === 'cafes'
+  ? 'cafe_serpapi_image_refresh.generated.json'
+  : 'activity_serpapi_image_refresh.generated.json');
 const batchSize = 20;
 const startCursor = process.argv.includes('--cursor')
   ? process.argv[process.argv.indexOf('--cursor') + 1] || null
@@ -52,7 +58,7 @@ async function invoke(cursor) {
           'Content-Type': 'application/json',
           'x-tiny-outings-image-job-token': jobSecret,
         },
-        body: JSON.stringify({ cursor, batch_size: batchSize }),
+        body: JSON.stringify({ cursor, batch_size: batchSize, scope, refresh_existing: refreshExisting }),
         signal: AbortSignal.timeout(150000),
       });
       const payload = await response.json().catch(() => ({}));
@@ -84,7 +90,7 @@ async function main() {
     const batch = await invoke(cursor);
     batches.push(batch);
     cursor = batch.next_cursor || null;
-    console.log(`Cafe image batch ${batches.length}: ${batch.updated || 0}/${batch.processed || 0} updated. Next cursor: ${cursor || 'complete'}`);
+    console.log(`${scope === 'cafes' ? 'Cafe' : 'Activity'} image batch ${batches.length}: ${batch.updated || 0}/${batch.processed || 0} updated. Next cursor: ${cursor || 'complete'}`);
     const rateLimitedIndex = (batch.results || []).findIndex((result) => result.status === 'rate-limited');
     if (rateLimitedIndex >= 0) {
       stoppedForRateLimit = true;
@@ -105,6 +111,8 @@ async function main() {
   }, {});
   const audit = {
     generated_at: new Date().toISOString(),
+    scope,
+    refresh_existing: refreshExisting,
     batches: batches.length,
     stopped_for_rate_limit: stoppedForRateLimit,
     resume_cursor: stoppedForRateLimit ? resumeCursor : cursor,

@@ -68,6 +68,13 @@ const postApplyJobs = [
     output: 'data/activity_website_image_downloads.generated.json',
     optional: 'images',
   },
+  {
+    name: 'serpapi-image-enrichment',
+    script: 'refresh-cafe-serpapi-images.js',
+    args: ['--scope', 'all', '--max-batches', '5'],
+    output: 'data/activity_serpapi_image_refresh.generated.json',
+    optional: 'images',
+  },
 ];
 
 function printHelp() {

@@ -15,12 +15,22 @@ const maxImageBytes = 8 * 1024 * 1024
 const maxBatchSize = 20
 const acceptedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif'])
 const blockedImageTerms = /(favicon|icon|wordmark|site-logo|social[-_ ]?(?:icon|link|media)|facebook[.]com\/tr|facebook[.]net\/tr|twitter[0-9_-]*\.(?:png|jpe?g|webp)|tracking|pixel|spinner|placeholder|cookie|consent|newsletter|payment|checkout|app-store|google-play|\/flags\/|site-flag|country-selector|language-selector)/i
+const ignoredTitleWords = new Set(['the', 'and', 'for', 'with', 'from', 'this', 'that', 'london', 'class', 'classes', 'club', 'activity', 'activities', 'family', 'families', 'children', 'child', 'baby', 'babies', 'toddler', 'toddlers'])
 
 type SearchImage = {
   original?: string
   title?: string
   source?: string
   link?: string
+}
+
+type Activity = {
+  activity_id: string
+  activity_name: string
+  address: string | null
+  category: string | null
+  website: string | null
+  organiser_website: string | null
 }
 
 class SerpApiRateLimitError extends Error {}
@@ -78,11 +88,68 @@ function usableImageUrl(value: string | undefined) {
   }
 }
 
-function imageScore(image: SearchImage, activityName: string) {
+function normalisedText(value: string | undefined | null) {
+  return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+}
+
+function significantTitleWords(activityName: string) {
+  return [...new Set(normalisedText(activityName).split(' ')
+    .filter((word) => word.length > 2 && !ignoredTitleWords.has(word)))]
+}
+
+function hostRoot(value: string | undefined | null) {
+  try {
+    const labels = new URL(String(value)).hostname.toLowerCase().replace(/^www\./, '').split('.')
+    if (labels.length < 2) return labels.join('.')
+    // Keep the organisation part of UK domains such as example.co.uk.
+    return labels.slice(labels.at(-2) === 'uk' && labels.at(-3) ? -3 : -2).join('.')
+  } catch {
+    return ''
+  }
+}
+
+function candidateText(image: SearchImage) {
+  return [image.original, image.title, image.source, image.link].filter(Boolean).join(' ').toLowerCase()
+}
+
+function isOfficialCandidate(image: SearchImage, activity: Activity) {
+  const officialHosts = [activity.website, activity.organiser_website]
+    .map(hostRoot)
+    .filter(Boolean)
+  if (!officialHosts.length) return false
+  return [image.original, image.link]
+    .map(hostRoot)
+    .some((host) => host && officialHosts.includes(host))
+}
+
+function imageConfidence(image: SearchImage, activity: Activity) {
+  const text = candidateText(image)
+  const title = normalisedText(activity.activity_name)
+  const words = significantTitleWords(activity.activity_name)
+  const matchingWords = words.filter((word) => text.includes(word))
+  const exactTitle = title.length >= 7 && text.includes(title)
+  const official = isOfficialCandidate(image, activity)
+  const score = (exactTitle ? 72 : 0)
+    + Math.min(54, matchingWords.length * 27)
+    + (official ? 48 : 0)
+
+  // Search results can include visually suitable images for a different venue.
+  // Require a full name match, several distinctive words, or an official page
+  // plus a distinctive title word before writing a card image.
+  const highConfidence = exactTitle
+    || matchingWords.length >= 2
+    || (official && matchingWords.length >= 1)
+  return { highConfidence, score, matchingWords, official }
+}
+
+function imageScore(image: SearchImage, activity: Activity) {
   const text = [image.original, image.title, image.source, image.link].filter(Boolean).join(' ').toLowerCase()
-  const words = activityName.toLowerCase().split(/[^a-z0-9]+/).filter((word) => word.length > 2)
-  let score = words.reduce((total, word) => total + (text.includes(word) ? 18 : 0), 0)
-  if (/(cafe|coffee|bakery|restaurant|interior|inside|food|cake|brunch|pastry|table|kitchen)/.test(text)) score += 20
+  const confidence = imageConfidence(image, activity)
+  const isCafe = /cafe|coffee|bakery|restaurant|food/.test(String(activity.category || '').toLowerCase())
+  let score = confidence.score
+  if (isCafe && /(interior|inside|dining[ -]?room|seating|coffee[ -]?bar|cafe[ -]?space|venue[ -]?space|tables?)/.test(text)) score += 95
+  else if (isCafe && /(food|cake|brunch|pastry|coffee|kitchen)/.test(text)) score += 50
+  else if (isCafe && /(front|exterior|facade|outside|street)/.test(text)) score += 5
   if (/(logo|brand|wordmark|menu|flyer|poster|facebook|instagram|twitter|linkedin|profile)/.test(text)) score -= 100
   if (/(thumb|thumbnail|150x150|200x200|300x300|avatar|default)/.test(text)) score -= 45
   return score
@@ -100,12 +167,15 @@ function extensionFor(contentType: string, imageUrl: string) {
 
 async function findAndStoreImage(
   supabase: ReturnType<typeof createClient>,
-  activity: { activity_id: string; activity_name: string; address: string | null },
+  activity: Activity,
 ) {
   const apiKey = Deno.env.get('SERPAPI_API_KEY')
   if (!apiKey) throw new Error('SERPAPI_API_KEY is not configured.')
 
-  const query = `${activity.activity_name} ${activity.address || 'London'} cafe interior food`
+  const isCafe = /cafe|coffee|bakery|restaurant|food/.test(String(activity.category || '').toLowerCase())
+  const query = isCafe
+    ? `${activity.activity_name} ${activity.address || 'London'} cafe interior`
+    : `${activity.activity_name} ${activity.address || 'London'} ${activity.category || 'family activity'}`
   const searchUrl = new URL('https://serpapi.com/search.json')
   searchUrl.searchParams.set('engine', 'google_images')
   searchUrl.searchParams.set('q', query)
@@ -119,8 +189,9 @@ async function findAndStoreImage(
   const body = await search.json()
   const candidates = (Array.isArray(body.images_results) ? body.images_results : [])
     .filter((image: SearchImage) => usableImageUrl(image.original))
-    .sort((left: SearchImage, right: SearchImage) => imageScore(right, activity.activity_name) - imageScore(left, activity.activity_name))
-    .slice(0, 3) as SearchImage[]
+    .filter((image: SearchImage) => imageConfidence(image, activity).highConfidence)
+    .sort((left: SearchImage, right: SearchImage) => imageScore(right, activity) - imageScore(left, activity))
+    .slice(0, 5) as SearchImage[]
 
   for (const candidate of candidates) {
     if (!candidate.original) continue
@@ -146,6 +217,7 @@ async function findAndStoreImage(
       return {
         publicUrl: supabase.storage.from('activity-images').getPublicUrl(path).data.publicUrl,
         sourceUrl: candidate.original,
+        confidence: imageConfidence(candidate, activity),
       }
     } catch {
       // Try the next high-scoring result when an image host blocks the fetch.
@@ -162,20 +234,28 @@ Deno.serve(async (request) => {
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   )
-  if (!(await authorised(request, supabase))) return jsonResponse({ error: 'Only Tiny Outings administrators or the update job can refresh cafe images.' }, 403)
+  if (!(await authorised(request, supabase))) return jsonResponse({ error: 'Only Tiny Outings administrators or the update job can refresh activity images.' }, 403)
 
-  const body = await request.json().catch(() => ({})) as { cursor?: string; batch_size?: number }
+  const body = await request.json().catch(() => ({})) as {
+    cursor?: string
+    batch_size?: number
+    scope?: 'all' | 'cafes'
+    refresh_existing?: boolean
+  }
   const batchSize = Math.min(Math.max(Number(body.batch_size) || maxBatchSize, 1), maxBatchSize)
+  const scope = body.scope === 'cafes' ? 'cafes' : 'all'
+  const refreshExisting = body.refresh_existing === true
   await supabase.storage.createBucket('activity-images', { public: true }).catch(() => {})
 
   let query = supabase
     .from('activities')
-    .select('activity_id,activity_name,address,admin_cover_image_url,user_image_url')
-    .eq('public_listing_status', 'published')
+    .select('activity_id,activity_name,address,category,website,organiser_website')
+    .in('public_listing_status', ['draft', 'published'])
     .eq('archive', false)
-    .ilike('category', '%cafe%')
     .order('activity_id', { ascending: true })
     .limit(batchSize)
+  if (scope === 'cafes') query = query.or('category.ilike.%cafe%,category.ilike.%food%')
+  if (!refreshExisting) query = query.is('scraped_image_url', null)
   if (body.cursor) query = query.gt('activity_id', body.cursor)
 
   const { data: activities, error } = await query
@@ -188,15 +268,14 @@ Deno.serve(async (request) => {
         return { activity_id: activity.activity_id, status: 'no-usable-image' }
       }
       const { error: updateError } = await supabase.from('activities').update({
-        // Admin and user cover fields are deliberately untouched and remain higher priority in the app.
+        // Admin and parent image choices remain higher priority in the app.
         scraped_image_url: image.publicUrl,
-        image_url: image.publicUrl,
         image_source_url: image.sourceUrl,
         updated_at: new Date().toISOString(),
       }).eq('activity_id', activity.activity_id)
       return updateError
         ? { activity_id: activity.activity_id, status: 'update-failed', reason: updateError.message }
-        : { activity_id: activity.activity_id, status: 'updated', source_url: image.sourceUrl }
+        : { activity_id: activity.activity_id, status: 'updated', source_url: image.sourceUrl, confidence: image.confidence.score }
     } catch (error) {
       if (error instanceof SerpApiRateLimitError) {
         return { activity_id: activity.activity_id, status: 'rate-limited', reason: error.message }
@@ -210,6 +289,8 @@ Deno.serve(async (request) => {
     processed: results.length,
     updated: results.filter((result) => result.status === 'updated').length,
     rate_limited: results.filter((result) => result.status === 'rate-limited').length,
+    scope,
+    refresh_existing: refreshExisting,
     next_cursor: activities?.length === batchSize ? last?.activity_id || null : null,
     results,
   })
