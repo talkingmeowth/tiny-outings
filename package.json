@@ -8,7 +8,7 @@
     "build": "vite build",
     "test": "node scripts/run-tests.js",
     "test:auth": "node --test src/googleAuth.test.js",
-    "test:database": "npx supabase db query --linked --file scripts/test-import-review-flow.sql && npx supabase db query --linked --file scripts/test-social-flow.sql",
+    "test:database": "npx supabase db query --linked --file scripts/test-import-review-flow.sql && npx supabase db query --linked --file scripts/test-social-flow.sql && npx supabase db query --linked --file scripts/test-app-workflows.sql",
     "preview": "vite preview",
     "lint": "eslint .",
     "activities:best-start": "node scripts/import-waltham-forest-best-start.js",

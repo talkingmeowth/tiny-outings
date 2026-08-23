@@ -9,6 +9,8 @@ import QRCode from 'qrcode';
 import 'leaflet/dist/leaflet.css';
 import { supabase } from './supabaseClient';
 import { googleSignInErrorMessage, signInWithNativeGoogle } from './googleAuth';
+import { shareContent } from './shareContent';
+import { shouldOpenSearchOnKey } from './searchInteraction';
 import { comparisonTokens, dedupePublishedActivities, findLikelyDuplicate } from './activityDuplicates';
 import { activityImageUrls, hasActivityImage, securePhotoUrl, shareListingImages } from './activityImages';
 import { activityCoordinates, resolveActivityCoordinates } from './activityLocation';
@@ -2260,6 +2262,7 @@ export default function App() {
       setSelectedActivity(null);
     }
     setActiveScreen(screen);
+    window.scrollTo(0, 0);
   }
 
   function openActivity(activity) {
@@ -2487,12 +2490,8 @@ export default function App() {
   async function shareActivity(activity) {
     const shareData = activityShareData(activity);
     try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-        return;
-      }
-      await navigator.clipboard?.writeText(`${shareData.text} ${shareData.url}`);
-      setNotice('Activity link copied.');
+      const method = await shareContent(shareData);
+      if (method === 'clipboard') setNotice('Activity link copied.');
     } catch (error) {
       if (error?.name !== 'AbortError') setNotice('Could not open sharing. Try WhatsApp or Facebook below.');
     }
@@ -2501,12 +2500,8 @@ export default function App() {
   async function shareApp() {
     const shareData = appShareData();
     try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-        return;
-      }
-      await navigator.clipboard?.writeText(`${shareData.text} ${shareData.url}`);
-      setNotice('Tiny Outings link copied.');
+      const method = await shareContent(shareData);
+      if (method === 'clipboard') setNotice('Tiny Outings link copied.');
     } catch (error) {
       if (error?.name !== 'AbortError') setNotice('Could not open sharing on this device.');
     }
@@ -3434,18 +3429,24 @@ function StartScreen({
           </div>
         </div>
 
-        <label className="field-group activity-search-field">
+        <div className="field-group activity-search-field">
           <span>Find an activity</span>
           <input
             type="search"
             value={filters.activitySearch || ''}
             onChange={(event) => setFilters((current) => ({ ...current, activitySearch: event.target.value }))}
+            onKeyDown={(event) => {
+              if (shouldOpenSearchOnKey(event.key)) {
+                event.preventDefault();
+                onOpenSearch();
+              }
+            }}
             placeholder="Try a name, place or activity"
           />
           <button className="search-results-button" type="button" onClick={onOpenSearch}>
             Search directory
           </button>
-        </label>
+        </div>
 
         <div className="field-group source-filter">
           <span>Source</span>

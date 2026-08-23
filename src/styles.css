@@ -651,6 +651,7 @@ p {
 }
 
 .field-group > label,
+.field-group > span,
 .source-filter > span,
 .range-card span,
 .app-form label span,
