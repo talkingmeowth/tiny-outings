@@ -44,6 +44,9 @@ website images.
 
 - The job stops before applying SQL if a required source or Google validation fails.
 - Google Places validation is mandatory and requires a configured server-side key.
+- The recurring run validates gaps in Google Place coverage. Run
+  `node scripts/validate-google-places-records.js --full` separately when a
+  deliberately paced complete refresh of stored Place records is required.
 - Eventbrite, Fever, Loopla, Happity, and Google Places use source-specific
   conflict keys to update a known listing instead of creating a duplicate.
 - New importer records and community submissions remain drafts in the admin

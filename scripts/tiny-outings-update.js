@@ -60,7 +60,10 @@ const jobs = [
   // Preserve source addresses, then use Places only to fill records that still
   // lack coordinates before the full identity and closure validation pass.
   { name: 'resolve-missing-locations', script: 'enrich-activity-locations.js', output: 'supabase/seed/activity_location_updates.generated.sql', google: true },
-  { name: 'validate-google-places', script: 'validate-google-places-records.js', args: ['--full'], output: 'supabase/seed/activity_google_places_validation.generated.sql', google: true },
+  // New import records already receive a Places match. Validate only existing
+  // gaps here; `validate-google-places-records.js --full` remains the explicit
+  // paced maintenance audit for refreshing every stored Place record.
+  { name: 'validate-google-places', script: 'validate-google-places-records.js', output: 'supabase/seed/activity_google_places_validation.generated.sql', google: true },
   { name: 'audit-websites', script: 'audit-activity-websites.js', output: 'supabase/seed/activity_link_repairs.generated.sql' },
   { name: 'data-quality', script: 'apply-activity-data-quality.js', output: 'supabase/seed/activity_import_quality_updates.generated.sql' },
   { name: 'category-audit', script: 'audit-activity-categories.js', output: 'data/activity_category_audit.generated.json' },

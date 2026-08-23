@@ -108,6 +108,11 @@ runs importers automatically. Legacy, one-off card, plan-filter, swipe, and
 link-repair scripts have been retired; the recurring update is the supported
 entry point for directory maintenance.
 
+The recurring job validates records missing a Google Place identity. To refresh
+every existing Google Place record, use `node scripts/validate-google-places-records.js --full`
+as a separately paced maintenance task so it does not exhaust the API quota
+immediately after a full importer run.
+
 `npm.cmd test` runs the complete deterministic unit suite. `npm.cmd run
 test:database` additionally runs transaction-only checks against the linked
 Supabase project for review-queue and social visibility rules. `--apply-only`

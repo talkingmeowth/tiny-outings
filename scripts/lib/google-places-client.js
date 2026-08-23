@@ -27,7 +27,9 @@ export function createGooglePlacesClient({
   fetchImpl = globalThis.fetch,
   waitImpl = wait,
   now = Date.now,
-  minimumIntervalMs = positiveInteger(process.env.GOOGLE_PLACES_MIN_INTERVAL_MS, 300),
+  // Stay comfortably below the default per-minute Places quota even when a
+  // caller has several workers. A one-client scheduler serialises requests.
+  minimumIntervalMs = positiveInteger(process.env.GOOGLE_PLACES_MIN_INTERVAL_MS, 1100),
   maxRetries = positiveInteger(process.env.GOOGLE_PLACES_MAX_RETRIES, 5),
   timeoutMs = 30000,
 } = {}) {
