@@ -82,6 +82,8 @@ async function main() {
   const batches = [];
   // A one-batch run is the normal operational mode. Persisting the cursor means
   // the next run advances rather than repeating the same SerpAPI searches.
+  // Unless --refresh-existing is used, the Edge Function selects only cards
+  // with no stored image in the full display-priority hierarchy.
   let cursor = previousCursor();
   let stoppedForRateLimit = false;
   let resumeCursor = cursor;

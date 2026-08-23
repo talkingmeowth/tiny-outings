@@ -255,7 +255,21 @@ Deno.serve(async (request) => {
     .order('activity_id', { ascending: true })
     .limit(batchSize)
   if (scope === 'cafes') query = query.or('category.ilike.%cafe%,category.ilike.%food%')
-  if (!refreshExisting) query = query.is('scraped_image_url', null)
+  if (!refreshExisting) {
+    // SerpAPI is an expensive fallback. Only search cards that have no usable
+    // stored image at any priority, rather than replacing a lower-priority
+    // official, community, or Wikimedia image just because it is not scraped.
+    query = query
+      .is('admin_cover_image_url', null)
+      .is('user_image_url', null)
+      .is('scraped_image_url', null)
+      .is('organiser_website_downloaded_image', null)
+      .is('website_downloaded_image', null)
+      .is('wikimedia_image_url', null)
+      .is('website_image_url', null)
+      .is('listing_image_url', null)
+      .is('image_url', null)
+  }
   if (body.cursor) query = query.gt('activity_id', body.cursor)
 
   const { data: activities, error } = await query
