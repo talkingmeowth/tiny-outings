@@ -1949,31 +1949,44 @@ export default function App() {
         setReviewQueueError('');
       }
       try {
-        const { data: queueRows, error: queueError } = await supabase
-          .from('activity_review_queue')
-          .select('review_queue_id,activity_id,queue_type,status,summary,changes,source_name,data_source,created_at')
-          .eq('status', 'pending')
-          .order('created_at', { ascending: true });
-        if (cancelled) return;
-        if (queueError) {
-          setReviewQueueError(queueError.message || 'We could not load the review queue.');
-          setNotice(`Review queue could not be loaded: ${queueError.message}`);
-          return;
+        const queueRows = [];
+        const queuePageSize = 250;
+        for (let from = 0; ; from += queuePageSize) {
+          const { data: page, error: queueError } = await supabase
+            .from('activity_review_queue')
+            .select('review_queue_id,activity_id,queue_type,status,summary,changes,source_name,data_source,created_at')
+            .eq('status', 'pending')
+            .order('created_at', { ascending: true })
+            .range(from, from + queuePageSize - 1);
+          if (queueError) throw queueError;
+          queueRows.push(...(page || []));
+          if ((page || []).length < queuePageSize) break;
         }
+        if (cancelled) return;
 
-        const activityIds = [...new Set((queueRows || []).map((item) => item.activity_id).filter(Boolean))];
+        const activityIds = [...new Set(queueRows.map((item) => item.activity_id).filter(Boolean))];
         let activitiesById = new Map();
         if (activityIds.length) {
-          const { data: queueActivities, error: activitiesError } = await supabase
-            .from('activities')
-            .select(activitySelectColumns)
-            .in('activity_id', activityIds);
+          // Supabase serialises `.in()` values into the request URL. Keep each
+          // group small so a large moderation queue cannot exceed that limit.
+          const activityBatches = [];
+          for (let index = 0; index < activityIds.length; index += 100) {
+            activityBatches.push(activityIds.slice(index, index + 100));
+          }
+          const responses = await Promise.all(activityBatches.map((batch) => (
+            supabase
+              .from('activities')
+              .select(activitySelectColumns)
+              .in('activity_id', batch)
+          )));
           if (cancelled) return;
+          const activitiesError = responses.find((response) => response.error)?.error;
           if (activitiesError) {
             setReviewQueueError(activitiesError.message || 'We could not load queued activities.');
             setNotice(`Review queue could not be loaded: ${activitiesError.message}`);
             return;
           }
+          const queueActivities = responses.flatMap((response) => response.data || []);
           activitiesById = new Map((queueActivities || []).map((activity) => [
             String(activity.activity_id),
             normalizeActivity(activity),
@@ -1984,10 +1997,11 @@ export default function App() {
           ...item,
           activity: activitiesById.get(String(item.activity_id)) || null,
         })));
-      } catch {
+      } catch (error) {
         if (!cancelled) {
-          setReviewQueueError('We could not load the review queue.');
-          setNotice('Review queue could not be loaded. Try again in a moment.');
+          const message = error instanceof Error ? error.message : 'We could not load the review queue.';
+          setReviewQueueError(message);
+          setNotice(`Review queue could not be loaded: ${message}`);
         }
       } finally {
         if (!cancelled) setReviewQueueLoading(false);
