@@ -36,8 +36,8 @@ type Activity = {
   image_source_url: string | null
 }
 
-type SerpApiAssessment = 'updated' | 'no-usable-image'
-type ReplacementMode = 'logo_to_venue'
+type SerpApiAssessment = 'updated' | 'no-usable-image' | 'retained-existing-venue-image'
+type ReplacementMode = 'logo_to_venue' | 'cafe_venue_photo'
 type StoredImage = {
   publicUrl: string
   sourceUrl: string
@@ -169,10 +169,25 @@ function imageConfidence(image: SearchImage, activity: Activity) {
   return { highConfidence, score, matchingWords, official }
 }
 
-function venuePhotoPreference(image: SearchImage, preferExterior: boolean) {
+function venueImageProfile(activity: Activity) {
+  const category = String(activity.category || '').toLowerCase()
+  // "Play cafes" deliberately follow the same visual hierarchy as cafes.
+  if (/play[ -]?cafe|cafe|coffee|bakery|restaurant|food/.test(category)) return 'cafe'
+  if (/museum|culture|bookshop|book store|bookstore/.test(category)) return 'exterior-first'
+  return null
+}
+
+function venuePhotoPreference(image: SearchImage, profile: ReturnType<typeof venueImageProfile>) {
   const text = candidateText(image)
-  if (/(front|exterior|facade|shopfront|storefront|outside|street|building)/.test(text)) return preferExterior ? 1000 : 800
-  if (/(interior|inside|dining[ -]?room|seating|coffee[ -]?bar|cafe[ -]?space|venue[ -]?space|tables?|play[ -]?space)/.test(text)) return preferExterior ? 700 : 1000
+  const isInterior = /(interior|inside|dining[ -]?room|seating|coffee[ -]?bar|cafe[ -]?space|venue[ -]?space|tables?|play[ -]?space)/.test(text)
+  const isExterior = /(front|exterior|facade|shopfront|storefront|outside|street|building)/.test(text)
+  if (profile === 'cafe') {
+    if (isInterior) return 1000
+    if (isExterior) return 800
+  } else if (profile === 'exterior-first') {
+    if (isExterior) return 1000
+    if (isInterior) return 800
+  }
   return 0
 }
 
@@ -181,15 +196,33 @@ function hasBlockedCandidateCue(image: SearchImage) {
     || /(logo|brand|wordmark|menu|flyer|poster|profile)/.test(candidateText(image))
 }
 
+function isVenuePhotoCandidate(image: SearchImage, activity: Activity) {
+  return venuePhotoPreference(image, venueImageProfile(activity)) > 0 || isOfficialCandidate(image, activity)
+}
+
+function hasExistingVenuePhoto(activity: Activity) {
+  const text = [activity.scraped_image_url, activity.image_source_url]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase()
+  return /(front|exterior|facade|shopfront|storefront|outside|street|building|interior|inside|dining[ -]?room|seating|coffee[ -]?bar|cafe[ -]?space|venue[ -]?space|tables?|play[ -]?space)/.test(text)
+}
+
 function imageScore(image: SearchImage, activity: Activity, replacementMode?: ReplacementMode) {
   const text = [image.original, image.title, image.source, image.link].filter(Boolean).join(' ').toLowerCase()
   const confidence = imageConfidence(image, activity)
-  const isCafe = /cafe|coffee|bakery|restaurant|food/.test(String(activity.category || '').toLowerCase())
+  const profile = venueImageProfile(activity)
   let score = confidence.score
-  if (isCafe && /(interior|inside|dining[ -]?room|seating|coffee[ -]?bar|cafe[ -]?space|venue[ -]?space|tables?)/.test(text)) score += 600
-  else if (isCafe && /(front|exterior|facade|shopfront|storefront|outside|street)/.test(text)) score += 450
-  else if (isCafe && /(food|cake|brunch|pastry|coffee|kitchen)/.test(text)) score += 200
-  if (replacementMode === 'logo_to_venue') score += venuePhotoPreference(image, true)
+  const isInterior = /(interior|inside|dining[ -]?room|seating|coffee[ -]?bar|cafe[ -]?space|venue[ -]?space|tables?)/.test(text)
+  const isExterior = /(front|exterior|facade|shopfront|storefront|outside|street)/.test(text)
+  if (profile === 'cafe' && isInterior) score += 600
+  else if (profile === 'cafe' && isExterior) score += 450
+  else if (profile === 'cafe' && /(food|dish|cake|brunch|pastry|drink|kitchen)/.test(text)) score += 100
+  else if (profile === 'exterior-first' && isExterior) score += 600
+  else if (profile === 'exterior-first' && isInterior) score += 450
+  if (replacementMode === 'logo_to_venue' || replacementMode === 'cafe_venue_photo') {
+    score += venuePhotoPreference(image, profile)
+  }
   if (/(logo|brand|wordmark|menu|flyer|poster|facebook|fbcdn|scontent|cdninstagram|instagram|twitter|twimg|linkedin|profile)/.test(text)) score -= 100
   if (/(thumb|thumbnail|150x150|200x200|300x300|avatar|default)/.test(text)) score -= 45
   return score
@@ -199,11 +232,15 @@ function existingImageScore(activity: Activity) {
   if (!activity.scraped_image_url) return Number.NEGATIVE_INFINITY
   const text = [activity.scraped_image_url, activity.image_source_url, activity.activity_name, activity.category]
     .filter(Boolean).join(' ').toLowerCase()
-  const isCafe = /cafe|coffee|bakery|restaurant|food/.test(String(activity.category || '').toLowerCase())
+  const profile = venueImageProfile(activity)
   let score = 0
-  if (isCafe && /(interior|inside|dining[ -]?room|seating|coffee[ -]?bar|cafe[ -]?space|venue[ -]?space|tables?)/.test(text)) score += 600
-  else if (isCafe && /(front|exterior|facade|shopfront|storefront|outside|street)/.test(text)) score += 450
-  else if (isCafe && /(food|cake|brunch|pastry|coffee|kitchen)/.test(text)) score += 200
+  const isInterior = /(interior|inside|dining[ -]?room|seating|coffee[ -]?bar|cafe[ -]?space|venue[ -]?space|tables?)/.test(text)
+  const isExterior = /(front|exterior|facade|shopfront|storefront|outside|street)/.test(text)
+  if (profile === 'cafe' && isInterior) score += 600
+  else if (profile === 'cafe' && isExterior) score += 450
+  else if (profile === 'cafe' && /(food|dish|cake|brunch|pastry|drink|kitchen)/.test(text)) score += 100
+  else if (profile === 'exterior-first' && isExterior) score += 600
+  else if (profile === 'exterior-first' && isInterior) score += 450
   if (/(logo|brand|wordmark|menu|flyer|poster|facebook|instagram|twitter|linkedin|profile)/.test(text)) score -= 100
   if (/(thumb|thumbnail|150x150|200x200|300x300|avatar|default)/.test(text)) score -= 45
   return score
@@ -223,28 +260,15 @@ async function findAndStoreImage(
   supabase: ReturnType<typeof createClient>,
   activity: Activity,
   replacementMode?: ReplacementMode,
-): Promise<{ image: StoredImage | null, diagnostics: ImageSearchDiagnostics }> {
+  forceVenueRefresh = false,
+): Promise<{ image: StoredImage | null, diagnostics: ImageSearchDiagnostics, retainedExistingVenueImage?: boolean }> {
   const apiKey = Deno.env.get('SERPAPI_API_KEY')
   if (!apiKey) throw new Error('SERPAPI_API_KEY is not configured.')
 
-  const isCafe = /cafe|coffee|bakery|restaurant|food/.test(String(activity.category || '').toLowerCase())
-  // URL captions rarely say "exterior" even for a clear building photo. Run
-  // two targeted image searches instead: exterior first, interior only when
-  // no downloadable, high-confidence exterior can be found.
-  const officialHost = imageSearchHost(activity)
-  const officialSite = officialHost ? ` site:${officialHost}` : ''
-  const searchPlans = replacementMode === 'logo_to_venue'
-    ? [
-      { query: `"${activity.activity_name}" ${activity.address || 'London'} building exterior${officialSite}`, preference: 1000 },
-      { query: `"${activity.activity_name}" ${activity.address || 'London'} venue interior${officialSite}`, preference: 700 },
-    ]
-    : [{
-      query: isCafe
-        ? `${activity.activity_name} ${activity.address || 'London'} cafe interior exterior`
-        : `${activity.activity_name} ${activity.address || 'London'} ${activity.category || 'family activity'}`,
-      preference: 0,
-    }]
-  const existingScore = existingImageScore(activity)
+  const profile = venueImageProfile(activity)
+  const isCafe = profile === 'cafe'
+  const venuePhotoReplacement = replacementMode === 'logo_to_venue'
+    || (replacementMode === 'cafe_venue_photo' && isCafe)
   const diagnostics: ImageSearchDiagnostics = {
     searches: 0,
     raw_candidates: 0,
@@ -254,6 +278,50 @@ async function findAndStoreImage(
     eligible_candidates: 0,
     download_attempts: 0,
   }
+
+  // This full audit leaves confirmed venue photos alone. It spends SerpAPI
+  // searches only on cards whose current visual treatment is uncertain.
+  if (replacementMode === 'cafe_venue_photo' && !forceVenueRefresh && hasExistingVenuePhoto(activity)) {
+    return { image: null, diagnostics, retainedExistingVenueImage: true }
+  }
+
+  // URL captions rarely say "exterior" even for a clear building photo. Run
+  // targeted searches in the card-image order: interior, exterior, then food
+  // only as a final fallback. Logos, menus, and social graphics are rejected.
+  const officialHost = imageSearchHost(activity)
+  const officialSite = officialHost ? ` site:${officialHost}` : ''
+  const interiorSearchPlan = {
+    kind: 'interior',
+    query: `"${activity.activity_name}" ${activity.address || 'London'} venue interior${officialSite}`,
+    preference: profile === 'cafe' ? 1000 : 800,
+  }
+  const exteriorSearchPlan = {
+    kind: 'exterior',
+    query: `"${activity.activity_name}" ${activity.address || 'London'} building exterior${officialSite}`,
+    preference: profile === 'cafe' ? 800 : 1000,
+  }
+  const venueSearchPlans = profile === 'cafe'
+    ? [interiorSearchPlan, exteriorSearchPlan]
+    : [exteriorSearchPlan, interiorSearchPlan]
+  const foodFallbackPlan = {
+    kind: 'food',
+    query: `"${activity.activity_name}" ${activity.address || 'London'} cafe food${officialSite}`,
+    preference: 100,
+  }
+  const searchPlans = profile
+    ? replacementMode === 'cafe_venue_photo'
+      ? venueSearchPlans
+      : [...venueSearchPlans, foodFallbackPlan]
+    : venuePhotoReplacement
+      ? venueSearchPlans
+      : [{
+        kind: 'default',
+        // Other categories favour a useful venue photograph, while the
+        // confidence scorer requires a strong title or official-site match.
+        query: `"${activity.activity_name}" ${activity.address || 'London'} ${activity.category || 'family activity'} venue photo`,
+        preference: 0,
+      }]
+  const existingScore = existingImageScore(activity)
 
   for (const plan of searchPlans) {
     const searchUrl = new URL('https://serpapi.com/search.json')
@@ -273,11 +341,14 @@ async function findAndStoreImage(
     diagnostics.usable_urls += usableCandidates.length
     const confidentCandidates = usableCandidates.filter((image: SearchImage) => (
       imageConfidence(image, activity).highConfidence
-      || (replacementMode === 'logo_to_venue' && isOfficialCandidate(image, activity))
+      || (venuePhotoReplacement && isOfficialCandidate(image, activity))
     ))
     diagnostics.high_confidence += confidentCandidates.length
     const unblockedCandidates = confidentCandidates
-      .filter((image: SearchImage) => replacementMode !== 'logo_to_venue' || !hasBlockedCandidateCue(image))
+      .filter((image: SearchImage) => !hasBlockedCandidateCue(image))
+      .filter((image: SearchImage) => !venuePhotoReplacement || (
+        plan.kind === 'food' || isVenuePhotoCandidate(image, activity)
+      ))
     diagnostics.unblocked += unblockedCandidates.length
     const candidates = unblockedCandidates
       .sort((left: SearchImage, right: SearchImage) => (
@@ -363,11 +434,15 @@ Deno.serve(async (request) => {
     refresh_existing?: boolean
     activity_ids?: string[]
     replacement_mode?: ReplacementMode
+    force_venue_refresh?: boolean
   }
   const batchSize = Math.min(Math.max(Number(body.batch_size) || maxBatchSize, 1), maxBatchSize)
   const scope = body.scope === 'cafes' ? 'cafes' : 'all'
   const refreshExisting = body.refresh_existing === true
-  const replacementMode = body.replacement_mode === 'logo_to_venue' ? body.replacement_mode : undefined
+  const replacementMode = body.replacement_mode === 'logo_to_venue' || body.replacement_mode === 'cafe_venue_photo'
+    ? body.replacement_mode
+    : undefined
+  const forceVenueRefresh = body.force_venue_refresh === true && replacementMode === 'cafe_venue_photo'
   await supabase.storage.createBucket('activity-images', { public: true }).catch(() => {})
 
   let query = supabase
@@ -394,9 +469,13 @@ Deno.serve(async (request) => {
 
   const results = await mapWithConcurrency(activities || [], 4, async (activity) => {
     try {
-      const imageSearch = await findAndStoreImage(supabase, activity, replacementMode)
+      const imageSearch = await findAndStoreImage(supabase, activity, replacementMode, forceVenueRefresh)
       const image = imageSearch.image
-      const assessment: SerpApiAssessment = image ? 'updated' : 'no-usable-image'
+      const assessment: SerpApiAssessment = image
+        ? 'updated'
+        : imageSearch.retainedExistingVenueImage
+          ? 'retained-existing-venue-image'
+          : 'no-usable-image'
       const { error: updateError } = await supabase.from('activities').update({
         // Admin and parent image choices remain higher priority in the app.
         ...(image ? {
@@ -429,6 +508,7 @@ Deno.serve(async (request) => {
     scope,
     refresh_existing: refreshExisting,
     replacement_mode: replacementMode || null,
+    force_venue_refresh: forceVenueRefresh,
     next_cursor: activityIds.length ? null : activities?.length === batchSize ? last?.activity_id || null : null,
     results,
   })

@@ -11,6 +11,7 @@ const refreshExisting = process.argv.includes('--refresh-existing');
 const replacementMode = process.argv.includes('--replacement-mode')
   ? process.argv[process.argv.indexOf('--replacement-mode') + 1] || null
   : null;
+const forceVenueRefresh = process.argv.includes('--force-venue-refresh');
 const activityIdsFile = process.argv.includes('--activity-ids-file')
   ? process.argv[process.argv.indexOf('--activity-ids-file') + 1] || null
   : null;
@@ -19,7 +20,10 @@ const outputPath = join(root, 'data', scope === 'cafes'
   : activityIdsFile
     ? 'scraped_image_serpapi_refresh.generated.json'
     : 'activity_serpapi_image_refresh.generated.json');
-const batchSize = 20;
+const batchSizeIndex = process.argv.indexOf('--batch-size');
+const batchSize = batchSizeIndex >= 0
+  ? Math.min(20, Math.max(1, Number(process.argv[batchSizeIndex + 1]) || 20))
+  : 20;
 const startCursor = process.argv.includes('--cursor')
   ? process.argv[process.argv.indexOf('--cursor') + 1] || null
   : null;
@@ -42,8 +46,22 @@ function explicitActivityIds() {
   try {
     const raw = JSON.parse(readFileSync(join(root, activityIdsFile), 'utf8'));
     const values = Array.isArray(raw) ? raw : raw.activity_ids;
+    const sourceGeneratedAt = Array.isArray(raw) ? null : raw.generated_at || null;
     if (!Array.isArray(values)) throw new Error('Expected an activity_ids array.');
-    return [...new Set(values.filter((value) => typeof value === 'string' && value.trim()))];
+    const requested = [...new Set(values.filter((value) => typeof value === 'string' && value.trim()))];
+    try {
+      const previous = JSON.parse(readFileSync(outputPath, 'utf8'));
+      const sameJob = previous.scope === scope
+        && previous.replacement_mode === replacementMode
+        && previous.force_venue_refresh === forceVenueRefresh
+        && previous.activity_ids_generated_at === sourceGeneratedAt;
+      if (sameJob && Array.isArray(previous.pending_activity_ids)) {
+        return [...new Set(previous.pending_activity_ids.filter((value) => typeof value === 'string' && value.trim()))];
+      }
+    } catch {
+      // No compatible checkpoint yet, so start with the complete requested set.
+    }
+    return requested;
   } catch (error) {
     throw new Error(`Could not read ${activityIdsFile}: ${error.message}`);
   }
@@ -85,6 +103,7 @@ async function invoke(cursor, activityIds = []) {
           refresh_existing: refreshExisting,
           activity_ids: activityIds,
           replacement_mode: replacementMode,
+          force_venue_refresh: forceVenueRefresh,
         }),
         signal: AbortSignal.timeout(150000),
       });
@@ -161,10 +180,15 @@ async function main() {
     scope,
     refresh_existing: refreshExisting,
     replacement_mode: replacementMode,
+    force_venue_refresh: forceVenueRefresh,
     batches: batches.length,
     stopped_for_rate_limit: stoppedForRateLimit,
     resume_cursor: stoppedForRateLimit ? resumeCursor : cursor,
     requested_activity_ids: requestedIds.length || undefined,
+    activity_ids_file: activityIdsFile || undefined,
+    activity_ids_generated_at: activityIdsFile
+      ? JSON.parse(readFileSync(join(root, activityIdsFile), 'utf8')).generated_at || null
+      : undefined,
     pending_activity_ids: pendingActivityIds,
     summary,
     results,
