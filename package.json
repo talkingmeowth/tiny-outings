@@ -35,6 +35,7 @@
     "activities:london-parks": "node scripts/build-london-parks.js",
     "activities:audit-happity-links": "node scripts/audit-happity-website-links.js",
     "activities:happity": "node scripts/import-happity-schedules.js",
+    "activities:archive-happity-excluded": "node scripts/archive-happity-excluded-listings.js",
     "activities:audit-categories": "node scripts/audit-activity-categories.js",
     "activities:audit-suitability": "node scripts/audit-activity-suitability.js",
     "activities:audit-duplicates": "node scripts/audit-cross-source-duplicates.js",

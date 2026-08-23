@@ -2,6 +2,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { happityListingExclusionReasons } from './lib/happity-listing-suitability.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const outputSql = join(root, 'supabase', 'seed', 'activities_happity_schedules.generated.sql');
@@ -104,15 +105,26 @@ function loadSchedules() {
   const additional = process.env.HAPPITY_SCHEDULE_FILE ? [resolve(root, process.env.HAPPITY_SCHEDULE_FILE)] : [];
   const files = [...defaultFiles.map((file) => join(root, file)), ...additional];
   const byUrl = new Map();
+  const excluded = [];
   for (const file of files) {
     if (!existsSync(file)) continue;
     const rows = extractRows(JSON.parse(readFileSync(file, 'utf8')));
     for (const raw of rows) {
       const row = normalizedRow(raw);
-      if (row) byUrl.set(canonicalUrl(row.sourceUrl), row);
+      if (!row) continue;
+      const reasons = happityListingExclusionReasons(row);
+      if (reasons.length) {
+        excluded.push({
+          name: row.activityName,
+          source_url: row.sourceUrl,
+          reasons,
+        });
+        continue;
+      }
+      byUrl.set(canonicalUrl(row.sourceUrl), row);
     }
   }
-  return { files, schedules: [...byUrl.values()] };
+  return { files, schedules: [...byUrl.values()], excluded };
 }
 
 async function loadExistingActivities(env) {
@@ -147,7 +159,7 @@ function insertTuple(schedule) {
 
 async function main() {
   const env = readEnv();
-  const { files, schedules } = loadSchedules();
+  const { files, schedules, excluded } = loadSchedules();
   const existing = await loadExistingActivities(env);
   const existingByUrl = new Map(existing.map((row) => [canonicalUrl(row.source_url), row]));
   const matched = schedules.filter((schedule) => existingByUrl.has(canonicalUrl(schedule.sourceUrl)));
@@ -175,6 +187,8 @@ async function main() {
     generated_at: new Date().toISOString(),
     source_files: files.map((file) => file.replace(root + '\\', '')),
     schedules_found: schedules.length,
+    excluded_by_listing_policy: excluded.length,
+    excluded_listings: excluded,
     existing_happity_records: existing.length,
     matched_and_refreshed: matched.length,
     safe_new_records: safeInserts.length,
@@ -183,7 +197,7 @@ async function main() {
     missing_location_records: awaitingLocation.map((schedule) => ({ name: schedule.activityName, source_url: schedule.sourceUrl, venue: schedule.address })),
     database_only_records: databaseOnly.map((activity) => ({ activity_id: activity.activity_id, source_url: activity.source_url })),
   }, null, 2) + '\n');
-  console.log(`Happity schedules: ${schedules.length}; refreshed: ${matched.length}; new with verified locations: ${safeInserts.length}; awaiting location: ${awaitingLocation.length}.`);
+  console.log(`Happity schedules: ${schedules.length}; excluded: ${excluded.length}; refreshed: ${matched.length}; new with verified locations: ${safeInserts.length}; awaiting location: ${awaitingLocation.length}.`);
 }
 
 main().catch((error) => {
