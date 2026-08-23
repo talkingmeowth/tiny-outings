@@ -57,6 +57,9 @@ const jobs = [
   { name: 'verify-happity-listing-links', script: 'audit-happity-website-links.js', output: 'supabase/seed/activity_happity_website_link_repairs.generated.sql' },
   { name: 'provider-websites', script: 'enrich-activity-provider-links.js', output: 'supabase/seed/activity_provider_link_updates.generated.sql' },
   { name: 'activity-images', script: 'enrich-activity-images.js', args: ['--missing-only'], output: 'supabase/seed/activity_image_updates.generated.sql', optional: 'images' },
+  // Preserve source addresses, then use Places only to fill records that still
+  // lack coordinates before the full identity and closure validation pass.
+  { name: 'resolve-missing-locations', script: 'enrich-activity-locations.js', output: 'supabase/seed/activity_location_updates.generated.sql', google: true },
   { name: 'validate-google-places', script: 'validate-google-places-records.js', args: ['--full'], output: 'supabase/seed/activity_google_places_validation.generated.sql', google: true },
   { name: 'audit-websites', script: 'audit-activity-websites.js', output: 'supabase/seed/activity_link_repairs.generated.sql' },
   { name: 'data-quality', script: 'apply-activity-data-quality.js', output: 'supabase/seed/activity_import_quality_updates.generated.sql' },
@@ -92,7 +95,7 @@ same shared quality contract to all results:
   - source and organiser website discovery, direct Happity listing repair, and link health checks
   - website and organiser image extraction using the shared image-quality policy
   - durable download of missing official website images into Supabase Storage
-  - Google Places identity, Maps location, canonical link, and permanent-closure validation
+  - missing-coordinate resolution followed by Google Places identity, Maps location, canonical link, and permanent-closure validation
   - age suitability and "Any time" completion for unknown availability
   - existing-record updates, cross-source duplicate consolidation, and expiry archiving with reasons
 

@@ -93,7 +93,7 @@ The generated records use the existing activities fields. Google opening hours p
 Run `npm.cmd run tiny-outings-update` to run every supported importer and the
 shared quality contract. It covers all London location searches, source and
 organiser links, website images, direct Happity schedule links, Google Place
-and Maps validation, permanent closures, broken-link removal, age guidance,
+and Maps validation, missing-coordinate resolution, permanent closures, broken-link removal, age guidance,
 unknown times as `Any time`, duplicate consolidation, and expired listings.
 It also archives high-confidence adult-only and generic non-activity venues;
 specialist children’s events at a venue are not removed by this rule.
@@ -104,7 +104,9 @@ than silently publishing unchecked records. New importer and community records
 enter the admin review queue as drafts; existing published records may receive
 safe enrichment updates. Archived records remain archived even when an importer
 sends a later update. This is a manual local job only: no GitHub Actions job
-runs importers automatically.
+runs importers automatically. Legacy, one-off card, plan-filter, swipe, and
+link-repair scripts have been retired; the recurring update is the supported
+entry point for directory maintenance.
 
 `npm.cmd test` runs the complete deterministic unit suite. `npm.cmd run
 test:database` additionally runs transaction-only checks against the linked

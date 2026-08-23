@@ -8,7 +8,7 @@ Google Places, parks, family cafes, London Family Hubs and supporting enrichment
 Each run attempts a listing website, an independent organiser website for
 Happity, Fever, and Eventbrite, and representative images from both pages. It
 repairs generic Happity URLs, validates external links, validates Google Place
-and Maps locations, archives confirmed permanently closed places, fills age
+and Maps locations, resolves missing coordinates, archives confirmed permanently closed places, fills age
 guidance, and records unknown times as `Any time`. Existing source URLs update
 in place; cross-source duplicates are consolidated. Human archives are never
 revived by an importer refresh.
@@ -59,3 +59,7 @@ website images.
   generic historic venue image.
 - Listing pages are requested sequentially with delays to avoid aggressive
   scraping. Check source terms and API billing before increasing limits.
+- Historic standalone card, filter, swipe, Happity-location, Better Start
+  recurrence, and Google-link repair utilities have been removed. Their active
+  safeguards are covered by the recurring importers, shared validation, and
+  test suite.
