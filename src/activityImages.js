@@ -36,7 +36,7 @@ function isUsablePhotoUrl(url, field, activity) {
   // Imported images must not be a logo, social network asset, or interface
   // graphic. User and administrator uploads intentionally remain exempt.
   const source = field === 'scraped_image_url' ? String(activity?.image_source_url || '') : '';
-  return !/(favicon|icon|wordmark|site-logo|facebook|fbcdn|scontent|cdninstagram|instagram|twitter|twimg|tiktok|linkedin|pinterest|youtube|tracking|pixel|spinner|placeholder|cookie|consent|newsletter|payment|checkout|app-store|google-play|\/flags\/|site-flag|country-selector|language-selector|(?:^|[-_/])logo(?:[-_/]|$))/i
+  return !/(favicon|icon|logo|brand|wordmark|site-logo|facebook|fbcdn|scontent|cdninstagram|instagram|twitter|twimg|tiktok|linkedin|pinterest|youtube|tracking|pixel|spinner|placeholder|cookie|consent|newsletter|payment|checkout|app-store|google-play|\/flags\/|site-flag|country-selector|language-selector|assets\/revamp\/pictures\/categories)/i
     .test(`${url} ${source}`);
 }
 

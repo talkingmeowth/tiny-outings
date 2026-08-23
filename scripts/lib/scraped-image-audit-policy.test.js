@@ -5,6 +5,7 @@ import {
   assessScrapedImage,
   cafePresentationSummary,
   imageAuditSummary,
+  isSerpApiLogoImage,
 } from './scraped-image-audit-policy.js';
 
 function activity(overrides = {}) {
@@ -91,4 +92,15 @@ test('summarises cafe presentation review outcomes', () => {
     { assessment: { outcome: 'review' } },
     { assessment: { outcome: 'refresh' } },
   ]), { retain: 1, review: 1, refresh: 1 });
+});
+
+test('identifies SerpAPI logo assets in every activity category', () => {
+  assert.equal(isSerpApiLogoImage(activity({
+    category: 'Museums & culture',
+    image_source_url: 'https://example.test/assets/venue-logo.png',
+  })), true);
+  assert.equal(isSerpApiLogoImage(activity({
+    category: 'Museums & culture',
+    image_source_url: 'https://example.test/assets/venue-front.jpg',
+  })), false);
 });

@@ -119,6 +119,14 @@ const cafeExteriorTerms = /(front|exterior|facade|shopfront|storefront|outside|s
 const cafeFoodTerms = /(food|dish|cake|pastry|brunch|bakery|drink|menu)/i;
 const cafeLogoTerms = /(favicon|icon|logo|brand|wordmark)/i;
 
+// A stored SerpAPI source URL is the durable provenance we retain after the
+// image is copied into Supabase Storage. Only unambiguous logo signals become
+// automatic replacement candidates; ambiguous imagery remains untouched.
+export function isSerpApiLogoImage(activity) {
+  if (!activity?.scraped_image_url) return false;
+  return cafeLogoTerms.test(`${activity.scraped_image_url} ${activity.image_source_url || ''}`);
+}
+
 // SerpAPI persists the source URL, rather than a complete caption. This
 // classification therefore only changes images where the URL itself gives a
 // clear signal that the card is food-led or a logo. Ambiguous images stay put.

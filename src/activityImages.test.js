@@ -55,3 +55,12 @@ test('skips unsafe imported images but preserves an administrator cover', () => 
     'https://example.test/activity-photo.jpg',
   ]);
 });
+
+test('rejects logo and generic category images from every imported image field', () => {
+  const images = activityImageUrls(activity({
+    scraped_image_url: null,
+    website_image_url: 'https://example.test/images/venue-logo.png',
+    listing_image_url: 'https://example.test/assets/revamp/pictures/categories/baby-signing.png',
+  }));
+  assert.deepEqual(images, []);
+});

@@ -13,7 +13,7 @@ const adminEmails = new Set([
 ])
 const maxImageBytes = 8 * 1024 * 1024
 const acceptedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif'])
-const blockedImageTerms = /(favicon|icon|wordmark|site-logo|social[-_ ]?(?:icon|link|media)|facebook[.]com\/tr|facebook[.]net\/tr|twitter[0-9_-]*\.(?:png|jpe?g|webp)|tracking|pixel|spinner|placeholder|cookie|consent|newsletter|payment|checkout|app-store|google-play|\/flags\/|site-flag|country-selector|language-selector)/i
+const blockedImageTerms = /(favicon|icon|logo|brand|wordmark|site-logo|social[-_ ]?(?:icon|link|media)|facebook[.]com\/tr|facebook[.]net\/tr|twitter[0-9_-]*\.(?:png|jpe?g|webp)|tracking|pixel|spinner|placeholder|cookie|consent|newsletter|payment|checkout|app-store|google-play|\/flags\/|site-flag|country-selector|language-selector|assets\/revamp\/pictures\/categories)/i
 
 type Activity = {
   activity_id: string
@@ -112,7 +112,12 @@ function usableImageUrl(value: string | null) {
 function candidateScore(url: string, context = '') {
   const text = `${url} ${context}`.toLowerCase()
   let score = 0
-  if (/(hero|feature|gallery|interior|venue|studio|class|play|people|baby|family|food|coffee|room|space)/.test(text)) score += 25
+  // When replacing a logo, a recognisable venue exterior is most useful to a
+  // parent choosing where to go; a venue interior is the next best option.
+  if (/(front|exterior|facade|shopfront|storefront|outside|street|building)/.test(text)) score += 60
+  else if (/(interior|inside|dining|seating|venue|studio|class|play|people|baby|family|room|space)/.test(text)) score += 45
+  else if (/(food|coffee|kitchen)/.test(text)) score += 15
+  if (/(hero|feature|gallery)/.test(text)) score += 10
   if (/(full|large|original|2048|1600|1200|1080|1024)/.test(text)) score += 12
   if (/(thumbnail|thumb|150x150|200x200|300x300|banner|social-share|default)/.test(text)) score -= 18
   if (/(graphic|illustration|cartoon|poster|flyer|template|stock)/.test(text)) score -= 15
@@ -215,7 +220,10 @@ async function downloadToStorage(
   sourceKind: 'website' | 'organiser',
   candidates: Candidate[],
 ) {
-  for (const candidate of candidates) {
+  const rankedCandidates = [...candidates]
+    .filter((candidate) => !blockedImageTerms.test(candidate.url))
+    .sort((left, right) => right.score - left.score)
+  for (const candidate of rankedCandidates) {
     try {
       const response = await fetch(candidate.url, {
         redirect: 'follow',
@@ -276,23 +284,35 @@ function uniqueUrls(values: Array<string | null | undefined>) {
   })
 }
 
-async function processActivity(supabase: ReturnType<typeof createClient>, activity: Activity) {
-  if (hasCardImage(activity)) return { activity_id: activity.activity_id, status: 'already-covered' }
+async function processActivity(
+  supabase: ReturnType<typeof createClient>,
+  activity: Activity,
+  replaceLogo: boolean,
+) {
+  if (hasCardImage(activity) && !replaceLogo) return { activity_id: activity.activity_id, status: 'already-covered' }
 
   const organiserPages = uniqueUrls([activity.organiser_website])
   const websitePages = uniqueUrls([activity.website, activity.source_url]).filter((url) => !organiserPages.includes(url))
   const organiserCandidates = activity.organiser_website
-    ? [{ url: activity.website_image_url, score: 100 }, ...(await Promise.all(organiserPages.map(pageCandidates))).flat()]
+    ? (await Promise.all(organiserPages.map(pageCandidates))).flat()
     : []
   const organiserImage = await downloadToStorage(
     supabase,
     activity,
     'organiser',
-    organiserCandidates.filter((candidate): candidate is Candidate => Boolean(candidate.url && usableImageUrl(candidate.url))),
+    organiserCandidates.filter((candidate): candidate is Candidate => Boolean(
+      candidate.url
+      && usableImageUrl(candidate.url)
+      && (!replaceLogo || candidate.score >= 40),
+    )),
   )
   if (organiserImage) {
     const { error } = await supabase.from('activities').update({
       organiser_website_downloaded_image: organiserImage.public_url,
+      ...(replaceLogo ? {
+        scraped_image_url: organiserImage.public_url,
+        image_source_url: organiserImage.source_url,
+      } : {}),
       updated_at: new Date().toISOString(),
     }).eq('activity_id', activity.activity_id)
     return error
@@ -301,20 +321,30 @@ async function processActivity(supabase: ReturnType<typeof createClient>, activi
   }
 
   const websiteCandidates = [
-    { url: activity.listing_image_url, score: 100 },
-    ...(activity.organiser_website ? [] : [{ url: activity.website_image_url, score: 95 }]),
+    // Do not reuse a legacy listing image when this is a logo replacement.
+    // Page extraction gives us a distinct venue photo to rank instead.
+    ...(replaceLogo ? [] : [{ url: activity.listing_image_url, score: 100 }]),
+    ...(replaceLogo || activity.organiser_website ? [] : [{ url: activity.website_image_url, score: 95 }]),
     ...(await Promise.all(websitePages.map(pageCandidates))).flat(),
   ]
   const websiteImage = await downloadToStorage(
     supabase,
     activity,
     'website',
-    websiteCandidates.filter((candidate): candidate is Candidate => Boolean(candidate.url && usableImageUrl(candidate.url))),
+    websiteCandidates.filter((candidate): candidate is Candidate => Boolean(
+      candidate.url
+      && usableImageUrl(candidate.url)
+      && (!replaceLogo || candidate.score >= 40),
+    )),
   )
   if (!websiteImage) return { activity_id: activity.activity_id, status: 'no-usable-image' }
 
   const { error } = await supabase.from('activities').update({
     website_downloaded_image: websiteImage.public_url,
+    ...(replaceLogo ? {
+      scraped_image_url: websiteImage.public_url,
+      image_source_url: websiteImage.source_url,
+    } : {}),
     updated_at: new Date().toISOString(),
   }).eq('activity_id', activity.activity_id)
   return error
@@ -351,17 +381,22 @@ Deno.serve(async (request) => {
     const activityIds = Array.isArray(body.activity_ids)
       ? [...new Set(body.activity_ids.filter((id: unknown): id is string => typeof id === 'string' && /^[0-9a-f-]{36}$/i.test(id)))].slice(0, 25)
       : []
+    const replaceLogo = body.replace_logo === true
     if (!activityIds.length) return jsonResponse({ error: 'Provide up to 25 activity_ids.' }, 400)
 
     const { data, error } = await supabase.from('activities')
       .select('activity_id,activity_name,website,organiser_website,source_url,image_url,scraped_image_url,website_image_url,listing_image_url,wikimedia_image_url,user_image_url,admin_cover_image_url,website_downloaded_image,organiser_website_downloaded_image')
-      .eq('public_listing_status', 'published')
+      .in('public_listing_status', ['draft', 'published'])
       .eq('archive', false)
       .in('activity_id', activityIds)
     if (error) throw new Error(error.message)
 
-    const results = await mapWithConcurrency((data || []) as Activity[], 4, (activity) => processActivity(supabase, activity))
-    return jsonResponse({ processed: results.length, results })
+    const results = await mapWithConcurrency(
+      (data || []) as Activity[],
+      4,
+      (activity) => processActivity(supabase, activity, replaceLogo),
+    )
+    return jsonResponse({ processed: results.length, replace_logo: replaceLogo, results })
   } catch (error) {
     return jsonResponse({ error: error instanceof Error ? error.message : 'Image download failed.' }, 500)
   }

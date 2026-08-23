@@ -8,6 +8,9 @@ const scope = process.argv.includes('--scope') && process.argv[process.argv.inde
   ? 'cafes'
   : 'all';
 const refreshExisting = process.argv.includes('--refresh-existing');
+const replacementMode = process.argv.includes('--replacement-mode')
+  ? process.argv[process.argv.indexOf('--replacement-mode') + 1] || null
+  : null;
 const activityIdsFile = process.argv.includes('--activity-ids-file')
   ? process.argv[process.argv.indexOf('--activity-ids-file') + 1] || null
   : null;
@@ -81,6 +84,7 @@ async function invoke(cursor, activityIds = []) {
           scope,
           refresh_existing: refreshExisting,
           activity_ids: activityIds,
+          replacement_mode: replacementMode,
         }),
         signal: AbortSignal.timeout(150000),
       });
@@ -156,6 +160,7 @@ async function main() {
     generated_at: new Date().toISOString(),
     scope,
     refresh_existing: refreshExisting,
+    replacement_mode: replacementMode,
     batches: batches.length,
     stopped_for_rate_limit: stoppedForRateLimit,
     resume_cursor: stoppedForRateLimit ? resumeCursor : cursor,
