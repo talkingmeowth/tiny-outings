@@ -161,11 +161,11 @@ function imageConfidence(image: SearchImage, activity: Activity) {
     + (official ? 48 : 0)
 
   // Search results can include visually suitable images for a different venue.
-  // Require a full name match, several distinctive words, or an official page
-  // plus a distinctive title word before writing a card image.
-  const highConfidence = exactTitle
-    || matchingWords.length >= 2
-    || (official && matchingWords.length >= 1)
+  // Google Images captions alone are not sufficient evidence. Keep the card
+  // image tied to a listing or organiser domain, then require a full title or
+  // at least two distinctive activity words. This deliberately favours a
+  // missing image over showing parents the wrong venue.
+  const highConfidence = official && (exactTitle || matchingWords.length >= 2)
   return { highConfidence, score, matchingWords, official }
 }
 
@@ -341,7 +341,6 @@ async function findAndStoreImage(
     diagnostics.usable_urls += usableCandidates.length
     const confidentCandidates = usableCandidates.filter((image: SearchImage) => (
       imageConfidence(image, activity).highConfidence
-      || (venuePhotoReplacement && isOfficialCandidate(image, activity))
     ))
     diagnostics.high_confidence += confidentCandidates.length
     const unblockedCandidates = confidentCandidates

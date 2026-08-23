@@ -18,6 +18,7 @@
     "activities:images:missing": "node scripts/enrich-activity-images.js --missing-only",
     "activities:images:audit-scraped": "node scripts/audit-scraped-images.js",
     "activities:images:audit-cafes": "node scripts/audit-cafe-image-content.js",
+    "activities:images:audit-serpapi-confidence": "node scripts/audit-serpapi-image-confidence.js",
     "activities:images:refresh-cafe-venues": "node scripts/refresh-cafe-serpapi-images.js --scope cafes --refresh-existing --replacement-mode cafe_venue_photo --force-venue-refresh --activity-ids-file data/cafe_serpapi_visual_refresh_candidates.generated.json --batch-size 5",
     "activities:images:audit-logos": "node scripts/audit-serpapi-logo-images.js",
     "activities:images:download": "node scripts/download-activity-website-images.js",
