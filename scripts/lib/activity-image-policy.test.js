@@ -16,11 +16,14 @@ test('accepts a clear cafe logo only as a controlled fallback', () => {
   assert.equal(isUsableActivityImageUrl(logo), false);
 });
 
-test('prioritises cafe interiors above food and logo fallbacks', () => {
+test('prioritises cafe interiors, then exteriors, above food and logo fallbacks', () => {
   const interior = scoreActivityImage('https://cdn.example.test/suba-cafe-interior.jpg?width=1400&height=900', 'inside the cafe', cafe);
+  const exterior = scoreActivityImage('https://cdn.example.test/suba-cafe-shopfront.jpg?width=1400&height=900', 'outside the cafe', cafe);
   const food = scoreActivityImage('https://cdn.example.test/suba-cafe-pastry.jpg?width=1400&height=900', 'fresh food', cafe);
   const logo = scoreActivityImage('https://cdn.example.test/suba-cafe-logo.png?width=600&height=400', 'Suba Cafe logo', cafe);
 
   assert.ok(interior > food);
+  assert.ok(interior > exterior);
+  assert.ok(exterior > food);
   assert.ok(food > logo);
 });

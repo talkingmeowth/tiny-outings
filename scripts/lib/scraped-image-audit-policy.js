@@ -114,6 +114,31 @@ export function refreshableScrapedImage(activity) {
   return assessScrapedImage(activity).severity === 'refresh';
 }
 
+const cafeInteriorTerms = /(interior|inside|dining|seating|table|tables|venue[-_ ]?space|play[-_ ]?space|room)/i;
+const cafeExteriorTerms = /(front|exterior|facade|shopfront|storefront|outside|street)/i;
+const cafeFoodTerms = /(food|dish|cake|pastry|brunch|bakery|drink|menu)/i;
+const cafeLogoTerms = /(favicon|icon|logo|brand|wordmark)/i;
+
+// SerpAPI persists the source URL, rather than a complete caption. This
+// classification therefore only changes images where the URL itself gives a
+// clear signal that the card is food-led or a logo. Ambiguous images stay put.
+export function assessCafeSerpApiPresentation(activity) {
+  if (!isCafeActivity(activity) || !activity.scraped_image_url) return null;
+  const source = `${activity.scraped_image_url} ${activity.image_source_url || ''}`;
+  if (cafeInteriorTerms.test(source)) return { outcome: 'retain', reason: 'Venue interior signal.' };
+  if (cafeExteriorTerms.test(source)) return { outcome: 'retain', reason: 'Venue exterior signal.' };
+  if (cafeLogoTerms.test(source)) return { outcome: 'refresh', reason: 'Logo or brand asset.' };
+  if (cafeFoodTerms.test(source)) return { outcome: 'refresh', reason: 'Food or menu image.' };
+  return { outcome: 'review', reason: 'No reliable interior, exterior, food, or logo signal.' };
+}
+
+export function cafePresentationSummary(rows) {
+  return rows.reduce((summary, row) => {
+    summary[row.assessment.outcome] = (summary[row.assessment.outcome] || 0) + 1;
+    return summary;
+  }, { retain: 0, review: 0, refresh: 0 });
+}
+
 export function imageAuditSummary(rows) {
   return rows.reduce((summary, row) => {
     summary[row.assessment.severity] = (summary[row.assessment.severity] || 0) + 1;

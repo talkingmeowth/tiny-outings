@@ -151,9 +151,9 @@ function imageScore(image: SearchImage, activity: Activity) {
   const confidence = imageConfidence(image, activity)
   const isCafe = /cafe|coffee|bakery|restaurant|food/.test(String(activity.category || '').toLowerCase())
   let score = confidence.score
-  if (isCafe && /(interior|inside|dining[ -]?room|seating|coffee[ -]?bar|cafe[ -]?space|venue[ -]?space|tables?)/.test(text)) score += 95
-  else if (isCafe && /(food|cake|brunch|pastry|coffee|kitchen)/.test(text)) score += 50
-  else if (isCafe && /(front|exterior|facade|outside|street)/.test(text)) score += 5
+  if (isCafe && /(interior|inside|dining[ -]?room|seating|coffee[ -]?bar|cafe[ -]?space|venue[ -]?space|tables?)/.test(text)) score += 600
+  else if (isCafe && /(front|exterior|facade|shopfront|storefront|outside|street)/.test(text)) score += 450
+  else if (isCafe && /(food|cake|brunch|pastry|coffee|kitchen)/.test(text)) score += 200
   if (/(logo|brand|wordmark|menu|flyer|poster|facebook|fbcdn|scontent|cdninstagram|instagram|twitter|twimg|linkedin|profile)/.test(text)) score -= 100
   if (/(thumb|thumbnail|150x150|200x200|300x300|avatar|default)/.test(text)) score -= 45
   return score
@@ -165,8 +165,9 @@ function existingImageScore(activity: Activity) {
     .filter(Boolean).join(' ').toLowerCase()
   const isCafe = /cafe|coffee|bakery|restaurant|food/.test(String(activity.category || '').toLowerCase())
   let score = 0
-  if (isCafe && /(interior|inside|dining[ -]?room|seating|coffee[ -]?bar|cafe[ -]?space|venue[ -]?space|tables?)/.test(text)) score += 95
-  else if (isCafe && /(food|cake|brunch|pastry|coffee|kitchen)/.test(text)) score += 50
+  if (isCafe && /(interior|inside|dining[ -]?room|seating|coffee[ -]?bar|cafe[ -]?space|venue[ -]?space|tables?)/.test(text)) score += 600
+  else if (isCafe && /(front|exterior|facade|shopfront|storefront|outside|street)/.test(text)) score += 450
+  else if (isCafe && /(food|cake|brunch|pastry|coffee|kitchen)/.test(text)) score += 200
   if (/(logo|brand|wordmark|menu|flyer|poster|facebook|instagram|twitter|linkedin|profile)/.test(text)) score -= 100
   if (/(thumb|thumbnail|150x150|200x200|300x300|avatar|default)/.test(text)) score -= 45
   return score
@@ -191,7 +192,7 @@ async function findAndStoreImage(
 
   const isCafe = /cafe|coffee|bakery|restaurant|food/.test(String(activity.category || '').toLowerCase())
   const query = isCafe
-    ? `${activity.activity_name} ${activity.address || 'London'} cafe interior`
+    ? `${activity.activity_name} ${activity.address || 'London'} cafe interior exterior`
     : `${activity.activity_name} ${activity.address || 'London'} ${activity.category || 'family activity'}`
   const searchUrl = new URL('https://serpapi.com/search.json')
   searchUrl.searchParams.set('engine', 'google_images')

@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { assessScrapedImage, imageAuditSummary } from './scraped-image-audit-policy.js';
+import {
+  assessCafeSerpApiPresentation,
+  assessScrapedImage,
+  cafePresentationSummary,
+  imageAuditSummary,
+} from './scraped-image-audit-policy.js';
 
 function activity(overrides = {}) {
   return {
@@ -59,4 +64,31 @@ test('summarises every audit outcome', () => {
     { assessment: { severity: 'refresh' } },
   ];
   assert.deepEqual(imageAuditSummary(rows), { pass: 1, review: 1, refresh: 1, missing: 0 });
+});
+
+test('refreshes food and logo cafe cards but retains venue interiors and exteriors', () => {
+  assert.equal(assessCafeSerpApiPresentation(activity({
+    scraped_image_url: 'https://storage.example.test/venue.jpg',
+    image_source_url: 'https://example.test/cafe-interior.jpg',
+  })).outcome, 'retain');
+  assert.equal(assessCafeSerpApiPresentation(activity({
+    scraped_image_url: 'https://storage.example.test/venue.jpg',
+    image_source_url: 'https://example.test/cafe-shopfront.jpg',
+  })).outcome, 'retain');
+  assert.equal(assessCafeSerpApiPresentation(activity({
+    scraped_image_url: 'https://storage.example.test/venue.jpg',
+    image_source_url: 'https://example.test/cafe-pastry.jpg',
+  })).outcome, 'refresh');
+  assert.equal(assessCafeSerpApiPresentation(activity({
+    scraped_image_url: 'https://storage.example.test/venue.jpg',
+    image_source_url: 'https://example.test/cafe-logo.png',
+  })).outcome, 'refresh');
+});
+
+test('summarises cafe presentation review outcomes', () => {
+  assert.deepEqual(cafePresentationSummary([
+    { assessment: { outcome: 'retain' } },
+    { assessment: { outcome: 'review' } },
+    { assessment: { outcome: 'refresh' } },
+  ]), { retain: 1, review: 1, refresh: 1 });
 });

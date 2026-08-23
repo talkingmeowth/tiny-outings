@@ -17,6 +17,7 @@
     "activities:images": "node scripts/enrich-activity-images.js --audit",
     "activities:images:missing": "node scripts/enrich-activity-images.js --missing-only",
     "activities:images:audit-scraped": "node scripts/audit-scraped-images.js",
+    "activities:images:audit-cafes": "node scripts/audit-cafe-serpapi-images.js",
     "activities:images:download": "node scripts/download-activity-website-images.js",
     "activities:images:wikimedia": "node scripts/populate-wikimedia-images.js",
     "activities:images:wikimedia:parks": "node scripts/populate-wikimedia-images.js --parks-only",
