@@ -5684,3 +5684,285 @@ textarea {
     height: 68px;
   }
 }
+
+/* Product-pass refinements: keep the first decision quick and reserve detail
+   for the point where a parent asks for it. */
+.plan-ready-card,
+.week-empty-state {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 28px;
+  background-color: #fffdf6;
+  box-shadow: 0 14px 30px rgba(36, 57, 86, 0.11);
+}
+
+.plan-ready-card {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.plan-ready-card > div:first-child,
+.week-empty-state > div {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.plan-ready-card span,
+.week-empty-state > div > span {
+  color: var(--coral-dark);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.plan-ready-card strong {
+  color: var(--ink);
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.25rem;
+  line-height: 1.08;
+}
+
+.plan-ready-card small {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.plan-ready-actions {
+  display: grid;
+  gap: 7px;
+  justify-items: stretch;
+}
+
+.plan-ready-actions button {
+  min-height: 40px;
+  white-space: nowrap;
+}
+
+.week-picker,
+.more-filters {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.week-picker summary,
+.more-filters summary {
+  width: fit-content;
+  min-height: 38px;
+  padding: 10px 13px;
+  border-radius: 15px;
+  color: var(--green-dark);
+  background-color: #d8ecee;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 900;
+  list-style: none;
+}
+
+.week-picker summary::-webkit-details-marker,
+.more-filters summary::-webkit-details-marker {
+  display: none;
+}
+
+.week-picker summary::after,
+.more-filters summary::after {
+  margin-left: 8px;
+  content: '+';
+}
+
+.week-picker[open] summary::after,
+.more-filters[open] summary::after {
+  content: '-';
+}
+
+.week-picker .week-calendar {
+  margin-top: 2px;
+}
+
+.planning-footer {
+  margin: 0 6px 12px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.swipe-status-bar {
+  align-items: flex-start;
+  min-height: 76px;
+}
+
+.swipe-status-bar div {
+  min-width: 0;
+}
+
+.swipe-status-bar strong {
+  color: var(--ink);
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.05rem;
+  line-height: 1.1;
+}
+
+.swipe-status-bar small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.swipe-progress {
+  display: block;
+  width: min(100%, 220px);
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background-color: #d8ecee;
+}
+
+.swipe-progress i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background-color: var(--green-dark);
+  transition: width 180ms ease;
+}
+
+.swipe-gesture-hint {
+  margin: -3px 4px 2px;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.swipe-screen {
+  padding-bottom: 128px;
+}
+
+.week-empty-state {
+  position: relative;
+  min-height: 255px;
+  align-content: center;
+  padding: 28px;
+  overflow: hidden;
+}
+
+.week-empty-state::before,
+.week-empty-state::after {
+  position: absolute;
+  border-radius: 50%;
+  content: '';
+  pointer-events: none;
+}
+
+.week-empty-state::before {
+  top: -42px;
+  right: -28px;
+  width: 130px;
+  height: 130px;
+  background-color: #d8ecee;
+}
+
+.week-empty-state::after {
+  bottom: -45px;
+  left: -34px;
+  width: 122px;
+  height: 122px;
+  background-color: #fff0b8;
+}
+
+.week-empty-state > * {
+  position: relative;
+  z-index: 1;
+}
+
+.week-empty-spark {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 12px;
+  color: var(--coral-dark);
+  background-color: #fff0b8;
+  font-size: 1.45rem;
+  font-weight: 900;
+  transform: rotate(-8deg);
+}
+
+.week-empty-state h2 {
+  max-width: 18rem;
+  margin: 0;
+  color: var(--ink);
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: clamp(1.45rem, 7vw, 2rem);
+  line-height: 1.05;
+}
+
+.week-empty-state p {
+  max-width: 28rem;
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+.week-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.week-empty-actions button {
+  min-height: 40px;
+  padding-inline: 13px;
+  color: var(--ink);
+  background-color: #dcebd7;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.calendar-list {
+  gap: 14px;
+}
+
+.calendar-day {
+  padding: 18px;
+}
+
+.calendar-slot {
+  grid-template-columns: 88px minmax(0, 1fr);
+  align-items: start;
+}
+
+.open-slot {
+  width: fit-content;
+  min-height: 36px;
+  padding: 8px 11px;
+  color: var(--green-dark);
+  background-color: #eef8f8;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 850;
+}
+
+@media (max-width: 390px) {
+  .plan-ready-card {
+    grid-template-columns: 1fr;
+  }
+
+  .plan-ready-actions {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .calendar-slot {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}

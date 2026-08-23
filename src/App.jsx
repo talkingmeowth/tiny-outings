@@ -3119,6 +3119,11 @@ export default function App() {
             onUpdateEvent={updateEvent}
             onRemoveEvent={removeEvent}
             onShareApp={openAppShareSheet}
+            onExploreWindow={(windowName) => {
+              setSelectedDate(weekDays[0]);
+              setSelectedWindow(windowName);
+              navigate('swipe');
+            }}
           />
         )}
 
@@ -3349,9 +3354,9 @@ function StartScreen({
     <section className="app-screen start-screen">
       <div className="screen-title hero-title">
         <span className="eyebrow">Family day planner</span>
-        <h1>Little plans, sorted.</h1>
+        <h1>Plan a lighter week.</h1>
         <p>
-          Pick a week. Set your range. Swipe your day into shape.
+          Start with a few good ideas. Fine tune the details whenever you need to.
         </p>
         <div className="hero-badges" aria-label="Planning windows">
           <span>Morning</span>
@@ -3360,11 +3365,38 @@ function StartScreen({
         </div>
       </div>
 
+      <section className="plan-ready-card" aria-label="Start planning">
+        <div>
+          <span>Planning {relativeWeekLabel(filters.weekStart)}</span>
+          <strong>{totalActivityCount.toLocaleString()} ideas ready</strong>
+          <small>{slotActivityCount} fit your first time slot.</small>
+        </div>
+        <div className="plan-ready-actions">
+          <button className="primary-action" type="button" onClick={onStart}>
+            Start exploring
+          </button>
+          <button className="secondary-button" type="button" onClick={onResetBrowsing}>
+            Reset
+          </button>
+        </div>
+      </section>
+
       <div className="filter-card location-card">
         <div className="field-group">
           <span>Week</span>
-          <p>Choose any day to plan its week.</p>
-          <div className="week-calendar" aria-label="Choose a planning week">
+          <p>Planning {relativeWeekLabel(filters.weekStart)}. Choose another week whenever you are ready.</p>
+          <div className="week-selection-label" aria-live="polite">
+            <strong>{relativeWeekLabel(filters.weekStart)}</strong>
+            <span>{formatDay(filters.weekStart)} to {formatDay(addDaysISO(filters.weekStart, 6))}</span>
+          </div>
+          <div className="week-preview" aria-label={`${relativeWeekLabel(filters.weekStart)} weekdays`}>
+            {weekDays.map((day) => (
+              <span key={day}>{weekdayName(day).slice(0, 3)}</span>
+            ))}
+          </div>
+          <details className="week-picker">
+            <summary>Choose a different week</summary>
+            <div className="week-calendar" aria-label="Choose a planning week">
             <div className="week-calendar-header">
               <button
                 type="button"
@@ -3421,16 +3453,8 @@ function StartScreen({
                 );
               })}
             </div>
-          </div>
-          <div className="week-selection-label" aria-live="polite">
-            <strong>{relativeWeekLabel(filters.weekStart)}</strong>
-            <span>{formatDay(filters.weekStart)} to {formatDay(addDaysISO(filters.weekStart, 6))}</span>
-          </div>
-          <div className="week-preview" aria-label={`${relativeWeekLabel(filters.weekStart)} weekdays`}>
-            {weekDays.map((day) => (
-              <span key={day}>{weekdayName(day).slice(0, 3)}</span>
-            ))}
-          </div>
+            </div>
+          </details>
         </div>
 
         <div className="field-group">
@@ -3597,21 +3621,7 @@ function StartScreen({
         </div>
       </div>
 
-      <div className="start-summary">
-        <div>
-          <span>Outings</span>
-          <strong>{totalActivityCount}</strong>
-          <small>{dayActivityCount} today. {slotActivityCount} in this slot.</small>
-        </div>
-        <div className="start-actions">
-          <button className="primary-action" type="button" onClick={onStart}>
-            Start swiping
-          </button>
-          <button className="secondary-button" type="button" onClick={onResetBrowsing}>
-            Reset
-          </button>
-        </div>
-      </div>
+      <p className="planning-footer">{dayActivityCount.toLocaleString()} ideas are ready for your selected day. You can change the filters any time.</p>
     </section>
   );
 }
@@ -3687,6 +3697,10 @@ function SwipeScreen({
   onHideActivity,
 }) {
   const topActivity = deckActivities[0];
+  const reviewedCount = Math.max(0, slotActivities.length - deckActivities.length);
+  const reviewedPercent = slotActivities.length
+    ? Math.min(100, Math.round((reviewedCount / slotActivities.length) * 100))
+    : 0;
 
   return (
     <section className="app-screen swipe-screen">
@@ -3722,9 +3736,20 @@ function SwipeScreen({
       <div className="swipe-status-bar">
         <div>
           <span>{formatDay(selectedDate, 'long')} - {selectedWindow}</span>
-          <strong>{deckActivities.length} left - {shortlist.length} saved</strong>
+          <strong>{shortlist.length ? `${shortlist.length} saved` : 'Start building your shortlist'}</strong>
+          <small>{deckActivities.length ? `${deckActivities.length} fresh ideas to explore` : 'This slot is all caught up'}</small>
+          {slotActivities.length > 0 && (
+            <span
+              className="swipe-progress"
+              role="progressbar"
+              aria-label="Swipe session progress"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow={reviewedPercent}
+            ><i style={{ width: `${reviewedPercent}%` }} /></span>
+          )}
         </div>
-        <button type="button" onClick={onResetSlot}>Start over</button>
+        {reviewedCount > 0 && <button type="button" onClick={onResetSlot}>Start over</button>}
       </div>
 
       <div className="tinder-stage" aria-live="polite">
@@ -3777,7 +3802,7 @@ function SwipeScreen({
           disabled={!topActivity}
           onClick={() => onSwipe(topActivity, 'no')}
         >
-          Skip
+          Pass
         </button>
         <button
           className="swipe-button info"
@@ -3793,9 +3818,10 @@ function SwipeScreen({
           disabled={!topActivity}
           onClick={() => onSwipe(topActivity, 'yes')}
         >
-          Save
+          Save idea
         </button>
       </div>
+      <p className="swipe-gesture-hint">Swipe left to pass, right to save. Tap a card for the full story.</p>
       <button
         className="hide-activity-button"
         type="button"
@@ -4217,8 +4243,10 @@ function CalendarScreen({
   onUpdateEvent,
   onRemoveEvent,
   onShareApp,
+  onExploreWindow,
 }) {
   const weekEvents = calendarEvents.filter((event) => weekDays.includes(event.planned_date));
+  const daysWithPlans = weekDays.filter((day) => calendarEvents.some((event) => event.planned_date === day));
   const [exportingCalendar, setExportingCalendar] = useState(false);
 
   async function exportCalendar(events, filename) {
@@ -4237,22 +4265,40 @@ function CalendarScreen({
       <div className="screen-title compact">
         <span className="eyebrow">Week</span>
         <h1>Your plan</h1>
-        <p>Booked and maybe plans.</p>
+        <p>{weekEvents.length ? `${weekEvents.length} plan${weekEvents.length === 1 ? '' : 's'} taking shape.` : 'A little space for whatever works.'}</p>
       </div>
 
-      <div className="week-export-card">
-        <div>
-          <strong>Take your week with you</strong>
-          <small>{weekEvents.length ? `${weekEvents.length} plans ready to import.` : 'Add plans to export them.'}</small>
+      {weekEvents.length > 0 ? (
+        <div className="week-export-card">
+          <div>
+            <strong>Take your week with you</strong>
+            <small>{`${weekEvents.length} plan${weekEvents.length === 1 ? '' : 's'} ready to import.`}</small>
+          </div>
+          <button
+            type="button"
+            disabled={exportingCalendar}
+            onClick={() => exportCalendar(weekEvents, `tiny-outings-week-${weekDays[0]}.ics`)}
+          >
+            {exportingCalendar ? 'Preparing...' : 'Export week'}
+          </button>
         </div>
-        <button
-          type="button"
-          disabled={weekEvents.length === 0 || exportingCalendar}
-          onClick={() => exportCalendar(weekEvents, `tiny-outings-week-${weekDays[0]}.ics`)}
-        >
-          {exportingCalendar ? 'Preparing...' : 'Export for Google Calendar'}
-        </button>
-      </div>
+      ) : (
+        <section className="week-empty-state">
+          <span className="week-empty-spark" aria-hidden="true">*</span>
+          <div>
+            <span>Start small</span>
+            <h2>Save one good idea for the week.</h2>
+            <p>Choose a time that works, swipe through suggestions, and keep the ones that feel right.</p>
+          </div>
+          <div className="week-empty-actions" aria-label="Find an activity by time of day">
+            {dayWindows.map((windowName) => (
+              <button key={windowName} type="button" onClick={() => onExploreWindow(windowName)}>
+                Find {windowName === 'afternoon' ? 'an' : 'a'} {windowName} plan
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="week-share-card">
         <div>
@@ -4265,8 +4311,9 @@ function CalendarScreen({
         </button>
       </section>
 
+      {weekEvents.length > 0 && (
       <div className="calendar-list">
-        {weekDays.map((day) => (
+        {daysWithPlans.map((day) => (
           <section key={day} className="calendar-day">
             <h2>{formatDay(day, 'long')}</h2>
             {dayWindows.map((windowName) => {
@@ -4303,7 +4350,9 @@ function CalendarScreen({
                       ))}
                     </div>
                   ) : (
-                    <span className="open-slot">Free</span>
+                    <button className="open-slot" type="button" onClick={() => onExploreWindow(windowName)}>
+                      Add an idea
+                    </button>
                   )}
                 </div>
               );
@@ -4311,6 +4360,7 @@ function CalendarScreen({
           </section>
         ))}
       </div>
+      )}
     </section>
   );
 }
