@@ -14,7 +14,7 @@ const adminEmails = new Set([
 const maxImageBytes = 8 * 1024 * 1024
 const maxBatchSize = 20
 const acceptedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif'])
-const blockedImageTerms = /(favicon|icon|wordmark|site-logo|social[-_ ]?(?:icon|link|media)|facebook[.]com\/tr|facebook[.]net\/tr|twitter[0-9_-]*\.(?:png|jpe?g|webp)|tracking|pixel|spinner|placeholder|cookie|consent|newsletter|payment|checkout|app-store|google-play|\/flags\/|site-flag|country-selector|language-selector)/i
+const blockedImageTerms = /(favicon|icon|wordmark|site-logo|social[-_ ]?(?:icon|link|media)|facebook|fbcdn|scontent|cdninstagram|instagram|twitter|twimg|tiktok|linkedin|pinterest|youtube|tracking|pixel|spinner|placeholder|cookie|consent|newsletter|payment|checkout|app-store|google-play|\/flags\/|site-flag|country-selector|language-selector)/i
 const ignoredTitleWords = new Set(['the', 'and', 'for', 'with', 'from', 'this', 'that', 'london', 'class', 'classes', 'club', 'activity', 'activities', 'family', 'families', 'children', 'child', 'baby', 'babies', 'toddler', 'toddlers'])
 
 type SearchImage = {
@@ -31,6 +31,8 @@ type Activity = {
   category: string | null
   website: string | null
   organiser_website: string | null
+  scraped_image_url: string | null
+  image_source_url: string | null
 }
 
 type SerpApiAssessment = 'updated' | 'no-usable-image'
@@ -152,6 +154,19 @@ function imageScore(image: SearchImage, activity: Activity) {
   if (isCafe && /(interior|inside|dining[ -]?room|seating|coffee[ -]?bar|cafe[ -]?space|venue[ -]?space|tables?)/.test(text)) score += 95
   else if (isCafe && /(food|cake|brunch|pastry|coffee|kitchen)/.test(text)) score += 50
   else if (isCafe && /(front|exterior|facade|outside|street)/.test(text)) score += 5
+  if (/(logo|brand|wordmark|menu|flyer|poster|facebook|fbcdn|scontent|cdninstagram|instagram|twitter|twimg|linkedin|profile)/.test(text)) score -= 100
+  if (/(thumb|thumbnail|150x150|200x200|300x300|avatar|default)/.test(text)) score -= 45
+  return score
+}
+
+function existingImageScore(activity: Activity) {
+  if (!activity.scraped_image_url) return Number.NEGATIVE_INFINITY
+  const text = [activity.scraped_image_url, activity.image_source_url, activity.activity_name, activity.category]
+    .filter(Boolean).join(' ').toLowerCase()
+  const isCafe = /cafe|coffee|bakery|restaurant|food/.test(String(activity.category || '').toLowerCase())
+  let score = 0
+  if (isCafe && /(interior|inside|dining[ -]?room|seating|coffee[ -]?bar|cafe[ -]?space|venue[ -]?space|tables?)/.test(text)) score += 95
+  else if (isCafe && /(food|cake|brunch|pastry|coffee|kitchen)/.test(text)) score += 50
   if (/(logo|brand|wordmark|menu|flyer|poster|facebook|instagram|twitter|linkedin|profile)/.test(text)) score -= 100
   if (/(thumb|thumbnail|150x150|200x200|300x300|avatar|default)/.test(text)) score -= 45
   return score
@@ -189,10 +204,12 @@ async function findAndStoreImage(
   if (search.status === 429) throw new SerpApiRateLimitError('SerpAPI rate limit reached.')
   if (!search.ok) throw new Error(`SerpAPI returned ${search.status}.`)
   const body = await search.json()
+  const existingScore = existingImageScore(activity)
   const candidates = (Array.isArray(body.images_results) ? body.images_results : [])
     .filter((image: SearchImage) => usableImageUrl(image.original))
     .filter((image: SearchImage) => imageConfidence(image, activity).highConfidence)
     .sort((left: SearchImage, right: SearchImage) => imageScore(right, activity) - imageScore(left, activity))
+    .filter((image: SearchImage) => imageScore(image, activity) > existingScore)
     .slice(0, 5) as SearchImage[]
 
   for (const candidate of candidates) {
@@ -243,6 +260,7 @@ Deno.serve(async (request) => {
     batch_size?: number
     scope?: 'all' | 'cafes'
     refresh_existing?: boolean
+    activity_ids?: string[]
   }
   const batchSize = Math.min(Math.max(Number(body.batch_size) || maxBatchSize, 1), maxBatchSize)
   const scope = body.scope === 'cafes' ? 'cafes' : 'all'
@@ -251,19 +269,22 @@ Deno.serve(async (request) => {
 
   let query = supabase
     .from('activities')
-    .select('activity_id,activity_name,address,category,website,organiser_website')
+    .select('activity_id,activity_name,address,category,website,organiser_website,scraped_image_url,image_source_url')
     .in('public_listing_status', ['draft', 'published'])
     .eq('archive', false)
     .order('activity_id', { ascending: true })
     .limit(batchSize)
+  const activityIds = [...new Set((body.activity_ids || []).filter((value) => typeof value === 'string' && value.length > 0))]
+    .slice(0, maxBatchSize)
   if (scope === 'cafes') query = query.or('category.ilike.%cafe%,category.ilike.%food%')
-  if (!refreshExisting) {
+  if (!refreshExisting && !activityIds.length) {
     // Each new activity receives one vetted SerpAPI assessment, even when an
     // importer has already supplied an official image. The assessment marker
     // avoids re-searching existing cards on every recurring update.
     query = query.is('serpapi_image_checked_at', null)
   }
-  if (body.cursor) query = query.gt('activity_id', body.cursor)
+  if (activityIds.length) query = query.in('activity_id', activityIds)
+  else if (body.cursor) query = query.gt('activity_id', body.cursor)
 
   const { data: activities, error } = await query
   if (error) return jsonResponse({ error: error.message }, 500)
@@ -303,7 +324,7 @@ Deno.serve(async (request) => {
     rate_limited: results.filter((result) => result.status === 'rate-limited').length,
     scope,
     refresh_existing: refreshExisting,
-    next_cursor: activities?.length === batchSize ? last?.activity_id || null : null,
+    next_cursor: activityIds.length ? null : activities?.length === batchSize ? last?.activity_id || null : null,
     results,
   })
 })

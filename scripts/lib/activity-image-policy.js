@@ -37,7 +37,7 @@ export function imageDimensions(imageUrl, context = '') {
 }
 
 export function isSocialMediaImage(imageUrl, context = '') {
-  return /(facebook|instagram|twitter|tiktok|linkedin|pinterest|youtube|social[-_ ]?(?:icon|link|media))/i
+  return /(facebook|fbcdn|scontent|cdninstagram|instagram|twitter|twimg|tiktok|linkedin|pinterest|youtube|social[-_ ]?(?:icon|link|media))/i
     .test(`${imageUrl} ${context}`);
 }
 
@@ -54,6 +54,7 @@ const blockedImageTerms = [
   '/uploads/company/logo/', '/x_small_', 's100x100', 'sloppyframe',
   'profile_pic', 't51.2885-19/', 'moon@2x', '150x150', '200x200',
   's200x200', 'cookie', 'consent', 'newsletter', 'payment', 'checkout',
+  'fbcdn', 'scontent', 'cdninstagram', 'twimg',
 ];
 
 export function isUsableActivityImageUrl(imageUrl, { allowCafeLogo = false } = {}) {
