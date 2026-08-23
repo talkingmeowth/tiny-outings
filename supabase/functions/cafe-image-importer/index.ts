@@ -33,6 +33,8 @@ type Activity = {
   organiser_website: string | null
 }
 
+type SerpApiAssessment = 'updated' | 'no-usable-image'
+
 class SerpApiRateLimitError extends Error {}
 
 async function mapWithConcurrency<T, R>(items: T[], limit: number, mapper: (item: T) => Promise<R>) {
@@ -256,19 +258,10 @@ Deno.serve(async (request) => {
     .limit(batchSize)
   if (scope === 'cafes') query = query.or('category.ilike.%cafe%,category.ilike.%food%')
   if (!refreshExisting) {
-    // SerpAPI is an expensive fallback. Only search cards that have no usable
-    // stored image at any priority, rather than replacing a lower-priority
-    // official, community, or Wikimedia image just because it is not scraped.
-    query = query
-      .is('admin_cover_image_url', null)
-      .is('user_image_url', null)
-      .is('scraped_image_url', null)
-      .is('organiser_website_downloaded_image', null)
-      .is('website_downloaded_image', null)
-      .is('wikimedia_image_url', null)
-      .is('website_image_url', null)
-      .is('listing_image_url', null)
-      .is('image_url', null)
+    // Each new activity receives one vetted SerpAPI assessment, even when an
+    // importer has already supplied an official image. The assessment marker
+    // avoids re-searching existing cards on every recurring update.
+    query = query.is('serpapi_image_checked_at', null)
   }
   if (body.cursor) query = query.gt('activity_id', body.cursor)
 
@@ -278,18 +271,23 @@ Deno.serve(async (request) => {
   const results = await mapWithConcurrency(activities || [], 4, async (activity) => {
     try {
       const image = await findAndStoreImage(supabase, activity)
-      if (!image) {
-        return { activity_id: activity.activity_id, status: 'no-usable-image' }
-      }
+      const assessment: SerpApiAssessment = image ? 'updated' : 'no-usable-image'
       const { error: updateError } = await supabase.from('activities').update({
         // Admin and parent image choices remain higher priority in the app.
-        scraped_image_url: image.publicUrl,
-        image_source_url: image.sourceUrl,
+        ...(image ? {
+          scraped_image_url: image.publicUrl,
+          image_source_url: image.sourceUrl,
+        } : {}),
+        // Persist a completed assessment even when no result meets the quality
+        // bar. Failed and rate-limited calls are intentionally left pending.
+        serpapi_image_checked_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }).eq('activity_id', activity.activity_id)
       return updateError
         ? { activity_id: activity.activity_id, status: 'update-failed', reason: updateError.message }
-        : { activity_id: activity.activity_id, status: 'updated', source_url: image.sourceUrl, confidence: image.confidence.score }
+        : image
+          ? { activity_id: activity.activity_id, status: assessment, source_url: image.sourceUrl, confidence: image.confidence.score }
+          : { activity_id: activity.activity_id, status: assessment }
     } catch (error) {
       if (error instanceof SerpApiRateLimitError) {
         return { activity_id: activity.activity_id, status: 'rate-limited', reason: error.message }

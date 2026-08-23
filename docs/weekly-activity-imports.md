@@ -60,6 +60,10 @@ website images.
   image jobs can enrich a specific official page when one is available.
 - Happity schedule snapshots preserve their activity-specific image before a
   generic historic venue image.
+- Newly added records receive one SerpAPI image assessment after import even
+  when an official image was found. A completed assessment timestamp prevents
+  later runs from repeating that paid search; image-less legacy records remain
+  eligible until their first assessment.
 - Listing pages are requested sequentially with delays to avoid aggressive
   scraping. Check source terms and API billing before increasing limits.
 - Historic standalone card, filter, swipe, Happity-location, Better Start

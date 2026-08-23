@@ -11,6 +11,7 @@ insert into public.activities (
   source_name,
   source_url,
   data_source,
+  image_url,
   public_listing_status,
   archive
 ) values (
@@ -22,6 +23,7 @@ insert into public.activities (
   'Tiny Outings QA',
   'https://example.test/tiny-outings-import-review-test',
   'Other',
+  'https://example.test/official-image.jpg',
   'published',
   false
 );
@@ -31,8 +33,10 @@ declare
   listing_status text;
   queue_type_value text;
   queue_status text;
+  serpapi_checked_at timestamptz;
 begin
-  select public_listing_status into listing_status
+  select public_listing_status, serpapi_image_checked_at
+  into listing_status, serpapi_checked_at
   from public.activities
   where source_url = 'https://example.test/tiny-outings-import-review-test';
 
@@ -51,6 +55,9 @@ begin
   end if;
   if queue_status <> 'pending' then
     raise exception 'Expected pending review status, got %', queue_status;
+  end if;
+  if serpapi_checked_at is not null then
+    raise exception 'Expected a new importer listing to remain eligible for one SerpAPI assessment';
   end if;
 end $$;
 

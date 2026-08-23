@@ -84,7 +84,10 @@ const postApplyJobs = [
   {
     name: 'serpapi-image-enrichment',
     script: 'refresh-cafe-serpapi-images.js',
-    args: ['--scope', 'all', '--max-batches', '5'],
+    // Start from the first unassessed record each run. Completed assessments
+    // are excluded by the Edge Function, so UUID cursor state cannot skip a
+    // newer record after a prior rate-limited run.
+    args: ['--scope', 'all', '--start'],
     output: 'data/activity_serpapi_image_refresh.generated.json',
     optional: 'images',
   },
@@ -98,6 +101,7 @@ same shared quality contract to all results:
   - source and organiser website discovery, direct Happity listing repair, and link health checks
   - website and organiser image extraction using the shared image-quality policy
   - durable download of missing official website images into Supabase Storage
+    followed by one high-confidence SerpAPI image assessment for every new record
   - missing-coordinate resolution followed by Google Places identity, Maps location, canonical link, and permanent-closure validation
   - age suitability and "Any time" completion for unknown availability
   - existing-record updates, cross-source duplicate consolidation, and expiry archiving with reasons

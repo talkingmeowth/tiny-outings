@@ -108,6 +108,12 @@ runs importers automatically. Legacy, one-off card, plan-filter, swipe, and
 link-repair scripts have been retired; the recurring update is the supported
 entry point for directory maintenance.
 
+After the source SQL is applied, the image work also gives every newly added
+activity one high-confidence SerpAPI image assessment, even when an official
+website or organiser image already exists. It records the completed assessment
+so later recurring runs do not repeat the same paid search. Existing cards
+without any image remain eligible until they have been assessed.
+
 The recurring job validates records missing a Google Place identity. To refresh
 every existing Google Place record, use `node scripts/validate-google-places-records.js --full`
 as a separately paced maintenance task so it does not exhaust the API quota
