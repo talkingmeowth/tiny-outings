@@ -2,6 +2,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { googlePlacesJson } from './lib/google-places-client.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const listingUrl = 'https://www.eventbrite.co.uk/d/united-kingdom--london/baby/';
@@ -199,18 +200,15 @@ async function mapWithConcurrency(items, limit, mapper) {
 
 async function googlePlace(query, expectedPostcode) {
   if (!googleApiKey) return null;
-  const response = await fetch('https://places.googleapis.com/v1/places:searchText', {
+  const body = await googlePlacesJson('https://places.googleapis.com/v1/places:searchText', googleApiKey, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Goog-Api-Key': googleApiKey,
       'X-Goog-FieldMask': 'places.id,places.formattedAddress,places.location,places.googleMapsUri,places.rating,places.userRatingCount,places.primaryType',
     },
     body: JSON.stringify({ textQuery: query, languageCode: 'en-GB', regionCode: 'GB' }),
     signal: AbortSignal.timeout(20000),
   });
-  if (!response.ok) return null;
-  const body = await response.json();
   return (body.places || []).find((place) => !expectedPostcode || postcode(place.formattedAddress) === expectedPostcode) || null;
 }
 

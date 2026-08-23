@@ -2,6 +2,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { googlePlacesJson } from './lib/google-places-client.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const outputSqlPath = join(root, 'supabase', 'seed', 'activity_link_repairs.generated.sql');
@@ -232,11 +233,9 @@ async function placeWebsite(activity, config, cache) {
   const placeId = String(activity.google_place_id);
   if (!cache.has(placeId)) {
     const request = (async () => {
-      const url = `https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}?fields=websiteUri,businessStatus&key=${encodeURIComponent(config.VITE_GOOGLE_MAPS_API_KEY)}`;
+      const url = `https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}?fields=websiteUri,businessStatus`;
       try {
-        const response = await fetch(url, { signal: AbortSignal.timeout(12000) });
-        if (!response.ok) return null;
-        const place = await response.json();
+        const place = await googlePlacesJson(url, config.VITE_GOOGLE_MAPS_API_KEY, { signal: AbortSignal.timeout(12000) });
         return place.businessStatus === 'CLOSED_PERMANENTLY' || !isOfficialCandidate(place.websiteUri) ? null : canonicalUrl(place.websiteUri);
       } catch {
         return null;

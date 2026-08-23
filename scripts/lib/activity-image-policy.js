@@ -116,7 +116,10 @@ export function scoreActivityImage(imageUrl, context = '', activity = {}) {
     .filter((term) => term.length >= 4 && !['family', 'activities', 'outdoor'].includes(term));
   score += Math.min(categoryTerms.filter((term) => value.includes(term)).length, 2) * 10;
   if (isCafeActivity(activity)) {
-    if (/(interior|inside|venue|dining|seating|space|room|restaurant|cafe)/.test(value)) score += 600;
+    // A venue name often includes "cafe" or "restaurant". Those words alone
+    // do not prove an image shows the interior, so require a more specific
+    // scene cue before giving the strongest family-cafe preference.
+    if (/(interior|inside|dining|seating|table|tables|venue[-_ ]?space|play[-_ ]?space|room)/.test(value)) score += 600;
     else if (/(food|dish|cake|pastry|brunch|bakery|coffee|drink|menu)/.test(value)) score += 400;
     else if (isClearCafeLogoCandidate(imageUrl, context, activity)) score += 200;
     if (/(og:image|twitter:image|social-share|open-graph|default|banner)/.test(value)) score -= 18;

@@ -3,7 +3,7 @@
 `tiny-outings-update` runs every supported importer across London, then applies
 one quality contract to the combined results. It covers Happity, Waltham Forest
 Best Start for Life, Eventbrite, Fever, Loopla, Museums London, Time Out,
-Google Places, parks, family cafes, and supporting enrichment jobs.
+Google Places, parks, family cafes, London Family Hubs and supporting enrichment jobs.
 
 Each run attempts a listing website, an independent organiser website for
 Happity, Fever, and Eventbrite, and representative images from both pages. It
@@ -35,7 +35,8 @@ npm.cmd run tiny-outings-update
 ```
 
 Every run writes `data/tiny-outings-update/YYYY-MM-DD.json`. Generated SQL
-remains under `supabase/seed/` and can be inspected before applying. Add
+remains under `supabase/seed/` and can be inspected before applying. Each job
+must refresh its expected output file; a stale file stops an apply. Add
 `--skip-images` only when you deliberately need a faster run without refreshing
 website images.
 
@@ -45,8 +46,9 @@ website images.
 - Google Places validation is mandatory and requires a configured server-side key.
 - Eventbrite, Fever, Loopla, Happity, and Google Places use source-specific
   conflict keys to update a known listing instead of creating a duplicate.
-- Importer records publish automatically after automated checks; only community
-  submissions use the admin review queue.
+- New importer records and community submissions remain drafts in the admin
+  review queue. Existing published records receive only safe enrichment updates.
+- The pipeline is manual only. No GitHub Actions workflow runs importers.
 - A database trigger keeps `archive = true` and `public_listing_status = archived`
   unchanged when an importer sends a later UPSERT.
 - Google cafe importers consistently exclude adult-led venue types and manually

@@ -1,8 +1,13 @@
 /* global process */
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  assertPipelineOptions,
+  generatedOutputIsFresh,
+  hasActivityDatabaseChanges,
+} from './lib/import-pipeline-policy.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const runDate = process.env.ACTIVITY_IMPORT_RUN_DATE || new Date().toISOString().slice(0, 10);
@@ -110,6 +115,8 @@ function runJob(job) {
   }
 
   const startedAt = new Date().toISOString();
+  const outputPath = join(root, job.output);
+  const previousModifiedAt = existsSync(outputPath) ? statSync(outputPath).mtimeMs : undefined;
   const result = spawnSync(process.execPath, [join(root, 'scripts', job.script), ...(job.args || [])], {
     cwd: root,
     encoding: 'utf8',
@@ -120,14 +127,19 @@ function runJob(job) {
       ACTIVITY_IMPORT_RUN_DATE: runDate,
     },
   });
-  const succeeded = result.status === 0;
+  const outputModifiedAt = existsSync(outputPath) ? statSync(outputPath).mtimeMs : undefined;
+  const succeeded = result.status === 0 && generatedOutputIsFresh(previousModifiedAt, outputModifiedAt);
+  const reason = result.status !== 0
+    ? (result.stderr || result.stdout || `Exited with code ${result.status}`).trim()
+    : 'Importer completed without refreshing its expected output file.';
   return {
     name: job.name,
     status: succeeded ? 'generated' : 'failed',
     started_at: startedAt,
     finished_at: new Date().toISOString(),
-    output: join(root, job.output),
-    message: (succeeded ? result.stdout : result.stderr || result.stdout || `Exited with code ${result.status}`).trim(),
+    output: outputPath,
+    message: succeeded ? result.stdout.trim() : undefined,
+    reason: succeeded ? undefined : reason,
   };
 }
 
@@ -137,7 +149,7 @@ function waitSynchronously(milliseconds) {
 }
 
 function hasDatabaseChanges(filePath) {
-  return existsSync(filePath) && /\b(?:insert|update|delete)\s+(?:into\s+)?public\.activities\b/i.test(readFileSync(filePath, 'utf8'));
+  return existsSync(filePath) && hasActivityDatabaseChanges(readFileSync(filePath, 'utf8'));
 }
 
 function applySql(filePath) {
@@ -161,6 +173,8 @@ if (helpRequested) {
   printHelp();
   process.exit(0);
 }
+
+assertPipelineOptions({ applyChanges, applyOnly });
 
 const results = [];
 if (applyOnly) {

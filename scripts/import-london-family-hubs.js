@@ -2,6 +2,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { googlePlacesJson } from './lib/google-places-client.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const directoryUrl = 'https://assets.publishing.service.gov.uk/media/6980dbf0ec71a16669612e3d/List_of_family_hub_sites.csv';
@@ -102,11 +103,10 @@ async function fetchDirectory() {
 
 async function lookupPlace(hub) {
   if (!googleApiKey) throw new Error('GOOGLE_MAPS_API_KEY or GOOGLE_PLACES_API_KEY is required.');
-  const response = await fetch('https://places.googleapis.com/v1/places:searchText', {
+  const body = await googlePlacesJson('https://places.googleapis.com/v1/places:searchText', googleApiKey, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Goog-Api-Key': googleApiKey,
       'X-Goog-FieldMask': googleFields,
     },
     body: JSON.stringify({
@@ -116,8 +116,7 @@ async function lookupPlace(hub) {
     }),
     signal: AbortSignal.timeout(25000),
   });
-  if (!response.ok) throw new Error(`Google Places returned ${response.status}`);
-  const places = (await response.json()).places || [];
+  const places = body.places || [];
   const postcode = hub.Postcode.replace(/\s/g, '').toLowerCase();
   const place = places.find((candidate) => candidate.formattedAddress?.replace(/\s/g, '').toLowerCase().includes(postcode));
   return place || null;

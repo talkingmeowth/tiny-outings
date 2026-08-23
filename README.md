@@ -70,7 +70,7 @@ The local importer is used by `tiny-outings-update` with the other activity impo
 npm run activities:google-family
 ```
 
-Use `npm run activities:google-family -- --importers baby_swim --max-candidates 20` for a focused test. The update job publishes verified importer records automatically and the mobile app performs an additional display dedupe for overlapping sources.
+Use `npm run activities:google-family -- --importers baby_swim --max-candidates 20` for a focused test. New importer records are always saved as drafts for an admin to approve; the mobile app performs an additional display dedupe for overlapping sources.
 
 In Google Cloud, enable Places API (New). The function uses server-side Place Details, Text Search, and Place Photos calls so the API key is not exposed in the mobile app. If Google does not return a photo, the function tries the activity website's Open Graph/Twitter image and stores it for activity cards.
 
@@ -100,9 +100,17 @@ specialist children’s events at a venue are not removed by this rule.
 
 Run `npm.cmd run tiny-outings-update:apply` to apply the generated SQL to the
 linked Supabase project. A Google Places key is mandatory: the job fails rather
-than silently publishing unchecked records. Importer records bypass the manual
-review queue, while community submissions stay drafts. Archived records remain
-archived even when an importer sends a later update.
+than silently publishing unchecked records. New importer and community records
+enter the admin review queue as drafts; existing published records may receive
+safe enrichment updates. Archived records remain archived even when an importer
+sends a later update. This is a manual local job only: no GitHub Actions job
+runs importers automatically.
+
+`npm.cmd test` runs the complete deterministic unit suite. `npm.cmd run
+test:database` additionally runs transaction-only checks against the linked
+Supabase project for review-queue and social visibility rules. `--apply-only`
+must be combined with `--apply`; the pipeline rejects stale or missing output
+instead of applying an old SQL file.
 
 ## Activity Table Notes
 

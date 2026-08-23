@@ -3,6 +3,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { officialWebsiteUrl } from './lib/activity-import-policy.js';
+import { googlePlacesJson } from './lib/google-places-client.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const auditPath = join(root, 'data', 'activity_card_readiness_audit.generated.json');
@@ -42,10 +43,8 @@ async function fetchActivities(config) {
 }
 
 async function placeDetails(placeId, apiKey) {
-  const url = `https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}?fields=websiteUri,googleMapsUri,businessStatus&key=${encodeURIComponent(apiKey)}`;
-  const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
-  if (!response.ok) return null;
-  const place = await response.json();
+  const url = `https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}?fields=websiteUri,googleMapsUri,businessStatus`;
+  const place = await googlePlacesJson(url, apiKey, { signal: AbortSignal.timeout(10000) });
   return place.businessStatus === 'CLOSED_PERMANENTLY' ? null : place;
 }
 

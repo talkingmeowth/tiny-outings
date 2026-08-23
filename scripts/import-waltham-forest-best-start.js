@@ -3,6 +3,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { normaliseWalthamForestEventImageUrl } from './lib/activity-import-policy.js';
+import { googlePlacesJson } from './lib/google-places-client.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const siteRoot = 'https://www.walthamforest.gov.uk';
@@ -196,18 +197,16 @@ function costFor(description) {
 
 async function googlePlace(venue) {
   const expectedPostcode = venue.match(/\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b/i)?.[0]?.replace(/\s/g, '').toUpperCase();
-  const response = await fetch('https://places.googleapis.com/v1/places:searchText', {
+  const body = await googlePlacesJson('https://places.googleapis.com/v1/places:searchText', googleApiKey, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Goog-Api-Key': googleApiKey,
       'X-Goog-FieldMask': googleFields,
     },
     body: JSON.stringify({ textQuery: `${venue}, London`, languageCode: 'en-GB', regionCode: 'GB' }),
     signal: AbortSignal.timeout(20000),
   });
-  if (!response.ok) throw new Error(`Google Places returned ${response.status}`);
-  const places = (await response.json()).places || [];
+  const places = body.places || [];
   const postcodeMatch = places.find((place) => {
     const foundPostcode = place.formattedAddress?.match(/\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b/i)?.[0]?.replace(/\s/g, '').toUpperCase();
     return expectedPostcode ? foundPostcode === expectedPostcode : Boolean(place.location);
