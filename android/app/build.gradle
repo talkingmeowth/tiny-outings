@@ -7,6 +7,7 @@ android {
         applicationId "com.tinyoutings.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
+        // Keep each downloadable build installable over the previous version.
         versionCode 86
         versionName "2.72"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
