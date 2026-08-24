@@ -9,9 +9,6 @@ import QRCode from 'qrcode';
 import 'leaflet/dist/leaflet.css';
 import { supabase } from './supabaseClient';
 import { googleSignInErrorMessage, signInWithNativeGoogle } from './googleAuth';
-import { shareContent } from './shareContent';
-import { shouldOpenSearchOnKey } from './searchInteraction';
-import { activityNameMatchesSearch, sortActivityNameSearchResults } from './activitySearch';
 import { comparisonTokens, dedupePublishedActivities, findLikelyDuplicate } from './activityDuplicates';
 import { activityImageUrls, hasActivityImage, securePhotoUrl, shareListingImages } from './activityImages';
 import { activityCoordinates, resolveActivityCoordinates } from './activityLocation';
@@ -1041,6 +1038,19 @@ function activityMatchesInterests(activity, selectedCategories, allCategoriesSel
   return selectedCategories.has(activity.plan_label || activityPlanLabel(activity));
 }
 
+function activityMatchesSearch(activity, value) {
+  const query = cleanDisplayText(value).toLowerCase();
+  if (!query) return true;
+  const searchable = [
+    activity.activity_name,
+    activity.category,
+    activity.borough,
+    activity.description,
+    activity.card_summary,
+  ].map((item) => cleanDisplayText(item).toLowerCase()).join(' ');
+  return query.split(/\s+/).filter(Boolean).every((term) => searchable.includes(term));
+}
+
 function activityPlanLabel(activity) {
   if (activity.plan_label) return activity.plan_label;
   if (isEventListing(activity)) return 'Events';
@@ -1528,9 +1538,10 @@ export default function App() {
         && !hiddenActivityIdSet.has(String(activity.activity_id))
         && activityMatchesInterests(activity, selectedCategorySet, allCategoriesSelected)
         && (selectedSourceSet.size === 0 || selectedSourceSet.has(activitySourceLabel(activity)))
-        && activityMatchesAge(activity, deferredFilters.ageRange);
+        && activityMatchesAge(activity, deferredFilters.ageRange)
+        && activityMatchesSearch(activity, deferredFilters.activitySearch);
     }),
-    [activitiesWithDistance, hiddenActivityIdSet, selectedCategorySet, allCategoriesSelected, deferredFilters.ageRange, selectedSourceSet],
+    [activitiesWithDistance, hiddenActivityIdSet, selectedCategorySet, allCategoriesSelected, deferredFilters.activitySearch, deferredFilters.ageRange, selectedSourceSet],
   );
   const distanceMatchedActivities = useMemo(
     () => !userLocation
@@ -1563,21 +1574,6 @@ export default function App() {
       (activity) => filteredWeekDays.some((day) => isActivityAvailableOn(activity, day)),
     ),
     [sharedFilteredActivities, filteredWeekDays],
-  );
-  const searchResultsActivities = useMemo(
-    () => sortActivityNameSearchResults(
-      allActivities.filter((activity) => (
-        activity.public_listing_status === 'published'
-          && !activity.archive
-          && !hiddenActivityIdSet.has(String(activity.activity_id))
-          // Directory search must always honour the visible selected week,
-          // rather than the deferred filters used to keep Plan taps responsive.
-          && weekDays.some((day) => isActivityAvailableOn(activity, day))
-          && activityNameMatchesSearch(activity, filters.activitySearch)
-      )),
-      filters.activitySearch,
-    ),
-    [allActivities, filters.activitySearch, hiddenActivityIdSet, weekDays],
   );
   const filteredActivities = useMemo(
     () => sharedFilteredActivities.filter(
@@ -1949,44 +1945,31 @@ export default function App() {
         setReviewQueueError('');
       }
       try {
-        const queueRows = [];
-        const queuePageSize = 250;
-        for (let from = 0; ; from += queuePageSize) {
-          const { data: page, error: queueError } = await supabase
-            .from('activity_review_queue')
-            .select('review_queue_id,activity_id,queue_type,status,summary,changes,source_name,data_source,created_at')
-            .eq('status', 'pending')
-            .order('created_at', { ascending: true })
-            .range(from, from + queuePageSize - 1);
-          if (queueError) throw queueError;
-          queueRows.push(...(page || []));
-          if ((page || []).length < queuePageSize) break;
-        }
+        const { data: queueRows, error: queueError } = await supabase
+          .from('activity_review_queue')
+          .select('review_queue_id,activity_id,queue_type,status,summary,changes,source_name,data_source,created_at')
+          .eq('status', 'pending')
+          .order('created_at', { ascending: true });
         if (cancelled) return;
+        if (queueError) {
+          setReviewQueueError(queueError.message || 'We could not load the review queue.');
+          setNotice(`Review queue could not be loaded: ${queueError.message}`);
+          return;
+        }
 
-        const activityIds = [...new Set(queueRows.map((item) => item.activity_id).filter(Boolean))];
+        const activityIds = [...new Set((queueRows || []).map((item) => item.activity_id).filter(Boolean))];
         let activitiesById = new Map();
         if (activityIds.length) {
-          // Supabase serialises `.in()` values into the request URL. Keep each
-          // group small so a large moderation queue cannot exceed that limit.
-          const activityBatches = [];
-          for (let index = 0; index < activityIds.length; index += 100) {
-            activityBatches.push(activityIds.slice(index, index + 100));
-          }
-          const responses = await Promise.all(activityBatches.map((batch) => (
-            supabase
-              .from('activities')
-              .select(activitySelectColumns)
-              .in('activity_id', batch)
-          )));
+          const { data: queueActivities, error: activitiesError } = await supabase
+            .from('activities')
+            .select(activitySelectColumns)
+            .in('activity_id', activityIds);
           if (cancelled) return;
-          const activitiesError = responses.find((response) => response.error)?.error;
           if (activitiesError) {
             setReviewQueueError(activitiesError.message || 'We could not load queued activities.');
             setNotice(`Review queue could not be loaded: ${activitiesError.message}`);
             return;
           }
-          const queueActivities = responses.flatMap((response) => response.data || []);
           activitiesById = new Map((queueActivities || []).map((activity) => [
             String(activity.activity_id),
             normalizeActivity(activity),
@@ -1997,11 +1980,10 @@ export default function App() {
           ...item,
           activity: activitiesById.get(String(item.activity_id)) || null,
         })));
-      } catch (error) {
+      } catch {
         if (!cancelled) {
-          const message = error instanceof Error ? error.message : 'We could not load the review queue.';
-          setReviewQueueError(message);
-          setNotice(`Review queue could not be loaded: ${message}`);
+          setReviewQueueError('We could not load the review queue.');
+          setNotice('Review queue could not be loaded. Try again in a moment.');
         }
       } finally {
         if (!cancelled) setReviewQueueLoading(false);
@@ -2278,7 +2260,6 @@ export default function App() {
       setSelectedActivity(null);
     }
     setActiveScreen(screen);
-    window.scrollTo(0, 0);
   }
 
   function openActivity(activity) {
@@ -2506,8 +2487,12 @@ export default function App() {
   async function shareActivity(activity) {
     const shareData = activityShareData(activity);
     try {
-      const method = await shareContent(shareData);
-      if (method === 'clipboard') setNotice('Activity link copied.');
+      if (navigator.share) {
+        await navigator.share(shareData);
+        return;
+      }
+      await navigator.clipboard?.writeText(`${shareData.text} ${shareData.url}`);
+      setNotice('Activity link copied.');
     } catch (error) {
       if (error?.name !== 'AbortError') setNotice('Could not open sharing. Try WhatsApp or Facebook below.');
     }
@@ -2516,8 +2501,12 @@ export default function App() {
   async function shareApp() {
     const shareData = appShareData();
     try {
-      const method = await shareContent(shareData);
-      if (method === 'clipboard') setNotice('Tiny Outings link copied.');
+      if (navigator.share) {
+        await navigator.share(shareData);
+        return;
+      }
+      await navigator.clipboard?.writeText(`${shareData.text} ${shareData.url}`);
+      setNotice('Tiny Outings link copied.');
     } catch (error) {
       if (error?.name !== 'AbortError') setNotice('Could not open sharing on this device.');
     }
@@ -3062,13 +3051,7 @@ export default function App() {
             onRequestLocation={requestLocation}
             onShowAll={showAllActivities}
             onResetBrowsing={resetBrowsingState}
-            onOpenSearch={() => {
-              if (!cleanDisplayText(filters.activitySearch)) {
-                setNotice('Enter an activity name to search the selected week.');
-                return;
-              }
-              navigate('search');
-            }}
+            onOpenSearch={() => navigate('search')}
             onStart={() => navigate('swipe')}
           />
         )}
@@ -3076,7 +3059,7 @@ export default function App() {
         {activeScreen === 'search' && (
           <SearchResultsScreen
             query={filters.activitySearch}
-            activities={searchResultsActivities}
+            activities={sharedFilteredActivities}
             onBack={() => navigate('start')}
             onOpenActivity={openActivity}
             onHideActivity={hideActivityFromBrowsing}
@@ -3119,11 +3102,6 @@ export default function App() {
             onUpdateEvent={updateEvent}
             onRemoveEvent={removeEvent}
             onShareApp={openAppShareSheet}
-            onExploreWindow={(windowName) => {
-              setSelectedDate(weekDays[0]);
-              setSelectedWindow(windowName);
-              navigate('swipe');
-            }}
           />
         )}
 
@@ -3285,6 +3263,7 @@ function OnboardingScreen({ onComplete }) {
 
       <div className="onboarding-actions">
         <button className="onboarding-start" type="button" onClick={onComplete}>Let's plan</button>
+        <button className="onboarding-skip" type="button" onClick={onComplete}>Skip for now</button>
       </div>
       <p className="onboarding-note">You can sign in whenever you want to follow parents, review places and save your profile.</p>
     </main>
@@ -3354,9 +3333,9 @@ function StartScreen({
     <section className="app-screen start-screen">
       <div className="screen-title hero-title">
         <span className="eyebrow">Family day planner</span>
-        <h1>Plan a lighter week.</h1>
+        <h1>Little plans, sorted.</h1>
         <p>
-          Start with a few good ideas. Fine tune the details whenever you need to.
+          Pick a week. Set your range. Swipe your day into shape.
         </p>
         <div className="hero-badges" aria-label="Planning windows">
           <span>Morning</span>
@@ -3365,38 +3344,11 @@ function StartScreen({
         </div>
       </div>
 
-      <section className="plan-ready-card" aria-label="Start planning">
-        <div>
-          <span>Planning {relativeWeekLabel(filters.weekStart)}</span>
-          <strong>{totalActivityCount.toLocaleString()} ideas ready</strong>
-          <small>{slotActivityCount} fit your first time slot.</small>
-        </div>
-        <div className="plan-ready-actions">
-          <button className="primary-action" type="button" onClick={onStart}>
-            Start exploring
-          </button>
-          <button className="secondary-button" type="button" onClick={onResetBrowsing}>
-            Reset
-          </button>
-        </div>
-      </section>
-
       <div className="filter-card location-card">
         <div className="field-group">
           <span>Week</span>
-          <p>Planning {relativeWeekLabel(filters.weekStart)}. Choose another week whenever you are ready.</p>
-          <div className="week-selection-label" aria-live="polite">
-            <strong>{relativeWeekLabel(filters.weekStart)}</strong>
-            <span>{formatDay(filters.weekStart)} to {formatDay(addDaysISO(filters.weekStart, 6))}</span>
-          </div>
-          <div className="week-preview" aria-label={`${relativeWeekLabel(filters.weekStart)} weekdays`}>
-            {weekDays.map((day) => (
-              <span key={day}>{weekdayName(day).slice(0, 3)}</span>
-            ))}
-          </div>
-          <details className="week-picker">
-            <summary>Choose a different week</summary>
-            <div className="week-calendar" aria-label="Choose a planning week">
+          <p>Choose any day to plan its week.</p>
+          <div className="week-calendar" aria-label="Choose a planning week">
             <div className="week-calendar-header">
               <button
                 type="button"
@@ -3453,8 +3405,16 @@ function StartScreen({
                 );
               })}
             </div>
-            </div>
-          </details>
+          </div>
+          <div className="week-selection-label" aria-live="polite">
+            <strong>{relativeWeekLabel(filters.weekStart)}</strong>
+            <span>{formatDay(filters.weekStart)} to {formatDay(addDaysISO(filters.weekStart, 6))}</span>
+          </div>
+          <div className="week-preview" aria-label={`${relativeWeekLabel(filters.weekStart)} weekdays`}>
+            {weekDays.map((day) => (
+              <span key={day}>{weekdayName(day).slice(0, 3)}</span>
+            ))}
+          </div>
         </div>
 
         <div className="field-group">
@@ -3474,24 +3434,18 @@ function StartScreen({
           </div>
         </div>
 
-        <div className="field-group activity-search-field">
+        <label className="field-group activity-search-field">
           <span>Find an activity</span>
           <input
             type="search"
             value={filters.activitySearch || ''}
             onChange={(event) => setFilters((current) => ({ ...current, activitySearch: event.target.value }))}
-            onKeyDown={(event) => {
-              if (shouldOpenSearchOnKey(event.key)) {
-                event.preventDefault();
-                onOpenSearch();
-              }
-            }}
             placeholder="Try a name, place or activity"
           />
           <button className="search-results-button" type="button" onClick={onOpenSearch}>
             Search directory
           </button>
-        </div>
+        </label>
 
         <div className="field-group source-filter">
           <span>Source</span>
@@ -3621,7 +3575,21 @@ function StartScreen({
         </div>
       </div>
 
-      <p className="planning-footer">{dayActivityCount.toLocaleString()} ideas are ready for your selected day. You can change the filters any time.</p>
+      <div className="start-summary">
+        <div>
+          <span>Outings</span>
+          <strong>{totalActivityCount}</strong>
+          <small>{dayActivityCount} today. {slotActivityCount} in this slot.</small>
+        </div>
+        <div className="start-actions">
+          <button className="primary-action" type="button" onClick={onStart}>
+            Start swiping
+          </button>
+          <button className="secondary-button" type="button" onClick={onResetBrowsing}>
+            Reset
+          </button>
+        </div>
+      </div>
     </section>
   );
 }
@@ -3633,7 +3601,7 @@ function SearchResultsScreen({ query, activities, onBack, onOpenActivity, onHide
       <div className="screen-title compact">
         <span className="eyebrow">Directory search</span>
         <h1>{searchTerm ? `Results for ${searchTerm}` : 'All matching outings'}</h1>
-        <p>{activities.length} outing{activities.length === 1 ? '' : 's'} match this name in your selected week.</p>
+        <p>{activities.length} outing{activities.length === 1 ? '' : 's'} match your current filters.</p>
       </div>
 
       <button className="secondary-button search-back-button" type="button" onClick={onBack}>Back to plan</button>
@@ -3664,7 +3632,7 @@ function SearchResultsScreen({ query, activities, onBack, onOpenActivity, onHide
       ) : (
         <div className="empty-list">
           <strong>No matching outings</strong>
-          <span>Try a more specific activity name or choose a different week.</span>
+          <span>Try a different name or loosen one of the Plan filters.</span>
         </div>
       )}
     </section>
@@ -3697,10 +3665,6 @@ function SwipeScreen({
   onHideActivity,
 }) {
   const topActivity = deckActivities[0];
-  const reviewedCount = Math.max(0, slotActivities.length - deckActivities.length);
-  const reviewedPercent = slotActivities.length
-    ? Math.min(100, Math.round((reviewedCount / slotActivities.length) * 100))
-    : 0;
 
   return (
     <section className="app-screen swipe-screen">
@@ -3736,20 +3700,9 @@ function SwipeScreen({
       <div className="swipe-status-bar">
         <div>
           <span>{formatDay(selectedDate, 'long')} - {selectedWindow}</span>
-          <strong>{shortlist.length ? `${shortlist.length} saved` : 'Start building your shortlist'}</strong>
-          <small>{deckActivities.length ? `${deckActivities.length} fresh ideas to explore` : 'This slot is all caught up'}</small>
-          {slotActivities.length > 0 && (
-            <span
-              className="swipe-progress"
-              role="progressbar"
-              aria-label="Swipe session progress"
-              aria-valuemin="0"
-              aria-valuemax="100"
-              aria-valuenow={reviewedPercent}
-            ><i style={{ width: `${reviewedPercent}%` }} /></span>
-          )}
+          <strong>{deckActivities.length} left - {shortlist.length} saved</strong>
         </div>
-        {reviewedCount > 0 && <button type="button" onClick={onResetSlot}>Start over</button>}
+        <button type="button" onClick={onResetSlot}>Start over</button>
       </div>
 
       <div className="tinder-stage" aria-live="polite">
@@ -3802,7 +3755,7 @@ function SwipeScreen({
           disabled={!topActivity}
           onClick={() => onSwipe(topActivity, 'no')}
         >
-          Pass
+          Skip
         </button>
         <button
           className="swipe-button info"
@@ -3818,10 +3771,9 @@ function SwipeScreen({
           disabled={!topActivity}
           onClick={() => onSwipe(topActivity, 'yes')}
         >
-          Save idea
+          Save
         </button>
       </div>
-      <p className="swipe-gesture-hint">Swipe left to pass, right to save. Tap a card for the full story.</p>
       <button
         className="hide-activity-button"
         type="button"
@@ -4243,10 +4195,8 @@ function CalendarScreen({
   onUpdateEvent,
   onRemoveEvent,
   onShareApp,
-  onExploreWindow,
 }) {
   const weekEvents = calendarEvents.filter((event) => weekDays.includes(event.planned_date));
-  const daysWithPlans = weekDays.filter((day) => calendarEvents.some((event) => event.planned_date === day));
   const [exportingCalendar, setExportingCalendar] = useState(false);
 
   async function exportCalendar(events, filename) {
@@ -4265,40 +4215,22 @@ function CalendarScreen({
       <div className="screen-title compact">
         <span className="eyebrow">Week</span>
         <h1>Your plan</h1>
-        <p>{weekEvents.length ? `${weekEvents.length} plan${weekEvents.length === 1 ? '' : 's'} taking shape.` : 'A little space for whatever works.'}</p>
+        <p>Booked and maybe plans.</p>
       </div>
 
-      {weekEvents.length > 0 ? (
-        <div className="week-export-card">
-          <div>
-            <strong>Take your week with you</strong>
-            <small>{`${weekEvents.length} plan${weekEvents.length === 1 ? '' : 's'} ready to import.`}</small>
-          </div>
-          <button
-            type="button"
-            disabled={exportingCalendar}
-            onClick={() => exportCalendar(weekEvents, `tiny-outings-week-${weekDays[0]}.ics`)}
-          >
-            {exportingCalendar ? 'Preparing...' : 'Export week'}
-          </button>
+      <div className="week-export-card">
+        <div>
+          <strong>Take your week with you</strong>
+          <small>{weekEvents.length ? `${weekEvents.length} plans ready to import.` : 'Add plans to export them.'}</small>
         </div>
-      ) : (
-        <section className="week-empty-state">
-          <span className="week-empty-spark" aria-hidden="true">*</span>
-          <div>
-            <span>Start small</span>
-            <h2>Save one good idea for the week.</h2>
-            <p>Choose a time that works, swipe through suggestions, and keep the ones that feel right.</p>
-          </div>
-          <div className="week-empty-actions" aria-label="Find an activity by time of day">
-            {dayWindows.map((windowName) => (
-              <button key={windowName} type="button" onClick={() => onExploreWindow(windowName)}>
-                Find {windowName === 'afternoon' ? 'an' : 'a'} {windowName} plan
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
+        <button
+          type="button"
+          disabled={weekEvents.length === 0 || exportingCalendar}
+          onClick={() => exportCalendar(weekEvents, `tiny-outings-week-${weekDays[0]}.ics`)}
+        >
+          {exportingCalendar ? 'Preparing...' : 'Export for Google Calendar'}
+        </button>
+      </div>
 
       <section className="week-share-card">
         <div>
@@ -4311,9 +4243,8 @@ function CalendarScreen({
         </button>
       </section>
 
-      {weekEvents.length > 0 && (
       <div className="calendar-list">
-        {daysWithPlans.map((day) => (
+        {weekDays.map((day) => (
           <section key={day} className="calendar-day">
             <h2>{formatDay(day, 'long')}</h2>
             {dayWindows.map((windowName) => {
@@ -4350,9 +4281,7 @@ function CalendarScreen({
                       ))}
                     </div>
                   ) : (
-                    <button className="open-slot" type="button" onClick={() => onExploreWindow(windowName)}>
-                      Add an idea
-                    </button>
+                    <span className="open-slot">Free</span>
                   )}
                 </div>
               );
@@ -4360,7 +4289,6 @@ function CalendarScreen({
           </section>
         ))}
       </div>
-      )}
     </section>
   );
 }

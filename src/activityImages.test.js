@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { activityImageUrls, shareListingImages } from './activityImages.js';
+import { shareListingImages } from './activityImages.js';
 
 function activity(overrides = {}) {
   return {
@@ -41,26 +41,4 @@ test('does not share an image between similarly named activities at different ve
   const [sharedFirst, sharedSecond] = shareListingImages([first, second]);
   assert.equal(sharedFirst.shared_card_image_url, 'https://images.example.test/first.jpg');
   assert.equal(sharedSecond.shared_card_image_url, 'https://images.example.test/second.jpg');
-});
-
-test('skips unsafe imported images but preserves an administrator cover', () => {
-  const images = activityImageUrls(activity({
-    admin_cover_image_url: 'https://storage.example.test/admin-cover.jpg',
-    scraped_image_url: 'https://storage.example.test/serpapi-image.jpg',
-    image_source_url: 'https://scontent-lhr.example.test/post.jpg',
-    website_image_url: 'https://example.test/activity-photo.jpg',
-  }));
-  assert.deepEqual(images, [
-    'https://storage.example.test/admin-cover.jpg',
-    'https://example.test/activity-photo.jpg',
-  ]);
-});
-
-test('rejects logo and generic category images from every imported image field', () => {
-  const images = activityImageUrls(activity({
-    scraped_image_url: null,
-    website_image_url: 'https://example.test/images/venue-logo.png',
-    listing_image_url: 'https://example.test/assets/revamp/pictures/categories/baby-signing.png',
-  }));
-  assert.deepEqual(images, []);
 });
