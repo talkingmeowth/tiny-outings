@@ -128,6 +128,27 @@ function text(value: string | null | undefined) {
   return String(value || '').replace(/\s+/g, ' ').trim()
 }
 
+function allowsWikimediaImages(activity: Pick<Activity, 'category'>) {
+  const category = text(activity.category).toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, ' ').trim()
+  return ['parks and outdoor play', 'museums and culture', 'family activities'].includes(category)
+}
+
+function isWikimediaSource(value: string | null | undefined) {
+  if (/\b(?:wikimedia commons|wikipedia)\b/i.test(text(value))) return true
+  try {
+    const host = new URL(text(value)).hostname.toLowerCase().replace(/^www\./, '')
+    return host === 'wikimedia.org' || host.endsWith('.wikimedia.org')
+      || host === 'wikipedia.org' || host.endsWith('.wikipedia.org')
+  } catch {
+    return false
+  }
+}
+
+function isDisallowedWikimediaCandidate(activity: Pick<Activity, 'category'>, image: SearchImage | StoredCandidate) {
+  return !allowsWikimediaImages(activity)
+    && [image.original, image.thumbnail, image.link, image.source].some(isWikimediaSource)
+}
+
 function postcodeFromActivity(activity: Activity) {
   return text(activity.postcode) || text(activity.address).match(/\b([A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2})\b/i)?.[1]?.toUpperCase() || ''
 }
@@ -181,8 +202,9 @@ function searchQuery(activity: Activity, ward: string) {
   return `${quoted(activity.activity_name)} ${quoted(ward)} ${location} ${category} activity venue`
 }
 
-function storedCandidate(image: SearchImage, fallbackPosition: number): StoredCandidate | null {
+function storedCandidate(activity: Activity, image: SearchImage, fallbackPosition: number): StoredCandidate | null {
   if (!usableImageUrl(image.original)) return null
+  if (isDisallowedWikimediaCandidate(activity, image)) return null
   if (blockedImageTerms.test(`${image.original || ''} ${image.thumbnail || ''} ${image.title || ''} ${image.source || ''}`)) return null
   const width = Number(image.original_width) || 0
   const height = Number(image.original_height) || 0
@@ -221,7 +243,7 @@ async function discoverCandidates(activity: Activity) {
   const rawCandidates = Array.isArray(body.images_results) ? body.images_results : []
   const seen = new Set<string>()
   const candidates = rawCandidates
-    .map((image: SearchImage, index: number) => storedCandidate(image, index + 1))
+    .map((image: SearchImage, index: number) => storedCandidate(activity, image, index + 1))
     .filter((image: StoredCandidate | null): image is StoredCandidate => Boolean(image))
     .filter((image) => {
       if (seen.has(image.original)) return false
@@ -295,7 +317,7 @@ async function storeSelectedCandidate(
 ) {
   const { data: activity, error } = await supabase
     .from('activities')
-    .select('activity_id,serpapi_image_candidates,serpapi_image_candidates_fetched_at')
+    .select('activity_id,category,serpapi_image_candidates,serpapi_image_candidates_fetched_at')
     .eq('activity_id', selection.activity_id)
     .eq('archive', false)
     .maybeSingle()
@@ -331,6 +353,9 @@ async function storeSelectedCandidate(
   const candidate = candidates[selection.candidate_index]
   if (!candidate || !usableImageUrl(candidate.original)) {
     return { activity_id: selection.activity_id, status: 'selection-failed', reason: 'The selected candidate is no longer available.' }
+  }
+  if (isDisallowedWikimediaCandidate(activity, candidate)) {
+    return { activity_id: selection.activity_id, status: 'selection-failed', reason: 'Wikimedia images are not allowed for this activity category.' }
   }
 
   for (const imageUrl of [candidate.original, candidate.thumbnail].filter(usableImageUrl)) {

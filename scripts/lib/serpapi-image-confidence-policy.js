@@ -1,3 +1,5 @@
+import { allowsWikimediaImages, isWikimediaSource } from '../../src/wikimediaImagePolicy.js';
+
 function normalise(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 }
@@ -253,6 +255,10 @@ export function assessSerpApiCandidate(activity, candidate, results) {
   const visual = visualAssessment(activity, results);
   const provenance = candidateProvenance(activity, candidate);
   const confidence = Number(((visual.accepted + (provenance.official ? 0.2 : 0.08)) / 1.2).toFixed(4));
+  if (!allowsWikimediaImages(activity)
+    && [candidate.original, candidate.thumbnail, candidate.link, candidate.source].some(isWikimediaSource)) {
+    return { outcome: 'remove', reason: 'Wikimedia images are not allowed for this activity category.', provenance, visual, confidence };
+  }
   if (!provenance.highConfidence) {
     return { outcome: 'remove', reason: 'Candidate lacks official-source or distinctive-title evidence.', provenance, visual, confidence };
   }

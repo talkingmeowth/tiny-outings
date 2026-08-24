@@ -18,11 +18,13 @@ const blockedImageTerms = /(favicon|icon|logo|brand|wordmark|site-logo|social[-_
 type Activity = {
   activity_id: string
   activity_name: string
+  category: string | null
   website: string | null
   organiser_website: string | null
   source_url: string | null
   image_url: string | null
   scraped_image_url: string | null
+  image_source_url: string | null
   website_image_url: string | null
   listing_image_url: string | null
   wikimedia_image_url: string | null
@@ -257,17 +259,40 @@ async function downloadToStorage(
 }
 
 function hasCardImage(activity: Activity) {
+  const allowsWikimedia = allowsWikimediaImages(activity)
   return [
-    activity.admin_cover_image_url,
-    activity.user_image_url,
-    activity.scraped_image_url,
-    activity.organiser_website_downloaded_image,
-    activity.website_downloaded_image,
-    activity.wikimedia_image_url,
-    activity.website_image_url,
-    activity.listing_image_url,
-    activity.image_url,
-  ].some((image) => usableImageUrl(image))
+    ['admin_cover_image_url', activity.admin_cover_image_url],
+    ['user_image_url', activity.user_image_url],
+    ['scraped_image_url', activity.scraped_image_url],
+    ['organiser_website_downloaded_image', activity.organiser_website_downloaded_image],
+    ['website_downloaded_image', activity.website_downloaded_image],
+    ['wikimedia_image_url', activity.wikimedia_image_url],
+    ['website_image_url', activity.website_image_url],
+    ['listing_image_url', activity.listing_image_url],
+    ['image_url', activity.image_url],
+  ].some(([field, image]) => usableImageUrl(image)
+    && (allowsWikimedia || (field !== 'wikimedia_image_url' && !isWikimediaUrl(image)))
+    && (allowsWikimedia || field !== 'scraped_image_url' || !isWikimediaUrl(activity.image_source_url)))
+}
+
+function allowsWikimediaImages(activity: Pick<Activity, 'category'>) {
+  const category = String(activity.category || '').toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, ' ').trim()
+  return ['parks and outdoor play', 'museums and culture', 'family activities'].includes(category)
+}
+
+function isWikimediaUrl(value: string | null | undefined) {
+  if (!value) return false
+  try {
+    const host = new URL(value).hostname.toLowerCase().replace(/^www\./, '')
+    return host === 'wikimedia.org' || host.endsWith('.wikimedia.org')
+      || host === 'wikipedia.org' || host.endsWith('.wikipedia.org')
+  } catch {
+    return false
+  }
+}
+
+function usableActivityImageUrl(activity: Activity, value: string | null | undefined) {
+  return usableImageUrl(value) && (allowsWikimediaImages(activity) || !isWikimediaUrl(value))
 }
 
 function uniqueUrls(values: Array<string | null | undefined>) {
@@ -303,7 +328,7 @@ async function processActivity(
     'organiser',
     organiserCandidates.filter((candidate): candidate is Candidate => Boolean(
       candidate.url
-      && usableImageUrl(candidate.url)
+      && usableActivityImageUrl(activity, candidate.url)
       && (!replaceLogo || candidate.score >= 40),
     )),
   )
@@ -334,7 +359,7 @@ async function processActivity(
     'website',
     websiteCandidates.filter((candidate): candidate is Candidate => Boolean(
       candidate.url
-      && usableImageUrl(candidate.url)
+      && usableActivityImageUrl(activity, candidate.url)
       && (!replaceLogo || candidate.score >= 40),
     )),
   )
@@ -386,7 +411,7 @@ Deno.serve(async (request) => {
     if (!activityIds.length) return jsonResponse({ error: 'Provide up to 25 activity_ids.' }, 400)
 
     const { data, error } = await supabase.from('activities')
-      .select('activity_id,activity_name,website,organiser_website,source_url,image_url,scraped_image_url,website_image_url,listing_image_url,wikimedia_image_url,user_image_url,admin_cover_image_url,website_downloaded_image,organiser_website_downloaded_image')
+      .select('activity_id,activity_name,category,website,organiser_website,source_url,image_url,scraped_image_url,image_source_url,website_image_url,listing_image_url,wikimedia_image_url,user_image_url,admin_cover_image_url,website_downloaded_image,organiser_website_downloaded_image')
       .in('public_listing_status', ['draft', 'published'])
       .eq('archive', false)
       .in('activity_id', activityIds)

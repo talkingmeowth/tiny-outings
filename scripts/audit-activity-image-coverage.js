@@ -3,6 +3,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { allowsWikimediaImages, isWikimediaUrl } from '../src/wikimediaImagePolicy.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const outputPath = join(root, 'data', 'activity_image_coverage.generated.json');
@@ -39,7 +40,7 @@ const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || localEnv.VITE_SUPA
 async function fetchActivities() {
   if (!supabaseUrl || !supabaseAnonKey) throw new Error('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY.');
   const rows = [];
-  const select = ['activity_id', 'serpapi_image_candidates', 'serpapi_image_candidates_fetched_at', 'serpapi_image_selected_at', ...imageFields].join(',');
+  const select = ['activity_id', 'category', 'image_source_url', 'serpapi_image_candidates', 'serpapi_image_candidates_fetched_at', 'serpapi_image_selected_at', ...imageFields].join(',');
   for (let offset = 0; ; offset += 1000) {
     const url = new URL(`${supabaseUrl}/rest/v1/activities`);
     url.searchParams.set('select', select);
@@ -57,7 +58,7 @@ async function fetchActivities() {
 }
 
 function fetchActivitiesFromLinkedDatabase() {
-  const select = ['activity_id', 'serpapi_image_candidates', 'serpapi_image_candidates_fetched_at', 'serpapi_image_selected_at', ...imageFields].join(',');
+  const select = ['activity_id', 'category', 'image_source_url', 'serpapi_image_candidates', 'serpapi_image_candidates_fetched_at', 'serpapi_image_selected_at', ...imageFields].join(',');
   const statement = `select ${select} from public.activities where coalesce(archive, false) = false and public_listing_status in ('draft', 'published');`;
   const escaped = statement.replaceAll('"', '\\"');
   const command = `npx${process.platform === 'win32' ? '.cmd' : ''} supabase db query --linked --output-format json "${escaped}"`;
@@ -81,18 +82,26 @@ function present(value) {
   return Boolean(String(value || '').trim());
 }
 
+function presentForActivity(activity, field) {
+  const imageUrl = activity[field];
+  if (!present(imageUrl)) return false;
+  if (allowsWikimediaImages(activity)) return true;
+  if (field === 'wikimedia_image_url' || isWikimediaUrl(imageUrl)) return false;
+  return field !== 'scraped_image_url' || !isWikimediaUrl(activity.image_source_url);
+}
+
 async function main() {
   const activities = linkedDatabase ? fetchActivitiesFromLinkedDatabase() : await fetchActivities();
   const perField = Object.fromEntries(imageFields.map((field) => [field, 0]));
   for (const activity of activities) {
-    for (const field of imageFields) if (present(activity[field])) perField[field] += 1;
+    for (const field of imageFields) if (presentForActivity(activity, field)) perField[field] += 1;
   }
   const report = {
     generated_at: new Date().toISOString(),
     source: linkedDatabase ? 'linked_database' : 'public_api',
     active_or_queued: activities.length,
-    with_any_image: activities.filter((activity) => imageFields.some((field) => present(activity[field]))).length,
-    missing_all_images: activities.filter((activity) => imageFields.every((field) => !present(activity[field]))).length,
+    with_any_image: activities.filter((activity) => imageFields.some((field) => presentForActivity(activity, field))).length,
+    missing_all_images: activities.filter((activity) => imageFields.every((field) => !presentForActivity(activity, field))).length,
     serpapi_candidate_discovery_complete: activities.filter((activity) => present(activity.serpapi_image_candidates_fetched_at)).length,
     serpapi_candidate_sets_saved: activities.filter((activity) => Array.isArray(activity.serpapi_image_candidates) && activity.serpapi_image_candidates.length > 0).length,
     serpapi_selection_complete: activities.filter((activity) => present(activity.serpapi_image_selected_at)).length,

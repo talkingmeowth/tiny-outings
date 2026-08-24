@@ -3,6 +3,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { allowsWikimediaImages, isWikimediaUrl } from '../src/wikimediaImagePolicy.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const outputPath = join(root, 'data', 'activity_website_image_downloads.generated.json');
@@ -39,22 +40,25 @@ function usableUrl(value) {
 }
 
 function hasCardImage(activity) {
+  const allowsWikimedia = allowsWikimediaImages(activity);
   return [
-    activity.admin_cover_image_url,
-    activity.user_image_url,
-    activity.scraped_image_url,
-    activity.organiser_website_downloaded_image,
-    activity.website_downloaded_image,
-    activity.wikimedia_image_url,
-    activity.website_image_url,
-    activity.listing_image_url,
-    activity.image_url,
-  ].some(usableUrl);
+    ['admin_cover_image_url', activity.admin_cover_image_url],
+    ['user_image_url', activity.user_image_url],
+    ['scraped_image_url', activity.scraped_image_url],
+    ['organiser_website_downloaded_image', activity.organiser_website_downloaded_image],
+    ['website_downloaded_image', activity.website_downloaded_image],
+    ['wikimedia_image_url', activity.wikimedia_image_url],
+    ['website_image_url', activity.website_image_url],
+    ['listing_image_url', activity.listing_image_url],
+    ['image_url', activity.image_url],
+  ].some(([field, imageUrl]) => usableUrl(imageUrl)
+    && (allowsWikimedia || (field !== 'wikimedia_image_url' && !isWikimediaUrl(imageUrl)))
+    && (allowsWikimedia || field !== 'scraped_image_url' || !isWikimediaUrl(activity.image_source_url)));
 }
 
 async function fetchActivities() {
   const columns = [
-    'activity_id', 'activity_name', 'website', 'organiser_website', 'source_url',
+    'activity_id', 'activity_name', 'category', 'website', 'organiser_website', 'source_url', 'image_source_url',
     'image_url', 'scraped_image_url', 'website_image_url', 'listing_image_url',
     'wikimedia_image_url', 'user_image_url', 'admin_cover_image_url',
     'website_downloaded_image', 'organiser_website_downloaded_image',
@@ -74,7 +78,7 @@ async function fetchActivities() {
 
 function fetchActivitiesFromLinkedDatabase() {
   const columns = [
-    'activity_id', 'activity_name', 'website', 'organiser_website', 'source_url',
+    'activity_id', 'activity_name', 'category', 'website', 'organiser_website', 'source_url', 'image_source_url',
     'image_url', 'scraped_image_url', 'website_image_url', 'listing_image_url',
     'wikimedia_image_url', 'user_image_url', 'admin_cover_image_url',
     'website_downloaded_image', 'organiser_website_downloaded_image',

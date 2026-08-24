@@ -115,3 +115,17 @@ test('cache keys change with candidate URL but stay scoped to the activity', () 
   assert.match(first, /^activity-1\/2-[a-f0-9]{12}\.jpg$/);
   assert.notEqual(first, second);
 });
+
+test('Wikimedia candidates are rejected outside the category allowlist', () => {
+  const wikimediaCandidate = candidate({
+    original: 'https://upload.wikimedia.org/wikipedia/commons/a/ab/Bright_Bean_Cafe.jpg',
+    link: 'https://commons.wikimedia.org/wiki/File:Bright_Bean_Cafe.jpg',
+    source: 'Wikimedia Commons',
+  });
+  const cafeResult = scoreCandidateMetadata(cafe, wikimediaCandidate, 0);
+  const parkResult = scoreCandidateMetadata({ ...cafe, category: 'Parks & outdoor play' }, wikimediaCandidate, 0);
+
+  assert.equal(cafeResult.rejected, true);
+  assert.ok(cafeResult.reject_reasons.includes('wikimedia_category_not_allowed'));
+  assert.equal(parkResult.reject_reasons.includes('wikimedia_category_not_allowed'), false);
+});

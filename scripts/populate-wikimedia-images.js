@@ -5,6 +5,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
+import { allowsWikimediaImages } from '../src/wikimediaImagePolicy.js';
 
 const ROOT = process.cwd();
 const parksOnly = process.argv.includes('--parks-only');
@@ -68,7 +69,7 @@ async function getActivities(env) {
     if (!response.ok) throw new Error(`Supabase activity fetch failed: ${response.status}`);
     const batch = await response.json();
     rows.push(...batch);
-    if (batch.length < 1000) return rows;
+    if (batch.length < 1000) return rows.filter(allowsWikimediaImages);
   }
 }
 

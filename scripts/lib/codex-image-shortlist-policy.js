@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { allowsWikimediaImages, isWikimediaSource } from '../../src/wikimediaImagePolicy.js';
 
 const stopTerms = new Set([
   'activity', 'activities', 'and', 'baby', 'babies', 'child', 'children', 'class', 'classes',
@@ -114,6 +115,9 @@ export function scoreCandidateMetadata(activity, candidate, index = 0) {
   const rejectReasons = [];
 
   if (!candidate.original || !/^https?:\/\//i.test(candidate.original)) rejectReasons.push('invalid_original_url');
+  if (!allowsWikimediaImages(activity) && [candidate.original, candidate.thumbnail, candidate.link, candidate.source].some(isWikimediaSource)) {
+    rejectReasons.push('wikimedia_category_not_allowed');
+  }
   if (hardRejectTerms.test(metadata)) rejectReasons.push('graphic_or_document_metadata');
   if (dimensions.reject) rejectReasons.push(dimensions.reject);
   if (nameTerms.length >= 2 && !hasIdentityEvidence) rejectReasons.push('insufficient_identity_evidence');
@@ -194,7 +198,8 @@ export function chooseShortlist(assessments, maximum = 5, minimum = 3) {
         && !entry.reject_reasons.includes('invalid_original_url')
         && !entry.reject_reasons.includes('very_small_dimensions')
         && !entry.reject_reasons.includes('extreme_aspect_ratio')
-        && !entry.reject_reasons.includes('graphic_or_document_metadata'))
+        && !entry.reject_reasons.includes('graphic_or_document_metadata')
+        && !entry.reject_reasons.includes('wikimedia_category_not_allowed'))
       .sort((left, right) => right.total_score - left.total_score || left.index - right.index);
     for (const entry of fallbacks) {
       if (selected.some((kept) => hammingDistance(kept.perceptual_hash, entry.perceptual_hash) <= 5)) continue;

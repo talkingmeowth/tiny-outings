@@ -80,3 +80,17 @@ test('a one-word listing without an official host is not accepted from a vague i
   assert.equal(assessment.outcome, 'remove');
   assert.match(assessment.reason, /official-source/i);
 });
+
+test('the local selector rejects Wikimedia outside parks, museums, and family activities', () => {
+  const item = activity('Cafes & food');
+  const labels = labelsForSerpApiImageAudit(item);
+  const assessment = assessSerpApiCandidate(item, {
+    ...candidate('Bright Bean Cafe interior'),
+    original: 'https://upload.wikimedia.org/wikipedia/commons/a/ab/Bright_Bean.jpg',
+    link: 'https://commons.wikimedia.org/wiki/File:Bright_Bean.jpg',
+    source: 'Wikimedia Commons',
+  }, visual(labels, [0.92, 0.03, 0.01, 0.01, 0.01, 0.01]));
+
+  assert.equal(assessment.outcome, 'remove');
+  assert.match(assessment.reason, /Wikimedia images are not allowed/i);
+});

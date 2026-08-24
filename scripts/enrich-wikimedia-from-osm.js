@@ -5,6 +5,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
+import { allowsWikimediaImages } from '../src/wikimediaImagePolicy.js';
 
 const ROOT = process.cwd();
 const OUTPUT_PATH = path.join(ROOT, 'supabase', 'seed', 'activity_osm_wikimedia_image_updates.generated.sql');
@@ -65,7 +66,7 @@ async function fetchActivities(env) {
   const rows = [];
   for (let offset = 0; ; offset += 1000) {
     const url = new URL('/rest/v1/activities', env.VITE_SUPABASE_URL);
-    url.searchParams.set('select', 'activity_id,activity_name,lat,long');
+    url.searchParams.set('select', 'activity_id,activity_name,category,lat,long');
     url.searchParams.set('wikimedia_image_url', 'is.null');
     url.searchParams.set('lat', 'gte.51.20');
     url.searchParams.set('lat', 'lte.51.80');
@@ -77,7 +78,7 @@ async function fetchActivities(env) {
     if (!response.ok) throw new Error(`Supabase activity fetch failed: ${response.status}`);
     const batch = await response.json();
     rows.push(...batch);
-    if (batch.length < 1000) return rows;
+    if (batch.length < 1000) return rows.filter(allowsWikimediaImages);
   }
 }
 

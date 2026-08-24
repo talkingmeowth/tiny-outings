@@ -1,4 +1,5 @@
 import { activityImageGroupKey } from './activityDuplicates.js';
+import { allowsWikimediaImages, isWikimediaUrl } from './wikimediaImagePolicy.js';
 
 // Keep this order aligned with the admin and community image controls. The
 // first usable image is the cover shown everywhere a listing appears.
@@ -30,11 +31,17 @@ function isUsablePhotoUrl(url) {
   ].some((blocked) => url.includes(blocked));
 }
 
+function isAllowedActivityPhoto(activity, field, url) {
+  if (allowsWikimediaImages(activity)) return true;
+  if (field === 'wikimedia_image_url' || isWikimediaUrl(url)) return false;
+  return !(field === 'scraped_image_url' && isWikimediaUrl(activity?.image_source_url));
+}
+
 function candidateImage(activity) {
   for (let priority = 0; priority < activityImageFields.length; priority += 1) {
     const field = activityImageFields[priority];
     const url = securePhotoUrl(activity?.[field]);
-    if (isUsablePhotoUrl(url)) return { field, priority, url };
+    if (isUsablePhotoUrl(url) && isAllowedActivityPhoto(activity, field, url)) return { field, priority, url };
   }
   return null;
 }
@@ -52,8 +59,9 @@ function isPreferredImage(candidate, current) {
 
 export function activityImageUrls(activity) {
   return activityImageFields
-    .map((field) => securePhotoUrl(activity?.[field]))
-    .filter(isUsablePhotoUrl);
+    .map((field) => ({ field, url: securePhotoUrl(activity?.[field]) }))
+    .filter(({ field, url }) => isUsablePhotoUrl(url) && isAllowedActivityPhoto(activity, field, url))
+    .map(({ url }) => url);
 }
 
 export function hasActivityImage(activity) {
@@ -78,6 +86,10 @@ export function shareListingImages(activities) {
   return activities.map((activity) => {
     const sharedImage = imageByListing.get(activityImageGroupKey(activity));
     if (!sharedImage) return activity;
+    if (!isAllowedActivityPhoto(activity, sharedImage.field, sharedImage.url)
+      || (sharedImage.field === 'scraped_image_url'
+        && !allowsWikimediaImages(activity)
+        && isWikimediaUrl(sharedImage.activity?.image_source_url))) return activity;
     return {
       ...activity,
       shared_card_image_url: sharedImage.url,
