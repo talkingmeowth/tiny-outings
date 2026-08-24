@@ -12,10 +12,6 @@ const activityImageFields = [
   'wikimedia_image_url',
   'website_image_url',
   'listing_image_url',
-  // Legacy imports still populate this field. It remains last so an audited
-  // source-specific image always wins, while avoiding an unnecessary
-  // illustration when a usable historic image is already available.
-  'image_url',
 ];
 
 export function securePhotoUrl(url) {
