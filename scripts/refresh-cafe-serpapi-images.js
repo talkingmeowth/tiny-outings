@@ -16,11 +16,14 @@ const activityIdsFile = process.argv.includes('--activity-ids-file')
 const createdAfter = process.argv.includes('--created-after')
   ? process.argv[process.argv.indexOf('--created-after') + 1] || null
   : null;
+const retryEmptyCandidates = process.argv.includes('--retry-empty-candidates');
 const outputPath = join(root, 'data', scope === 'cafes'
   ? 'cafe_serpapi_image_refresh.generated.json'
-  : activityIdsFile
-    ? 'scraped_image_serpapi_refresh.generated.json'
-    : 'activity_serpapi_image_refresh.generated.json');
+  : retryEmptyCandidates
+    ? 'activity_serpapi_empty_candidate_retry.generated.json'
+    : activityIdsFile
+      ? 'scraped_image_serpapi_refresh.generated.json'
+      : 'activity_serpapi_image_refresh.generated.json');
 const batchSizeIndex = process.argv.indexOf('--batch-size');
 const batchSize = batchSizeIndex >= 0
   ? Math.min(20, Math.max(1, Number(process.argv[batchSizeIndex + 1]) || 20))
@@ -101,6 +104,7 @@ async function invoke(cursor, activityIds = []) {
       scope,
       activity_ids: activityIds,
       ...(createdAfter ? { created_after: createdAfter } : {}),
+      ...(retryEmptyCandidates ? { retry_empty_candidates: true } : {}),
     }),
     signal: AbortSignal.timeout(150000),
   });
@@ -172,7 +176,10 @@ async function main() {
   const audit = {
     generated_at: new Date().toISOString(),
     scope,
-    paid_search_policy: 'one successful candidate discovery per activity',
+    paid_search_policy: retryEmptyCandidates
+      ? 'one opt-in retry for each empty candidate set encountered during this pass'
+      : 'one successful candidate discovery per activity',
+    retry_empty_candidates: retryEmptyCandidates,
     batches: batches.length,
     stopped_for_rate_limit: stoppedForRateLimit,
     resume_cursor: stoppedForRateLimit ? resumeCursor : cursor,

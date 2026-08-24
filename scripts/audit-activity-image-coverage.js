@@ -45,6 +45,7 @@ async function fetchActivities() {
     url.searchParams.set('select', select);
     url.searchParams.set('archive', 'eq.false');
     url.searchParams.set('public_listing_status', 'in.(draft,published)');
+    url.searchParams.set('order', 'activity_id.asc');
     url.searchParams.set('limit', '1000');
     url.searchParams.set('offset', String(offset));
     const response = await fetch(url, { headers: { apikey: supabaseAnonKey, Authorization: `Bearer ${supabaseAnonKey}` } });
