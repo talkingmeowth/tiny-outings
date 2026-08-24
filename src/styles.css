@@ -965,6 +965,26 @@ input[type='range'] {
   text-transform: uppercase;
 }
 
+.card-photo .admin-image-source {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  left: 10px;
+  z-index: 3;
+  overflow: hidden;
+  padding: 6px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.48);
+  border-radius: 8px;
+  color: #fff;
+  background: rgba(18, 48, 42, 0.82);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.02em;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+}
+
 .activity-photo-image {
   position: absolute;
   inset: 0;

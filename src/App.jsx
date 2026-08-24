@@ -886,7 +886,7 @@ function preloadActivityImages(activities, limit = 4) {
   });
 }
 
-function ActivityPhoto({ activity, className, priority = false }) {
+function ActivityPhoto({ activity, className, priority = false, children = null }) {
   const photoUrl = activityPhotoUrl(activity);
   const fallbackImage = activityFallbackImage(activity);
 
@@ -907,6 +907,7 @@ function ActivityPhoto({ activity, className, priority = false }) {
           event.currentTarget.src = fallbackImage;
         }}
       />
+      {children}
     </div>
   );
 }
@@ -3068,6 +3069,7 @@ export default function App() {
 
         {activeScreen === 'swipe' && (
           <SwipeScreen
+            isAdmin={isAdmin}
             weekDays={weekDays}
             selectedDate={selectedDate}
             setSelectedDate={setSelectedDate}
@@ -3640,6 +3642,7 @@ function SearchResultsScreen({ query, activities, onBack, onOpenActivity, onHide
 }
 
 function SwipeScreen({
+  isAdmin,
   weekDays,
   selectedDate,
   setSelectedDate,
@@ -3731,6 +3734,7 @@ function SwipeScreen({
           return (
             <ActivityCard
               key={activity.activity_id}
+              isAdmin={isAdmin}
               activity={activity}
               status={status}
               stackIndex={stackIndex}
@@ -3805,6 +3809,7 @@ function EmptyDeck({ title, message }) {
 }
 
 function ActivityCard({
+  isAdmin,
   activity,
   status,
   stackIndex,
@@ -3823,6 +3828,7 @@ function ActivityCard({
   const flexible = isFlexibleActivity(activity);
   const sourceLabel = activitySourceLabel(activity);
   const termTimeOnly = isTermTimeOnly(activity);
+  const imageSourceField = activity.shared_card_image_source || 'category_placeholder';
 
   return (
     <article
@@ -3840,7 +3846,11 @@ function ActivityCard({
       <span className="decision-stamp yes">Save</span>
       <span className="decision-stamp no">Skip</span>
 
-      <ActivityPhoto activity={activity} className="card-photo" priority={isTop} />
+      <ActivityPhoto activity={activity} className="card-photo" priority={isTop}>
+        {isAdmin && (
+          <span className="admin-image-source">Image: {imageSourceField}</span>
+        )}
+      </ActivityPhoto>
 
       <div className="card-content">
         <div className="card-kicker">
