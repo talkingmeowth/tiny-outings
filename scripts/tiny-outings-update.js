@@ -10,6 +10,7 @@ import {
 } from './lib/import-pipeline-policy.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
+const runStartedAt = new Date().toISOString();
 const runDate = process.env.ACTIVITY_IMPORT_RUN_DATE || new Date().toISOString().slice(0, 10);
 const applyChanges = process.argv.includes('--apply');
 const applyOnly = process.argv.includes('--apply-only');
@@ -77,27 +78,29 @@ const jobs = [
 // must run after generated SQL has been applied to the linked project.
 const postApplyJobs = [
   {
-    name: 'download-website-images',
-    script: 'download-activity-website-images.js',
-    args: ['--linked-database'],
-    output: 'data/activity_website_image_downloads.generated.json',
-    optional: 'images',
-  },
-  {
     name: 'serpapi-image-enrichment',
     script: 'refresh-cafe-serpapi-images.js',
-    // A record is eligible only until its first successful candidate discovery.
-    // The Edge Function records all results and never re-searches that listing.
-    args: ['--scope', 'all', '--start'],
+    // Automatic paid searches are limited to records created during this run.
+    // Historic backfill is deliberately a separate, explicitly limited task.
+    args: ['--scope', 'all', '--start', '--created-after', runStartedAt],
     output: 'data/activity_serpapi_image_refresh.generated.json',
     optional: 'images',
   },
   {
-    name: 'select-serpapi-image-candidates',
-    // This runs the local visual policy over saved candidates and copies the
-    // chosen image to Storage. It makes zero SerpAPI calls.
-    script: 'select-serpapi-image-candidates.js',
-    output: 'data/serpapi_image_candidate_selection.generated.json',
+    name: 'prepare-codex-image-review-sheets',
+    // Cheap deterministic scoring, image checks, and perceptual deduplication
+    // reduce each candidate set to 3-5 finalists. Ten labelled activity strips
+    // are then combined into one compact input for Codex multimodal review.
+    script: 'codex-image-review.js',
+    args: ['--activity-ids-file', 'data/activity_serpapi_image_refresh.generated.json'],
+    output: 'data/codex_image_shortlist.generated.json',
+    optional: 'images',
+  },
+  {
+    name: 'download-website-images',
+    script: 'download-activity-website-images.js',
+    args: ['--linked-database'],
+    output: 'data/activity_website_image_downloads.generated.json',
     optional: 'images',
   },
   {
@@ -117,8 +120,8 @@ same shared quality contract to all results:
   - source and organiser website discovery, direct Happity listing repair, and link health checks
   - website and organiser image extraction using the shared image-quality policy
   - durable download of missing official website images into Supabase Storage
-    followed by one SerpAPI candidate discovery for each new record and a local
-    high-confidence visual selection that can be rerun without another API call
+    followed by one SerpAPI candidate discovery for each new record and compact,
+    cached contact sheets for Codex multimodal review without another SerpAPI call
   - missing-coordinate resolution followed by Google Places identity, Maps location, canonical link, and permanent-closure validation
   - age suitability and "Any time" completion for unknown availability
   - existing-record updates, cross-source duplicate consolidation, and expiry archiving with reasons
@@ -273,6 +276,7 @@ writeFileSync(auditPath, JSON.stringify({
   manual_review: 'new importer and user-submitted listings are queued as drafts for administrator review',
   archive_protection: 'database trigger preserves archive=true and archived status',
   downloaded_website_images: 'post-apply Edge Function stores vetted images from organiser and listing websites',
+  image_candidate_review: 'SerpAPI candidates are queued for gpt-5.6-sol Codex vision; decisions are logged against the exact candidate-fetch timestamp',
   jobs: results,
 }, null, 2) + '\n');
 

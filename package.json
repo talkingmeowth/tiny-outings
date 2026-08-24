@@ -20,6 +20,11 @@
     "activities:images:audit-cafes": "node scripts/audit-cafe-image-content.js",
     "activities:images:audit-serpapi-confidence": "node scripts/audit-serpapi-image-confidence.js",
     "activities:images:select-serpapi": "node scripts/select-serpapi-image-candidates.js",
+    "activities:images:prepare-codex-review": "node scripts/codex-image-review.js",
+    "activities:images:test-codex-review": "node scripts/codex-image-review.js --dry-run --limit 10",
+    "activities:images:codex-review-queue": "node scripts/codex-image-review.js",
+    "activities:images:validate-codex-review": "node scripts/codex-image-review.js --validate-decisions",
+    "activities:images:apply-codex-review": "node scripts/codex-image-review.js --apply",
     "activities:images:reselect-serpapi": "node scripts/select-serpapi-image-candidates.js --reselect",
     "activities:images:coverage": "node scripts/audit-activity-image-coverage.js --linked-database",
     "activities:images:refresh-cafe-venues": "node scripts/select-serpapi-image-candidates.js --reselect --limit 20",
@@ -70,6 +75,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-leaflet": "^5.0.0",
+    "sharp": "^0.34.3",
     "vite": "^6.0.11"
   },
   "devDependencies": {

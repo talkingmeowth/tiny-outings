@@ -11,4 +11,13 @@ android/.gradle/
 android/**/build/
 render-mobile/
 supabase/.temp/
+data/codex-image-review-cache/
+data/codex-image-review-sheets/
+data/codex_image_shortlist.generated.json
+data/codex_image_review_queue.generated.json
+data/codex_image_review_apply.generated.json
+data/codex_image_review_decisions*.json
+data/activity_serpapi_image_refresh.generated.json
+data/cafe_serpapi_image_refresh.generated.json
+data/scraped_image_serpapi_refresh.generated.json
 tmp-wf-media-11253.*

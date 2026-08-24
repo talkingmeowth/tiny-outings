@@ -13,6 +13,9 @@ const deprecatedRefreshRequested = process.argv.includes('--refresh-existing')
 const activityIdsFile = process.argv.includes('--activity-ids-file')
   ? process.argv[process.argv.indexOf('--activity-ids-file') + 1] || null
   : null;
+const createdAfter = process.argv.includes('--created-after')
+  ? process.argv[process.argv.indexOf('--created-after') + 1] || null
+  : null;
 const outputPath = join(root, 'data', scope === 'cafes'
   ? 'cafe_serpapi_image_refresh.generated.json'
   : activityIdsFile
@@ -92,7 +95,13 @@ async function invoke(cursor, activityIds = []) {
       'Content-Type': 'application/json',
       'x-tiny-outings-image-job-token': jobSecret,
     },
-    body: JSON.stringify({ cursor, batch_size: batchSize, scope, activity_ids: activityIds }),
+    body: JSON.stringify({
+      cursor,
+      batch_size: batchSize,
+      scope,
+      activity_ids: activityIds,
+      ...(createdAfter ? { created_after: createdAfter } : {}),
+    }),
     signal: AbortSignal.timeout(150000),
   });
   const payload = await response.json().catch(() => ({}));
@@ -106,6 +115,9 @@ async function main() {
   }
   if (deprecatedRefreshRequested) {
     console.log('Ignoring legacy refresh flags. Existing candidate sets are never re-searched; use select-serpapi-image-candidates.js --reselect to improve a saved choice locally.');
+  }
+  if (createdAfter && !Number.isFinite(Date.parse(createdAfter))) {
+    throw new Error('--created-after must be a valid timestamp.');
   }
 
   const batches = [];
@@ -169,6 +181,7 @@ async function main() {
     activity_ids_generated_at: activityIdsFile
       ? JSON.parse(readFileSync(join(root, activityIdsFile), 'utf8')).generated_at || null
       : undefined,
+    created_after: createdAfter || undefined,
     pending_activity_ids: pendingActivityIds,
     summary,
     results,

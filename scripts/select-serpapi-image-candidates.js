@@ -147,7 +147,7 @@ async function main() {
       try {
         const image = await loadImage(candidate);
         visualResults.push(await classifier(image, labels, { hypothesis_template: 'This image shows {}.' }));
-      } catch (error) {
+      } catch {
         failedCandidates += 1;
         visualResults.push([]);
       }

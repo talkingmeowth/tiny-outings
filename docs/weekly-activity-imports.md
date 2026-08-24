@@ -60,10 +60,30 @@ website images.
   image jobs can enrich a specific official page when one is available.
 - Happity schedule snapshots preserve their activity-specific image before a
   generic historic venue image.
-- Newly added records receive one SerpAPI image assessment after import even
-  when an official image was found. A completed assessment timestamp prevents
-  later runs from repeating that paid search; image-less legacy records remain
-  eligible until their first assessment.
+- Newly added records receive one SerpAPI candidate search after import even
+  when an official image was found. The search uses the activity name, its
+  postcode-resolved London ward, postcode/borough and category; cafe queries
+  ask for interiors, seating and exteriors. The candidate-fetch timestamp
+  prevents later runs from repeating the paid search.
+- `tiny-outings-update --apply` then prepares the unreviewed candidate sets for
+  multimodal Codex review. Deterministic metadata and image checks remove clear
+  mismatches, undersized/extreme images and perceptual duplicates, keeping 3-5
+  finalists per activity. It creates one labelled strip per activity and one
+  compact contact sheet per 10 activities. This applies to every category, with
+  category-aware preferences such as cafe interiors/seating/exteriors, park
+  overviews and pool views. Codex inspects only these finalists and applies a
+  selected raw index or explicit rejection. `activity_image_llm_reviews` records
+  the model, workflow version, exact candidate-fetch timestamp, decision and
+  reason, so already-reviewed sets are never sent to the model again. Selected
+  images are copied to Storage and saved as `scraped_image_url`.
+- Run `npm.cmd run activities:images:test-codex-review` before scaling a new
+  scoring policy. It processes 10 pending activities without database writes;
+  cached thumbnails and sheets make retries resumable and inexpensive.
+- The recurring run sends only activities created during that import to
+  SerpAPI, then passes only the successfully enriched IDs into contact-sheet
+  preparation. It never sweeps the historic database automatically. Manual
+  backlog preparation defaults to 10 activities and requires an explicit
+  `--limit` to process more.
 - Listing pages are requested sequentially with delays to avoid aggressive
   scraping. Check source terms and API billing before increasing limits.
 - Historic standalone card, filter, swipe, Happity-location, Better Start

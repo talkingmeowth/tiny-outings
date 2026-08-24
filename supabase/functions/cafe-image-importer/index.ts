@@ -15,7 +15,7 @@ const maxBatchSize = 20
 const maxStoredCandidates = 20
 const maxImageBytes = 8 * 1024 * 1024
 const acceptedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif'])
-const blockedImageTerms = /(favicon|icon|site-logo|social[-_ ]?(?:icon|link|media)|facebook|fbcdn|scontent|cdninstagram|instagram|twitter|twimg|tiktok|linkedin|pinterest|youtube|tracking|pixel|spinner|placeholder|cookie|consent|newsletter|payment|checkout|app-store|google-play)/i
+const blockedImageTerms = /(favicon|icon|logo|wordmark|brand|badge|avatar|social[-_ ]?(?:icon|link|media)|facebook|fbcdn|scontent|cdninstagram|instagram|twitter|twimg|tiktok|linkedin|pinterest|youtube|tracking|pixel|spinner|placeholder|cookie|consent|newsletter|payment|checkout|app-store|google-play)/i
 
 type SearchImage = {
   original?: string
@@ -45,9 +45,19 @@ type Activity = {
   activity_id: string
   activity_name: string
   address: string | null
+  postcode: string | null
+  borough: string | null
   category: string | null
+  description: string | null
   website: string | null
   organiser_website: string | null
+}
+
+type VisionReview = {
+  provider: 'codex'
+  model: string
+  workflow_version: string
+  candidate_set_fetched_at: string
 }
 
 type SelectionRequest = {
@@ -56,6 +66,7 @@ type SelectionRequest = {
   selection_reason: string
   selection_confidence: number | null
   clear_selected_image?: boolean
+  vision_review?: VisionReview
 }
 
 class SerpApiRateLimitError extends Error {}
@@ -117,14 +128,65 @@ function text(value: string | null | undefined) {
   return String(value || '').replace(/\s+/g, ' ').trim()
 }
 
-function searchQuery(activity: Activity) {
-  const location = text(activity.address) || 'London'
+function postcodeFromActivity(activity: Activity) {
+  return text(activity.postcode) || text(activity.address).match(/\b([A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2})\b/i)?.[1]?.toUpperCase() || ''
+}
+
+function fallbackLocality(activity: Activity) {
+  const parts = text(activity.address).split(',').map((part) => text(part)).filter(Boolean)
+  return parts
+    .map((part) => part.replace(/\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b/i, '').trim())
+    .reverse()
+    .find((part) => part && !/^london$/i.test(part) && !/^uk$/i.test(part) && !/\d/.test(part))
+    || text(activity.borough)
+    || 'London'
+}
+
+async function londonWard(activity: Activity) {
+  const postcode = postcodeFromActivity(activity)
+  if (postcode) {
+    try {
+      const response = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(postcode)}`, {
+        signal: AbortSignal.timeout(6000),
+      })
+      if (response.ok) {
+        const body = await response.json()
+        const ward = text(body?.result?.admin_ward)
+        if (ward) return ward
+      }
+    } catch {
+      // A postcode lookup failure must not block the importer; the address and
+      // borough fallback still give Google Images a useful London locality.
+    }
+  }
+  return fallbackLocality(activity)
+}
+
+function isCafeActivity(activity: Activity) {
+  return /cafe|coffee|bakery|food/i.test(`${text(activity.category)} ${text(activity.activity_name)}`)
+}
+
+function quoted(value: string) {
+  return `"${text(value).replace(/"/g, '')}"`
+}
+
+function searchQuery(activity: Activity, ward: string) {
+  const location = [postcodeFromActivity(activity), text(activity.borough), 'London']
+    .filter((value, index, values) => value && values.findIndex((item) => item.toLowerCase() === value.toLowerCase()) === index)
+    .join(' ')
+  if (isCafeActivity(activity)) {
+    return `${quoted(activity.activity_name)} ${quoted(ward)} ${location} cafe interior seating exterior`
+  }
   const category = text(activity.category) || 'family activity'
-  return `"${text(activity.activity_name)}" ${location} ${category}`
+  return `${quoted(activity.activity_name)} ${quoted(ward)} ${location} ${category} activity venue`
 }
 
 function storedCandidate(image: SearchImage, fallbackPosition: number): StoredCandidate | null {
   if (!usableImageUrl(image.original)) return null
+  if (blockedImageTerms.test(`${image.original || ''} ${image.thumbnail || ''} ${image.title || ''} ${image.source || ''}`)) return null
+  const width = Number(image.original_width) || 0
+  const height = Number(image.original_height) || 0
+  if ((width && width < 400) || (height && height < 300) || (width && height && width * height < 180000)) return null
   return {
     original: image.original!,
     thumbnail: usableImageUrl(image.thumbnail) ? image.thumbnail! : null,
@@ -144,7 +206,8 @@ async function discoverCandidates(activity: Activity) {
   // One request is the entire paid allowance for a listing. We save all usable
   // results, then the local selector can be improved and rerun without calling
   // SerpAPI again.
-  const query = searchQuery(activity)
+  const ward = await londonWard(activity)
+  const query = searchQuery(activity, ward)
   const url = new URL('https://serpapi.com/search.json')
   url.searchParams.set('engine', 'google_images')
   url.searchParams.set('q', query)
@@ -166,7 +229,7 @@ async function discoverCandidates(activity: Activity) {
       return true
     })
     .slice(0, maxStoredCandidates)
-  return { query, rawCandidateCount: rawCandidates.length, candidates }
+  return { query, ward, rawCandidateCount: rawCandidates.length, candidates }
 }
 
 function extensionFor(contentType: string, imageUrl: string) {
@@ -179,17 +242,73 @@ function extensionFor(contentType: string, imageUrl: string) {
   return byType[contentType] || imageUrl.match(/\.([a-z]{3,4})(?:[?#]|$)/i)?.[1]?.toLowerCase() || 'jpg'
 }
 
+function sameTimestamp(left: string | null | undefined, right: string | null | undefined) {
+  const leftTime = Date.parse(left || '')
+  const rightTime = Date.parse(right || '')
+  return Number.isFinite(leftTime) && leftTime === rightTime
+}
+
+function visionReviewFields(selection: SelectionRequest, now: string, status: 'selected' | 'rejected' | 'selection_download_failed') {
+  if (!selection.vision_review) return {}
+  return {
+    serpapi_image_vision_reviewed_at: now,
+    serpapi_image_vision_model: selection.vision_review.model,
+    serpapi_image_vision_status: status,
+    serpapi_image_vision_candidate_index: selection.candidate_index,
+    serpapi_image_vision_reason: selection.selection_reason,
+    serpapi_image_vision_candidates_fetched_at: selection.vision_review.candidate_set_fetched_at,
+  }
+}
+
+async function recordVisionReview(
+  supabase: ReturnType<typeof createClient>,
+  activity: { activity_id: string; serpapi_image_candidates: unknown; serpapi_image_candidates_fetched_at: string | null },
+  selection: SelectionRequest,
+  reviewedAt: string,
+  applicationStatus: 'selected' | 'rejected' | 'selection_download_failed',
+  selectedSourceUrl: string | null,
+) {
+  if (!selection.vision_review) return null
+  const candidates = Array.isArray(activity.serpapi_image_candidates) ? activity.serpapi_image_candidates : []
+  const { error } = await supabase.from('activity_image_llm_reviews').upsert({
+    activity_id: activity.activity_id,
+    candidate_set_fetched_at: selection.vision_review.candidate_set_fetched_at,
+    reviewed_at: reviewedAt,
+    provider: selection.vision_review.provider,
+    model: selection.vision_review.model,
+    workflow_version: selection.vision_review.workflow_version,
+    decision: selection.candidate_index === null ? 'rejected' : 'selected',
+    application_status: applicationStatus,
+    selected_candidate_index: selection.candidate_index,
+    selection_reason: selection.selection_reason,
+    selection_confidence: selection.selection_confidence,
+    candidate_count: candidates.length,
+    selected_source_url: selectedSourceUrl,
+    metadata: { display_model: 'Codex 5.6 Sol', vision_review: true },
+  }, { onConflict: 'activity_id,candidate_set_fetched_at,provider,model,workflow_version' })
+  return error?.message || null
+}
+
 async function storeSelectedCandidate(
   supabase: ReturnType<typeof createClient>,
   selection: SelectionRequest,
 ) {
   const { data: activity, error } = await supabase
     .from('activities')
-    .select('activity_id,serpapi_image_candidates')
+    .select('activity_id,serpapi_image_candidates,serpapi_image_candidates_fetched_at')
     .eq('activity_id', selection.activity_id)
     .eq('archive', false)
     .maybeSingle()
   if (error || !activity) return { activity_id: selection.activity_id, status: 'selection-failed', reason: error?.message || 'Activity was not found.' }
+
+  if (selection.vision_review) {
+    if (selection.vision_review.provider !== 'codex' || !text(selection.vision_review.model) || !text(selection.vision_review.workflow_version)) {
+      return { activity_id: selection.activity_id, status: 'selection-failed', reason: 'Codex vision review metadata is incomplete.' }
+    }
+    if (!sameTimestamp(activity.serpapi_image_candidates_fetched_at, selection.vision_review.candidate_set_fetched_at)) {
+      return { activity_id: selection.activity_id, status: 'selection-failed', reason: 'The reviewed candidate set is no longer current.' }
+    }
+  }
 
   const now = new Date().toISOString()
   if (selection.candidate_index === null) {
@@ -198,10 +317,13 @@ async function storeSelectedCandidate(
       serpapi_image_selected_at: now,
       serpapi_image_selection_reason: selection.selection_reason,
       serpapi_image_selection_confidence: selection.selection_confidence,
+      ...visionReviewFields(selection, now, 'rejected'),
       updated_at: now,
     }).eq('activity_id', selection.activity_id)
-    return updateError
-      ? { activity_id: selection.activity_id, status: 'selection-failed', reason: updateError.message }
+    if (updateError) return { activity_id: selection.activity_id, status: 'selection-failed', reason: updateError.message }
+    const reviewError = await recordVisionReview(supabase, activity, selection, now, 'rejected', null)
+    return reviewError
+      ? { activity_id: selection.activity_id, status: 'selection-failed', reason: `Image decision saved but the vision audit log failed: ${reviewError}` }
       : { activity_id: selection.activity_id, status: 'no-high-confidence-candidate' }
   }
 
@@ -237,16 +359,34 @@ async function storeSelectedCandidate(
         serpapi_image_selected_at: now,
         serpapi_image_selection_reason: selection.selection_reason,
         serpapi_image_selection_confidence: selection.selection_confidence,
+        ...visionReviewFields(selection, now, 'selected'),
         updated_at: now,
       }).eq('activity_id', selection.activity_id)
-      return updateError
-        ? { activity_id: selection.activity_id, status: 'selection-failed', reason: updateError.message }
+      if (updateError) return { activity_id: selection.activity_id, status: 'selection-failed', reason: updateError.message }
+      const reviewError = await recordVisionReview(supabase, activity, selection, now, 'selected', candidate.original)
+      return reviewError
+        ? { activity_id: selection.activity_id, status: 'selection-failed', reason: `Image saved but the vision audit log failed: ${reviewError}` }
         : { activity_id: selection.activity_id, status: 'selected' }
     } catch {
       // Try the candidate thumbnail if the original host blocks the download.
     }
   }
-  return { activity_id: selection.activity_id, status: 'selection-download-failed', reason: 'The chosen candidate could not be copied to activity storage.' }
+  const { error: updateError } = await supabase.from('activities').update({
+    serpapi_image_selected_at: now,
+    serpapi_image_selection_reason: selection.selection_reason,
+    serpapi_image_selection_confidence: selection.selection_confidence,
+    ...visionReviewFields(selection, now, 'selection_download_failed'),
+    updated_at: now,
+  }).eq('activity_id', selection.activity_id)
+  if (updateError) return { activity_id: selection.activity_id, status: 'selection-failed', reason: updateError.message }
+  const reviewError = await recordVisionReview(supabase, activity, selection, now, 'selection_download_failed', candidate.original)
+  return {
+    activity_id: selection.activity_id,
+    status: 'selection-download-failed',
+    reason: reviewError
+      ? `The chosen image could not be copied and the vision audit log failed: ${reviewError}`
+      : 'The chosen candidate could not be copied to activity storage; the Codex review was logged for retry without another vision review.',
+  }
 }
 
 Deno.serve(async (request) => {
@@ -266,6 +406,8 @@ Deno.serve(async (request) => {
     batch_size?: number
     scope?: 'all' | 'cafes'
     activity_ids?: string[]
+    created_after?: string
+    review_queue?: boolean
     selections?: SelectionRequest[]
   }
   const selections = Array.isArray(body.selections) ? body.selections.slice(0, maxBatchSize) : []
@@ -276,17 +418,40 @@ Deno.serve(async (request) => {
       processed: results.length,
       selected: results.filter((result) => result.status === 'selected').length,
       no_high_confidence_candidate: results.filter((result) => result.status === 'no-high-confidence-candidate').length,
+      selection_download_failed: results.filter((result) => result.status === 'selection-download-failed').length,
       results,
     })
   }
   const batchSize = Math.min(Math.max(Number(body.batch_size) || maxBatchSize, 1), maxBatchSize)
-  const scope = body.scope === 'cafes' ? 'cafes' : 'all'
   const activityIds = [...new Set((body.activity_ids || []).filter((value) => typeof value === 'string' && value.length > 0))]
     .slice(0, maxBatchSize)
+  if (body.review_queue === true) {
+    let reviewQuery = supabase
+      .from('codex_image_review_queue')
+      .select('*')
+      .order('activity_id', { ascending: true })
+      .limit(batchSize)
+    if (activityIds.length) reviewQuery = reviewQuery.in('activity_id', activityIds)
+    else if (body.cursor) reviewQuery = reviewQuery.gt('activity_id', body.cursor)
+    const { data: reviewRows, error: reviewError } = await reviewQuery
+    if (reviewError) return jsonResponse({ error: reviewError.message }, 500)
+    const lastReview = reviewRows?.at(-1)
+    return jsonResponse({
+      processed: reviewRows?.length || 0,
+      next_cursor: !activityIds.length && reviewRows?.length === batchSize ? lastReview?.activity_id || null : null,
+      model: 'gpt-5.6-sol',
+      workflow_version: 'codex-visual-v2',
+      rows: reviewRows || [],
+    })
+  }
+  const scope = body.scope === 'cafes' ? 'cafes' : 'all'
+  const createdAfter = body.created_after && Number.isFinite(Date.parse(body.created_after))
+    ? new Date(body.created_after).toISOString()
+    : null
 
   let query = supabase
     .from('activities')
-    .select('activity_id,activity_name,address,category,website,organiser_website')
+    .select('activity_id,activity_name,address,postcode,borough,category,description,website,organiser_website')
     .in('public_listing_status', ['draft', 'published'])
     .eq('archive', false)
     // An activity can make exactly one successful SerpAPI discovery call.
@@ -294,6 +459,7 @@ Deno.serve(async (request) => {
     .order('activity_id', { ascending: true })
     .limit(batchSize)
   if (scope === 'cafes') query = query.or('category.ilike.%cafe%,category.ilike.%food%')
+  if (createdAfter) query = query.gte('created_at', createdAfter)
   if (activityIds.length) query = query.in('activity_id', activityIds)
   else if (body.cursor) query = query.gt('activity_id', body.cursor)
 
@@ -307,7 +473,17 @@ Deno.serve(async (request) => {
       const { error: updateError } = await supabase.from('activities').update({
         serpapi_image_candidates: discovery.candidates,
         serpapi_image_search_query: discovery.query,
+        serpapi_image_search_ward: discovery.ward,
         serpapi_image_candidates_fetched_at: now,
+        serpapi_image_selected_at: null,
+        serpapi_image_selection_reason: null,
+        serpapi_image_selection_confidence: null,
+        serpapi_image_vision_reviewed_at: null,
+        serpapi_image_vision_model: null,
+        serpapi_image_vision_status: null,
+        serpapi_image_vision_candidate_index: null,
+        serpapi_image_vision_reason: null,
+        serpapi_image_vision_candidates_fetched_at: null,
         // Retained for compatibility with previous reporting and never used to
         // determine whether a new paid search is allowed.
         serpapi_image_checked_at: now,
@@ -336,6 +512,7 @@ Deno.serve(async (request) => {
     no_candidates: results.filter((result) => result.status === 'no-candidates').length,
     rate_limited: results.filter((result) => result.status === 'rate-limited').length,
     scope,
+    created_after: createdAfter,
     next_cursor: activityIds.length ? null : activities?.length === batchSize ? last?.activity_id || null : null,
     results,
   })
