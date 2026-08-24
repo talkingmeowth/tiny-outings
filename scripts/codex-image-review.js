@@ -15,6 +15,7 @@ const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const queueOutputPath = join(root, 'data', 'codex_image_review_queue.generated.json');
 const shortlistOutputPath = join(root, 'data', 'codex_image_shortlist.generated.json');
 const applyOutputPath = join(root, 'data', 'codex_image_review_apply.generated.json');
+const decisionsOutputPath = join(root, 'data', 'codex_image_review_decisions.generated.json');
 const cacheRoot = join(root, 'data', 'codex-image-review-cache');
 const sheetRoot = join(root, 'data', 'codex-image-review-sheets');
 const model = 'gpt-5.6-sol';
@@ -23,6 +24,8 @@ const applyIndex = process.argv.indexOf('--apply');
 const applyPath = applyIndex >= 0 ? process.argv[applyIndex + 1] : null;
 const validateIndex = process.argv.indexOf('--validate-decisions');
 const validatePath = validateIndex >= 0 ? process.argv[validateIndex + 1] : null;
+const createDecisionsIndex = process.argv.indexOf('--create-decisions');
+const createDecisionsValue = createDecisionsIndex >= 0 ? process.argv[createDecisionsIndex + 1] || null : null;
 const offsetIndex = process.argv.indexOf('--offset');
 const offset = offsetIndex >= 0 ? Math.max(0, Number(process.argv[offsetIndex + 1]) || 0) : 0;
 const activityIdsFileIndex = process.argv.indexOf('--activity-ids-file');
@@ -30,7 +33,7 @@ const activityIdsFile = activityIdsFileIndex >= 0 ? process.argv[activityIdsFile
 const limitIndex = process.argv.indexOf('--limit');
 const limit = limitIndex >= 0
   ? Math.max(1, Number(process.argv[limitIndex + 1]) || 1)
-  : activityIdsFile
+  : activityIdsFile || applyPath || validatePath
     ? Number.POSITIVE_INFINITY
     : 10;
 const finalistsIndex = process.argv.indexOf('--finalists');
@@ -66,22 +69,40 @@ function assertConfiguration() {
   }
 }
 
+function wait(milliseconds) {
+  return new Promise((resolveWait) => setTimeout(resolveWait, milliseconds));
+}
+
 async function callImageFunction(body, timeout = 150000) {
   assertConfiguration();
-  const response = await fetch(`${supabaseUrl}/functions/v1/cafe-image-importer`, {
-    method: 'POST',
-    headers: {
-      apikey: supabaseAnonKey,
-      Authorization: `Bearer ${supabaseAnonKey}`,
-      'Content-Type': 'application/json',
-      'x-tiny-outings-image-job-token': jobSecret,
-    },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(timeout),
-  });
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(payload.error || `Image enrichment function returned ${response.status}.`);
-  return payload;
+  const maximumAttempts = 4;
+  for (let attempt = 1; attempt <= maximumAttempts; attempt += 1) {
+    try {
+      const response = await fetch(`${supabaseUrl}/functions/v1/cafe-image-importer`, {
+        method: 'POST',
+        headers: {
+          apikey: supabaseAnonKey,
+          Authorization: `Bearer ${supabaseAnonKey}`,
+          'Content-Type': 'application/json',
+          'x-tiny-outings-image-job-token': jobSecret,
+        },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(timeout),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (response.ok) return payload;
+      const retryable = [429, 500, 502, 503, 504].includes(response.status);
+      if (!retryable || attempt === maximumAttempts) {
+        throw new Error(payload.error || `Image enrichment function returned ${response.status}.`);
+      }
+      console.warn(`Image enrichment function returned ${response.status}; retrying (${attempt}/${maximumAttempts - 1}).`);
+    } catch (error) {
+      if (attempt === maximumAttempts || !['AbortError', 'TimeoutError', 'TypeError'].includes(error?.name)) throw error;
+      console.warn(`Image enrichment request failed; retrying (${attempt}/${maximumAttempts - 1}).`);
+    }
+    await wait(500 * (2 ** (attempt - 1)));
+  }
+  throw new Error('Image enrichment request exhausted all retry attempts.');
 }
 
 async function fetchReviewQueue() {
@@ -198,6 +219,46 @@ function validateDecisions(path) {
   const selections = decisionRows(path);
   const selected = selections.filter((row) => row.candidate_index !== null).length;
   console.log(`Validated ${selections.length} Codex vision decisions (${selected} selected, ${selections.length - selected} rejected) without database writes.`);
+}
+
+function createDecisions(choicesValue) {
+  if (!choicesValue) throw new Error('--create-decisions requires comma-separated finalist numbers, using x for rejection.');
+  const manifest = JSON.parse(readFileSync(shortlistOutputPath, 'utf8'));
+  const activities = Array.isArray(manifest.activities) ? manifest.activities : [];
+  const choices = choicesValue.split(',').map((value) => value.trim().toLowerCase());
+  if (choices.length !== activities.length) {
+    throw new Error(`Expected ${activities.length} choices for the current manifest but received ${choices.length}.`);
+  }
+  const decisions = activities.map((activity, index) => {
+    const choice = choices[index];
+    const finalistNumber = choice === 'x' ? null : Number(choice);
+    if (finalistNumber !== null && (!Number.isInteger(finalistNumber) || finalistNumber < 1 || finalistNumber > activity.finalists.length)) {
+      throw new Error(`Choice ${index + 1} for ${activity.activity_name} must be x or a finalist number from 1 to ${activity.finalists.length}.`);
+    }
+    const finalist = finalistNumber === null ? null : activity.finalists[finalistNumber - 1];
+    const cafe = /cafe|coffee|bakery|food/i.test(`${activity.category || ''} ${activity.activity_name || ''}`);
+    return {
+      activity_id: activity.activity_id,
+      activity_name: activity.activity_name,
+      candidate_set_fetched_at: activity.candidate_set_fetched_at,
+      finalist_candidate_indices: activity.finalists.map((entry) => entry.candidate_index),
+      candidate_index: finalist?.candidate_index ?? null,
+      reason: finalist
+        ? cafe
+          ? `Codex vision selected F${finalistNumber} as the clearest representative view of the cafe exterior, interior or seating.`
+          : `Codex vision selected F${finalistNumber} as the clearest representative view of the listed activity or venue.`
+        : 'Codex vision found no finalist that reliably and clearly represented the listed activity or venue.',
+      confidence: finalist ? 0.9 : 0.95,
+    };
+  });
+  writeJson(decisionsOutputPath, {
+    generated_at: new Date().toISOString(),
+    provider: 'codex',
+    model,
+    workflow_version: workflowVersion,
+    decisions,
+  });
+  console.log(`Created ${decisions.length} Codex decisions (${decisions.filter((row) => row.candidate_index !== null).length} selected, ${decisions.filter((row) => row.candidate_index === null).length} rejected): ${decisionsOutputPath}`);
 }
 
 async function mapWithConcurrency(items, concurrency, mapper) {
@@ -504,6 +565,8 @@ const operation = applyPath
   ? applyDecisions(applyPath)
   : validatePath
     ? Promise.resolve(validateDecisions(validatePath))
+    : createDecisionsValue
+      ? Promise.resolve(createDecisions(createDecisionsValue))
     : prepareReviewSheets();
 
 operation.catch((error) => {

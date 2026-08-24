@@ -24,6 +24,7 @@
     "activities:images:test-codex-review": "node scripts/codex-image-review.js --dry-run --limit 10",
     "activities:images:codex-review-queue": "node scripts/codex-image-review.js",
     "activities:images:validate-codex-review": "node scripts/codex-image-review.js --validate-decisions",
+    "activities:images:create-codex-decisions": "node scripts/codex-image-review.js --create-decisions",
     "activities:images:apply-codex-review": "node scripts/codex-image-review.js --apply",
     "activities:images:reselect-serpapi": "node scripts/select-serpapi-image-candidates.js --reselect",
     "activities:images:coverage": "node scripts/audit-activity-image-coverage.js --linked-database",
