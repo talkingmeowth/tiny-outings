@@ -410,6 +410,7 @@ Deno.serve(async (request) => {
     scope?: 'all' | 'cafes'
     activity_ids?: string[]
     created_after?: string
+    retry_empty_candidates?: boolean
     review_queue?: boolean
     selections?: SelectionRequest[]
   }
@@ -448,6 +449,7 @@ Deno.serve(async (request) => {
     })
   }
   const scope = body.scope === 'cafes' ? 'cafes' : 'all'
+  const retryEmptyCandidates = body.retry_empty_candidates === true
   const createdAfter = body.created_after && Number.isFinite(Date.parse(body.created_after))
     ? new Date(body.created_after).toISOString()
     : null
@@ -457,10 +459,13 @@ Deno.serve(async (request) => {
     .select('activity_id,activity_name,address,postcode,borough,category,description,website,organiser_website')
     .in('public_listing_status', ['draft', 'published'])
     .eq('archive', false)
-    // An activity can make exactly one successful SerpAPI discovery call.
-    .is('serpapi_image_candidates_fetched_at', null)
     .order('activity_id', { ascending: true })
     .limit(batchSize)
+  // Paid retries are opt-in and tightly limited to listings whose stored
+  // candidate set is empty. Normal importer calls retain the one-search cap.
+  query = retryEmptyCandidates
+    ? query.filter('serpapi_image_candidates', 'eq', '[]')
+    : query.is('serpapi_image_candidates_fetched_at', null)
   if (scope === 'cafes') query = query.or('category.ilike.%cafe%,category.ilike.%food%')
   if (createdAfter) query = query.gte('created_at', createdAfter)
   if (activityIds.length) query = query.in('activity_id', activityIds)
@@ -469,7 +474,8 @@ Deno.serve(async (request) => {
   const { data: activities, error } = await query
   if (error) return jsonResponse({ error: error.message }, 500)
 
-  const results = await mapWithConcurrency(activities || [], 3, async (activity: Activity) => {
+  const discoveryConcurrency = retryEmptyCandidates ? 5 : 3
+  const results = await mapWithConcurrency(activities || [], discoveryConcurrency, async (activity: Activity) => {
     try {
       const discovery = await discoverCandidates(activity)
       const now = new Date().toISOString()
@@ -515,6 +521,7 @@ Deno.serve(async (request) => {
     no_candidates: results.filter((result) => result.status === 'no-candidates').length,
     rate_limited: results.filter((result) => result.status === 'rate-limited').length,
     scope,
+    retry_empty_candidates: retryEmptyCandidates,
     created_after: createdAfter,
     next_cursor: activityIds.length ? null : activities?.length === batchSize ? last?.activity_id || null : null,
     results,
