@@ -79,17 +79,32 @@ const postApplyJobs = [
   {
     name: 'download-website-images',
     script: 'download-activity-website-images.js',
+    args: ['--linked-database'],
     output: 'data/activity_website_image_downloads.generated.json',
     optional: 'images',
   },
   {
     name: 'serpapi-image-enrichment',
     script: 'refresh-cafe-serpapi-images.js',
-    // Start from the first unassessed record each run. Completed assessments
-    // are excluded by the Edge Function, so UUID cursor state cannot skip a
-    // newer record after a prior rate-limited run.
+    // A record is eligible only until its first successful candidate discovery.
+    // The Edge Function records all results and never re-searches that listing.
     args: ['--scope', 'all', '--start'],
     output: 'data/activity_serpapi_image_refresh.generated.json',
+    optional: 'images',
+  },
+  {
+    name: 'select-serpapi-image-candidates',
+    // This runs the local visual policy over saved candidates and copies the
+    // chosen image to Storage. It makes zero SerpAPI calls.
+    script: 'select-serpapi-image-candidates.js',
+    output: 'data/serpapi_image_candidate_selection.generated.json',
+    optional: 'images',
+  },
+  {
+    name: 'image-coverage-report',
+    script: 'audit-activity-image-coverage.js',
+    args: ['--linked-database'],
+    output: 'data/activity_image_coverage.generated.json',
     optional: 'images',
   },
 ];
@@ -102,7 +117,8 @@ same shared quality contract to all results:
   - source and organiser website discovery, direct Happity listing repair, and link health checks
   - website and organiser image extraction using the shared image-quality policy
   - durable download of missing official website images into Supabase Storage
-    followed by one high-confidence SerpAPI image assessment for every new record
+    followed by one SerpAPI candidate discovery for each new record and a local
+    high-confidence visual selection that can be rerun without another API call
   - missing-coordinate resolution followed by Google Places identity, Maps location, canonical link, and permanent-closure validation
   - age suitability and "Any time" completion for unknown availability
   - existing-record updates, cross-source duplicate consolidation, and expiry archiving with reasons

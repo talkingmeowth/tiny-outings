@@ -57,7 +57,7 @@ const blockedImageTerms = [
   'fbcdn', 'scontent', 'cdninstagram', 'twimg',
 ];
 
-export function isUsableActivityImageUrl(imageUrl, { allowCafeLogo = false } = {}) {
+export function isUsableActivityImageUrl(imageUrl) {
   if (!imageUrl) return false;
   const value = imageUrl.toLowerCase();
   try {
@@ -73,25 +73,7 @@ export function isUsableActivityImageUrl(imageUrl, { allowCafeLogo = false } = {
     return false;
   }
 
-  if (allowCafeLogo) {
-    return !blockedImageTerms.filter((term) => !['logo', 'brand', 'wordmark'].includes(term))
-      .some((term) => value.includes(term));
-  }
   return !blockedImageTerms.some((term) => value.includes(term));
-}
-
-export function isClearCafeLogoCandidate(imageUrl, context = '', activity = {}) {
-  if (!isCafeActivity(activity) || isSocialMediaImage(imageUrl, context)) return false;
-  if (!/(?:logo|brand|wordmark)/i.test(`${imageUrl} ${context}`)) return false;
-  if (!/\.(?:png|jpe?g|webp|avif)(?:[?#]|$)/i.test(imageUrl)) return false;
-  const nameTerms = String(activity.activity_name || '')
-    .toLowerCase()
-    .split(/[^a-z0-9]+/)
-    .filter((term) => term.length >= 4 && !['cafe', 'coffee', 'restaurant', 'bakery', 'shop'].includes(term));
-  if (!nameTerms.some((term) => `${imageUrl} ${context}`.toLowerCase().includes(term))) return false;
-  const { width, height } = imageDimensions(imageUrl, context);
-  return (width === 0 || height === 0 || (width >= 180 && height >= 120))
-    && isUsableActivityImageUrl(imageUrl, { allowCafeLogo: true });
 }
 
 export function scoreActivityImage(imageUrl, context = '', activity = {}) {
@@ -123,7 +105,6 @@ export function scoreActivityImage(imageUrl, context = '', activity = {}) {
     if (/(interior|inside|dining|seating|table|tables|venue[-_ ]?space|play[-_ ]?space|room)/.test(value)) score += 600;
     else if (/(front|exterior|facade|shopfront|storefront|outside|street)/.test(value)) score += 450;
     else if (/(food|dish|cake|pastry|brunch|bakery|coffee|drink|menu)/.test(value)) score += 200;
-    else if (isClearCafeLogoCandidate(imageUrl, context, activity)) score += 200;
     if (/(og:image|twitter:image|social-share|open-graph|default|banner)/.test(value)) score -= 18;
   } else if (/(interior|inside|venue|cafe|coffee|restaurant|food|gallery|play|studio|class|space|room|facility)/.test(value)) {
     score += 30;

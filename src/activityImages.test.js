@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { shareListingImages } from './activityImages.js';
+import { activityImageUrls } from './activityImages.js';
 
 function activity(overrides = {}) {
   return {
@@ -41,4 +42,9 @@ test('does not share an image between similarly named activities at different ve
   const [sharedFirst, sharedSecond] = shareListingImages([first, second]);
   assert.equal(sharedFirst.shared_card_image_url, 'https://images.example.test/first.jpg');
   assert.equal(sharedSecond.shared_card_image_url, 'https://images.example.test/second.jpg');
+});
+
+test('uses a legacy image URL only after every curated image field is absent', () => {
+  const item = activity({ image_url: 'https://images.example.test/legacy.jpg' });
+  assert.deepEqual(activityImageUrls(item), ['https://images.example.test/legacy.jpg']);
 });

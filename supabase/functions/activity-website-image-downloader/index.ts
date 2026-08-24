@@ -266,6 +266,7 @@ function hasCardImage(activity: Activity) {
     activity.wikimedia_image_url,
     activity.website_image_url,
     activity.listing_image_url,
+    activity.image_url,
   ].some((image) => usableImageUrl(image))
 }
 

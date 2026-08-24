@@ -3,7 +3,6 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  isClearCafeLogoCandidate as sharedCafeLogoCandidate,
   isSocialMediaImage as sharedSocialMediaImage,
   isUsableActivityImageUrl as sharedUsableImageUrl,
   normaliseFeverImageUrl as sharedFeverImageUrl,
@@ -128,17 +127,6 @@ const curatedImageOverrides = [
   },
 ];
 
-// A small, explicit set of recognisable cafe brands can fall back to their
-// official app icon when a specific branch page does not publish a usable
-// venue photo. This is deliberately used only after website extraction fails.
-const cafeBrandLogoFallbacks = [
-  {
-    matches: (activity) => isCafe(activity) && /\bstarbucks\b/i.test(activity.activity_name || ''),
-    imageUrl: 'https://www.starbucks.co.uk/assets/app/icons/apple-icon.png',
-    imageSourceUrl: 'https://www.starbucks.co.uk/',
-  },
-];
-
 function decodeHtml(value) {
   return String(value || '')
     .replaceAll('&amp;', '&')
@@ -168,16 +156,8 @@ function isGoodActivityImageUrl(imageUrl) {
   return sharedUsableImageUrl(imageUrl);
 }
 
-function isCafe(activity) {
-  return /cafe|coffee|food|lunch/i.test(activity.category || '');
-}
-
 function isSocialMediaIconCandidate(imageUrl, context = '') {
   return sharedSocialMediaImage(imageUrl, context);
-}
-
-function isClearCafeLogoCandidate(imageUrl, context = '', activity = {}) {
-  return sharedCafeLogoCandidate(imageUrl, context, activity);
 }
 
 function imageCandidateScore(imageUrl, context = '', activity = {}) {
@@ -227,10 +207,6 @@ function normaliseFeverImageUrl(imageUrl, activity) {
 
 function curatedImageForActivity(activity) {
   return curatedImageOverrides.find((override) => override.matches(activity)) || null;
-}
-
-function cafeBrandLogoForActivity(activity) {
-  return cafeBrandLogoFallbacks.find((fallback) => fallback.matches(activity)) || null;
 }
 
 async function fetchPublishedActivities() {
@@ -326,8 +302,7 @@ function imageFromHtml(html, baseUrl, activity) {
       ? normaliseWalthamForestEventImageUrl(normaliseFeverImageUrl(absoluteUrl(value, baseUrl), activity))
       : null;
     const isInterfaceAsset = /(site-flag|country-selector|language-selector|flag-icon)/i.test(context);
-    const isClearCafeLogo = isClearCafeLogoCandidate(imageUrl, context, activity);
-    if ((isGoodActivityImageUrl(imageUrl) || isClearCafeLogo) && !isInterfaceAsset && !isSocialMediaIconCandidate(imageUrl, context)) {
+    if (isGoodActivityImageUrl(imageUrl) && !isInterfaceAsset && !isSocialMediaIconCandidate(imageUrl, context)) {
       const sourceBonus = /happity\.co\.uk/i.test(baseUrl) && /\/uploads\/company\/banner\//i.test(imageUrl)
         ? 80
         : 0;
@@ -348,12 +323,12 @@ function imageFromHtml(html, baseUrl, activity) {
   const linkedImage = html.match(/<link\s+[^>]*rel=["'][^"']*image_src[^"']*["'][^>]*>/i)?.[0];
   const linkedHref = linkedImage ? htmlAttr(linkedImage, 'href') : null;
   const linkedUrl = linkedHref ? absoluteUrl(linkedHref, baseUrl) : null;
-  if (isGoodActivityImageUrl(linkedUrl) || isClearCafeLogoCandidate(linkedUrl, 'image source', activity)) {
+  if (isGoodActivityImageUrl(linkedUrl)) {
     candidates.push({ imageUrl: linkedUrl, score: imageCandidateScore(linkedUrl, 'image source', activity) });
   }
 
   const jsonLdImage = imageFromJsonLd(html, baseUrl);
-  if (isGoodActivityImageUrl(jsonLdImage) || isClearCafeLogoCandidate(jsonLdImage, 'structured data', activity)) {
+  if (isGoodActivityImageUrl(jsonLdImage)) {
     candidates.push({ imageUrl: jsonLdImage, score: imageCandidateScore(jsonLdImage, 'structured data', activity) });
   }
 
@@ -431,7 +406,7 @@ async function fetchImageFromLink(activity, link, sourceKind) {
 
 async function fetchWebsiteImageCandidates(activity) {
   const curatedImage = curatedImageForActivity(activity);
-  if (curatedImage) return [{ ...curatedImage, sourceKind: 'organiser' }];
+  if (curatedImage && isGoodActivityImageUrl(curatedImage.imageUrl)) return [{ ...curatedImage, sourceKind: 'organiser' }];
 
   // Preserve an image from each useful page so every importer uses both the
   // organiser website and the listing website when they are available.
@@ -440,9 +415,7 @@ async function fetchWebsiteImageCandidates(activity) {
     const image = await fetchImageFromLink(activity, link, sourceKind);
     if (image) images.push(image);
   }
-  if (images.length) return images;
-  const fallback = cafeBrandLogoForActivity(activity);
-  return fallback ? [{ ...fallback, sourceKind: 'fallback' }] : [];
+  return images;
 }
 
 async function fetchWebsiteImage(activity) {
@@ -457,7 +430,7 @@ function enrichmentResult(activity, websiteImages) {
   const websiteImage = websiteImages[0] || null;
   const imageUrl = websiteImage?.imageUrl || null;
   const sourceKind = websiteImage?.sourceKind || null;
-  const organiserImage = websiteImages.find((image) => image.sourceKind === 'organiser' || image.sourceKind === 'fallback') || null;
+  const organiserImage = websiteImages.find((image) => image.sourceKind === 'organiser') || null;
   const listingImage = websiteImages.find((image) => image.sourceKind === 'listing') || null;
   return {
     activity,

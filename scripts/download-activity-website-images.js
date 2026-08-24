@@ -1,5 +1,6 @@
 /* global process */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { execSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -7,6 +8,7 @@ const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const outputPath = join(root, 'data', 'activity_website_image_downloads.generated.json');
 const batchSize = Math.min(Math.max(Number(process.env.ACTIVITY_IMAGE_DOWNLOAD_BATCH_SIZE || 20), 1), 25);
 const maxActivities = Math.max(Number(process.env.ACTIVITY_IMAGE_DOWNLOAD_LIMIT || 1200), 1);
+const linkedDatabase = process.argv.includes('--linked-database');
 
 function readDotEnv(name) {
   try {
@@ -46,6 +48,7 @@ function hasCardImage(activity) {
     activity.wikimedia_image_url,
     activity.website_image_url,
     activity.listing_image_url,
+    activity.image_url,
   ].some(usableUrl);
 }
 
@@ -59,7 +62,7 @@ async function fetchActivities() {
   const activities = [];
   for (let offset = 0; ; offset += 1000) {
     const response = await fetch(
-      `${supabaseUrl}/rest/v1/activities?select=${columns}&public_listing_status=eq.published&archive=eq.false&order=activity_id.asc&limit=1000&offset=${offset}`,
+      `${supabaseUrl}/rest/v1/activities?select=${columns}&public_listing_status=in.(draft,published)&archive=eq.false&order=activity_id.asc&limit=1000&offset=${offset}`,
       { headers: { apikey: supabaseAnonKey, Authorization: `Bearer ${supabaseAnonKey}` } },
     );
     if (!response.ok) throw new Error(`Could not read activities: ${response.status} ${await response.text()}`);
@@ -67,6 +70,30 @@ async function fetchActivities() {
     activities.push(...page);
     if (page.length < 1000) return activities;
   }
+}
+
+function fetchActivitiesFromLinkedDatabase() {
+  const columns = [
+    'activity_id', 'activity_name', 'website', 'organiser_website', 'source_url',
+    'image_url', 'scraped_image_url', 'website_image_url', 'listing_image_url',
+    'wikimedia_image_url', 'user_image_url', 'admin_cover_image_url',
+    'website_downloaded_image', 'organiser_website_downloaded_image',
+  ].join(',');
+  const statement = `select ${columns} from public.activities where coalesce(archive, false) = false and public_listing_status in ('draft', 'published') order by activity_id asc;`;
+  const escaped = statement.replaceAll('"', '\\"');
+  const command = `npx${process.platform === 'win32' ? '.cmd' : ''} supabase db query --linked --output-format json "${escaped}"`;
+  const output = execSync(command, {
+    cwd: root,
+    encoding: 'utf8',
+    shell: process.platform === 'win32',
+    maxBuffer: 50 * 1024 * 1024,
+  });
+  const start = output.indexOf('{');
+  const end = output.lastIndexOf('}');
+  if (start < 0 || end < start) throw new Error('Could not read linked database activities.');
+  const payload = JSON.parse(output.slice(start, end + 1));
+  if (!Array.isArray(payload.rows)) throw new Error('Linked database returned no activity rows.');
+  return payload.rows;
 }
 
 async function invokeDownloader(activityIds) {
@@ -100,7 +127,7 @@ async function main() {
   if (!supabaseUrl || !supabaseAnonKey) throw new Error('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY.');
   if (!jobSecret) throw new Error('Missing TINY_OUTINGS_IMAGE_JOB_SECRET. The manual downloader cannot run without its server-side job token.');
 
-  const activities = await fetchActivities();
+  const activities = linkedDatabase ? fetchActivitiesFromLinkedDatabase() : await fetchActivities();
   const targets = activities.filter((activity) => (
     !hasCardImage(activity)
     && [activity.organiser_website, activity.website, activity.source_url, activity.image_url].some(usableUrl)
@@ -120,6 +147,7 @@ async function main() {
   }, {});
   const audit = {
     generated_at: new Date().toISOString(),
+    source: linkedDatabase ? 'linked_database' : 'public_api',
     scanned: activities.length,
     targeted: targets.length,
     skipped_by_limit: Math.max(0, activities.filter((activity) => !hasCardImage(activity)).length - targets.length),
