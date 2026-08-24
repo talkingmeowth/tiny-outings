@@ -345,7 +345,10 @@ async function storeSelectedCandidate(
       if (!response.ok || !acceptedMimeTypes.has(contentType) || (declaredSize && declaredSize > maxImageBytes)) continue
       const bytes = new Uint8Array(await response.arrayBuffer())
       if (bytes.byteLength < 5 * 1024 || bytes.byteLength > maxImageBytes) continue
-      const path = `serpapi/selected/${activity.activity_id}.${extensionFor(contentType, imageUrl)}`
+      const candidateSetRevision = selection.vision_review
+        ? Date.parse(selection.vision_review.candidate_set_fetched_at)
+        : Date.parse(now)
+      const path = `serpapi/selected/${activity.activity_id}-${candidateSetRevision}-${selection.candidate_index}.${extensionFor(contentType, imageUrl)}`
       const upload = await supabase.storage.from('activity-images').upload(path, bytes, {
         contentType,
         cacheControl: '31536000',
