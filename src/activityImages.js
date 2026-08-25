@@ -33,6 +33,9 @@ function isUsablePhotoUrl(url) {
 }
 
 function isAllowedActivityPhoto(activity, field, url) {
+  const rejectedByAudit = ['needs_replacement', 'no_replacement'].includes(activity?.audit_image_status)
+    && !isUsablePhotoUrl(securePhotoUrl(activity?.audit_image_url));
+  if (rejectedByAudit && field !== 'admin_cover_image_url' && field !== 'audit_image_url') return false;
   if (allowsWikimediaImages(activity)) return true;
   if (field === 'wikimedia_image_url' || isWikimediaUrl(url)) return false;
   if (field === 'audit_image_url') return !isWikimediaUrl(activity?.audit_image_source_url);

@@ -88,3 +88,22 @@ test('an audited replacement outranks every non-admin source but never an admin 
   const [shared] = shareListingImages([item]);
   assert.equal(shared.shared_card_image_source, 'admin_cover_image_url');
 });
+
+test('does not display a rejected audited image or fall through to unreviewed sources', () => {
+  const rejected = activity({
+    audit_image_status: 'needs_replacement',
+    scraped_image_url: 'https://images.example.test/rejected-logo.jpg',
+    website_image_url: 'https://images.example.test/unreviewed-fallback.jpg',
+  });
+  assert.deepEqual(activityImageUrls(rejected), []);
+  assert.equal(shareListingImages([rejected])[0].shared_card_image_url, undefined);
+});
+
+test('an admin cover can replace an image that failed the non-admin audit', () => {
+  const overridden = activity({
+    audit_image_status: 'needs_replacement',
+    admin_cover_image_url: 'https://images.example.test/admin-approved.jpg',
+    scraped_image_url: 'https://images.example.test/rejected-logo.jpg',
+  });
+  assert.deepEqual(activityImageUrls(overridden), ['https://images.example.test/admin-approved.jpg']);
+});
