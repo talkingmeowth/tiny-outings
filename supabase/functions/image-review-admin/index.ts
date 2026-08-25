@@ -29,6 +29,11 @@ type Activity = {
   codex_image_search_model?: string | null
   image_review_ignored_at?: string | null
   image_review_ignored_by_user_id?: string | null
+  reviewed_image_url?: string | null
+  reviewed_image_source_url?: string | null
+  reviewed_image_original_url?: string | null
+  reviewed_image_selected_at?: string | null
+  reviewed_image_model?: string | null
 }
 
 type Candidate = {
@@ -124,7 +129,7 @@ async function authenticatedAdmin(request: Request, supabase: ReturnType<typeof 
 async function findActivity(supabase: ReturnType<typeof createClient>, activityId: string) {
   const { data, error } = await supabase
     .from('activities')
-    .select('activity_id,activity_name,address,postcode,borough,category,public_listing_status,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,image_review_ignored_at,image_review_ignored_by_user_id')
+    .select('activity_id,activity_name,address,postcode,borough,category,public_listing_status,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,image_review_ignored_at,image_review_ignored_by_user_id,reviewed_image_url,reviewed_image_source_url,reviewed_image_original_url,reviewed_image_selected_at,reviewed_image_model')
     .eq('activity_id', activityId)
     .eq('archive', false)
     .maybeSingle()
@@ -370,6 +375,17 @@ async function storeReviewedImage(
   const candidates = Array.isArray(activity.codex_image_candidates) ? activity.codex_image_candidates : []
   const candidate = normalizeCandidate(activity, candidates[candidateIndex])
   if (!candidate) throw new Error('The selected candidate is no longer available.')
+  const sourceUrl = candidate.source_page_url || candidate.image_url
+  const model = cleanText(activity.codex_image_search_model) || 'Desktop image review'
+  if (cleanText(activity.reviewed_image_original_url) === candidate.image_url && cleanText(activity.reviewed_image_url)) {
+    return {
+      reviewedImageUrl: cleanText(activity.reviewed_image_url),
+      sourceUrl: cleanText(activity.reviewed_image_source_url) || sourceUrl,
+      selectedAt: cleanText(activity.reviewed_image_selected_at) || new Date().toISOString(),
+      model: cleanText(activity.reviewed_image_model) || model,
+      candidate,
+    }
+  }
   const downloaded = await downloadCandidate(candidate)
   const selectedAt = new Date().toISOString()
   const revision = Date.parse(activity.codex_image_searched_at || selectedAt)
@@ -381,8 +397,6 @@ async function storeReviewedImage(
   })
   if (upload.error) throw new Error(upload.error.message)
   const reviewedImageUrl = supabase.storage.from('activity-images').getPublicUrl(path).data.publicUrl
-  const sourceUrl = candidate.source_page_url || candidate.image_url
-  const model = cleanText(activity.codex_image_search_model) || 'Desktop image review'
   const activityUpdate = supabase.from('activities').update({
     reviewed_image_url: reviewedImageUrl,
     reviewed_image_source_url: sourceUrl,

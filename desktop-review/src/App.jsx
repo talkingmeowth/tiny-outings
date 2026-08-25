@@ -1,6 +1,7 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { hasSupabaseConfig, supabase } from './supabase.js';
 import { edgeFunctionErrorMessage } from './functionErrors.js';
+import { invokeFunctionWithRetry } from './functionRetry.js';
 import {
   QUEUES,
   activitiesToPreload,
@@ -514,14 +515,14 @@ function App() {
       setNotice('Demo image saved.');
       return;
     }
-    const response = await supabase.functions.invoke('image-review-admin', {
+    const response = await invokeFunctionWithRetry(() => supabase.functions.invoke('image-review-admin', {
       body: {
         action: 'select',
         activity_id: selectedActivity.activity_id,
         candidate_index: selectedCandidate,
         candidate_set_searched_at: selectedActivity.codex_image_searched_at,
       },
-    });
+    }));
     if (response.error || response.data?.error) {
       setNotice(`Could not save the selected image: ${await edgeFunctionErrorMessage(response, 'Image review failed.')}`);
     } else {
