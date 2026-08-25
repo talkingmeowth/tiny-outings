@@ -109,6 +109,20 @@ test('does not display a rejected audited image or fall through to unreviewed so
   assert.equal(shareListingImages([rejected])[0].shared_card_image_url, undefined);
 });
 
+test('displays a deliberately reinstated image while retaining its rejected audit status', () => {
+  const reinstated = activity({
+    audit_image_status: 'needs_replacement',
+    audit_image_url: 'https://images.example.test/reinstated-original.jpg',
+    audit_image_source_url: 'https://images.example.test/reinstated-original.jpg',
+    website_image_url: 'https://images.example.test/lower-priority.jpg',
+  });
+  assert.deepEqual(activityImageUrls(reinstated), [
+    'https://images.example.test/reinstated-original.jpg',
+    'https://images.example.test/lower-priority.jpg',
+  ]);
+  assert.equal(shareListingImages([reinstated])[0].shared_card_image_source, 'audit_image_url');
+});
+
 test('an admin cover can replace an image that failed the non-admin audit', () => {
   const overridden = activity({
     audit_image_status: 'needs_replacement',
