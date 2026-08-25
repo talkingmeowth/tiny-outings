@@ -50,7 +50,7 @@ const demoActivities = [
     category: 'Baby & toddler classes', age_suitability: '0–13 months', public_listing_status: 'published', archive: false,
     organiser_website: 'https://babysensory.com/leyton', source_url: 'https://example.org/baby-sensory-leyton',
     codex_image_candidates: demoCandidates, codex_image_search_query: 'Baby Sensory Leyton',
-    codex_image_searched_at: new Date().toISOString(), codex_image_search_model: 'Codex 5.6 Sol',
+    codex_image_searched_at: new Date().toISOString(), codex_image_search_model: 'SerpAPI Google Images — top 20 unfiltered',
   },
   {
     activity_id: 'demo-unsuitable', activity_name: 'Yardarm family café', address: '238 Francis Road, Leyton, London E10 6NQ',
@@ -58,7 +58,7 @@ const demoActivities = [
     audit_image_status: 'needs_replacement', website_image_url: 'https://picsum.photos/seed/old-cafe/900/600',
     website: 'https://yardarm.london', codex_image_candidates: demoCandidates.slice(0, 12),
     codex_image_search_query: 'Yardarm family café Leyton', codex_image_searched_at: new Date().toISOString(),
-    codex_image_search_model: 'Codex 5.6 Sol',
+    codex_image_search_model: 'SerpAPI Google Images — top 20 unfiltered',
   },
   {
     activity_id: 'demo-draft', activity_name: 'Mini Mozart Hackney', address: 'Hackney, London E8', borough: 'Hackney',
@@ -248,7 +248,7 @@ function App() {
     setSelectedCandidate(null);
     if (isDemo) {
       setCandidateRequest({ status: 'pending', requested_query: query, request_variant: variant, requested_at: new Date().toISOString() });
-      setTimeout(() => setCandidateRequest({ status: 'completed', requested_query: query, request_variant: variant, requested_at: new Date().toISOString(), candidate_count: demoCandidates.length, codex_model: 'Codex 5.6 Sol' }), 600);
+      setTimeout(() => setCandidateRequest({ status: 'completed', requested_query: query, request_variant: variant, requested_at: new Date().toISOString(), candidate_count: demoCandidates.length, codex_model: 'SerpAPI Google Images — top 20 unfiltered' }), 600);
       setBusy('');
       return;
     }
@@ -262,8 +262,33 @@ function App() {
         requested_by_user_id: session.user.id,
       }).select('*').single();
       if (response.error) throw response.error;
-      setCandidateRequest(response.data);
-      setNotice('Candidate request queued for Codex chat. This page will update automatically when Codex completes it.');
+      setCandidateRequest({ ...response.data, status: 'in_progress' });
+      const searchResponse = await supabase.functions.invoke('image-review-admin', {
+        body: {
+          action: 'search',
+          activity_id: selectedActivity.activity_id,
+          candidate_request_id: response.data.candidate_request_id,
+          query,
+        },
+      });
+      if (searchResponse.error || searchResponse.data?.error) {
+        throw new Error(searchResponse.data?.error || searchResponse.error?.message || 'SerpAPI search failed.');
+      }
+      setActivities((current) => current.map((activity) => activity.activity_id === selectedActivity.activity_id ? {
+        ...activity,
+        codex_image_candidates: searchResponse.data.candidates,
+        codex_image_search_query: searchResponse.data.query,
+        codex_image_searched_at: searchResponse.data.searchedAt,
+        codex_image_search_model: searchResponse.data.source,
+      } : activity));
+      setCandidateRequest({
+        ...response.data,
+        status: 'completed',
+        completed_at: searchResponse.data.searchedAt,
+        candidate_count: searchResponse.data.candidates.length,
+        codex_model: searchResponse.data.source,
+      });
+      setNotice(`${searchResponse.data.candidates.length} unfiltered Google Images candidates loaded from SerpAPI.`);
     } catch (error) {
       setNotice(`Could not queue the candidate search: ${error.message}`);
     } finally {
@@ -469,9 +494,9 @@ function App() {
               </section>
 
               <section className="search-panel">
-                <div className="section-title"><div><p className="eyebrow">Candidate discovery</p><h2>Search with Codex chat</h2></div><span className={`request-status ${requestStatus}`}>{requestStatus.replaceAll('_', ' ')}</span></div>
-                <p>The app queues this query. Codex in the administrator chat performs image search and visual review—no OpenAI API key and no SerpAPI.</p>
-                <div className="query-row"><input value={customQuery} onChange={(event) => setCustomQuery(event.target.value)} maxLength={240} /><button className="primary-button" type="button" disabled={busy === 'request' || !customQuery.trim()} onClick={() => requestCandidates('custom', customQuery)}>{busy === 'request' ? 'Queuing…' : 'Request candidates'}</button></div>
+                <div className="section-title"><div><p className="eyebrow">Candidate discovery</p><h2>Search Google Images</h2></div><span className={`request-status ${requestStatus}`}>{requestStatus.replaceAll('_', ' ')}</span></div>
+                <p>SerpAPI returns the first 20 Google Images results in their original order. Candidates are shown without quality, logo, resolution, Wikimedia, or relevance filtering.</p>
+                <div className="query-row"><input value={customQuery} onChange={(event) => setCustomQuery(event.target.value)} maxLength={240} /><button className="primary-button" type="button" disabled={busy === 'request' || !customQuery.trim()} onClick={() => requestCandidates('custom', customQuery)}>{busy === 'request' ? 'Searching…' : 'Load top 20'}</button></div>
                 <div className="query-options">
                   <button type="button" onClick={() => { setCustomQuery(queries.activity_location); requestCandidates('activity_location', queries.activity_location); }}>Activity + location</button>
                   <button type="button" onClick={() => { setCustomQuery(queries.provider_location); requestCandidates('provider_location', queries.provider_location); }}>Provider + location</button>
@@ -480,7 +505,7 @@ function App() {
                 <div className="request-meta">
                   <span>Requested: {formatDate(candidateRequest?.requested_at)}</span>
                   <span>Last completed: {formatDate(selectedActivity.codex_image_searched_at)}</span>
-                  <span>Reviewed by: {selectedActivity.codex_image_search_model || candidateRequest?.codex_model || 'Waiting for Codex'}</span>
+                  <span>Source: {selectedActivity.codex_image_search_model || candidateRequest?.codex_model || 'Waiting for SerpAPI'}</span>
                 </div>
               </section>
 
@@ -491,7 +516,7 @@ function App() {
 
             <section className="candidate-column">
               <div className="candidate-header">
-                <div><p className="eyebrow">Codex-reviewed results</p><h2>Candidate gallery <span>{candidates.length}</span></h2></div>
+                <div><p className="eyebrow">Unfiltered Google Images results</p><h2>Candidate gallery <span>{candidates.length}</span></h2></div>
                 <div className="candidate-actions"><button className="text-button" type="button" disabled={selectedCandidate == null} onClick={() => setSelectedCandidate(null)}>Clear selection</button><button className="primary-button" type="button" disabled={selectedCandidate == null || busy === 'save'} onClick={saveSelected}>{busy === 'save' ? 'Downloading…' : 'Use selected image'}</button></div>
               </div>
               {candidates.length ? (
@@ -501,8 +526,8 @@ function App() {
               ) : (
                 <div className="waiting-panel">
                   <div className="waiting-icon">⌁</div>
-                  <h3>{['pending', 'in_progress'].includes(requestStatus) ? 'Waiting for Codex chat' : 'No candidates yet'}</h3>
-                  <p>{requestStatus === 'in_progress' ? 'Codex is searching and visually assessing suitable images now.' : 'A pending request will appear here after Codex searches and reviews 12–20 images.'}</p>
+                  <h3>{['pending', 'in_progress'].includes(requestStatus) ? 'Searching Google Images' : 'No candidates yet'}</h3>
+                  <p>{requestStatus === 'in_progress' ? 'SerpAPI is fetching the first 20 results now.' : 'Run an activity-and-location search to load the top 20 Google Images results.'}</p>
                   {candidateRequest?.requested_query ? <code>{candidateRequest.requested_query}</code> : null}
                 </div>
               )}

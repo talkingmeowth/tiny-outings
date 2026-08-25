@@ -17,6 +17,10 @@ const maxImageBytes = 8 * 1024 * 1024
 
 type Activity = {
   activity_id: string
+  activity_name: string
+  address: string | null
+  postcode: string | null
+  borough: string | null
   category: string | null
   public_listing_status: string
   codex_image_candidates?: unknown
@@ -102,6 +106,13 @@ function normalizeCandidate(activity: Activity, value: unknown): Candidate | nul
 async function authenticatedAdmin(request: Request, supabase: ReturnType<typeof createClient>) {
   const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '').trim() || ''
   if (!token) return null
+  try {
+    const payload = token.split('.')[1]
+    const decoded = payload ? JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/'))) : null
+    if (decoded?.role === 'service_role') return { id: null, email: 'service_role' }
+  } catch {
+    // Continue with normal user authentication.
+  }
   const { data, error } = await supabase.auth.getUser(token)
   const user = data.user
   if (error || !user?.email || !adminEmails.has(user.email.toLowerCase())) return null
@@ -111,13 +122,107 @@ async function authenticatedAdmin(request: Request, supabase: ReturnType<typeof 
 async function findActivity(supabase: ReturnType<typeof createClient>, activityId: string) {
   const { data, error } = await supabase
     .from('activities')
-    .select('activity_id,category,public_listing_status,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model')
+    .select('activity_id,activity_name,address,postcode,borough,category,public_listing_status,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model')
     .eq('activity_id', activityId)
     .eq('archive', false)
     .maybeSingle()
   if (error) throw new Error(error.message)
   if (!data) throw new Error('Listing not found.')
   return data as Activity
+}
+
+async function searchUnfilteredSerpApiCandidates(
+  supabase: ReturnType<typeof createClient>,
+  activity: Activity,
+  candidateRequestId: string,
+  suppliedQuery: string,
+) {
+  const apiKey = Deno.env.get('SERPAPI_API_KEY')
+  if (!apiKey) throw new Error('SERPAPI_API_KEY is not configured.')
+
+  let query = cleanText(suppliedQuery)
+  if (candidateRequestId) {
+    const { data: requestRow, error: requestError } = await supabase
+      .from('codex_image_candidate_requests')
+      .select('candidate_request_id,activity_id,requested_query')
+      .eq('candidate_request_id', candidateRequestId)
+      .maybeSingle()
+    if (requestError) throw new Error(requestError.message)
+    if (!requestRow || requestRow.activity_id !== activity.activity_id) throw new Error('Candidate request not found for this listing.')
+    query = cleanText(requestRow.requested_query) || query
+    await supabase.from('codex_image_candidate_requests').update({
+      status: 'in_progress',
+      started_at: new Date().toISOString(),
+      failure_reason: null,
+    }).eq('candidate_request_id', candidateRequestId)
+  }
+  if (!query) query = `${cleanText(activity.activity_name)} ${cleanText(activity.address || activity.postcode || activity.borough || 'London')}`.trim()
+
+  try {
+    const searchUrl = new URL('https://serpapi.com/search.json')
+    searchUrl.searchParams.set('engine', 'google_images')
+    searchUrl.searchParams.set('q', query)
+    searchUrl.searchParams.set('location', 'London, England, United Kingdom')
+    searchUrl.searchParams.set('api_key', apiKey)
+    const response = await fetch(searchUrl, { signal: AbortSignal.timeout(25000) })
+    if (!response.ok) throw new Error(`SerpAPI returned ${response.status}.`)
+    const body = await response.json() as { images_results?: Array<Record<string, unknown>> }
+    const rawResults = Array.isArray(body.images_results) ? body.images_results.slice(0, 20) : []
+    const candidates = rawResults.map((image, index) => ({
+      image_url: cleanText(image.original),
+      thumbnail_url: cleanText(image.thumbnail) || null,
+      source_page_url: cleanText(image.link) || null,
+      source_domain: domain(image.link) || cleanText(image.source),
+      title: cleanText(image.title) || null,
+      width: Number.isFinite(Number(image.original_width)) ? Number(image.original_width) : null,
+      height: Number.isFinite(Number(image.original_height)) ? Number(image.original_height) : null,
+      relevance_reason: `Google Images result ${Number(image.position) || index + 1}`,
+    }))
+    const legacyCandidates = rawResults.map((image, index) => ({
+      original: cleanText(image.original),
+      thumbnail: cleanText(image.thumbnail) || null,
+      title: cleanText(image.title) || null,
+      source: cleanText(image.source) || null,
+      link: cleanText(image.link) || null,
+      position: Number(image.position) || index + 1,
+      original_width: Number.isFinite(Number(image.original_width)) ? Number(image.original_width) : null,
+      original_height: Number.isFinite(Number(image.original_height)) ? Number(image.original_height) : null,
+    }))
+    const completedAt = new Date().toISOString()
+    const sourceLabel = 'SerpAPI Google Images — top 20 unfiltered'
+    const { error: activityError } = await supabase.from('activities').update({
+      codex_image_candidates: candidates,
+      codex_image_search_query: query,
+      codex_image_searched_at: completedAt,
+      codex_image_search_model: sourceLabel,
+      serpapi_image_candidates: legacyCandidates,
+      serpapi_image_search_query: query,
+      serpapi_image_candidates_fetched_at: completedAt,
+      serpapi_image_checked_at: completedAt,
+      updated_at: completedAt,
+    }).eq('activity_id', activity.activity_id)
+    if (activityError) throw new Error(activityError.message)
+    if (candidateRequestId) {
+      const { error: requestError } = await supabase.from('codex_image_candidate_requests').update({
+        status: 'completed',
+        completed_at: completedAt,
+        codex_model: sourceLabel,
+        candidate_count: candidates.length,
+        failure_reason: null,
+      }).eq('candidate_request_id', candidateRequestId)
+      if (requestError) throw new Error(requestError.message)
+    }
+    return { candidates, query, searchedAt: completedAt, source: sourceLabel }
+  } catch (error) {
+    if (candidateRequestId) {
+      await supabase.from('codex_image_candidate_requests').update({
+        status: 'failed',
+        completed_at: new Date().toISOString(),
+        failure_reason: error instanceof Error ? error.message : 'SerpAPI image search failed.',
+      }).eq('candidate_request_id', candidateRequestId)
+    }
+    throw error
+  }
 }
 
 function readUint32(bytes: Uint8Array, offset: number) {
@@ -271,15 +376,27 @@ Deno.serve(async (request) => {
   const user = await authenticatedAdmin(request, supabase)
   if (!user) return jsonResponse({ error: 'Only Tiny Outings administrators can use desktop image review.' }, 403)
   const body = await request.json().catch(() => ({})) as {
-    action?: 'select' | 'publish'
+    action?: 'search' | 'select' | 'publish'
     activity_id?: string
+    candidate_request_id?: string
+    query?: string
     candidate_index?: number
     candidate_set_searched_at?: string
   }
   if (!body.activity_id || !body.action) return jsonResponse({ error: 'action and activity_id are required.' }, 400)
   try {
     const activity = await findActivity(supabase, body.activity_id)
+    if (body.action === 'search') {
+      const result = await searchUnfilteredSerpApiCandidates(
+        supabase,
+        activity,
+        cleanText(body.candidate_request_id),
+        cleanText(body.query),
+      )
+      return jsonResponse({ status: 'searched', ...result })
+    }
     if (body.action === 'select') {
+      if (!user.id) return jsonResponse({ error: 'An administrator user session is required to select an image.' }, 403)
       if (!Number.isInteger(body.candidate_index) || Number(body.candidate_index) < 0) {
         return jsonResponse({ error: 'candidate_index is required.' }, 400)
       }
@@ -287,6 +404,7 @@ Deno.serve(async (request) => {
       return jsonResponse({ status: 'selected', ...result })
     }
     if (body.action === 'publish') {
+      if (!user.id) return jsonResponse({ error: 'An administrator user session is required to publish a listing.' }, 403)
       const result = await publishDraft(supabase, activity, user.id)
       return jsonResponse({ status: 'published', activity: result })
     }

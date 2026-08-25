@@ -2,24 +2,13 @@
 
 The desktop review app lives at `/review/`. It is a separate, laptop-first React entry point and is protected by Supabase Google sign-in plus the existing Tiny Outings administrator allowlist.
 
-## Image discovery uses Codex chat
+## Image discovery uses SerpAPI
 
-The app deliberately does not call SerpAPI, the OpenAI API, or any other model API. It does not need an OpenAI API key.
+When an administrator opens a listing without candidates, or requests a different search, the app creates a request and immediately calls SerpAPI's `google_images` search. The query is normally the activity name plus the most useful location without duplicated place names.
 
-When an administrator opens a listing without candidates, or requests a different search, the app adds a row to `public.codex_image_candidate_requests`. It then polls Supabase for the result. The request contains the listing ID and generated query, normally the activity name plus the most useful location without duplicated place names.
+The first 20 `images_results` are stored and displayed in exactly the order returned. Candidate discovery does not filter by quality, resolution, logos, Wikimedia, source, duplication, or relevance. The administrator makes that judgment in the gallery.
 
-To fill queued requests, tell Codex in the project chat:
-
-> Process the pending desktop image candidate requests.
-
-Codex should then:
-
-1. Read pending rows, oldest first, joined to their activity details.
-2. Mark each row `in_progress` and set `started_at`.
-3. Use Codex image search for the stored query, refining with the provider, address, category, and London context where useful.
-4. Visually assess the results for identity, accuracy, representativeness, and quality. Reject icons, logos, maps, posters, text graphics, tiny images, unrelated venues, and misleading crops. For cafes, prefer a clear interior with seating, then a useful exterior; do not choose a food-only close-up.
-5. Keep 12–20 strong candidates, subject to availability. Do not use Wikimedia outside Parks & outdoor play, Museums & culture, and Family activities.
-6. Write the candidate array to the matching activity using this shape:
+Each result is adapted to this display shape without changing its rank:
 
    ```json
    {
@@ -30,13 +19,11 @@ Codex should then:
      "title": "Venue gallery",
      "width": 1600,
      "height": 1067,
-     "relevance_reason": "Clear interior showing the cafe seating and layout."
+     "relevance_reason": "Google Images result 1"
    }
    ```
 
-7. Set `codex_image_search_query`, `codex_image_searched_at`, and `codex_image_search_model` on the activity. Complete the request with `status = 'completed'`, `completed_at`, `candidate_count`, and the Codex model name. Record `failed` and a concise `failure_reason` when no reliable candidates can be supplied.
-
-The desktop app notices completed rows within about five seconds and displays the candidates.
+The app also retains the raw top-20 result fields in `serpapi_image_candidates`. The existing `codex_image_*` column names remain as the desktop gallery's storage contract, but `codex_image_search_model` clearly records `SerpAPI Google Images — top 20 unfiltered`.
 
 ## Saving a reviewed image
 
