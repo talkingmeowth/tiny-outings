@@ -3,6 +3,7 @@ import { hasSupabaseConfig, supabase } from './supabase.js';
 import { edgeFunctionErrorMessage } from './functionErrors.js';
 import {
   QUEUES,
+  activitiesToPreload,
   bestLocation,
   clean,
   currentImage,
@@ -21,6 +22,9 @@ const ADMIN_EMAILS = new Set([
   'talkingmeowtho6@gmail.com',
   'benfielden@gmail.com',
 ]);
+const PRELOAD_QUEUE_IDS = ['missing_published', 'unsuitable_audit', 'all_published', 'all_draft'];
+const PRELOAD_PER_QUEUE = 20;
+const PRELOAD_CONCURRENCY = 6;
 
 const activityColumns = [
   'activity_id', 'activity_name', 'address', 'postcode', 'borough', 'category', 'age_suitability',
@@ -30,7 +34,7 @@ const activityColumns = [
   'reviewed_image_selected_at', 'reviewed_image_model', 'user_image_url', 'audit_image_url', 'audit_image_source_url',
   'organiser_website_downloaded_image', 'website_downloaded_image', 'wikimedia_image_url', 'website_image_url',
   'listing_image_url', 'codex_image_search_query', 'codex_image_searched_at',
-  'codex_image_search_model', 'created_at', 'updated_at',
+  'codex_image_search_model', 'image_review_ignored_at', 'image_review_ignored_by_user_id', 'created_at', 'updated_at',
 ].join(',');
 
 const isDemo = import.meta.env.DEV && new URLSearchParams(window.location.search).get('demo') === '1';
@@ -230,10 +234,13 @@ function App() {
   const [customQuery, setCustomQuery] = useState('');
   const [busy, setBusy] = useState('');
   const [notice, setNotice] = useState('');
+  const [preloadStatus, setPreloadStatus] = useState({ status: 'idle', ready: 0, total: 0, apiCalls: 0, failed: 0 });
   const selectedIdRef = useRef(selectedId);
   const candidateLoadsRef = useRef(new Set());
   const candidateSearchesRef = useRef(new Set());
   const candidateSearchSequenceRef = useRef(0);
+  const preloadStartedRef = useRef(false);
+  const preloadRunRef = useRef(0);
 
   const isAdmin = isDemo || ADMIN_EMAILS.has(clean(session?.user?.email).toLowerCase());
 
@@ -261,6 +268,9 @@ function App() {
 
   const refreshActivities = useCallback(async () => {
     if (isDemo || !isAdmin) return;
+    preloadStartedRef.current = false;
+    preloadRunRef.current += 1;
+    setPreloadStatus({ status: 'idle', ready: 0, total: 0, apiCalls: 0, failed: 0 });
     setLoading(true);
     try {
       setActivities(await loadAllActivities());
@@ -278,6 +288,10 @@ function App() {
 
   const preparedActivities = useMemo(() => prepareActivities(activities), [activities]);
   const counts = useMemo(() => queueCountsFromPrepared(preparedActivities), [preparedActivities]);
+  const preloadTargets = useMemo(
+    () => activitiesToPreload(preparedActivities, PRELOAD_QUEUE_IDS, PRELOAD_PER_QUEUE),
+    [preparedActivities],
+  );
   const queueActivities = useMemo(() => {
     const queue = preparedActivitiesForQueue(preparedActivities, activeQueue);
     const needle = deferredFilter.toLowerCase().trim();
@@ -302,7 +316,7 @@ function App() {
   const candidates = Array.isArray(selectedActivity?.codex_image_candidates) ? selectedActivity.codex_image_candidates.slice(0, 20) : [];
   const activeImage = selectedActivity ? currentImage(selectedActivity) : null;
 
-  const requestCandidates = useCallback(async (activity, variant = 'activity_location', requestedQuery = '') => {
+  const requestCandidates = useCallback(async (activity, variant = 'activity_location', requestedQuery = '', background = false) => {
     if (!activity || !session?.user) return;
     const activityId = activity.activity_id;
     if (candidateSearchesRef.current.has(activityId)) return;
@@ -310,12 +324,14 @@ function App() {
     const query = clean(requestedQuery) || activityQueries[variant] || activityQueries.activity_location;
     if (!query) return;
     candidateSearchesRef.current.add(activityId);
-    const requestSequence = candidateSearchSequenceRef.current + 1;
-    candidateSearchSequenceRef.current = requestSequence;
+    const requestSequence = background ? null : candidateSearchSequenceRef.current + 1;
+    if (!background) candidateSearchSequenceRef.current = requestSequence;
     const requestedAt = new Date().toISOString();
-    setBusy('request');
-    setNotice('');
-    setSelectedCandidate(null);
+    if (!background) {
+      setBusy('request');
+      setNotice('');
+      setSelectedCandidate(null);
+    }
     if (selectedIdRef.current === activityId) {
       setCandidateRequest({ status: 'in_progress', requested_query: query, request_variant: variant, requested_at: requestedAt });
     }
@@ -330,11 +346,11 @@ function App() {
           codex_image_search_model: 'SerpAPI Google Images — top 20 unfiltered',
           candidate_set_loaded: true,
         } : currentActivity));
-        setCandidateRequest({ status: 'completed', requested_query: query, request_variant: variant, requested_at: requestedAt, completed_at: completedAt, candidate_count: demoCandidates.length, codex_model: 'SerpAPI Google Images — top 20 unfiltered' });
+        if (selectedIdRef.current === activityId) setCandidateRequest({ status: 'completed', requested_query: query, request_variant: variant, requested_at: requestedAt, completed_at: completedAt, candidate_count: demoCandidates.length, codex_model: 'SerpAPI Google Images — top 20 unfiltered' });
         candidateSearchesRef.current.delete(activityId);
-        setBusy('');
+        if (!background) setBusy('');
       }, 600);
-      return;
+      return true;
     }
     try {
       const searchResponse = await supabase.functions.invoke('image-review-admin', {
@@ -365,8 +381,9 @@ function App() {
           candidate_count: searchResponse.data.candidates.length,
           codex_model: searchResponse.data.source,
         });
-        setNotice(`${searchResponse.data.candidates.length} unfiltered Google Images candidates loaded from SerpAPI.`);
+        if (!background) setNotice(`${searchResponse.data.candidates.length} unfiltered Google Images candidates loaded from SerpAPI.`);
       }
+      return true;
     } catch (error) {
       if (selectedIdRef.current === activityId) {
         setCandidateRequest((current) => ({
@@ -375,13 +392,64 @@ function App() {
           completed_at: new Date().toISOString(),
           failure_reason: error.message,
         }));
-        setNotice(`Could not load image candidates from SerpAPI: ${error.message}`);
+        if (!background) setNotice(`Could not load image candidates from SerpAPI: ${error.message}`);
       }
+      return false;
     } finally {
       candidateSearchesRef.current.delete(activityId);
-      if (candidateSearchSequenceRef.current === requestSequence) setBusy('');
+      if (!background && candidateSearchSequenceRef.current === requestSequence) setBusy('');
     }
   }, [session]);
+
+  useEffect(() => {
+    if (isDemo || loading || !isAdmin || !preloadTargets.length || preloadStartedRef.current) return undefined;
+    preloadStartedRef.current = true;
+    const runId = preloadRunRef.current + 1;
+    preloadRunRef.current = runId;
+    const isCurrentRun = () => preloadRunRef.current === runId;
+    async function preloadCandidateSets() {
+      const targetIds = preloadTargets.map((activity) => activity.activity_id);
+      setPreloadStatus({ status: 'loading', ready: 0, total: targetIds.length, apiCalls: 0, failed: 0 });
+      try {
+        const response = await supabase.from('activities')
+          .select('activity_id,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model')
+          .in('activity_id', targetIds);
+        if (response.error) throw response.error;
+        const savedById = new Map((response.data || []).map((activity) => [activity.activity_id, activity]));
+        setActivities((current) => current.map((activity) => {
+          const saved = savedById.get(activity.activity_id);
+          return saved ? { ...activity, ...saved, candidate_set_loaded: true } : activity;
+        }));
+        const missing = preloadTargets
+          .map((activity) => ({ ...activity, ...(savedById.get(activity.activity_id) || {}), candidate_set_loaded: true }))
+          .filter((activity) => !Array.isArray(activity.codex_image_candidates) || !activity.codex_image_candidates.length);
+        let ready = targetIds.length - missing.length;
+        let failed = 0;
+        let nextIndex = 0;
+        if (isCurrentRun()) setPreloadStatus({ status: missing.length ? 'searching' : 'complete', ready, total: targetIds.length, apiCalls: missing.length, failed });
+        async function worker() {
+          while (nextIndex < missing.length) {
+            const activity = missing[nextIndex];
+            nextIndex += 1;
+            const query = searchQueries(activity).activity_location;
+            const loaded = await requestCandidates(activity, 'activity_location', query, true);
+            if (loaded === false) failed += 1;
+            else ready += 1;
+            const finished = ready + failed === targetIds.length;
+            if (isCurrentRun()) setPreloadStatus({ status: finished ? (failed ? 'failed' : 'complete') : 'searching', ready, total: targetIds.length, apiCalls: missing.length, failed });
+          }
+        }
+        await Promise.all(Array.from({ length: Math.min(PRELOAD_CONCURRENCY, missing.length) }, worker));
+      } catch (error) {
+        if (isCurrentRun()) {
+          setPreloadStatus((current) => ({ ...current, status: 'failed' }));
+          setNotice(`Could not preload candidate images: ${error.message}`);
+        }
+      }
+    }
+    preloadCandidateSets();
+    return undefined;
+  }, [isAdmin, loading, preloadTargets, requestCandidates]);
 
   useEffect(() => {
     setSelectedCandidate(null);
@@ -394,7 +462,7 @@ function App() {
     if (isDemo || !selectedActivity || !supabase) return undefined;
     const activityId = selectedActivity.activity_id;
     if (selectedActivity.candidate_set_loaded) {
-      if (!candidates.length) requestCandidates(selectedActivity, 'activity_location', queries?.activity_location);
+      if (!candidates.length && !selectedActivity.image_review_ignored_at) requestCandidates(selectedActivity, 'activity_location', queries?.activity_location);
       return undefined;
     }
     if (candidateLoadsRef.current.has(activityId)) return undefined;
@@ -496,6 +564,34 @@ function App() {
     setBusy('');
   }
 
+  async function setIgnored(ignored) {
+    if (!selectedActivity) return;
+    const activityId = selectedActivity.activity_id;
+    setBusy('ignore');
+    setNotice('');
+    if (isDemo) {
+      const ignoredAt = ignored ? new Date().toISOString() : null;
+      setActivities((current) => current.map((activity) => activity.activity_id === activityId
+        ? { ...activity, image_review_ignored_at: ignoredAt, image_review_ignored_by_user_id: ignored ? 'demo' : null }
+        : activity));
+      setBusy('');
+      setNotice(ignored ? 'Listing moved to Ignored.' : 'Listing returned to the active review queues.');
+      return;
+    }
+    const response = await supabase.functions.invoke('image-review-admin', {
+      body: { action: 'ignore', activity_id: activityId, ignored },
+    });
+    if (response.error || response.data?.error) {
+      setNotice(`Could not change the review status: ${await edgeFunctionErrorMessage(response, 'Image review status update failed.')}`);
+    } else {
+      setActivities((current) => current.map((activity) => activity.activity_id === activityId
+        ? { ...activity, ...response.data.activity }
+        : activity));
+      setNotice(ignored ? 'Listing moved to Ignored.' : 'Listing returned to the active review queues.');
+    }
+    setBusy('');
+  }
+
   function selectCandidate(index) {
     setSelectedCandidate((current) => current === index ? null : index);
   }
@@ -510,6 +606,15 @@ function App() {
   const candidateSource = candidates.length
     ? selectedActivity.codex_image_search_model || candidateRequest?.codex_model || 'Saved image candidates'
     : 'SerpAPI Google Images';
+  const preloadLabel = preloadStatus.status === 'loading'
+    ? 'Loading saved candidates…'
+    : preloadStatus.status === 'searching'
+      ? `Preloading candidates ${preloadStatus.ready}/${preloadStatus.total}`
+      : preloadStatus.status === 'complete'
+        ? `Candidates ready ${preloadStatus.ready}/${preloadStatus.total}`
+        : preloadStatus.status === 'failed'
+          ? `Candidate preload incomplete ${preloadStatus.ready}/${preloadStatus.total}`
+          : '';
 
   return (
     <div className="review-app">
@@ -520,6 +625,7 @@ function App() {
         </div>
         <div className="topbar-actions">
           {isDemo ? <span className="demo-pill">Demo mode</span> : null}
+          {preloadLabel ? <span className={`preload-pill ${preloadStatus.status}`}>{preloadLabel}</span> : null}
           <button className="secondary-button" type="button" onClick={refreshActivities} disabled={loading}>Refresh data</button>
           <span className="signed-in">{session.user.email}</span>
           {!isDemo ? <button className="text-button" type="button" onClick={() => supabase.auth.signOut()}>Sign out</button> : null}
@@ -576,11 +682,17 @@ function App() {
                   <div className="status-line">
                     <span className={`status-badge ${selectedActivity.public_listing_status}`}>{selectedActivity.public_listing_status === 'draft' ? 'Draft' : 'Published'}</span>
                     {selectedActivity.audit_image_status ? <span className="audit-badge">Audit: {selectedActivity.audit_image_status.replaceAll('_', ' ')}</span> : null}
+                    {selectedActivity.image_review_ignored_at ? <span className="ignored-badge">Ignored</span> : null}
                   </div>
                   <h1>{selectedActivity.activity_name || 'Untitled listing'}</h1>
                   {providerLabel(selectedActivity) ? <p className="provider-name">{providerLabel(selectedActivity)}</p> : null}
                 </div>
-                {openListingUrl(selectedActivity) ? <a className="secondary-button link-button" href={openListingUrl(selectedActivity)} target="_blank" rel="noreferrer">Open listing ↗</a> : null}
+                <div className="detail-actions">
+                  {openListingUrl(selectedActivity) ? <a className="secondary-button link-button" href={openListingUrl(selectedActivity)} target="_blank" rel="noreferrer">Open listing ↗</a> : null}
+                  <button className={selectedActivity.image_review_ignored_at ? 'restore-button' : 'ignore-button'} type="button" disabled={busy === 'ignore'} onClick={() => setIgnored(!selectedActivity.image_review_ignored_at)}>
+                    {busy === 'ignore' ? 'Updating…' : selectedActivity.image_review_ignored_at ? 'Return to review' : 'Ignore'}
+                  </button>
+                </div>
               </div>
 
               <dl className="metadata-grid">

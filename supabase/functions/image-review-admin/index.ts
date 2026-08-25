@@ -27,6 +27,8 @@ type Activity = {
   codex_image_search_query?: string | null
   codex_image_searched_at?: string | null
   codex_image_search_model?: string | null
+  image_review_ignored_at?: string | null
+  image_review_ignored_by_user_id?: string | null
 }
 
 type Candidate = {
@@ -122,7 +124,7 @@ async function authenticatedAdmin(request: Request, supabase: ReturnType<typeof 
 async function findActivity(supabase: ReturnType<typeof createClient>, activityId: string) {
   const { data, error } = await supabase
     .from('activities')
-    .select('activity_id,activity_name,address,postcode,borough,category,public_listing_status,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model')
+    .select('activity_id,activity_name,address,postcode,borough,category,public_listing_status,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,image_review_ignored_at,image_review_ignored_by_user_id')
     .eq('activity_id', activityId)
     .eq('archive', false)
     .maybeSingle()
@@ -423,6 +425,24 @@ async function publishDraft(supabase: ReturnType<typeof createClient>, activity:
   return data
 }
 
+async function setImageReviewIgnored(
+  supabase: ReturnType<typeof createClient>,
+  activity: Activity,
+  userId: string,
+  ignored: boolean,
+) {
+  const changedAt = new Date().toISOString()
+  const { data, error } = await supabase.from('activities').update({
+    image_review_ignored_at: ignored ? changedAt : null,
+    image_review_ignored_by_user_id: ignored ? userId : null,
+    updated_at: changedAt,
+  }).eq('activity_id', activity.activity_id)
+    .select('activity_id,image_review_ignored_at,image_review_ignored_by_user_id')
+    .single()
+  if (error) throw new Error(error.message)
+  return data
+}
+
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   if (request.method !== 'POST') return jsonResponse({ error: 'Use POST.' }, 405)
@@ -430,13 +450,14 @@ Deno.serve(async (request) => {
   const user = await authenticatedAdmin(request, supabase)
   if (!user) return jsonResponse({ error: 'Only Tiny Outings administrators can use desktop image review.' }, 403)
   const body = await request.json().catch(() => ({})) as {
-    action?: 'search' | 'select' | 'publish'
+    action?: 'search' | 'select' | 'publish' | 'ignore'
     activity_id?: string
     candidate_request_id?: string
     query?: string
     request_variant?: string
     candidate_index?: number
     candidate_set_searched_at?: string
+    ignored?: boolean
   }
   if (!body.activity_id || !body.action) return jsonResponse({ error: 'action and activity_id are required.' }, 400)
   try {
@@ -464,6 +485,11 @@ Deno.serve(async (request) => {
       if (!user.id) return jsonResponse({ error: 'An administrator user session is required to publish a listing.' }, 403)
       const result = await publishDraft(supabase, activity, user.id)
       return jsonResponse({ status: 'published', activity: result })
+    }
+    if (body.action === 'ignore') {
+      if (!user.id) return jsonResponse({ error: 'An administrator user session is required to change image review status.' }, 403)
+      const result = await setImageReviewIgnored(supabase, activity, user.id, body.ignored !== false)
+      return jsonResponse({ status: result.image_review_ignored_at ? 'ignored' : 'reviewable', activity: result })
     }
     return jsonResponse({ error: 'Unsupported action.' }, 400)
   } catch (error) {

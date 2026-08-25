@@ -72,6 +72,7 @@ export const QUEUES = [
   { id: 'unsuitable_audit', label: 'Unsuitable — Audit', description: 'Listings the image audit marked for replacement.' },
   { id: 'all_published', label: 'All — Published', description: 'Every live listing, with or without an image.' },
   { id: 'all_draft', label: 'All — Draft', description: 'Every unpublished listing.' },
+  { id: 'ignored', label: 'Ignored', description: 'Listings removed from active image review.' },
 ];
 
 export const IMAGE_SOURCE_LABELS = {
@@ -178,17 +179,23 @@ export function isUnsuitable(activity) {
   return ['needs_replacement', 'no_replacement'].includes(activity.audit_image_status) && !clean(activity.reviewed_image_url);
 }
 
+export function isImageReviewIgnored(activity) {
+  return Boolean(activity.image_review_ignored_at);
+}
+
 export function activitiesForQueue(activities, queueId) {
   return preparedActivitiesForQueue(prepareActivities(activities), queueId);
 }
 
 export function preparedActivitiesForQueue(prepared, queueId) {
+  if (queueId === 'ignored') return prepared.filter(isImageReviewIgnored);
+  const reviewable = prepared.filter((activity) => !isImageReviewIgnored(activity));
   if (queueId === 'missing_published') {
-    return prepared.filter((activity) => activity.public_listing_status === 'published' && !currentImage(activity).url);
+    return reviewable.filter((activity) => activity.public_listing_status === 'published' && !currentImage(activity).url);
   }
-  if (queueId === 'unsuitable_audit') return prepared.filter(isUnsuitable);
-  if (queueId === 'all_draft') return prepared.filter((activity) => activity.public_listing_status === 'draft');
-  return prepared.filter((activity) => activity.public_listing_status === 'published');
+  if (queueId === 'unsuitable_audit') return reviewable.filter(isUnsuitable);
+  if (queueId === 'all_draft') return reviewable.filter((activity) => activity.public_listing_status === 'draft');
+  return reviewable.filter((activity) => activity.public_listing_status === 'published');
 }
 
 export function queueCounts(activities) {
@@ -197,6 +204,22 @@ export function queueCounts(activities) {
 
 export function queueCountsFromPrepared(prepared) {
   return Object.fromEntries(QUEUES.map((queue) => [queue.id, preparedActivitiesForQueue(prepared, queue.id).length]));
+}
+
+export function activitiesToPreload(prepared, queueIds, perQueue = 20) {
+  const queueLists = queueIds.map((queueId) => preparedActivitiesForQueue(prepared, queueId).slice(0, perQueue));
+  const seen = new Set();
+  const targets = [];
+  for (let position = 0; position < perQueue; position += 1) {
+    for (const queue of queueLists) {
+      const activity = queue[position];
+      if (activity && !seen.has(activity.activity_id)) {
+        seen.add(activity.activity_id);
+        targets.push(activity);
+      }
+    }
+  }
+  return targets;
 }
 
 export function listingSearchText(activity) {
