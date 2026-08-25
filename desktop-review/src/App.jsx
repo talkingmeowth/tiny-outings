@@ -733,6 +733,9 @@ function App() {
                 <div className="detail-actions">
                   {openListingUrl(selectedActivity) ? <a className="secondary-button link-button" href={openListingUrl(selectedActivity)} target="_blank" rel="noreferrer">Open listing ↗</a> : null}
                   <a className="places-button link-button" href={googlePlacesUrl(selectedActivity)} target="_blank" rel="noreferrer">Google Places ↗</a>
+                  {selectedActivity.public_listing_status === 'draft' ? (
+                    <button className="publish-button" type="button" disabled={busy === 'publish'} onClick={publishDraft}>{busy === 'publish' ? 'Publishing…' : 'Publish listing'}</button>
+                  ) : null}
                   <button className={selectedActivity.image_review_ignored_at ? 'restore-button' : 'ignore-button'} type="button" disabled={busy === 'ignore'} onClick={() => setIgnored(!selectedActivity.image_review_ignored_at)}>
                     {busy === 'ignore' ? 'Updating…' : selectedActivity.image_review_ignored_at ? 'Return to review' : 'Ignore'}
                   </button>
@@ -782,9 +785,6 @@ function App() {
                 </div>
               </section>
 
-              {selectedActivity.public_listing_status === 'draft' ? (
-                <section className="publish-panel"><div><strong>Ready to make this listing live?</strong><span>Publishing moves it into the published queues immediately.</span></div><button className="publish-button" type="button" disabled={busy === 'publish'} onClick={publishDraft}>{busy === 'publish' ? 'Publishing…' : 'Publish listing'}</button></section>
-              ) : null}
             </section>
 
             <section className="candidate-column">
