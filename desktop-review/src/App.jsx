@@ -237,6 +237,7 @@ function App() {
   const [customQuery, setCustomQuery] = useState('');
   const [busy, setBusy] = useState('');
   const [notice, setNotice] = useState('');
+  const [archiveConfirmId, setArchiveConfirmId] = useState('');
   const [preloadStatus, setPreloadStatus] = useState({ status: 'idle', ready: 0, total: 0, apiCalls: 0, failed: 0 });
   const selectedIdRef = useRef(selectedId);
   const candidateLoadsRef = useRef(new Set());
@@ -249,6 +250,7 @@ function App() {
 
   useEffect(() => {
     selectedIdRef.current = selectedId;
+    setArchiveConfirmId('');
   }, [selectedId]);
 
   useEffect(() => {
@@ -604,6 +606,31 @@ function App() {
     setBusy('');
   }
 
+  async function archiveListing() {
+    if (!selectedActivity || archiveConfirmId !== selectedActivity.activity_id) return;
+    const activityId = selectedActivity.activity_id;
+    setBusy('archive');
+    setNotice('');
+    if (isDemo) {
+      setActivities((current) => current.filter((activity) => activity.activity_id !== activityId));
+      setArchiveConfirmId('');
+      setBusy('');
+      setNotice('Demo listing archived and removed from the review queues.');
+      return;
+    }
+    const response = await supabase.functions.invoke('image-review-admin', {
+      body: { action: 'archive', activity_id: activityId },
+    });
+    if (response.error || response.data?.error) {
+      setNotice(`Could not archive this listing: ${await edgeFunctionErrorMessage(response, 'Archiving failed.')}`);
+    } else {
+      setActivities((current) => current.filter((activity) => activity.activity_id !== activityId));
+      setArchiveConfirmId('');
+      setNotice('Listing archived and removed from every image-review queue.');
+    }
+    setBusy('');
+  }
+
   function selectCandidate(index) {
     setSelectedCandidate((current) => current === index ? null : index);
   }
@@ -709,6 +736,14 @@ function App() {
                   <button className={selectedActivity.image_review_ignored_at ? 'restore-button' : 'ignore-button'} type="button" disabled={busy === 'ignore'} onClick={() => setIgnored(!selectedActivity.image_review_ignored_at)}>
                     {busy === 'ignore' ? 'Updating…' : selectedActivity.image_review_ignored_at ? 'Return to review' : 'Ignore'}
                   </button>
+                  {archiveConfirmId === selectedActivity.activity_id ? (
+                    <span className="archive-confirm-actions">
+                      <button className="archive-cancel-button" type="button" disabled={busy === 'archive'} onClick={() => setArchiveConfirmId('')}>Cancel</button>
+                      <button className="archive-confirm-button" type="button" disabled={busy === 'archive'} onClick={archiveListing}>{busy === 'archive' ? 'Archiving…' : 'Confirm archive'}</button>
+                    </span>
+                  ) : (
+                    <button className="archive-button" type="button" disabled={Boolean(busy)} onClick={() => setArchiveConfirmId(selectedActivity.activity_id)}>Archive</button>
+                  )}
                 </div>
               </div>
 

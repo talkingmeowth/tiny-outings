@@ -161,7 +161,7 @@ a { color: #17604e; }
 .waiting-icon { width: 54px; height: 54px; display: grid; place-items: center; border-radius: 50%; background: #dcebe6; color: #286653; font-size: 30px; }
 .no-selection { grid-column: 2 / -1; background: #f4f1ea; }
 
-.primary-button, .secondary-button, .publish-button, .text-button, .ignore-button, .restore-button, .places-button { border-radius: 8px; padding: 9px 12px; font-size: 10px; font-weight: 850; cursor: pointer; white-space: nowrap; }
+.primary-button, .secondary-button, .publish-button, .text-button, .ignore-button, .restore-button, .places-button, .archive-button, .archive-cancel-button, .archive-confirm-button { border-radius: 8px; padding: 9px 12px; font-size: 10px; font-weight: 850; cursor: pointer; white-space: nowrap; }
 .primary-button { border: 1px solid #145744; background: #17634f; color: #fff; box-shadow: 0 2px 4px rgb(15 69 53 / .14); }
 .primary-button:hover { background: #0f503e; }
 .secondary-button { border: 1px solid #809c93; background: transparent; color: inherit; }
@@ -172,11 +172,17 @@ a { color: #17604e; }
 .ignore-button:hover { background: #f9ded8; }
 .restore-button { border: 1px solid #4d806f; background: #e7f3ef; color: #245f4e; }
 .restore-button:hover { background: #d8ebe5; }
+.archive-button { border: 1px solid #983b31; background: #fff; color: #8d3027; }
+.archive-button:hover { background: #fbe8e5; }
+.archive-confirm-actions { display: inline-flex; align-items: center; gap: 6px; }
+.archive-cancel-button { border: 1px solid #9a9d99; background: #fff; color: #535b58; }
+.archive-confirm-button { border: 1px solid #74271f; background: #94382e; color: #fff; }
+.archive-confirm-button:hover { background: #772b23; }
 .places-button { border: 1px solid #6f8eb9; background: #eef4fc; color: #315f9a; text-decoration: none; }
 .places-button:hover { background: #dfeafa; }
 .text-button { border: 0; background: transparent; color: #3c655a; }
 .topbar .text-button { color: #cfe0db; }
-.primary-button:disabled, .secondary-button:disabled, .publish-button:disabled, .text-button:disabled, .ignore-button:disabled, .restore-button:disabled { opacity: .42; cursor: default; }
+.primary-button:disabled, .secondary-button:disabled, .publish-button:disabled, .text-button:disabled, .ignore-button:disabled, .restore-button:disabled, .archive-button:disabled, .archive-cancel-button:disabled, .archive-confirm-button:disabled { opacity: .42; cursor: default; }
 .link-button { display: inline-flex; text-decoration: none; align-items: center; }
 
 .auth-shell, .loading-screen { min-height: 100vh; display: grid; place-items: center; padding: 30px; background: radial-gradient(circle at 15% 15%, #e1f0e9, transparent 36%), #f2efe7; }

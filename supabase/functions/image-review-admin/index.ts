@@ -23,6 +23,7 @@ type Activity = {
   borough: string | null
   category: string | null
   public_listing_status: string
+  archive?: boolean
   codex_image_candidates?: unknown
   codex_image_search_query?: string | null
   codex_image_searched_at?: string | null
@@ -129,7 +130,7 @@ async function authenticatedAdmin(request: Request, supabase: ReturnType<typeof 
 async function findActivity(supabase: ReturnType<typeof createClient>, activityId: string) {
   const { data, error } = await supabase
     .from('activities')
-    .select('activity_id,activity_name,address,postcode,borough,category,public_listing_status,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,image_review_ignored_at,image_review_ignored_by_user_id,reviewed_image_url,reviewed_image_source_url,reviewed_image_original_url,reviewed_image_selected_at,reviewed_image_model')
+    .select('activity_id,activity_name,address,postcode,borough,category,public_listing_status,archive,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,image_review_ignored_at,image_review_ignored_by_user_id,reviewed_image_url,reviewed_image_source_url,reviewed_image_original_url,reviewed_image_selected_at,reviewed_image_model')
     .eq('activity_id', activityId)
     .eq('archive', false)
     .maybeSingle()
@@ -457,6 +458,26 @@ async function setImageReviewIgnored(
   return data
 }
 
+async function archiveActivity(supabase: ReturnType<typeof createClient>, activity: Activity, userId: string) {
+  const archivedAt = new Date().toISOString()
+  const { data, error } = await supabase.from('activities').update({
+    archive: true,
+    public_listing_status: 'archived',
+    archive_reason: 'Archived from desktop image review',
+    archived_at: archivedAt,
+    updated_at: archivedAt,
+  }).eq('activity_id', activity.activity_id)
+    .select('activity_id,public_listing_status,archive,archive_reason,archived_at')
+    .single()
+  if (error) throw new Error(error.message)
+  await supabase.from('activity_review_queue').update({
+    status: 'dismissed',
+    reviewed_at: archivedAt,
+    reviewed_by_user_id: userId,
+  }).eq('activity_id', activity.activity_id).eq('status', 'pending')
+  return data
+}
+
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   if (request.method !== 'POST') return jsonResponse({ error: 'Use POST.' }, 405)
@@ -464,7 +485,7 @@ Deno.serve(async (request) => {
   const user = await authenticatedAdmin(request, supabase)
   if (!user) return jsonResponse({ error: 'Only Tiny Outings administrators can use desktop image review.' }, 403)
   const body = await request.json().catch(() => ({})) as {
-    action?: 'search' | 'select' | 'publish' | 'ignore'
+    action?: 'search' | 'select' | 'publish' | 'ignore' | 'archive'
     activity_id?: string
     candidate_request_id?: string
     query?: string
@@ -504,6 +525,11 @@ Deno.serve(async (request) => {
       if (!user.id) return jsonResponse({ error: 'An administrator user session is required to change image review status.' }, 403)
       const result = await setImageReviewIgnored(supabase, activity, user.id, body.ignored !== false)
       return jsonResponse({ status: result.image_review_ignored_at ? 'ignored' : 'reviewable', activity: result })
+    }
+    if (body.action === 'archive') {
+      if (!user.id) return jsonResponse({ error: 'An administrator user session is required to archive a listing.' }, 403)
+      const result = await archiveActivity(supabase, activity, user.id)
+      return jsonResponse({ status: 'archived', activity: result })
     }
     return jsonResponse({ error: 'Unsupported action.' }, 400)
   } catch (error) {

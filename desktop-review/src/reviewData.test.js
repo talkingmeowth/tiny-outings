@@ -74,6 +74,20 @@ test('ignored listings only appear in the ignored queue', () => {
   assert.deepEqual(activitiesForQueue([ignored], 'ignored').map((activity) => activity.activity_id), ['ignored']);
 });
 
+test('archived listings do not appear in any image-review queue', () => {
+  const archived = listing({ activity_id: 'archived', archive: true, public_listing_status: 'archived' });
+  assert.deepEqual(queueCounts([archived]), {
+    missing_published: 0,
+    unsuitable_audit: 0,
+    all_published: 0,
+    all_draft: 0,
+    ignored: 0,
+  });
+  for (const queueId of ['missing_published', 'unsuitable_audit', 'all_published', 'all_draft', 'ignored']) {
+    assert.equal(activitiesForQueue([archived], queueId).length, 0);
+  }
+});
+
 test('interleaves and deduplicates candidate preload targets across active queues', () => {
   const activities = prepareActivities([
     listing({ activity_id: 'missing', address: '1 Missing Road, London' }),
