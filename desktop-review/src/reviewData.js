@@ -206,8 +206,15 @@ export function queueCountsFromPrepared(prepared) {
   return Object.fromEntries(QUEUES.map((queue) => [queue.id, preparedActivitiesForQueue(prepared, queue.id).length]));
 }
 
-export function activitiesToPreload(prepared, queueIds, perQueue = 20) {
-  const queueLists = queueIds.map((queueId) => preparedActivitiesForQueue(prepared, queueId).slice(0, perQueue));
+function preloadWindow(prepared, queueId, perQueue, queueStartIds) {
+  const queue = preparedActivitiesForQueue(prepared, queueId);
+  const startId = queueStartIds?.[queueId];
+  const selectedIndex = startId ? queue.findIndex((activity) => activity.activity_id === startId) : -1;
+  return queue.slice(Math.max(0, selectedIndex), Math.max(0, selectedIndex) + perQueue);
+}
+
+export function activitiesToPreload(prepared, queueIds, perQueue = 20, queueStartIds = {}) {
+  const queueLists = queueIds.map((queueId) => preloadWindow(prepared, queueId, perQueue, queueStartIds));
   const seen = new Set();
   const targets = [];
   for (let position = 0; position < perQueue; position += 1) {
@@ -220,6 +227,16 @@ export function activitiesToPreload(prepared, queueIds, perQueue = 20) {
     }
   }
   return targets;
+}
+
+export function preloadReadinessByQueue(prepared, queueIds, perQueue = 20, queueStartIds = {}) {
+  return Object.fromEntries(queueIds.map((queueId) => {
+    const activities = preloadWindow(prepared, queueId, perQueue, queueStartIds);
+    const ready = activities.filter((activity) => (
+      Array.isArray(activity.codex_image_candidates) && activity.codex_image_candidates.length > 0
+    )).length;
+    return [queueId, { ready, total: activities.length }];
+  }));
 }
 
 export function listingSearchText(activity) {

@@ -7,6 +7,7 @@ import {
   googlePlacesUrl,
   prepareActivities,
   preparedActivitiesForQueue,
+  preloadReadinessByQueue,
   queueCounts,
   queueCountsFromPrepared,
   searchQueries,
@@ -84,6 +85,53 @@ test('interleaves and deduplicates candidate preload targets across active queue
   assert.deepEqual(
     activitiesToPreload(activities, ['missing_published', 'unsuitable_audit', 'all_published', 'all_draft']).map((activity) => activity.activity_id),
     ['missing', 'unsuitable', 'draft', 'published'],
+  );
+});
+
+test('advances the rolling preload pool when a missing listing is reviewed', () => {
+  const activities = Array.from({ length: 21 }, (_, index) => listing({
+    activity_id: `missing-${String(index + 1).padStart(2, '0')}`,
+    activity_name: `Missing listing ${String(index + 1).padStart(2, '0')}`,
+  }));
+  const initial = prepareActivities(activities);
+  assert.equal(
+    activitiesToPreload(initial, ['missing_published'], 20).some((activity) => activity.activity_id === 'missing-21'),
+    false,
+  );
+
+  const reviewed = prepareActivities(activities.map((activity) => activity.activity_id === 'missing-01'
+    ? { ...activity, reviewed_image_url: 'https://reviewed.test/image.jpg' }
+    : activity));
+  assert.equal(
+    activitiesToPreload(reviewed, ['missing_published'], 20).some((activity) => activity.activity_id === 'missing-21'),
+    true,
+  );
+});
+
+test('keeps a rolling window of 20 candidates ahead of the selected activity', () => {
+  const prepared = prepareActivities(Array.from({ length: 22 }, (_, index) => listing({
+    activity_id: `published-${String(index + 1).padStart(2, '0')}`,
+    activity_name: `Published listing ${String(index + 1).padStart(2, '0')}`,
+    website_image_url: 'https://images.test/existing.jpg',
+  })));
+  const targets = activitiesToPreload(prepared, ['all_published'], 20, { all_published: 'published-02' });
+  assert.equal(targets.length, 20);
+  assert.equal(targets[0].activity_id, 'published-02');
+  assert.equal(targets[19].activity_id, 'published-21');
+});
+
+test('reports candidate readiness for the first 20 activities in each queue', () => {
+  const prepared = prepareActivities([
+    listing({ activity_id: 'ready', codex_image_candidates: [{ image_url: 'https://images.test/ready.jpg' }] }),
+    listing({ activity_id: 'waiting' }),
+    listing({ activity_id: 'draft', public_listing_status: 'draft', codex_image_candidates: [{ image_url: 'https://images.test/draft.jpg' }] }),
+  ]);
+  assert.deepEqual(
+    preloadReadinessByQueue(prepared, ['missing_published', 'all_draft'], 20),
+    {
+      missing_published: { ready: 1, total: 2 },
+      all_draft: { ready: 1, total: 1 },
+    },
   );
 });
 
