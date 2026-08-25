@@ -5,10 +5,9 @@ import { allowsWikimediaImages, isWikimediaUrl } from './wikimediaImagePolicy.js
 // first usable image is the cover shown everywhere a listing appears.
 const activityImageFields = [
   'admin_cover_image_url',
-  'audit_image_url',
   'user_image_url',
+  'audit_image_url',
   'user_uploaded_image_url',
-  'scraped_image_url',
   'organiser_website_downloaded_image',
   'website_downloaded_image',
   'wikimedia_image_url',
@@ -31,11 +30,11 @@ function isUsablePhotoUrl(url) {
 function isAllowedActivityPhoto(activity, field, url) {
   const rejectedByAudit = ['needs_replacement', 'no_replacement'].includes(activity?.audit_image_status)
     && !isUsablePhotoUrl(securePhotoUrl(activity?.audit_image_url));
-  if (rejectedByAudit && field !== 'admin_cover_image_url' && field !== 'audit_image_url') return false;
+  if (rejectedByAudit && !['admin_cover_image_url', 'user_image_url', 'audit_image_url'].includes(field)) return false;
   if (allowsWikimediaImages(activity)) return true;
   if (field === 'wikimedia_image_url' || isWikimediaUrl(url)) return false;
   if (field === 'audit_image_url') return !isWikimediaUrl(activity?.audit_image_source_url);
-  return !(field === 'scraped_image_url' && isWikimediaUrl(activity?.image_source_url));
+  return true;
 }
 
 function candidateImage(activity) {
@@ -87,10 +86,7 @@ export function shareListingImages(activities) {
   return activities.map((activity) => {
     const sharedImage = imageByListing.get(activityImageGroupKey(activity));
     if (!sharedImage) return activity;
-    if (!isAllowedActivityPhoto(activity, sharedImage.field, sharedImage.url)
-      || (sharedImage.field === 'scraped_image_url'
-        && !allowsWikimediaImages(activity)
-        && isWikimediaUrl(sharedImage.activity?.image_source_url))) return activity;
+    if (!isAllowedActivityPhoto(activity, sharedImage.field, sharedImage.url)) return activity;
     return {
       ...activity,
       shared_card_image_url: sharedImage.url,

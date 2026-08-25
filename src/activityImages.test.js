@@ -33,10 +33,10 @@ test('uses one admin cover image across the same listing at different times', ()
 });
 
 test('does not share an image between similarly named activities at different venues', () => {
-  const first = activity({ scraped_image_url: 'https://images.example.test/first.jpg' });
+  const first = activity({ website_image_url: 'https://images.example.test/first.jpg' });
   const second = activity({
     address: '2 Pool Road, London E8 1AA',
-    scraped_image_url: 'https://images.example.test/second.jpg',
+    website_image_url: 'https://images.example.test/second.jpg',
   });
 
   const [sharedFirst, sharedSecond] = shareListingImages([first, second]);
@@ -63,26 +63,36 @@ test('only allows Wikimedia images for parks, museums, and family activities', (
   assert.deepEqual(activityImageUrls(cafe), ['https://cafe.example/interior.jpg']);
 });
 
-test('rejects managed SerpAPI copies whose source is Wikimedia in a disallowed category', () => {
-  const cafe = activity({
-    category: 'Cafes & food',
+test('ignores scraped images because they are outside the card-image hierarchy', () => {
+  assert.deepEqual(activityImageUrls(activity({
     scraped_image_url: 'https://storage.example/activity-images/selected.jpg',
-    image_source_url: 'https://commons.wikimedia.org/wiki/File:Cafe.jpg',
-  });
-  assert.deepEqual(activityImageUrls(cafe), []);
+  })), []);
 });
 
-test('an audited replacement outranks every non-admin source but never an admin cover', () => {
+test('uses the requested card-image hierarchy exactly', () => {
   const item = activity({
-    category: 'Classes & clubs',
+    category: 'Family activities',
     admin_cover_image_url: 'https://images.example.test/admin.jpg',
+    user_image_url: 'https://images.example.test/admin-url.jpg',
     audit_image_url: 'https://images.example.test/audited.jpg',
+    user_uploaded_image_url: 'https://images.example.test/community.jpg',
     scraped_image_url: 'https://images.example.test/scraped.jpg',
+    organiser_website_downloaded_image: 'https://images.example.test/organiser.jpg',
+    website_downloaded_image: 'https://images.example.test/website-download.jpg',
+    wikimedia_image_url: 'https://images.example.test/wikimedia.jpg',
+    website_image_url: 'https://images.example.test/website.jpg',
+    listing_image_url: 'https://images.example.test/listing.jpg',
   });
   assert.deepEqual(activityImageUrls(item), [
     'https://images.example.test/admin.jpg',
+    'https://images.example.test/admin-url.jpg',
     'https://images.example.test/audited.jpg',
-    'https://images.example.test/scraped.jpg',
+    'https://images.example.test/community.jpg',
+    'https://images.example.test/organiser.jpg',
+    'https://images.example.test/website-download.jpg',
+    'https://images.example.test/wikimedia.jpg',
+    'https://images.example.test/website.jpg',
+    'https://images.example.test/listing.jpg',
   ]);
 
   const [shared] = shareListingImages([item]);
@@ -106,4 +116,13 @@ test('an admin cover can replace an image that failed the non-admin audit', () =
     scraped_image_url: 'https://images.example.test/rejected-logo.jpg',
   });
   assert.deepEqual(activityImageUrls(overridden), ['https://images.example.test/admin-approved.jpg']);
+});
+
+test('an admin-curated URL can replace an image that failed the audit', () => {
+  const overridden = activity({
+    audit_image_status: 'needs_replacement',
+    user_image_url: 'https://images.example.test/admin-url-approved.jpg',
+    user_uploaded_image_url: 'https://images.example.test/unreviewed-community.jpg',
+  });
+  assert.deepEqual(activityImageUrls(overridden), ['https://images.example.test/admin-url-approved.jpg']);
 });

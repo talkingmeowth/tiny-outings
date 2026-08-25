@@ -535,15 +535,13 @@ async function storeSelectedCandidate(
 
 const cardImageFields = [
   'admin_cover_image_url',
-  'audit_image_url',
   'user_image_url',
-  'scraped_image_url',
+  'audit_image_url',
   'organiser_website_downloaded_image',
   'website_downloaded_image',
   'wikimedia_image_url',
   'website_image_url',
   'listing_image_url',
-  'image_url',
 ] as const
 
 function secureImageUrl(value: unknown) {
@@ -560,10 +558,13 @@ function validCardImageUrl(value: string) {
 }
 
 function cardImageAllowed(activity: Record<string, unknown>, field: typeof cardImageFields[number], url: string) {
+  const rejectedByAudit = ['needs_replacement', 'no_replacement'].includes(text(activity.audit_image_status as string | null | undefined))
+    && !validCardImageUrl(secureImageUrl(activity.audit_image_url))
+  if (rejectedByAudit && !['admin_cover_image_url', 'user_image_url', 'audit_image_url'].includes(field)) return false
   if (allowsWikimediaImages(activity as Pick<Activity, 'category'>)) return true
   if (field === 'wikimedia_image_url' || isWikimediaSource(url)) return false
   if (field === 'audit_image_url') return !isWikimediaSource(activity.audit_image_source_url as string | undefined)
-  return !(field === 'scraped_image_url' && isWikimediaSource(activity.image_source_url as string | undefined))
+  return true
 }
 
 function selectedGroupImage(activities: Record<string, unknown>[]) {
@@ -594,7 +595,7 @@ async function storeCardImageAudit(
     return { activity_id: audit.activity_id, status: 'audit-failed', reason: 'The three card-image audit criteria are required.' }
   }
   const { data, error } = await supabase.from('activities')
-    .select('activity_id,category,admin_cover_image_url,audit_image_url,audit_image_source_url,user_image_url,scraped_image_url,image_source_url,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,image_url,updated_at,created_at')
+    .select('activity_id,category,admin_cover_image_url,user_image_url,audit_image_url,audit_image_source_url,audit_image_status,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,updated_at,created_at')
     .eq('archive', false)
     .in('activity_id', activityIds)
   if (error || !data?.length) return { activity_id: audit.activity_id, status: 'audit-failed', reason: error?.message || 'Activity group was not found.' }

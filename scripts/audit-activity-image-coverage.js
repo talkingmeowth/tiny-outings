@@ -10,15 +10,13 @@ const outputPath = join(root, 'data', 'activity_image_coverage.generated.json');
 const linkedDatabase = process.argv.includes('--linked-database');
 const imageFields = [
   'admin_cover_image_url',
-  'audit_image_url',
   'user_image_url',
-  'scraped_image_url',
+  'audit_image_url',
   'organiser_website_downloaded_image',
   'website_downloaded_image',
   'wikimedia_image_url',
   'website_image_url',
   'listing_image_url',
-  'image_url',
 ];
 
 function readDotEnv(name) {
