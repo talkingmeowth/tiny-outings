@@ -233,7 +233,27 @@ export function listingSearchText(activity) {
 }
 
 export function openListingUrl(activity) {
-  return [activity.source_url, activity.website, activity.organiser_website, activity.google_place_uri, activity.google_link]
+  return [activity.source_url, activity.website, activity.organiser_website]
     .map(clean)
     .find((value) => /^https?:\/\//i.test(value)) || '';
+}
+
+export function googlePlacesUrl(activity) {
+  const storedUrl = [activity.google_place_uri, activity.google_link]
+    .map(clean)
+    .find((value) => /^https?:\/\//i.test(value));
+  if (storedUrl) return storedUrl;
+
+  const storedPlaceId = [activity.google_place_uri, activity.google_link]
+    .map(clean)
+    .map((value) => value.match(/(?:^|\/)(ChI[A-Za-z0-9_-]+)$/)?.[1] || '')
+    .find(Boolean);
+  const query = [clean(activity.activity_name), clean(activity.address || activity.borough || 'London')]
+    .filter(Boolean)
+    .join(' ');
+  const url = new URL('https://www.google.com/maps/search/');
+  url.searchParams.set('api', '1');
+  url.searchParams.set('query', query || 'London family activity');
+  if (storedPlaceId) url.searchParams.set('query_place_id', storedPlaceId);
+  return url.toString();
 }

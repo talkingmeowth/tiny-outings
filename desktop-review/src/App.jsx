@@ -8,6 +8,7 @@ import {
   clean,
   currentImage,
   domain,
+  googlePlacesUrl,
   listingSearchText,
   openListingUrl,
   prepareActivities,
@@ -689,6 +690,7 @@ function App() {
                 </div>
                 <div className="detail-actions">
                   {openListingUrl(selectedActivity) ? <a className="secondary-button link-button" href={openListingUrl(selectedActivity)} target="_blank" rel="noreferrer">Open listing ↗</a> : null}
+                  <a className="places-button link-button" href={googlePlacesUrl(selectedActivity)} target="_blank" rel="noreferrer">Google Places ↗</a>
                   <button className={selectedActivity.image_review_ignored_at ? 'restore-button' : 'ignore-button'} type="button" disabled={busy === 'ignore'} onClick={() => setIgnored(!selectedActivity.image_review_ignored_at)}>
                     {busy === 'ignore' ? 'Updating…' : selectedActivity.image_review_ignored_at ? 'Return to review' : 'Ignore'}
                   </button>

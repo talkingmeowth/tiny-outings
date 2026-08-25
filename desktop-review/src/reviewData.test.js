@@ -4,6 +4,7 @@ import {
   activitiesForQueue,
   activitiesToPreload,
   currentImage,
+  googlePlacesUrl,
   prepareActivities,
   preparedActivitiesForQueue,
   queueCounts,
@@ -98,6 +99,19 @@ test('builds provider and activity-only alternatives', () => {
   }));
   assert.equal(queries.provider_location, 'Mini Mozart Hackney');
   assert.equal(queries.activity_only, 'Saturday singalong');
+});
+
+test('uses a stored Google Places URL when one is available', () => {
+  assert.equal(
+    googlePlacesUrl(listing({ google_place_uri: 'https://maps.google.com/?cid=123', google_link: 'https://google.test/fallback' })),
+    'https://maps.google.com/?cid=123',
+  );
+});
+
+test('builds a Google Maps search link for a listing without a stored place URL', () => {
+  const url = new URL(googlePlacesUrl(listing()));
+  assert.equal(url.hostname, 'www.google.com');
+  assert.equal(url.searchParams.get('query'), 'Baby Sensory Leyton Leyton, London E10 5AB');
 });
 
 test('manual desktop review sits below admin cover and above user image', () => {
