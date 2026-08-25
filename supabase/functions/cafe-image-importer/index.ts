@@ -558,9 +558,7 @@ function validCardImageUrl(value: string) {
 }
 
 function cardImageAllowed(activity: Record<string, unknown>, field: typeof cardImageFields[number], url: string) {
-  const rejectedByAudit = ['needs_replacement', 'no_replacement'].includes(text(activity.audit_image_status as string | null | undefined))
-    && !validCardImageUrl(secureImageUrl(activity.audit_image_url))
-  if (rejectedByAudit && !['admin_cover_image_url', 'user_image_url', 'audit_image_url'].includes(field)) return false
+  if (field === 'audit_image_url' && text(activity.audit_image_status as string | null | undefined) !== 'replaced') return false
   if (allowsWikimediaImages(activity as Pick<Activity, 'category'>)) return true
   if (field === 'wikimedia_image_url' || isWikimediaSource(url)) return false
   if (field === 'audit_image_url') return !isWikimediaSource(activity.audit_image_source_url as string | undefined)

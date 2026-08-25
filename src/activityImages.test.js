@@ -72,6 +72,7 @@ test('ignores scraped images because they are outside the card-image hierarchy',
 test('uses the requested card-image hierarchy exactly', () => {
   const item = activity({
     category: 'Family activities',
+    audit_image_status: 'replaced',
     admin_cover_image_url: 'https://images.example.test/admin.jpg',
     user_image_url: 'https://images.example.test/admin-url.jpg',
     audit_image_url: 'https://images.example.test/audited.jpg',
@@ -99,28 +100,28 @@ test('uses the requested card-image hierarchy exactly', () => {
   assert.equal(shared.shared_card_image_source, 'admin_cover_image_url');
 });
 
-test('does not display a rejected audited image or fall through to unreviewed sources', () => {
+test('keeps an original hierarchy source visible when its audit needs replacement', () => {
   const rejected = activity({
     audit_image_status: 'needs_replacement',
-    scraped_image_url: 'https://images.example.test/rejected-logo.jpg',
-    website_image_url: 'https://images.example.test/unreviewed-fallback.jpg',
+    audit_image_url: 'https://images.example.test/invalid-audit-copy.jpg',
+    website_image_url: 'https://images.example.test/restored-original.jpg',
   });
-  assert.deepEqual(activityImageUrls(rejected), []);
-  assert.equal(shareListingImages([rejected])[0].shared_card_image_url, undefined);
+  assert.deepEqual(activityImageUrls(rejected), ['https://images.example.test/restored-original.jpg']);
+  assert.equal(shareListingImages([rejected])[0].shared_card_image_source, 'website_image_url');
 });
 
-test('displays a deliberately reinstated image while retaining its rejected audit status', () => {
-  const reinstated = activity({
-    audit_image_status: 'needs_replacement',
-    audit_image_url: 'https://images.example.test/reinstated-original.jpg',
-    audit_image_source_url: 'https://images.example.test/reinstated-original.jpg',
+test('uses audit_image_url for a genuine audit replacement', () => {
+  const replacement = activity({
+    audit_image_status: 'replaced',
+    audit_image_url: 'https://images.example.test/audit-replacement.jpg',
+    audit_image_source_url: 'https://images.example.test/audit-replacement.jpg',
     website_image_url: 'https://images.example.test/lower-priority.jpg',
   });
-  assert.deepEqual(activityImageUrls(reinstated), [
-    'https://images.example.test/reinstated-original.jpg',
+  assert.deepEqual(activityImageUrls(replacement), [
+    'https://images.example.test/audit-replacement.jpg',
     'https://images.example.test/lower-priority.jpg',
   ]);
-  assert.equal(shareListingImages([reinstated])[0].shared_card_image_source, 'audit_image_url');
+  assert.equal(shareListingImages([replacement])[0].shared_card_image_source, 'audit_image_url');
 });
 
 test('an admin cover can replace an image that failed the non-admin audit', () => {
@@ -132,11 +133,15 @@ test('an admin cover can replace an image that failed the non-admin audit', () =
   assert.deepEqual(activityImageUrls(overridden), ['https://images.example.test/admin-approved.jpg']);
 });
 
-test('an admin-curated URL can replace an image that failed the audit', () => {
+test('an admin-curated URL remains ahead of restored community sources', () => {
   const overridden = activity({
     audit_image_status: 'needs_replacement',
     user_image_url: 'https://images.example.test/admin-url-approved.jpg',
     user_uploaded_image_url: 'https://images.example.test/unreviewed-community.jpg',
   });
-  assert.deepEqual(activityImageUrls(overridden), ['https://images.example.test/admin-url-approved.jpg']);
+  assert.deepEqual(activityImageUrls(overridden), [
+    'https://images.example.test/admin-url-approved.jpg',
+    'https://images.example.test/unreviewed-community.jpg',
+  ]);
+  assert.equal(shareListingImages([overridden])[0].shared_card_image_source, 'user_image_url');
 });
