@@ -5,6 +5,7 @@ import { allowsWikimediaImages, isWikimediaUrl } from './wikimediaImagePolicy.js
 // first usable image is the cover shown everywhere a listing appears.
 const activityImageFields = [
   'admin_cover_image_url',
+  'reviewed_image_url',
   'user_image_url',
   'audit_image_url',
   'user_uploaded_image_url',
