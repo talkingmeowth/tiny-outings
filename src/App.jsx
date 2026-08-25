@@ -13,6 +13,7 @@ import { comparisonTokens, dedupePublishedActivities, findLikelyDuplicate } from
 import { activityImageUrls, hasActivityImage, securePhotoUrl, shareListingImages } from './activityImages';
 import { activityCoordinates, resolveActivityCoordinates } from './activityLocation';
 import { profileQrUrl, profileShareData } from './profileSharing';
+import { activityIdBatches } from './reviewQueue';
 
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
@@ -1058,6 +1059,40 @@ function activityMatchesSearch(activity, value) {
   return query.split(/\s+/).filter(Boolean).every((term) => searchable.includes(term));
 }
 
+function activityNameMatchesSearch(activity, value) {
+  const queryTerms = cleanDisplayText(value).toLowerCase().split(/\s+/).filter(Boolean);
+  if (!queryTerms.length) return true;
+  const name = cleanDisplayText(activity.activity_name).toLowerCase();
+  return queryTerms.every((term) => name.includes(term));
+}
+
+function searchResultTime(activity) {
+  return isFlexibleActivity(activity) ? 'Anytime' : `${activity.start_time} to ${activity.end_time}`;
+}
+
+function searchResultDate(activity, weekDays) {
+  const matchingDays = weekDays.filter((day) => isActivityAvailableOn(activity, day));
+  if (matchingDays.length === 0) return 'Date to confirm';
+  if (matchingDays.length === 7) return 'Every day this week';
+  return matchingDays.map((day) => formatDay(day, 'short')).join(', ');
+}
+
+function searchResultLocation(activity) {
+  return cleanDisplayText(activity.address || activity.borough, 'Location to confirm');
+}
+
+function searchResultDistance(activity) {
+  return activity.distance == null ? 'Distance unavailable' : `${activity.distance.toFixed(1)} miles away`;
+}
+
+function searchResultTravelTime(activity, mode) {
+  if (activity.distance == null) return `${mode} time unavailable`;
+  const minutes = mode === 'Walk'
+    ? activity.walkMinutes ?? activity.distance * 20
+    : activity.driveMinutes ?? activity.distance * 6;
+  return `${Math.max(1, Math.round(minutes))} min ${mode.toLowerCase()}`;
+}
+
 function activityPlanLabel(activity) {
   if (activity.plan_label) return activity.plan_label;
   if (isEventListing(activity)) return 'Events';
@@ -1582,6 +1617,22 @@ export default function App() {
     ),
     [sharedFilteredActivities, filteredWeekDays],
   );
+  const directorySearchActivities = useMemo(
+    () => activitiesWithDistance
+      .filter((activity) => (
+        activity.public_listing_status === 'published'
+        && !activity.archive
+        && !hiddenActivityIdSet.has(String(activity.activity_id))
+        && activityNameMatchesSearch(activity, filters.activitySearch)
+        && filteredWeekDays.some((day) => isActivityAvailableOn(activity, day))
+      ))
+      .sort((left, right) => (
+        left.activity_name.localeCompare(right.activity_name)
+        || searchResultLocation(left).localeCompare(searchResultLocation(right))
+        || String(left.start_time).localeCompare(String(right.start_time))
+      )),
+    [activitiesWithDistance, filteredWeekDays, filters.activitySearch, hiddenActivityIdSet],
+  );
   const filteredActivities = useMemo(
     () => sharedFilteredActivities.filter(
       (activity) => isActivityAvailableOn(activity, selectedDate),
@@ -1964,19 +2015,28 @@ export default function App() {
           return;
         }
 
-        const activityIds = [...new Set((queueRows || []).map((item) => item.activity_id).filter(Boolean))];
+        const queueItems = (queueRows || []).map((item) => ({ ...item, activity: null }));
+        // Render the queue immediately. Activity details are supplementary and
+        // should not make the whole review screen appear stuck loading.
+        setReviewQueue(queueItems);
+        setReviewQueueLoading(false);
+
+        const activityBatches = activityIdBatches(queueRows);
         let activitiesById = new Map();
-        if (activityIds.length) {
-          const { data: queueActivities, error: activitiesError } = await supabase
-            .from('activities')
-            .select(activitySelectColumns)
-            .in('activity_id', activityIds);
+        if (activityBatches.length) {
+          const activityResults = await Promise.all(activityBatches.map(async (activityIds) => (
+            supabase
+              .from('activities')
+              .select(activitySelectColumns)
+              .in('activity_id', activityIds)
+          )));
           if (cancelled) return;
+          const activitiesError = activityResults.find((result) => result.error)?.error;
           if (activitiesError) {
-            setReviewQueueError(activitiesError.message || 'We could not load queued activities.');
-            setNotice(`Review queue could not be loaded: ${activitiesError.message}`);
+            setNotice(`Some review listing details could not be loaded: ${activitiesError.message}`);
             return;
           }
+          const queueActivities = activityResults.flatMap((result) => result.data || []);
           activitiesById = new Map((queueActivities || []).map((activity) => [
             String(activity.activity_id),
             normalizeActivity(activity),
@@ -3066,7 +3126,9 @@ export default function App() {
         {activeScreen === 'search' && (
           <SearchResultsScreen
             query={filters.activitySearch}
-            activities={sharedFilteredActivities}
+            activities={directorySearchActivities}
+            weekDays={weekDays}
+            loading={loading}
             onBack={() => navigate('start')}
             onOpenActivity={openActivity}
             onHideActivity={hideActivityFromBrowsing}
@@ -3442,19 +3504,6 @@ function StartScreen({
           </div>
         </div>
 
-        <label className="field-group activity-search-field">
-          <span>Find an activity</span>
-          <input
-            type="search"
-            value={filters.activitySearch || ''}
-            onChange={(event) => setFilters((current) => ({ ...current, activitySearch: event.target.value }))}
-            placeholder="Try a name, place or activity"
-          />
-          <button className="search-results-button" type="button" onClick={onOpenSearch}>
-            Search directory
-          </button>
-        </label>
-
         <div className="field-group source-filter">
           <span>Source</span>
           <details className="source-picker">
@@ -3598,42 +3647,73 @@ function StartScreen({
           </button>
         </div>
       </div>
+
+      <div className="activity-search-field search-dock">
+        <div className="search-dock-copy">
+          <span>Looking for something specific?</span>
+          <small>Search by listing name for a focused directory view.</small>
+        </div>
+        <div className="search-dock-controls">
+          <label className="search-input-wrap">
+            <span className="search-icon" aria-hidden="true">⌕</span>
+            <input
+              type="search"
+              value={filters.activitySearch || ''}
+              onChange={(event) => setFilters((current) => ({ ...current, activitySearch: event.target.value }))}
+              placeholder="Search listings"
+              aria-label="Search listings"
+            />
+          </label>
+          <button className="search-results-button" type="button" onClick={onOpenSearch}>
+            Search
+          </button>
+        </div>
+      </div>
     </section>
   );
 }
 
-function SearchResultsScreen({ query, activities, onBack, onOpenActivity, onHideActivity }) {
+function SearchResultsScreen({ query, activities, weekDays, loading, onBack, onOpenActivity, onHideActivity }) {
   const searchTerm = cleanDisplayText(query);
   return (
     <section className="app-screen search-results-screen">
       <div className="screen-title compact">
         <span className="eyebrow">Directory search</span>
         <h1>{searchTerm ? `Results for ${searchTerm}` : 'All matching outings'}</h1>
-        <p>{activities.length} outing{activities.length === 1 ? '' : 's'} match your current filters.</p>
+        <p>{loading ? 'Finding high-confidence matches.' : `${activities.length} listing${activities.length === 1 ? '' : 's'} found.`}</p>
       </div>
 
       <button className="secondary-button search-back-button" type="button" onClick={onBack}>Back to plan</button>
 
-      {activities.length ? (
+      {loading ? (
+        <div className="empty-list">
+          <strong>Finding outings</strong>
+          <span>Loading the matching sessions for your selected week.</span>
+        </div>
+      ) : activities.length ? (
         <div className="search-results-list">
-          {activities.map((activity, index) => (
+          {activities.map((activity) => (
             <article className="search-result-card" key={activity.activity_id}>
               <button className="search-result-open" type="button" onClick={() => onOpenActivity(activity)}>
-                <ActivityPhoto activity={activity} className="search-result-photo" priority={index < 3} />
                 <span className="search-result-copy">
-                  <small>{activityPlanLabel(activity)} - {activitySourceLabel(activity)}</small>
                   <strong>{activity.activity_name}</strong>
-                  <span>{isFlexibleActivity(activity) ? 'Anytime' : `${activity.start_time} to ${activity.end_time}`}</span>
+                  <span><b>Date</b> {searchResultDate(activity, weekDays)}</span>
+                  <span><b>Time</b> {searchResultTime(activity)}</span>
+                  <span><b>Location</b> {searchResultLocation(activity)}</span>
+                  <span className="search-result-distance"><b>Travel</b> {searchResultTravelTime(activity, 'Walk')} · {searchResultTravelTime(activity, 'Drive')} · {searchResultDistance(activity)}</span>
                 </span>
               </button>
-              <button
-                className="search-result-hide"
-                type="button"
-                onClick={() => onHideActivity(activity)}
-                aria-label={`Do not show ${activity.activity_name} again`}
-              >
-                Hide
-              </button>
+              <div className="search-result-actions">
+                <button className="search-result-view" type="button" onClick={() => onOpenActivity(activity)}>View listing</button>
+                <button
+                  className="search-result-hide"
+                  type="button"
+                  onClick={() => onHideActivity(activity)}
+                  aria-label={`Do not show ${activity.activity_name} again`}
+                >
+                  Hide
+                </button>
+              </div>
             </article>
           ))}
         </div>
@@ -3897,6 +3977,12 @@ function ActivityCard({
               <small>{cost}</small>
             </span>
           )}
+        </div>
+
+        <div className="card-travel" aria-label="Travel information">
+          <span><strong>Walk</strong><small>{searchResultTravelTime(activity, 'Walk')}</small></span>
+          <span><strong>Drive</strong><small>{searchResultTravelTime(activity, 'Drive')}</small></span>
+          <span><strong>Distance</strong><small>{searchResultDistance(activity)}</small></span>
         </div>
       </div>
     </article>
@@ -4401,6 +4487,15 @@ function ReviewScreen({
   missingImageActivities,
   onRefresh,
 }) {
+  const [visibleCounts, setVisibleCounts] = useState({});
+  const visibleItems = (items, key) => items.slice(0, visibleCounts[key] || 50);
+  const showMore = (key) => {
+    setVisibleCounts((current) => ({
+      ...current,
+      [key]: (current[key] || 50) + 50,
+    }));
+  };
+
   return (
     <section className="app-screen form-screen review-screen">
       <div className="screen-title compact">
@@ -4425,6 +4520,7 @@ function ReviewScreen({
         )}
         {!reviewQueueLoading && !reviewQueueError && reviewQueueSections.map((section) => {
           const items = reviewQueue.filter((item) => item.queue_type === section.type);
+          const sectionItems = visibleItems(items, section.type);
           return (
             <section key={section.type} className="review-subsection">
               <div className="review-group-heading">
@@ -4437,8 +4533,9 @@ function ReviewScreen({
               {items.length === 0 ? (
                 <p className="queue-empty">Nothing waiting.</p>
               ) : (
-                <div className="review-list">
-                  {items.map((item) => {
+                <>
+                  <div className="review-list">
+                  {sectionItems.map((item) => {
                     const activity = item.activity;
                     const isUserSubmission = item.queue_type === 'user_submission';
                     return (
@@ -4468,7 +4565,13 @@ function ReviewScreen({
                       </article>
                     );
                   })}
-                </div>
+                  </div>
+                  {items.length > sectionItems.length && (
+                    <button className="queue-show-more" type="button" onClick={() => showMore(section.type)}>
+                      Show 50 more
+                    </button>
+                  )}
+                </>
               )}
             </section>
           );
@@ -4486,21 +4589,28 @@ function ReviewScreen({
         {missingImageActivities.length === 0 ? (
           <p className="queue-empty">Every published card has an image.</p>
         ) : (
-          <div className="review-list image-review-list">
-            {missingImageActivities.map((activity) => (
-              <article key={activity.activity_id} className="review-item">
-                <div className="review-photo review-photo-placeholder" aria-hidden="true">No image</div>
-                <div>
-                  <strong>{activity.activity_name}</strong>
-                  <small>{`${activityPlanLabel(activity)} - ${activity.address || 'Address to review'}`}</small>
-                  <small>{`Source: ${activitySourceLabel(activity)}`}</small>
-                </div>
-                <div className="review-actions">
-                  <button type="button" onClick={() => onOpenReview(activity)} disabled={adminSaving}>Add image</button>
-                </div>
-              </article>
-            ))}
-          </div>
+          <>
+            <div className="review-list image-review-list">
+              {visibleItems(missingImageActivities, 'missing-images').map((activity) => (
+                <article key={activity.activity_id} className="review-item">
+                  <div className="review-photo review-photo-placeholder" aria-hidden="true">No image</div>
+                  <div>
+                    <strong>{activity.activity_name}</strong>
+                    <small>{`${activityPlanLabel(activity)} - ${activity.address || 'Address to review'}`}</small>
+                    <small>{`Source: ${activitySourceLabel(activity)}`}</small>
+                  </div>
+                  <div className="review-actions">
+                    <button type="button" onClick={() => onOpenReview(activity)} disabled={adminSaving}>Add image</button>
+                  </div>
+                </article>
+              ))}
+            </div>
+            {missingImageActivities.length > (visibleCounts['missing-images'] || 50) && (
+              <button className="queue-show-more" type="button" onClick={() => showMore('missing-images')}>
+                Show 50 more
+              </button>
+            )}
+          </>
         )}
       </section>
     </section>

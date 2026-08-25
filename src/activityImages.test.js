@@ -44,9 +44,9 @@ test('does not share an image between similarly named activities at different ve
   assert.equal(sharedSecond.shared_card_image_url, 'https://images.example.test/second.jpg');
 });
 
-test('uses a legacy image URL only after every curated image field is absent', () => {
+test('ignores image_url because it is outside the image selection hierarchy', () => {
   const item = activity({ image_url: 'https://images.example.test/legacy.jpg' });
-  assert.deepEqual(activityImageUrls(item), ['https://images.example.test/legacy.jpg']);
+  assert.deepEqual(activityImageUrls(item), []);
 });
 
 test('only allows Wikimedia images for parks, museums, and family activities', () => {
