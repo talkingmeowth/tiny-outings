@@ -1,5 +1,6 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { hasSupabaseConfig, supabase } from './supabase.js';
+import { edgeFunctionErrorMessage } from './functionErrors.js';
 import {
   QUEUES,
   activitiesForQueue,
@@ -331,7 +332,7 @@ function App() {
         },
       });
       if (searchResponse.error || searchResponse.data?.error) {
-        throw new Error(searchResponse.data?.error || searchResponse.error?.message || 'SerpAPI search failed.');
+        throw new Error(await edgeFunctionErrorMessage(searchResponse, 'SerpAPI search failed.'));
       }
       setActivities((current) => current.map((currentActivity) => currentActivity.activity_id === activityId ? {
         ...currentActivity,
@@ -439,7 +440,7 @@ function App() {
       },
     });
     if (response.error || response.data?.error) {
-      setNotice(`Could not save the selected image: ${response.data?.error || response.error?.message}`);
+      setNotice(`Could not save the selected image: ${await edgeFunctionErrorMessage(response, 'Image review failed.')}`);
     } else {
       setActivities((current) => current.map((activity) => activity.activity_id === selectedActivity.activity_id ? {
         ...activity,
@@ -471,7 +472,7 @@ function App() {
       body: { action: 'publish', activity_id: selectedActivity.activity_id },
     });
     if (response.error || response.data?.error) {
-      setNotice(`Could not publish this listing: ${response.data?.error || response.error?.message}`);
+      setNotice(`Could not publish this listing: ${await edgeFunctionErrorMessage(response, 'Publishing failed.')}`);
     } else {
       setActivities((current) => current.map((activity) => activity.activity_id === selectedActivity.activity_id
         ? { ...activity, public_listing_status: 'published', archive: false }

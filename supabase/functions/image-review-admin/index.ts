@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { hasBlockedAssetTerms } from './candidate-policy.js'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,7 +13,6 @@ const adminEmails = new Set([
   'benfielden@gmail.com',
 ])
 const acceptedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif'])
-const blockedImageTerms = /(favicon|icon|logo|wordmark|brand|badge|avatar|social[-_ ]?(?:icon|link|media)|facebook|fbcdn|scontent|cdninstagram|instagram|twitter|twimg|tiktok|linkedin|pinterest|youtube|tracking|pixel|spinner|placeholder|cookie|consent|newsletter|payment|checkout|app-store|google-play)/i
 const maxImageBytes = 8 * 1024 * 1024
 
 type Activity = {
@@ -87,7 +87,7 @@ function normalizeCandidate(activity: Activity, value: unknown): Candidate | nul
   const thumbnailUrl = validHttpUrl(candidate.thumbnail_url) ? cleanText(candidate.thumbnail_url) : null
   const sourcePageUrl = validHttpUrl(candidate.source_page_url) ? cleanText(candidate.source_page_url) : null
   if (!validHttpUrl(imageUrl)) return null
-  if (blockedImageTerms.test(`${imageUrl} ${thumbnailUrl || ''} ${sourcePageUrl || ''} ${cleanText(candidate.title)}`)) return null
+  if (hasBlockedAssetTerms(imageUrl, thumbnailUrl, sourcePageUrl, cleanText(candidate.title))) return null
   if (!allowsWikimediaImages(activity) && [imageUrl, thumbnailUrl, sourcePageUrl].some(isWikimediaSource)) return null
   const width = Number(candidate.width)
   const height = Number(candidate.height)

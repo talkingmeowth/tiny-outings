@@ -33,6 +33,8 @@ Each candidate has a **View large** control that opens the highest-resolution re
 
 Selecting a candidate calls the admin-only `image-review-admin` Edge Function. The function downloads the remote file, checks its MIME type, byte size, pixel dimensions, obvious logo/icon terms, and Wikimedia category policy, then stores it under `activity-images/reviewed/`. It writes the public Storage URL to `activities.reviewed_image_url` and records the original/source URLs and a permanent row in `activity_image_manual_reviews`.
 
+Social websites are allowed as source pages when the administrator selects a genuine activity photo; a source domain such as Instagram is not itself evidence that the asset is a logo or icon. If the original host does not expose a downloadable image, the function tries the Google Images thumbnail and still enforces the minimum byte and pixel dimensions. Edge Function failures are decoded in the desktop UI so the administrator sees the specific reason instead of a generic non-2xx message.
+
 `reviewed_image_url` is directly below `admin_cover_image_url` in the card-image hierarchy. It is not an audit replacement field; `audit_image_url` remains reserved for automated audit replacements.
 
 ## Local development
