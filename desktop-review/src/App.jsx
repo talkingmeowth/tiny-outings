@@ -81,30 +81,31 @@ function compactNumber(value) {
 
 async function loadAllActivities() {
   const pageSize = 1000;
-  async function loadPages(queryPage) {
-    const first = await queryPage(0, true);
-    if (first.error) throw first.error;
-    const firstRows = first.data || [];
-    const total = Math.max(Number(first.count) || firstRows.length, firstRows.length);
-    const remainingStarts = [];
-    for (let from = pageSize; from < total; from += pageSize) remainingStarts.push(from);
-    const remaining = await Promise.all(remainingStarts.map((from) => queryPage(from, false)));
-    const failed = remaining.find((response) => response.error);
-    if (failed?.error) throw failed.error;
-    return [firstRows, ...remaining.map((response) => response.data || [])].flat();
+  async function loadPages(queryPage, windowSize = 4) {
+    const rows = [];
+    for (let base = 0; ; base += pageSize * windowSize) {
+      const responses = await Promise.all(Array.from({ length: windowSize }, (_, index) => queryPage(base + (index * pageSize))));
+      const failed = responses.find((response) => response.error);
+      if (failed?.error) throw failed.error;
+      for (const response of responses) {
+        const pageRows = response.data || [];
+        rows.push(...pageRows);
+        if (pageRows.length < pageSize) return rows;
+      }
+    }
   }
 
-  const activitiesPromise = loadPages((from, includeCount) => supabase.from('activities')
-    .select(activityColumns, includeCount ? { count: 'exact' } : undefined)
+  const activitiesPromise = loadPages((from) => supabase.from('activities')
+    .select(activityColumns)
     .eq('archive', false)
     .order('activity_name', { ascending: true })
     .order('activity_id', { ascending: true })
     .range(from, from + pageSize - 1));
-  const photosPromise = loadPages((from, includeCount) => supabase.from('activity_photos')
-    .select('activity_id,photo_url', includeCount ? { count: 'exact' } : undefined)
+  const photosPromise = loadPages((from) => supabase.from('activity_photos')
+    .select('activity_id,photo_url')
     .eq('source_provider', 'user_upload')
     .order('created_at', { ascending: false })
-    .range(from, from + pageSize - 1)).catch(() => []);
+    .range(from, from + pageSize - 1), 1).catch(() => []);
   const [activities, photos] = await Promise.all([activitiesPromise, photosPromise]);
 
   const userImageByActivity = new Map();
