@@ -69,6 +69,44 @@ type SelectionRequest = {
   vision_review?: VisionReview
 }
 
+type CardImageAuditRequest = {
+  activity_id: string
+  activity_ids: string[]
+  selected_image_url: string
+  selected_image_source_field: string
+  accurate: boolean
+  captures_essence: boolean
+  good_quality: boolean
+  width?: number | null
+  height?: number | null
+  reason: string
+  model: string
+  workflow_version: string
+}
+
+type CardImageReplacementRequest = {
+  activity_id: string
+  activity_ids: string[]
+  original_image_url: string
+  original_source_field: string
+  replacement_image_url: string
+  replacement_thumbnail_url?: string | null
+  replacement_source_url?: string | null
+  width?: number | null
+  height?: number | null
+  reason: string
+  model: string
+  workflow_version: string
+}
+
+type CardImageInvalidationRequest = {
+  activity_id: string
+  audit_image_url: string
+  reason: string
+  model: string
+  workflow_version: string
+}
+
 class SerpApiRateLimitError extends Error {}
 
 async function mapWithConcurrency<T, R>(items: T[], limit: number, mapper: (item: T) => Promise<R>) {
@@ -126,6 +164,84 @@ function usableImageUrl(value: string | undefined) {
 
 function text(value: string | null | undefined) {
   return String(value || '').replace(/\s+/g, ' ').trim()
+}
+
+function readUint32(bytes: Uint8Array, offset: number) {
+  if (offset < 0 || offset + 4 > bytes.byteLength) return 0
+  return (((bytes[offset] << 24) >>> 0) + (bytes[offset + 1] << 16) + (bytes[offset + 2] << 8) + bytes[offset + 3]) >>> 0
+}
+
+function downloadedImageDimensions(bytes: Uint8Array, contentType: string) {
+  if (contentType === 'image/png' && bytes.byteLength >= 24
+    && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
+    return { width: readUint32(bytes, 16), height: readUint32(bytes, 20) }
+  }
+
+  if (contentType === 'image/jpeg' && bytes.byteLength >= 12 && bytes[0] === 0xff && bytes[1] === 0xd8) {
+    const startOfFrameMarkers = new Set([0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf])
+    let offset = 2
+    while (offset + 9 < bytes.byteLength) {
+      if (bytes[offset] !== 0xff) {
+        offset += 1
+        continue
+      }
+      while (offset < bytes.byteLength && bytes[offset] === 0xff) offset += 1
+      const marker = bytes[offset]
+      if (marker === 0xd8 || marker === 0xd9) {
+        offset += 1
+        continue
+      }
+      if (marker === 0xda) break
+      if (startOfFrameMarkers.has(marker) && offset + 7 < bytes.byteLength) {
+        return {
+          width: (bytes[offset + 6] << 8) + bytes[offset + 7],
+          height: (bytes[offset + 4] << 8) + bytes[offset + 5],
+        }
+      }
+      if (offset + 2 >= bytes.byteLength) break
+      const segmentLength = (bytes[offset + 1] << 8) + bytes[offset + 2]
+      if (segmentLength < 2) break
+      offset += segmentLength + 1
+    }
+  }
+
+  if (contentType === 'image/webp' && bytes.byteLength >= 30
+    && String.fromCharCode(...bytes.slice(0, 4)) === 'RIFF'
+    && String.fromCharCode(...bytes.slice(8, 12)) === 'WEBP') {
+    const subtype = String.fromCharCode(...bytes.slice(12, 16))
+    if (subtype === 'VP8X') {
+      return {
+        width: 1 + bytes[24] + (bytes[25] << 8) + (bytes[26] << 16),
+        height: 1 + bytes[27] + (bytes[28] << 8) + (bytes[29] << 16),
+      }
+    }
+    if (subtype === 'VP8 ' && bytes[23] === 0x9d && bytes[24] === 0x01 && bytes[25] === 0x2a) {
+      return {
+        width: ((bytes[27] << 8) + bytes[26]) & 0x3fff,
+        height: ((bytes[29] << 8) + bytes[28]) & 0x3fff,
+      }
+    }
+    if (subtype === 'VP8L' && bytes[20] === 0x2f) {
+      const packed = (bytes[21] | (bytes[22] << 8) | (bytes[23] << 16) | (bytes[24] << 24)) >>> 0
+      return { width: (packed & 0x3fff) + 1, height: ((packed >>> 14) & 0x3fff) + 1 }
+    }
+  }
+
+  if (contentType === 'image/avif') {
+    for (let offset = 4; offset + 16 < bytes.byteLength; offset += 1) {
+      if (bytes[offset] === 0x69 && bytes[offset + 1] === 0x73 && bytes[offset + 2] === 0x70 && bytes[offset + 3] === 0x65) {
+        return { width: readUint32(bytes, offset + 8), height: readUint32(bytes, offset + 12) }
+      }
+    }
+  }
+
+  return null
+}
+
+function meetsCardResolution(dimensions: { width: number; height: number } | null) {
+  return Boolean(dimensions?.width && dimensions?.height
+    && Math.min(dimensions.width, dimensions.height) >= 300
+    && dimensions.width * dimensions.height >= 180000)
 }
 
 function allowsWikimediaImages(activity: Pick<Activity, 'category'>) {
@@ -417,6 +533,266 @@ async function storeSelectedCandidate(
   }
 }
 
+const cardImageFields = [
+  'admin_cover_image_url',
+  'audit_image_url',
+  'user_image_url',
+  'scraped_image_url',
+  'organiser_website_downloaded_image',
+  'website_downloaded_image',
+  'wikimedia_image_url',
+  'website_image_url',
+  'listing_image_url',
+  'image_url',
+] as const
+
+function secureImageUrl(value: unknown) {
+  return text(value as string | null | undefined).replace(/^http:\/\//i, 'https://')
+}
+
+function validCardImageUrl(value: string) {
+  try {
+    const url = new URL(value)
+    return url.protocol === 'http:' || url.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
+function cardImageAllowed(activity: Record<string, unknown>, field: typeof cardImageFields[number], url: string) {
+  if (allowsWikimediaImages(activity as Pick<Activity, 'category'>)) return true
+  if (field === 'wikimedia_image_url' || isWikimediaSource(url)) return false
+  if (field === 'audit_image_url') return !isWikimediaSource(activity.audit_image_source_url as string | undefined)
+  return !(field === 'scraped_image_url' && isWikimediaSource(activity.image_source_url as string | undefined))
+}
+
+function selectedGroupImage(activities: Record<string, unknown>[]) {
+  for (const field of cardImageFields) {
+    const candidates = activities
+      .map((activity) => ({ activity, url: secureImageUrl(activity[field]) }))
+      .filter(({ activity, url }) => validCardImageUrl(url) && cardImageAllowed(activity, field, url))
+      .sort((left, right) => {
+        const leftUpdated = Date.parse(String(left.activity.updated_at || left.activity.created_at || 0)) || 0
+        const rightUpdated = Date.parse(String(right.activity.updated_at || right.activity.created_at || 0)) || 0
+        if (leftUpdated !== rightUpdated) return rightUpdated - leftUpdated
+        return String(left.activity.activity_id).localeCompare(String(right.activity.activity_id))
+      })
+    if (candidates.length) return { field, url: candidates[0].url }
+  }
+  return null
+}
+
+async function storeCardImageAudit(
+  supabase: ReturnType<typeof createClient>,
+  audit: CardImageAuditRequest,
+) {
+  const activityIds = [...new Set((audit.activity_ids || []).filter((value) => typeof value === 'string' && /^[0-9a-f-]{36}$/i.test(value)))].slice(0, 50)
+  if (!activityIds.length || !audit.selected_image_url || !audit.selected_image_source_field) {
+    return { activity_id: audit.activity_id, status: 'audit-failed', reason: 'The card-image audit identity is incomplete.' }
+  }
+  if (![audit.accurate, audit.captures_essence, audit.good_quality].every((value) => typeof value === 'boolean')) {
+    return { activity_id: audit.activity_id, status: 'audit-failed', reason: 'The three card-image audit criteria are required.' }
+  }
+  const { data, error } = await supabase.from('activities')
+    .select('activity_id,category,admin_cover_image_url,audit_image_url,audit_image_source_url,user_image_url,scraped_image_url,image_source_url,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,image_url,updated_at,created_at')
+    .eq('archive', false)
+    .in('activity_id', activityIds)
+  if (error || !data?.length) return { activity_id: audit.activity_id, status: 'audit-failed', reason: error?.message || 'Activity group was not found.' }
+  if (data.some((activity) => usableImageUrl(activity.admin_cover_image_url))) {
+    return { activity_id: audit.activity_id, status: 'skipped-admin-image' }
+  }
+  const current = selectedGroupImage(data as Record<string, unknown>[])
+  if (!current || current.field !== audit.selected_image_source_field || current.url !== audit.selected_image_url) {
+    return { activity_id: audit.activity_id, status: 'audit-failed', reason: 'The selected card image changed after the contact sheet was generated.' }
+  }
+  const reviewedAt = new Date().toISOString()
+  const decision = audit.accurate && audit.captures_essence && audit.good_quality ? 'pass' : 'needs_replacement'
+  const reviewRows = data.map((activity) => ({
+    activity_id: activity.activity_id,
+    original_image_url: audit.selected_image_url,
+    original_source_field: audit.selected_image_source_field,
+    reviewed_at: reviewedAt,
+    provider: 'codex',
+    model: audit.model,
+    workflow_version: audit.workflow_version,
+    accurate: audit.accurate,
+    captures_essence: audit.captures_essence,
+    good_quality: audit.good_quality,
+    original_width: Number.isFinite(Number(audit.width)) ? Number(audit.width) : null,
+    original_height: Number.isFinite(Number(audit.height)) ? Number(audit.height) : null,
+    decision,
+    reason: text(audit.reason),
+    metadata: { display_model: 'Codex 5.6 Sol', full_card_review: true, shared_group_size: data.length },
+  }))
+  const { error: reviewError } = await supabase.from('activity_card_image_audits').upsert(reviewRows, {
+    onConflict: 'activity_id,original_image_url,provider,model,workflow_version',
+  })
+  if (reviewError) return { activity_id: audit.activity_id, status: 'audit-failed', reason: reviewError.message }
+  const { error: updateError } = await supabase.from('activities').update({
+    audit_image_reviewed_at: reviewedAt,
+    audit_image_model: audit.model,
+    audit_image_workflow_version: audit.workflow_version,
+    audit_image_status: decision,
+    audit_image_accuracy: audit.accurate,
+    audit_image_essence: audit.captures_essence,
+    audit_image_quality: audit.good_quality,
+    audit_image_original_url: audit.selected_image_url,
+    audit_image_original_source_field: audit.selected_image_source_field,
+    audit_image_reason: text(audit.reason),
+    updated_at: reviewedAt,
+  }).in('activity_id', data.map((activity) => activity.activity_id))
+  return updateError
+    ? { activity_id: audit.activity_id, status: 'audit-failed', reason: updateError.message }
+    : { activity_id: audit.activity_id, status: decision, records: data.length }
+}
+
+async function storeCardImageReplacement(
+  supabase: ReturnType<typeof createClient>,
+  replacement: CardImageReplacementRequest,
+) {
+  const activityIds = [...new Set((replacement.activity_ids || []).filter((value) => typeof value === 'string' && /^[0-9a-f-]{36}$/i.test(value)))].slice(0, 50)
+  const originalUrl = secureImageUrl(replacement.original_image_url)
+  const replacementUrl = secureImageUrl(replacement.replacement_image_url)
+  const sourceUrl = secureImageUrl(replacement.replacement_source_url) || replacementUrl
+  if (!activityIds.length || !originalUrl || !replacement.original_source_field || !usableImageUrl(replacementUrl)) {
+    return { activity_id: replacement.activity_id, status: 'replacement-failed', reason: 'The replacement identity or URL is invalid.' }
+  }
+  if (!text(replacement.model) || !text(replacement.workflow_version) || !text(replacement.reason)) {
+    return { activity_id: replacement.activity_id, status: 'replacement-failed', reason: 'Codex replacement review metadata is incomplete.' }
+  }
+  const width = Number(replacement.width || 0)
+  const height = Number(replacement.height || 0)
+  if (!width || !height || Math.min(width, height) < 300 || width * height < 180000) {
+    return { activity_id: replacement.activity_id, status: 'replacement-failed', reason: 'The replacement is below the card-image resolution threshold.' }
+  }
+  const { data, error } = await supabase.from('activities')
+    .select('activity_id,category,admin_cover_image_url,audit_image_url,audit_image_source_url,audit_image_status,audit_image_original_url,audit_image_original_source_field,user_image_url,scraped_image_url,image_source_url,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,image_url,updated_at,created_at')
+    .eq('archive', false)
+    .in('activity_id', activityIds)
+  if (error || !data?.length) return { activity_id: replacement.activity_id, status: 'replacement-failed', reason: error?.message || 'Activity group was not found.' }
+  if (data.some((activity) => validCardImageUrl(secureImageUrl(activity.admin_cover_image_url)))) {
+    return { activity_id: replacement.activity_id, status: 'skipped-admin-image' }
+  }
+  if (data.some((activity) => activity.audit_image_status !== 'needs_replacement'
+    || secureImageUrl(activity.audit_image_original_url) !== originalUrl
+    || activity.audit_image_original_source_field !== replacement.original_source_field)) {
+    return { activity_id: replacement.activity_id, status: 'replacement-failed', reason: 'The audited image identity is no longer current.' }
+  }
+  const current = selectedGroupImage(data as Record<string, unknown>[])
+  if (!current || current.field !== replacement.original_source_field || current.url !== originalUrl) {
+    return { activity_id: replacement.activity_id, status: 'replacement-failed', reason: 'The displayed card image changed after replacement review.' }
+  }
+  if (data.some((activity) => !allowsWikimediaImages(activity as Pick<Activity, 'category'>)
+    && [replacementUrl, sourceUrl].some(isWikimediaSource))) {
+    return { activity_id: replacement.activity_id, status: 'replacement-failed', reason: 'Wikimedia replacements are not allowed for this activity category.' }
+  }
+
+  const reviewedAt = new Date().toISOString()
+  for (const imageUrl of [replacementUrl, secureImageUrl(replacement.replacement_thumbnail_url)].filter(usableImageUrl)) {
+    try {
+      const response = await fetch(imageUrl, {
+        redirect: 'follow',
+        signal: AbortSignal.timeout(12000),
+        headers: { Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8' },
+      })
+      const contentType = (response.headers.get('content-type') || '').split(';')[0].toLowerCase()
+      const declaredSize = Number(response.headers.get('content-length') || 0)
+      if (!response.ok || !acceptedMimeTypes.has(contentType) || (declaredSize && declaredSize > maxImageBytes)) continue
+      const bytes = new Uint8Array(await response.arrayBuffer())
+      if (bytes.byteLength < 5 * 1024 || bytes.byteLength > maxImageBytes) continue
+      const downloadedDimensions = downloadedImageDimensions(bytes, contentType)
+      if (!meetsCardResolution(downloadedDimensions)) continue
+      const path = `audit/replacements/${replacement.activity_id}-${Date.parse(reviewedAt)}.${extensionFor(contentType, imageUrl)}`
+      const upload = await supabase.storage.from('activity-images').upload(path, bytes, {
+        contentType,
+        cacheControl: '31536000',
+        upsert: true,
+      })
+      if (upload.error) continue
+      const publicUrl = supabase.storage.from('activity-images').getPublicUrl(path).data.publicUrl
+      const updatePayload = {
+        audit_image_url: publicUrl,
+        audit_image_source_url: sourceUrl,
+        audit_image_reviewed_at: reviewedAt,
+        audit_image_model: replacement.model,
+        audit_image_workflow_version: replacement.workflow_version,
+        audit_image_status: 'replaced',
+        audit_image_accuracy: true,
+        audit_image_essence: true,
+        audit_image_quality: true,
+        audit_image_reason: text(replacement.reason),
+        updated_at: reviewedAt,
+      }
+      const { error: updateError } = await supabase.from('activities').update(updatePayload)
+        .in('activity_id', data.map((activity) => activity.activity_id))
+      if (updateError) return { activity_id: replacement.activity_id, status: 'replacement-failed', reason: updateError.message }
+      const { error: logError } = await supabase.from('activity_card_image_audits').update({
+        metadata: {
+          display_model: 'Codex 5.6 Sol',
+          full_card_review: true,
+          replacement_image_url: publicUrl,
+          replacement_original_url: replacementUrl,
+          replacement_source_url: sourceUrl,
+          replacement_width: downloadedDimensions!.width,
+          replacement_height: downloadedDimensions!.height,
+          search_reported_width: width,
+          search_reported_height: height,
+          replacement_reason: text(replacement.reason),
+          replacement_reviewed_at: reviewedAt,
+        },
+      }).in('activity_id', data.map((activity) => activity.activity_id))
+        .eq('original_image_url', replacement.original_image_url)
+        .eq('provider', 'codex')
+      return logError
+        ? { activity_id: replacement.activity_id, status: 'replacement-failed', reason: `Replacement saved but audit metadata failed: ${logError.message}` }
+        : { activity_id: replacement.activity_id, status: 'replaced', records: data.length, audit_image_url: publicUrl }
+    } catch {
+      // Try the thumbnail when the original image host blocks the download.
+    }
+  }
+  return { activity_id: replacement.activity_id, status: 'replacement-download-failed', reason: 'The Codex-selected replacement could not be copied to activity storage.' }
+}
+
+async function invalidateCardImageReplacement(
+  supabase: ReturnType<typeof createClient>,
+  invalidation: CardImageInvalidationRequest,
+) {
+  const auditImageUrl = secureImageUrl(invalidation.audit_image_url)
+  if (!/^[0-9a-f-]{36}$/i.test(invalidation.activity_id) || !auditImageUrl
+    || !text(invalidation.reason) || !text(invalidation.model) || !text(invalidation.workflow_version)) {
+    return { activity_id: invalidation.activity_id, status: 'invalidation-failed', reason: 'Invalidation metadata is incomplete.' }
+  }
+  const { data, error } = await supabase.from('activities')
+    .select('activity_id,admin_cover_image_url,audit_image_url,audit_image_status')
+    .eq('activity_id', invalidation.activity_id)
+    .eq('archive', false)
+    .maybeSingle()
+  if (error || !data) return { activity_id: invalidation.activity_id, status: 'invalidation-failed', reason: error?.message || 'Activity was not found.' }
+  if (validCardImageUrl(secureImageUrl(data.admin_cover_image_url))) {
+    return { activity_id: invalidation.activity_id, status: 'skipped-admin-image' }
+  }
+  if (data.audit_image_status !== 'replaced' || secureImageUrl(data.audit_image_url) !== auditImageUrl) {
+    return { activity_id: invalidation.activity_id, status: 'invalidation-failed', reason: 'The saved audit image changed before invalidation.' }
+  }
+  const reviewedAt = new Date().toISOString()
+  const { error: updateError } = await supabase.from('activities').update({
+    audit_image_url: null,
+    audit_image_source_url: null,
+    audit_image_reviewed_at: reviewedAt,
+    audit_image_model: invalidation.model,
+    audit_image_workflow_version: invalidation.workflow_version,
+    audit_image_status: 'needs_replacement',
+    audit_image_accuracy: false,
+    audit_image_essence: false,
+    audit_image_quality: false,
+    audit_image_reason: text(invalidation.reason),
+    updated_at: reviewedAt,
+  }).eq('activity_id', invalidation.activity_id)
+  return updateError
+    ? { activity_id: invalidation.activity_id, status: 'invalidation-failed', reason: updateError.message }
+    : { activity_id: invalidation.activity_id, status: 'invalidated' }
+}
+
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   if (request.method !== 'POST') return jsonResponse({ error: 'Use POST.' }, 405)
@@ -436,8 +812,41 @@ Deno.serve(async (request) => {
     activity_ids?: string[]
     created_after?: string
     retry_empty_candidates?: boolean
+    refresh_existing_candidates?: boolean
     review_queue?: boolean
     selections?: SelectionRequest[]
+    card_image_audits?: CardImageAuditRequest[]
+    card_image_replacements?: CardImageReplacementRequest[]
+    card_image_invalidations?: CardImageInvalidationRequest[]
+  }
+  const cardImageInvalidations = Array.isArray(body.card_image_invalidations) ? body.card_image_invalidations.slice(0, maxBatchSize) : []
+  if (cardImageInvalidations.length) {
+    const results = await mapWithConcurrency(cardImageInvalidations, 3, (invalidation) => invalidateCardImageReplacement(supabase, invalidation))
+    return jsonResponse({
+      processed: results.length,
+      invalidated: results.filter((result) => result.status === 'invalidated').length,
+      results,
+    })
+  }
+  const cardImageReplacements = Array.isArray(body.card_image_replacements) ? body.card_image_replacements.slice(0, maxBatchSize) : []
+  if (cardImageReplacements.length) {
+    await supabase.storage.createBucket('activity-images', { public: true }).catch(() => {})
+    const results = await mapWithConcurrency(cardImageReplacements, 3, (replacement) => storeCardImageReplacement(supabase, replacement))
+    return jsonResponse({
+      processed: results.length,
+      replaced: results.filter((result) => result.status === 'replaced').length,
+      results,
+    })
+  }
+  const cardImageAudits = Array.isArray(body.card_image_audits) ? body.card_image_audits.slice(0, maxBatchSize) : []
+  if (cardImageAudits.length) {
+    const results = await mapWithConcurrency(cardImageAudits, 3, (audit) => storeCardImageAudit(supabase, audit))
+    return jsonResponse({
+      processed: results.length,
+      passed: results.filter((result) => result.status === 'pass').length,
+      needs_replacement: results.filter((result) => result.status === 'needs_replacement').length,
+      results,
+    })
   }
   const selections = Array.isArray(body.selections) ? body.selections.slice(0, maxBatchSize) : []
   if (selections.length) {
@@ -475,6 +884,10 @@ Deno.serve(async (request) => {
   }
   const scope = body.scope === 'cafes' ? 'cafes' : 'all'
   const retryEmptyCandidates = body.retry_empty_candidates === true
+  const refreshExistingCandidates = body.refresh_existing_candidates === true
+  if (refreshExistingCandidates && !activityIds.length) {
+    return jsonResponse({ error: 'Refreshing an existing candidate set requires explicit activity_ids.' }, 400)
+  }
   const createdAfter = body.created_after && Number.isFinite(Date.parse(body.created_after))
     ? new Date(body.created_after).toISOString()
     : null
@@ -488,9 +901,11 @@ Deno.serve(async (request) => {
     .limit(batchSize)
   // Paid retries are opt-in and tightly limited to listings whose stored
   // candidate set is empty. Normal importer calls retain the one-search cap.
-  query = retryEmptyCandidates
-    ? query.filter('serpapi_image_candidates', 'eq', '[]')
-    : query.is('serpapi_image_candidates_fetched_at', null)
+  if (!refreshExistingCandidates) {
+    query = retryEmptyCandidates
+      ? query.filter('serpapi_image_candidates', 'eq', '[]')
+      : query.is('serpapi_image_candidates_fetched_at', null)
+  }
   if (scope === 'cafes') query = query.or('category.ilike.%cafe%,category.ilike.%food%')
   if (createdAfter) query = query.gte('created_at', createdAfter)
   if (activityIds.length) query = query.in('activity_id', activityIds)
@@ -547,6 +962,7 @@ Deno.serve(async (request) => {
     rate_limited: results.filter((result) => result.status === 'rate-limited').length,
     scope,
     retry_empty_candidates: retryEmptyCandidates,
+    refresh_existing_candidates: refreshExistingCandidates,
     created_after: createdAfter,
     next_cursor: activityIds.length ? null : activities?.length === batchSize ? last?.activity_id || null : null,
     results,

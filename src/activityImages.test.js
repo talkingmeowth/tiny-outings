@@ -71,3 +71,20 @@ test('rejects managed SerpAPI copies whose source is Wikimedia in a disallowed c
   });
   assert.deepEqual(activityImageUrls(cafe), []);
 });
+
+test('an audited replacement outranks every non-admin source but never an admin cover', () => {
+  const item = activity({
+    category: 'Classes & clubs',
+    admin_cover_image_url: 'https://images.example.test/admin.jpg',
+    audit_image_url: 'https://images.example.test/audited.jpg',
+    scraped_image_url: 'https://images.example.test/scraped.jpg',
+  });
+  assert.deepEqual(activityImageUrls(item), [
+    'https://images.example.test/admin.jpg',
+    'https://images.example.test/audited.jpg',
+    'https://images.example.test/scraped.jpg',
+  ]);
+
+  const [shared] = shareListingImages([item]);
+  assert.equal(shared.shared_card_image_source, 'admin_cover_image_url');
+});

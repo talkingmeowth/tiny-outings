@@ -17,8 +17,14 @@ const createdAfter = process.argv.includes('--created-after')
   ? process.argv[process.argv.indexOf('--created-after') + 1] || null
   : null;
 const retryEmptyCandidates = process.argv.includes('--retry-empty-candidates');
+const refreshExistingCandidates = process.argv.includes('--refresh-existing-candidates');
+const skipActivityId = process.argv.includes('--skip-activity-id')
+  ? process.argv[process.argv.indexOf('--skip-activity-id') + 1] || null
+  : null;
 const outputPath = join(root, 'data', scope === 'cafes'
   ? 'cafe_serpapi_image_refresh.generated.json'
+  : refreshExistingCandidates
+    ? 'activity_serpapi_existing_candidate_refresh.generated.json'
   : retryEmptyCandidates
     ? 'activity_serpapi_empty_candidate_retry.generated.json'
     : activityIdsFile
@@ -49,13 +55,19 @@ function explicitActivityIds() {
   if (!activityIdsFile) return [];
   try {
     const raw = JSON.parse(readFileSync(join(root, activityIdsFile), 'utf8'));
-    const values = Array.isArray(raw) ? raw : raw.activity_ids;
+    const values = Array.isArray(raw)
+      ? raw
+      : Array.isArray(raw.activity_ids)
+        ? raw.activity_ids
+        : Array.isArray(raw.results)
+          ? raw.results.filter((row) => row?.status === 'failed').map((row) => row.activity_id)
+          : null;
     const sourceGeneratedAt = Array.isArray(raw) ? null : raw.generated_at || null;
     if (!Array.isArray(values)) throw new Error('Expected an activity_ids array.');
-    const requested = [...new Set(values.filter((value) => typeof value === 'string' && value.trim()))];
+    const requested = [...new Set(values.filter((value) => typeof value === 'string' && value.trim() && value !== skipActivityId))];
     try {
       const previous = JSON.parse(readFileSync(outputPath, 'utf8'));
-      const sameJob = previous.scope === scope
+      const sameJob = Array.isArray(raw.activity_ids) && previous.scope === scope
         && previous.activity_ids_generated_at === sourceGeneratedAt;
       if (sameJob && Array.isArray(previous.pending_activity_ids)) {
         return [...new Set(previous.pending_activity_ids.filter((value) => typeof value === 'string' && value.trim()))];
@@ -105,6 +117,7 @@ async function invoke(cursor, activityIds = []) {
       activity_ids: activityIds,
       ...(createdAfter ? { created_after: createdAfter } : {}),
       ...(retryEmptyCandidates ? { retry_empty_candidates: true } : {}),
+      ...(refreshExistingCandidates ? { refresh_existing_candidates: true } : {}),
     }),
     signal: AbortSignal.timeout(150000),
   });
@@ -122,6 +135,9 @@ async function main() {
   }
   if (createdAfter && !Number.isFinite(Date.parse(createdAfter))) {
     throw new Error('--created-after must be a valid timestamp.');
+  }
+  if (refreshExistingCandidates && !activityIdsFile) {
+    throw new Error('--refresh-existing-candidates requires --activity-ids-file.');
   }
 
   const batches = [];
@@ -176,10 +192,13 @@ async function main() {
   const audit = {
     generated_at: new Date().toISOString(),
     scope,
-    paid_search_policy: retryEmptyCandidates
+    paid_search_policy: refreshExistingCandidates
+      ? 'one explicit targeted refresh for each supplied activity ID'
+      : retryEmptyCandidates
       ? 'one opt-in retry for each empty candidate set encountered during this pass'
       : 'one successful candidate discovery per activity',
     retry_empty_candidates: retryEmptyCandidates,
+    refresh_existing_candidates: refreshExistingCandidates,
     batches: batches.length,
     stopped_for_rate_limit: stoppedForRateLimit,
     resume_cursor: stoppedForRateLimit ? resumeCursor : cursor,

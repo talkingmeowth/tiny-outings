@@ -5,6 +5,7 @@ import { allowsWikimediaImages, isWikimediaUrl } from './wikimediaImagePolicy.js
 // first usable image is the cover shown everywhere a listing appears.
 const activityImageFields = [
   'admin_cover_image_url',
+  'audit_image_url',
   'user_image_url',
   'user_uploaded_image_url',
   'scraped_image_url',
@@ -34,6 +35,7 @@ function isUsablePhotoUrl(url) {
 function isAllowedActivityPhoto(activity, field, url) {
   if (allowsWikimediaImages(activity)) return true;
   if (field === 'wikimedia_image_url' || isWikimediaUrl(url)) return false;
+  if (field === 'audit_image_url') return !isWikimediaUrl(activity?.audit_image_source_url);
   return !(field === 'scraped_image_url' && isWikimediaUrl(activity?.image_source_url));
 }
 
