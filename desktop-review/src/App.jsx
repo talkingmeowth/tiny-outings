@@ -127,24 +127,76 @@ function SignIn({ message }) {
   );
 }
 
-function CandidateCard({ candidate, index, selected, onSelect }) {
+function CandidateCard({ candidate, index, selected, onSelect, onZoom }) {
   const imageUrl = clean(candidate.thumbnail_url) || clean(candidate.image_url);
   const sourceDomain = clean(candidate.source_domain) || domain(candidate.source_page_url) || domain(candidate.image_url);
+  const sourceUrl = clean(candidate.source_page_url) || clean(candidate.image_url);
   const dimensions = candidate.width && candidate.height ? `${candidate.width} × ${candidate.height}` : 'Size unavailable';
   return (
-    <button className={`candidate-card${selected ? ' selected' : ''}`} type="button" onClick={() => onSelect(index)}>
-      <span className="candidate-image-wrap">
-        <img src={imageUrl} alt={clean(candidate.title) || `Candidate ${index + 1}`} loading="lazy" />
-        <span className="candidate-index">{index + 1}</span>
-        {selected ? <span className="selected-badge">Selected</span> : null}
-      </span>
-      <span className="candidate-details">
-        <strong>{sourceDomain || 'Unknown source'}</strong>
-        <span>{dimensions}</span>
-        {candidate.title ? <span className="candidate-title">{candidate.title}</span> : null}
-        {candidate.relevance_reason ? <span className="candidate-reason">{candidate.relevance_reason}</span> : null}
-      </span>
-    </button>
+    <article className={`candidate-card${selected ? ' selected' : ''}`}>
+      <button className="candidate-select" type="button" onClick={() => onSelect(index)} aria-label={`Select candidate ${index + 1}`}>
+        <span className="candidate-image-wrap">
+          <img src={imageUrl} alt={clean(candidate.title) || `Candidate ${index + 1}`} loading="lazy" />
+          <span className="candidate-index">{index + 1}</span>
+          {selected ? <span className="selected-badge">Selected</span> : null}
+        </span>
+        <span className="candidate-details">
+          <strong>{sourceDomain || 'Unknown source'}</strong>
+          <span>{dimensions}</span>
+          {candidate.title ? <span className="candidate-title">{candidate.title}</span> : null}
+          {candidate.relevance_reason ? <span className="candidate-reason">{candidate.relevance_reason}</span> : null}
+        </span>
+      </button>
+      <div className="candidate-card-actions">
+        <button type="button" onClick={() => onZoom(candidate, index)}>View large</button>
+        {sourceUrl ? <a href={sourceUrl} target="_blank" rel="noreferrer">Open source ↗</a> : <span>Source unavailable</span>}
+      </div>
+    </article>
+  );
+}
+
+function CandidateLightbox({ candidate, index, onClose }) {
+  const fullImageUrl = clean(candidate.image_url) || clean(candidate.thumbnail_url);
+  const thumbnailUrl = clean(candidate.thumbnail_url);
+  const sourceUrl = clean(candidate.source_page_url);
+  const sourceDomain = clean(candidate.source_domain) || domain(sourceUrl) || domain(fullImageUrl);
+  const dimensions = candidate.width && candidate.height ? `${candidate.width} × ${candidate.height}` : 'Dimensions unavailable';
+
+  useEffect(() => {
+    function closeOnEscape(event) {
+      if (event.key === 'Escape') onClose();
+    }
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [onClose]);
+
+  function useThumbnailFallback(event) {
+    if (thumbnailUrl && event.currentTarget.src !== thumbnailUrl) event.currentTarget.src = thumbnailUrl;
+  }
+
+  return (
+    <div className="image-lightbox" role="dialog" aria-modal="true" aria-label={`Candidate ${index + 1} enlarged`} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+      <section className="image-lightbox-panel">
+        <div className="image-lightbox-stage">
+          <img src={fullImageUrl} alt={clean(candidate.title) || `Candidate ${index + 1} enlarged`} onError={useThumbnailFallback} />
+        </div>
+        <aside className="image-lightbox-details">
+          <button className="lightbox-close" type="button" onClick={onClose} aria-label="Close enlarged image">×</button>
+          <p className="eyebrow">Candidate {index + 1}</p>
+          <h2>{candidate.title || sourceDomain || 'Image candidate'}</h2>
+          <dl>
+            <div><dt>Source</dt><dd>{sourceDomain || 'Unknown source'}</dd></div>
+            <div><dt>Image size</dt><dd>{dimensions}</dd></div>
+            {candidate.relevance_reason ? <div><dt>Search position</dt><dd>{candidate.relevance_reason}</dd></div> : null}
+          </dl>
+          <div className="lightbox-links">
+            {sourceUrl ? <a className="primary-button" href={sourceUrl} target="_blank" rel="noreferrer">Open source webpage ↗</a> : null}
+            {fullImageUrl ? <a className="secondary-button" href={fullImageUrl} target="_blank" rel="noreferrer">Open original image ↗</a> : null}
+          </div>
+          <p className="lightbox-hint">Press Escape or click outside the preview to close.</p>
+        </aside>
+      </section>
+    </div>
   );
 }
 
@@ -158,6 +210,7 @@ function App() {
   const [filter, setFilter] = useState('');
   const deferredFilter = useDeferredValue(filter);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [zoomedCandidate, setZoomedCandidate] = useState(null);
   const [candidateRequest, setCandidateRequest] = useState(null);
   const [customQuery, setCustomQuery] = useState('');
   const [busy, setBusy] = useState('');
@@ -298,6 +351,7 @@ function App() {
 
   useEffect(() => {
     setSelectedCandidate(null);
+    setZoomedCandidate(null);
     setCandidateRequest(null);
     setCustomQuery(queries?.activity_location || '');
     if (isDemo || !selectedActivity) return undefined;
@@ -521,7 +575,7 @@ function App() {
               </div>
               {candidates.length ? (
                 <div className="candidate-grid">
-                  {candidates.map((candidate, index) => <CandidateCard key={`${candidate.image_url}-${index}`} candidate={candidate} index={index} selected={selectedCandidate === index} onSelect={selectCandidate} />)}
+                  {candidates.map((candidate, index) => <CandidateCard key={`${candidate.image_url}-${index}`} candidate={candidate} index={index} selected={selectedCandidate === index} onSelect={selectCandidate} onZoom={(imageCandidate, candidateIndex) => setZoomedCandidate({ candidate: imageCandidate, index: candidateIndex })} />)}
                 </div>
               ) : (
                 <div className="waiting-panel">
@@ -535,6 +589,7 @@ function App() {
           </>
         )}
       </main>
+      {zoomedCandidate ? <CandidateLightbox candidate={zoomedCandidate.candidate} index={zoomedCandidate.index} onClose={() => setZoomedCandidate(null)} /> : null}
     </div>
   );
 }

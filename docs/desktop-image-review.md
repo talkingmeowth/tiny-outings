@@ -25,6 +25,8 @@ Each result is adapted to this display shape without changing its rank:
 
 The app also retains the raw top-20 result fields in `serpapi_image_candidates`. The existing `codex_image_*` column names remain as the desktop gallery's storage contract, but `codex_image_search_model` clearly records `SerpAPI Google Images — top 20 unfiltered`.
 
+Each candidate has a **View large** control that opens the highest-resolution returned image in a desktop lightbox. The candidate and lightbox both expose the source webpage, and the lightbox also exposes the original image-file URL. Zooming or opening a link does not select the candidate.
+
 ## Saving a reviewed image
 
 Selecting a candidate calls the admin-only `image-review-admin` Edge Function. The function downloads the remote file, checks its MIME type, byte size, pixel dimensions, obvious logo/icon terms, and Wikimedia category policy, then stores it under `activity-images/reviewed/`. It writes the public Storage URL to `activities.reviewed_image_url` and records the original/source URLs and a permanent row in `activity_image_manual_reviews`.
