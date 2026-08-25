@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "review:dev": "vite --config desktop-review/vite.config.js",
+    "review:build": "vite build --config desktop-review/vite.config.js",
+    "review:preview": "vite preview --config desktop-review/vite.config.js",
     "test": "node scripts/run-tests.js",
     "test:auth": "node --test src/googleAuth.test.js",
     "test:database": "npx supabase db query --linked --file scripts/test-import-review-flow.sql && npx supabase db query --linked --file scripts/test-social-flow.sql && npx supabase db query --linked --file scripts/test-app-workflows.sql",

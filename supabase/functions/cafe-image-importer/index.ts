@@ -535,6 +535,7 @@ async function storeSelectedCandidate(
 
 const cardImageFields = [
   'admin_cover_image_url',
+  'reviewed_image_url',
   'user_image_url',
   'audit_image_url',
   'organiser_website_downloaded_image',
@@ -593,7 +594,7 @@ async function storeCardImageAudit(
     return { activity_id: audit.activity_id, status: 'audit-failed', reason: 'The three card-image audit criteria are required.' }
   }
   const { data, error } = await supabase.from('activities')
-    .select('activity_id,category,admin_cover_image_url,user_image_url,audit_image_url,audit_image_source_url,audit_image_status,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,updated_at,created_at')
+    .select('activity_id,category,admin_cover_image_url,reviewed_image_url,user_image_url,audit_image_url,audit_image_source_url,audit_image_status,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,updated_at,created_at')
     .eq('archive', false)
     .in('activity_id', activityIds)
   if (error || !data?.length) return { activity_id: audit.activity_id, status: 'audit-failed', reason: error?.message || 'Activity group was not found.' }
@@ -665,7 +666,7 @@ async function storeCardImageReplacement(
     return { activity_id: replacement.activity_id, status: 'replacement-failed', reason: 'The replacement is below the card-image resolution threshold.' }
   }
   const { data, error } = await supabase.from('activities')
-    .select('activity_id,category,admin_cover_image_url,audit_image_url,audit_image_source_url,audit_image_status,audit_image_original_url,audit_image_original_source_field,user_image_url,scraped_image_url,image_source_url,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,image_url,updated_at,created_at')
+    .select('activity_id,category,admin_cover_image_url,reviewed_image_url,audit_image_url,audit_image_source_url,audit_image_status,audit_image_original_url,audit_image_original_source_field,user_image_url,scraped_image_url,image_source_url,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,image_url,updated_at,created_at')
     .eq('archive', false)
     .in('activity_id', activityIds)
   if (error || !data?.length) return { activity_id: replacement.activity_id, status: 'replacement-failed', reason: error?.message || 'Activity group was not found.' }

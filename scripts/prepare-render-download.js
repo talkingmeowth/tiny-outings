@@ -1,6 +1,8 @@
 import { createHash } from 'node:crypto';
 import {
+  cpSync,
   copyFileSync,
+  existsSync,
   mkdirSync,
   readFileSync,
   rmSync,
@@ -15,12 +17,17 @@ const landingRoot = join(repoRoot, 'landing');
 const outputRoot = join(repoRoot, 'render-mobile');
 const sourceApk = join(repoRoot, 'release', 'tiny-outings-debug.apk');
 const outputApk = join(outputRoot, 'downloads', 'tiny-outings-debug.apk');
+const desktopReviewBuild = join(repoRoot, 'desktop-review-dist');
 const buildGradle = readFileSync(join(repoRoot, 'android', 'app', 'build.gradle'), 'utf8');
 const versionName = buildGradle.match(/versionName\s+"([^"]+)"/)?.[1];
 const versionCode = buildGradle.match(/versionCode\s+(\d+)/)?.[1];
 
 if (!versionName || !versionCode) {
   throw new Error('Could not read Android versionName and versionCode.');
+}
+
+if (!existsSync(join(desktopReviewBuild, 'index.html'))) {
+  throw new Error('Desktop review build is missing. Run npm run review:build first.');
 }
 
 rmSync(outputRoot, { recursive: true, force: true });
@@ -34,6 +41,7 @@ copyFileSync(
   join(repoRoot, 'public', 'icons', 'icon-512.png'),
   join(outputRoot, 'assets', 'icon-512.png'),
 );
+cpSync(desktopReviewBuild, join(outputRoot, 'review'), { recursive: true });
 
 const apkBytes = readFileSync(sourceApk);
 const apkHash = createHash('sha256').update(apkBytes).digest('hex');

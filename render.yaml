@@ -2,8 +2,12 @@ services:
   - type: web
     name: tiny-outings
     runtime: static
-    buildCommand: npm install && npm run render:download
+    buildCommand: npm install && npm run review:build && npm run render:download
     staticPublishPath: render-mobile
+    routes:
+      - type: rewrite
+        source: /review/*
+        destination: /review/index.html
     headers:
       - path: /
         name: Cache-Control
@@ -11,3 +15,9 @@ services:
       - path: /downloads/*
         name: Cache-Control
         value: no-cache, no-store, must-revalidate
+      - path: /review/index.html
+        name: Cache-Control
+        value: no-cache, no-store, must-revalidate
+      - path: /review/assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable

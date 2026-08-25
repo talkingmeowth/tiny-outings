@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import process from 'node:process';
 
 const root = join(fileURLToPath(new URL('..', import.meta.url)));
-const testRoots = ['src', 'scripts'];
+const testRoots = ['src', 'scripts', 'desktop-review/src'];
 
 function findTests(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
