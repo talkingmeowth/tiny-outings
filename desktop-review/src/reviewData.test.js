@@ -1,6 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { activitiesForQueue, currentImage, queueCounts, searchQueries } from './reviewData.js';
+import {
+  activitiesForQueue,
+  currentImage,
+  prepareActivities,
+  preparedActivitiesForQueue,
+  queueCounts,
+  queueCountsFromPrepared,
+  searchQueries,
+} from './reviewData.js';
 
 function listing(overrides = {}) {
   return {
@@ -37,6 +45,20 @@ test('does not count a recurring sibling as missing when its shared listing has 
     listing({ activity_id: 'afternoon', start_time: '14:00', website_image_url: 'https://venue.test/activity.jpg' }),
   ];
   assert.equal(activitiesForQueue(activities, 'missing_published').length, 0);
+});
+
+test('reuses one prepared listing set for queue counts and queue contents', () => {
+  const activities = [
+    listing({ activity_id: 'missing' }),
+    listing({ activity_id: 'pictured', website_image_url: 'https://venue.test/activity.jpg' }),
+    listing({ activity_id: 'draft', public_listing_status: 'draft' }),
+  ];
+  const prepared = prepareActivities(activities);
+  assert.deepEqual(queueCountsFromPrepared(prepared), queueCounts(activities));
+  assert.deepEqual(
+    preparedActivitiesForQueue(prepared, 'missing_published').map((activity) => activity.activity_id),
+    activitiesForQueue(activities, 'missing_published').map((activity) => activity.activity_id),
+  );
 });
 
 test('does not duplicate a locality already in an activity name', () => {

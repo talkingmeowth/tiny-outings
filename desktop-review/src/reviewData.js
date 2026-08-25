@@ -41,13 +41,6 @@ function candidateImage(activity) {
   return null;
 }
 
-function activityImageUrls(activity) {
-  return activityImageFields
-    .map((field) => ({ field, url: securePhotoUrl(activity?.[field]) }))
-    .filter(({ field, url }) => isUsablePhotoUrl(url) && isAllowedActivityPhoto(activity, field, url))
-    .map(({ url }) => url);
-}
-
 function isPreferredImage(candidate, current) {
   if (!current) return true;
   if (candidate.priority !== current.priority) return candidate.priority < current.priority;
@@ -165,10 +158,9 @@ export function searchQueries(activity) {
 }
 
 export function currentImage(activity) {
-  const url = activity.shared_card_image_url || activityImageUrls(activity)[0] || '';
-  const field = activity.shared_card_image_source
-    || activityImageFields.find((candidateField) => activity[candidateField] && activityImageUrls({ ...activity, ...Object.fromEntries(activityImageFields.map((key) => [key, key === candidateField ? activity[key] : null])) }).length)
-    || '';
+  const ownImage = candidateImage(activity);
+  const url = activity.shared_card_image_url || ownImage?.url || '';
+  const field = activity.shared_card_image_source || ownImage?.field || '';
   let sourceUrl = url;
   if (field === 'reviewed_image_url') sourceUrl = activity.reviewed_image_source_url || activity.reviewed_image_original_url || url;
   if (field === 'audit_image_url') sourceUrl = activity.audit_image_source_url || url;
@@ -187,7 +179,10 @@ export function isUnsuitable(activity) {
 }
 
 export function activitiesForQueue(activities, queueId) {
-  const prepared = prepareActivities(activities);
+  return preparedActivitiesForQueue(prepareActivities(activities), queueId);
+}
+
+export function preparedActivitiesForQueue(prepared, queueId) {
   if (queueId === 'missing_published') {
     return prepared.filter((activity) => activity.public_listing_status === 'published' && !currentImage(activity).url);
   }
@@ -197,7 +192,11 @@ export function activitiesForQueue(activities, queueId) {
 }
 
 export function queueCounts(activities) {
-  return Object.fromEntries(QUEUES.map((queue) => [queue.id, activitiesForQueue(activities, queue.id).length]));
+  return queueCountsFromPrepared(prepareActivities(activities));
+}
+
+export function queueCountsFromPrepared(prepared) {
+  return Object.fromEntries(QUEUES.map((queue) => [queue.id, preparedActivitiesForQueue(prepared, queue.id).length]));
 }
 
 export function listingSearchText(activity) {

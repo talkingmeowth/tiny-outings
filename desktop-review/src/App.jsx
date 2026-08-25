@@ -3,15 +3,16 @@ import { hasSupabaseConfig, supabase } from './supabase.js';
 import { edgeFunctionErrorMessage } from './functionErrors.js';
 import {
   QUEUES,
-  activitiesForQueue,
   bestLocation,
   clean,
   currentImage,
   domain,
   listingSearchText,
   openListingUrl,
+  prepareActivities,
+  preparedActivitiesForQueue,
   providerLabel,
-  queueCounts,
+  queueCountsFromPrepared,
   searchQueries,
 } from './reviewData.js';
 
@@ -80,26 +81,37 @@ function compactNumber(value) {
 
 async function loadAllActivities() {
   const pageSize = 1000;
-  const activities = [];
-  for (let from = 0; ; from += pageSize) {
-    const response = await supabase.from('activities').select(activityColumns).eq('archive', false)
-      .order('activity_name', { ascending: true }).order('activity_id', { ascending: true }).range(from, from + pageSize - 1);
-    if (response.error) throw response.error;
-    activities.push(...(response.data || []));
-    if ((response.data || []).length < pageSize) break;
+  async function loadPages(queryPage) {
+    const first = await queryPage(0, true);
+    if (first.error) throw first.error;
+    const firstRows = first.data || [];
+    const total = Math.max(Number(first.count) || firstRows.length, firstRows.length);
+    const remainingStarts = [];
+    for (let from = pageSize; from < total; from += pageSize) remainingStarts.push(from);
+    const remaining = await Promise.all(remainingStarts.map((from) => queryPage(from, false)));
+    const failed = remaining.find((response) => response.error);
+    if (failed?.error) throw failed.error;
+    return [firstRows, ...remaining.map((response) => response.data || [])].flat();
   }
 
+  const activitiesPromise = loadPages((from, includeCount) => supabase.from('activities')
+    .select(activityColumns, includeCount ? { count: 'exact' } : undefined)
+    .eq('archive', false)
+    .order('activity_name', { ascending: true })
+    .order('activity_id', { ascending: true })
+    .range(from, from + pageSize - 1));
+  const photosPromise = loadPages((from, includeCount) => supabase.from('activity_photos')
+    .select('activity_id,photo_url', includeCount ? { count: 'exact' } : undefined)
+    .eq('source_provider', 'user_upload')
+    .order('created_at', { ascending: false })
+    .range(from, from + pageSize - 1)).catch(() => []);
+  const [activities, photos] = await Promise.all([activitiesPromise, photosPromise]);
+
   const userImageByActivity = new Map();
-  for (let from = 0; ; from += pageSize) {
-    const response = await supabase.from('activity_photos').select('activity_id,photo_url')
-      .eq('source_provider', 'user_upload').order('created_at', { ascending: false }).range(from, from + pageSize - 1);
-    if (response.error) break;
-    for (const photo of response.data || []) {
-      if (photo.activity_id && photo.photo_url && !userImageByActivity.has(String(photo.activity_id))) {
-        userImageByActivity.set(String(photo.activity_id), photo.photo_url);
-      }
+  for (const photo of photos) {
+    if (photo.activity_id && photo.photo_url && !userImageByActivity.has(String(photo.activity_id))) {
+      userImageByActivity.set(String(photo.activity_id), photo.photo_url);
     }
-    if ((response.data || []).length < pageSize) break;
   }
   return activities.map((activity) => ({
     ...activity,
@@ -263,13 +275,14 @@ function App() {
     refreshActivities();
   }, [refreshActivities]);
 
-  const counts = useMemo(() => queueCounts(activities), [activities]);
+  const preparedActivities = useMemo(() => prepareActivities(activities), [activities]);
+  const counts = useMemo(() => queueCountsFromPrepared(preparedActivities), [preparedActivities]);
   const queueActivities = useMemo(() => {
-    const queue = activitiesForQueue(activities, activeQueue);
+    const queue = preparedActivitiesForQueue(preparedActivities, activeQueue);
     const needle = deferredFilter.toLowerCase().trim();
     if (!needle) return queue;
     return queue.filter((activity) => listingSearchText(activity).includes(needle));
-  }, [activities, activeQueue, deferredFilter]);
+  }, [preparedActivities, activeQueue, deferredFilter]);
 
   useEffect(() => {
     if (!queueActivities.length) {
@@ -282,7 +295,7 @@ function App() {
   }, [queueActivities, selectedId]);
 
   const selectedActivity = queueActivities.find((activity) => activity.activity_id === selectedId)
-    || activities.find((activity) => activity.activity_id === selectedId)
+    || preparedActivities.find((activity) => activity.activity_id === selectedId)
     || null;
   const queries = useMemo(() => selectedActivity ? searchQueries(selectedActivity) : null, [selectedActivity]);
   const candidates = Array.isArray(selectedActivity?.codex_image_candidates) ? selectedActivity.codex_image_candidates.slice(0, 20) : [];

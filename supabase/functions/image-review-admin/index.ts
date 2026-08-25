@@ -217,7 +217,7 @@ async function searchUnfilteredSerpApiCandidates(
     }))
     const completedAt = new Date().toISOString()
     const sourceLabel = 'SerpAPI Google Images — top 20 unfiltered'
-    const { error: activityError } = await supabase.from('activities').update({
+    const activityUpdate = supabase.from('activities').update({
       codex_image_candidates: candidates,
       codex_image_search_query: query,
       codex_image_searched_at: completedAt,
@@ -228,17 +228,18 @@ async function searchUnfilteredSerpApiCandidates(
       serpapi_image_checked_at: completedAt,
       updated_at: completedAt,
     }).eq('activity_id', activity.activity_id)
-    if (activityError) throw new Error(activityError.message)
-    if (activeRequestId) {
-      const { error: requestError } = await supabase.from('codex_image_candidate_requests').update({
+    const requestUpdate = activeRequestId
+      ? supabase.from('codex_image_candidate_requests').update({
         status: 'completed',
         completed_at: completedAt,
         codex_model: sourceLabel,
         candidate_count: candidates.length,
         failure_reason: null,
       }).eq('candidate_request_id', activeRequestId)
-      if (requestError) throw new Error(requestError.message)
-    }
+      : Promise.resolve({ error: null })
+    const [{ error: activityError }, { error: requestError }] = await Promise.all([activityUpdate, requestUpdate])
+    if (activityError) throw new Error(activityError.message)
+    if (requestError) throw new Error(requestError.message)
     return {
       candidates,
       query,
@@ -319,28 +320,39 @@ function extensionFor(contentType: string) {
   return ({ 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/avif': 'avif' } as Record<string, string>)[contentType] || 'jpg'
 }
 
-async function downloadCandidate(candidate: Candidate) {
-  const candidates = [candidate.image_url, candidate.thumbnail_url].filter((value): value is string => Boolean(value))
-  for (const imageUrl of candidates) {
-    try {
-      const response = await fetch(imageUrl, {
-        redirect: 'follow',
-        signal: AbortSignal.timeout(20000),
-        headers: { Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8' },
-      })
-      const contentType = (response.headers.get('content-type') || '').split(';')[0].toLowerCase()
-      const declaredSize = Number(response.headers.get('content-length') || 0)
-      if (!response.ok || !acceptedMimeTypes.has(contentType) || (declaredSize && declaredSize > maxImageBytes)) continue
-      const bytes = new Uint8Array(await response.arrayBuffer())
-      if (bytes.byteLength < 5 * 1024 || bytes.byteLength > maxImageBytes) continue
-      const dimensions = downloadedImageDimensions(bytes, contentType)
-      if (!dimensions || Math.min(dimensions.width, dimensions.height) < 300 || dimensions.width * dimensions.height < 180000) continue
-      return { bytes, contentType, dimensions }
-    } catch {
-      // Some image hosts reject direct downloads; the thumbnail is the fallback.
-    }
+async function downloadCandidateUrl(imageUrl: string, signal: AbortSignal) {
+  const response = await fetch(imageUrl, {
+    redirect: 'follow',
+    signal,
+    headers: { Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8' },
+  })
+  const contentType = (response.headers.get('content-type') || '').split(';')[0].toLowerCase()
+  const declaredSize = Number(response.headers.get('content-length') || 0)
+  if (!response.ok || !acceptedMimeTypes.has(contentType) || (declaredSize && declaredSize > maxImageBytes)) {
+    throw new Error('Image response was not usable.')
   }
-  throw new Error('The selected image could not be downloaded at sufficient resolution.')
+  const bytes = new Uint8Array(await response.arrayBuffer())
+  if (bytes.byteLength < 5 * 1024 || bytes.byteLength > maxImageBytes) throw new Error('Image file size was not usable.')
+  const dimensions = downloadedImageDimensions(bytes, contentType)
+  if (!dimensions || Math.min(dimensions.width, dimensions.height) < 300 || dimensions.width * dimensions.height < 180000) {
+    throw new Error('Image resolution was not usable.')
+  }
+  return { bytes, contentType, dimensions }
+}
+
+async function downloadCandidate(candidate: Candidate) {
+  const imageUrls = [...new Set([candidate.image_url, candidate.thumbnail_url]
+    .filter((value): value is string => Boolean(value)))]
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 12000)
+  try {
+    return await Promise.any(imageUrls.map((imageUrl) => downloadCandidateUrl(imageUrl, controller.signal)))
+  } catch {
+    throw new Error('The selected image could not be downloaded at sufficient resolution.')
+  } finally {
+    clearTimeout(timeout)
+    controller.abort()
+  }
 }
 
 async function storeReviewedImage(
@@ -360,7 +372,6 @@ async function storeReviewedImage(
   const selectedAt = new Date().toISOString()
   const revision = Date.parse(activity.codex_image_searched_at || selectedAt)
   const path = `reviewed/${activity.activity_id}/${revision}-${candidateIndex}.${extensionFor(downloaded.contentType)}`
-  await supabase.storage.createBucket('activity-images', { public: true }).catch(() => {})
   const upload = await supabase.storage.from('activity-images').upload(path, downloaded.bytes, {
     contentType: downloaded.contentType,
     cacheControl: '31536000',
@@ -370,7 +381,7 @@ async function storeReviewedImage(
   const reviewedImageUrl = supabase.storage.from('activity-images').getPublicUrl(path).data.publicUrl
   const sourceUrl = candidate.source_page_url || candidate.image_url
   const model = cleanText(activity.codex_image_search_model) || 'Desktop image review'
-  const { error: updateError } = await supabase.from('activities').update({
+  const activityUpdate = supabase.from('activities').update({
     reviewed_image_url: reviewedImageUrl,
     reviewed_image_source_url: sourceUrl,
     reviewed_image_original_url: candidate.image_url,
@@ -379,8 +390,7 @@ async function storeReviewedImage(
     reviewed_image_selected_by_user_id: userId,
     updated_at: selectedAt,
   }).eq('activity_id', activity.activity_id)
-  if (updateError) throw new Error(updateError.message)
-  const { error: logError } = await supabase.from('activity_image_manual_reviews').insert({
+  const reviewLog = supabase.from('activity_image_manual_reviews').insert({
     activity_id: activity.activity_id,
     reviewed_image_url: reviewedImageUrl,
     original_image_url: candidate.image_url,
@@ -390,6 +400,8 @@ async function storeReviewedImage(
     model,
     selected_by_user_id: userId,
   })
+  const [{ error: updateError }, { error: logError }] = await Promise.all([activityUpdate, reviewLog])
+  if (updateError) throw new Error(updateError.message)
   if (logError) throw new Error(`Image saved, but the manual review log failed: ${logError.message}`)
   return { reviewedImageUrl, sourceUrl, selectedAt, model, candidate }
 }
