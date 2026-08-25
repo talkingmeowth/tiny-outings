@@ -1,4 +1,4 @@
-import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react';
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { hasSupabaseConfig, supabase } from './supabase.js';
 import {
   QUEUES,
@@ -27,7 +27,7 @@ const activityColumns = [
   'admin_cover_image_url', 'reviewed_image_url', 'reviewed_image_source_url', 'reviewed_image_original_url',
   'reviewed_image_selected_at', 'reviewed_image_model', 'user_image_url', 'audit_image_url', 'audit_image_source_url',
   'organiser_website_downloaded_image', 'website_downloaded_image', 'wikimedia_image_url', 'website_image_url',
-  'listing_image_url', 'codex_image_candidates', 'codex_image_search_query', 'codex_image_searched_at',
+  'listing_image_url', 'codex_image_search_query', 'codex_image_searched_at',
   'codex_image_search_model', 'created_at', 'updated_at',
 ].join(',');
 
@@ -102,6 +102,7 @@ async function loadAllActivities() {
   }
   return activities.map((activity) => ({
     ...activity,
+    candidate_set_loaded: false,
     user_uploaded_image_url: userImageByActivity.get(String(activity.activity_id)) || null,
   }));
 }
@@ -215,8 +216,16 @@ function App() {
   const [customQuery, setCustomQuery] = useState('');
   const [busy, setBusy] = useState('');
   const [notice, setNotice] = useState('');
+  const selectedIdRef = useRef(selectedId);
+  const candidateLoadsRef = useRef(new Set());
+  const candidateSearchesRef = useRef(new Set());
+  const candidateSearchSequenceRef = useRef(0);
 
   const isAdmin = isDemo || ADMIN_EMAILS.has(clean(session?.user?.email).toLowerCase());
+
+  useEffect(() => {
+    selectedIdRef.current = selectedId;
+  }, [selectedId]);
 
   useEffect(() => {
     if (isDemo || !supabase) return undefined;
@@ -278,103 +287,131 @@ function App() {
   const candidates = Array.isArray(selectedActivity?.codex_image_candidates) ? selectedActivity.codex_image_candidates.slice(0, 20) : [];
   const activeImage = selectedActivity ? currentImage(selectedActivity) : null;
 
-  const refreshCandidateState = useCallback(async () => {
-    if (isDemo || !selectedActivity || !supabase) return;
-    const [activityResponse, requestResponse] = await Promise.all([
-      supabase.from('activities').select('activity_id,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model').eq('activity_id', selectedActivity.activity_id).single(),
-      supabase.from('codex_image_candidate_requests').select('*').eq('activity_id', selectedActivity.activity_id).order('requested_at', { ascending: false }).limit(1).maybeSingle(),
-    ]);
-    if (!activityResponse.error && activityResponse.data) {
-      setActivities((current) => current.map((activity) => activity.activity_id === selectedActivity.activity_id
-        ? { ...activity, ...activityResponse.data }
-        : activity));
-    }
-    if (!requestResponse.error) setCandidateRequest(requestResponse.data || null);
-  }, [selectedActivity]);
-
-  const requestCandidates = useCallback(async (variant = 'activity_location', requestedQuery = '') => {
-    if (!selectedActivity || !session?.user) return;
-    const query = clean(requestedQuery) || queries?.[variant] || queries?.activity_location;
+  const requestCandidates = useCallback(async (activity, variant = 'activity_location', requestedQuery = '') => {
+    if (!activity || !session?.user) return;
+    const activityId = activity.activity_id;
+    if (candidateSearchesRef.current.has(activityId)) return;
+    const activityQueries = searchQueries(activity);
+    const query = clean(requestedQuery) || activityQueries[variant] || activityQueries.activity_location;
     if (!query) return;
+    candidateSearchesRef.current.add(activityId);
+    const requestSequence = candidateSearchSequenceRef.current + 1;
+    candidateSearchSequenceRef.current = requestSequence;
+    const requestedAt = new Date().toISOString();
     setBusy('request');
     setNotice('');
     setSelectedCandidate(null);
+    if (selectedIdRef.current === activityId) {
+      setCandidateRequest({ status: 'in_progress', requested_query: query, request_variant: variant, requested_at: requestedAt });
+    }
     if (isDemo) {
-      setCandidateRequest({ status: 'pending', requested_query: query, request_variant: variant, requested_at: new Date().toISOString() });
-      setTimeout(() => setCandidateRequest({ status: 'completed', requested_query: query, request_variant: variant, requested_at: new Date().toISOString(), candidate_count: demoCandidates.length, codex_model: 'SerpAPI Google Images — top 20 unfiltered' }), 600);
-      setBusy('');
+      setTimeout(() => {
+        const completedAt = new Date().toISOString();
+        setActivities((current) => current.map((currentActivity) => currentActivity.activity_id === activityId ? {
+          ...currentActivity,
+          codex_image_candidates: demoCandidates,
+          codex_image_search_query: query,
+          codex_image_searched_at: completedAt,
+          codex_image_search_model: 'SerpAPI Google Images — top 20 unfiltered',
+          candidate_set_loaded: true,
+        } : currentActivity));
+        setCandidateRequest({ status: 'completed', requested_query: query, request_variant: variant, requested_at: requestedAt, completed_at: completedAt, candidate_count: demoCandidates.length, codex_model: 'SerpAPI Google Images — top 20 unfiltered' });
+        candidateSearchesRef.current.delete(activityId);
+        setBusy('');
+      }, 600);
       return;
     }
     try {
-      await supabase.from('codex_image_candidate_requests').update({ status: 'cancelled', completed_at: new Date().toISOString() })
-        .eq('activity_id', selectedActivity.activity_id).in('status', ['pending', 'in_progress']);
-      const response = await supabase.from('codex_image_candidate_requests').insert({
-        activity_id: selectedActivity.activity_id,
-        requested_query: query.slice(0, 240),
-        request_variant: variant,
-        requested_by_user_id: session.user.id,
-      }).select('*').single();
-      if (response.error) throw response.error;
-      setCandidateRequest({ ...response.data, status: 'in_progress' });
       const searchResponse = await supabase.functions.invoke('image-review-admin', {
         body: {
           action: 'search',
-          activity_id: selectedActivity.activity_id,
-          candidate_request_id: response.data.candidate_request_id,
+          activity_id: activityId,
           query,
+          request_variant: variant,
         },
       });
       if (searchResponse.error || searchResponse.data?.error) {
         throw new Error(searchResponse.data?.error || searchResponse.error?.message || 'SerpAPI search failed.');
       }
-      setActivities((current) => current.map((activity) => activity.activity_id === selectedActivity.activity_id ? {
-        ...activity,
+      setActivities((current) => current.map((currentActivity) => currentActivity.activity_id === activityId ? {
+        ...currentActivity,
         codex_image_candidates: searchResponse.data.candidates,
         codex_image_search_query: searchResponse.data.query,
         codex_image_searched_at: searchResponse.data.searchedAt,
         codex_image_search_model: searchResponse.data.source,
-      } : activity));
-      setCandidateRequest({
-        ...response.data,
-        status: 'completed',
-        completed_at: searchResponse.data.searchedAt,
-        candidate_count: searchResponse.data.candidates.length,
-        codex_model: searchResponse.data.source,
-      });
-      setNotice(`${searchResponse.data.candidates.length} unfiltered Google Images candidates loaded from SerpAPI.`);
+        candidate_set_loaded: true,
+      } : currentActivity));
+      if (selectedIdRef.current === activityId) {
+        setCandidateRequest(searchResponse.data.request || {
+          status: 'completed',
+          requested_query: searchResponse.data.query,
+          requested_at: requestedAt,
+          completed_at: searchResponse.data.searchedAt,
+          candidate_count: searchResponse.data.candidates.length,
+          codex_model: searchResponse.data.source,
+        });
+        setNotice(`${searchResponse.data.candidates.length} unfiltered Google Images candidates loaded from SerpAPI.`);
+      }
     } catch (error) {
-      setNotice(`Could not queue the candidate search: ${error.message}`);
+      if (selectedIdRef.current === activityId) {
+        setCandidateRequest((current) => ({
+          ...current,
+          status: 'failed',
+          completed_at: new Date().toISOString(),
+          failure_reason: error.message,
+        }));
+        setNotice(`Could not load image candidates from SerpAPI: ${error.message}`);
+      }
     } finally {
-      setBusy('');
+      candidateSearchesRef.current.delete(activityId);
+      if (candidateSearchSequenceRef.current === requestSequence) setBusy('');
     }
-  }, [queries, selectedActivity, session]);
+  }, [session]);
 
   useEffect(() => {
     setSelectedCandidate(null);
     setZoomedCandidate(null);
     setCandidateRequest(null);
     setCustomQuery(queries?.activity_location || '');
-    if (isDemo || !selectedActivity) return undefined;
-    let cancelled = false;
-    async function loadAndQueue() {
-      const response = await supabase.from('codex_image_candidate_requests').select('*')
-        .eq('activity_id', selectedActivity.activity_id).order('requested_at', { ascending: false }).limit(1).maybeSingle();
-      if (cancelled) return;
-      const request = response.error ? null : response.data;
-      setCandidateRequest(request);
-      const hasCandidates = Array.isArray(selectedActivity.codex_image_candidates) && selectedActivity.codex_image_candidates.length;
-      const hasActiveRequest = request && ['pending', 'in_progress'].includes(request.status);
-      if (!hasCandidates && !hasActiveRequest) await requestCandidates('activity_location', queries?.activity_location);
-    }
-    loadAndQueue();
-    return () => { cancelled = true; };
-  }, [selectedActivity, queries?.activity_location, requestCandidates]);
+  }, [selectedActivity?.activity_id, queries?.activity_location]);
 
   useEffect(() => {
-    if (isDemo || !candidateRequest || !['pending', 'in_progress'].includes(candidateRequest.status)) return undefined;
-    const interval = window.setInterval(refreshCandidateState, 5000);
-    return () => window.clearInterval(interval);
-  }, [candidateRequest, refreshCandidateState]);
+    if (isDemo || !selectedActivity || !supabase) return undefined;
+    const activityId = selectedActivity.activity_id;
+    if (selectedActivity.candidate_set_loaded) {
+      if (!candidates.length) requestCandidates(selectedActivity, 'activity_location', queries?.activity_location);
+      return undefined;
+    }
+    if (candidateLoadsRef.current.has(activityId)) return undefined;
+    candidateLoadsRef.current.add(activityId);
+    async function loadSavedCandidates() {
+      try {
+        const response = await supabase.from('activities')
+          .select('activity_id,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model')
+          .eq('activity_id', activityId)
+          .single();
+        if (response.error) throw response.error;
+        setActivities((current) => current.map((activity) => activity.activity_id === activityId
+          ? { ...activity, ...response.data, candidate_set_loaded: true }
+          : activity));
+        if (selectedIdRef.current === activityId && Array.isArray(response.data.codex_image_candidates) && response.data.codex_image_candidates.length) {
+          setCandidateRequest({
+            status: 'completed',
+            requested_query: response.data.codex_image_search_query,
+            completed_at: response.data.codex_image_searched_at,
+            candidate_count: response.data.codex_image_candidates.length,
+            codex_model: response.data.codex_image_search_model,
+          });
+        }
+      } catch (error) {
+        if (selectedIdRef.current === activityId) setNotice(`Could not load saved image candidates: ${error.message}`);
+      } finally {
+        candidateLoadsRef.current.delete(activityId);
+      }
+    }
+    loadSavedCandidates();
+    return undefined;
+  }, [candidates.length, queries?.activity_location, requestCandidates, selectedActivity]);
 
   async function saveSelected() {
     if (!selectedActivity || selectedCandidate == null) return;
@@ -454,7 +491,10 @@ function App() {
   if (!isAdmin) return <SignIn message={`${session.user.email || 'This account'} is not an approved administrator.`} />;
 
   const selectedQueue = QUEUES.find((queue) => queue.id === activeQueue);
-  const requestStatus = candidateRequest?.status || (candidates.length ? 'completed' : 'not_requested');
+  const requestStatus = candidateRequest?.status || (candidates.length ? 'completed' : selectedActivity?.candidate_set_loaded ? 'not_requested' : 'loading');
+  const candidateSource = candidates.length
+    ? selectedActivity.codex_image_search_model || candidateRequest?.codex_model || 'Saved image candidates'
+    : 'SerpAPI Google Images';
 
   return (
     <div className="review-app">
@@ -550,16 +590,16 @@ function App() {
               <section className="search-panel">
                 <div className="section-title"><div><p className="eyebrow">Candidate discovery</p><h2>Search Google Images</h2></div><span className={`request-status ${requestStatus}`}>{requestStatus.replaceAll('_', ' ')}</span></div>
                 <p>SerpAPI returns the first 20 Google Images results in their original order. Candidates are shown without quality, logo, resolution, Wikimedia, or relevance filtering.</p>
-                <div className="query-row"><input value={customQuery} onChange={(event) => setCustomQuery(event.target.value)} maxLength={240} /><button className="primary-button" type="button" disabled={busy === 'request' || !customQuery.trim()} onClick={() => requestCandidates('custom', customQuery)}>{busy === 'request' ? 'Searching…' : 'Load top 20'}</button></div>
+                <div className="query-row"><input value={customQuery} onChange={(event) => setCustomQuery(event.target.value)} maxLength={240} /><button className="primary-button" type="button" disabled={busy === 'request' || !customQuery.trim()} onClick={() => requestCandidates(selectedActivity, 'custom', customQuery)}>{busy === 'request' ? 'Searching…' : 'Load top 20'}</button></div>
                 <div className="query-options">
-                  <button type="button" onClick={() => { setCustomQuery(queries.activity_location); requestCandidates('activity_location', queries.activity_location); }}>Activity + location</button>
-                  <button type="button" onClick={() => { setCustomQuery(queries.provider_location); requestCandidates('provider_location', queries.provider_location); }}>Provider + location</button>
-                  <button type="button" onClick={() => { setCustomQuery(queries.activity_only); requestCandidates('activity_only', queries.activity_only); }}>Activity only</button>
+                  <button type="button" onClick={() => { setCustomQuery(queries.activity_location); requestCandidates(selectedActivity, 'activity_location', queries.activity_location); }}>Activity + location</button>
+                  <button type="button" onClick={() => { setCustomQuery(queries.provider_location); requestCandidates(selectedActivity, 'provider_location', queries.provider_location); }}>Provider + location</button>
+                  <button type="button" onClick={() => { setCustomQuery(queries.activity_only); requestCandidates(selectedActivity, 'activity_only', queries.activity_only); }}>Activity only</button>
                 </div>
                 <div className="request-meta">
                   <span>Requested: {formatDate(candidateRequest?.requested_at)}</span>
                   <span>Last completed: {formatDate(selectedActivity.codex_image_searched_at)}</span>
-                  <span>Source: {selectedActivity.codex_image_search_model || candidateRequest?.codex_model || 'Waiting for SerpAPI'}</span>
+                  <span>Source: {candidateSource}</span>
                 </div>
               </section>
 
@@ -580,8 +620,8 @@ function App() {
               ) : (
                 <div className="waiting-panel">
                   <div className="waiting-icon">⌁</div>
-                  <h3>{['pending', 'in_progress'].includes(requestStatus) ? 'Searching Google Images' : 'No candidates yet'}</h3>
-                  <p>{requestStatus === 'in_progress' ? 'SerpAPI is fetching the first 20 results now.' : 'Run an activity-and-location search to load the top 20 Google Images results.'}</p>
+                  <h3>{requestStatus === 'loading' ? 'Loading saved candidates' : ['pending', 'in_progress'].includes(requestStatus) ? 'Searching Google Images' : 'No candidates yet'}</h3>
+                  <p>{requestStatus === 'loading' ? 'Checking this listing, then SerpAPI will run automatically if no candidates are saved.' : requestStatus === 'in_progress' ? 'SerpAPI is fetching the first 20 results now.' : 'Run an activity-and-location search to load the top 20 Google Images results.'}</p>
                   {candidateRequest?.requested_query ? <code>{candidateRequest.requested_query}</code> : null}
                 </div>
               )}

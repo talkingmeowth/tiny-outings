@@ -4,7 +4,9 @@ The desktop review app lives at `/review/`. It is a separate, laptop-first React
 
 ## Image discovery uses SerpAPI
 
-When an administrator opens a listing without candidates, or requests a different search, the app creates a request and immediately calls SerpAPI's `google_images` search. The query is normally the activity name plus the most useful location without duplicated place names.
+The initial queue load omits the large candidate JSON arrays so thousands of listings can appear quickly. When an administrator selects a listing, the app lazy-loads only that listing's saved candidates. If none exist, it immediately calls SerpAPI's `google_images` search; legacy pending Codex-chat request rows never block the call. The query is normally the activity name plus the most useful location without duplicated place names.
+
+The admin Edge Function creates and completes the request log itself, cancelling any obsolete `pending` or `in_progress` row for the listing. This keeps the browser path to one server invocation instead of separate cancel, insert, and search round trips.
 
 The first 20 `images_results` are stored and displayed in exactly the order returned. Candidate discovery does not filter by quality, resolution, logos, Wikimedia, source, duplication, or relevance. The administrator makes that judgment in the gallery.
 

@@ -136,27 +136,54 @@ async function searchUnfilteredSerpApiCandidates(
   activity: Activity,
   candidateRequestId: string,
   suppliedQuery: string,
+  requestVariant: string,
+  requestedByUserId: string | null,
 ) {
   const apiKey = Deno.env.get('SERPAPI_API_KEY')
   if (!apiKey) throw new Error('SERPAPI_API_KEY is not configured.')
 
   let query = cleanText(suppliedQuery)
+  if (!query) query = `${cleanText(activity.activity_name)} ${cleanText(activity.address || activity.postcode || activity.borough || 'London')}`.trim()
+  const validRequestVariants = new Set(['activity_location', 'provider_location', 'activity_only', 'custom'])
+  const normalizedRequestVariant = validRequestVariants.has(requestVariant) ? requestVariant : 'activity_location'
+  let requestRow: Record<string, unknown> | null = null
   if (candidateRequestId) {
-    const { data: requestRow, error: requestError } = await supabase
+    const { data: existingRequest, error: requestError } = await supabase
       .from('codex_image_candidate_requests')
-      .select('candidate_request_id,activity_id,requested_query')
+      .select('candidate_request_id,activity_id,requested_query,request_variant,requested_at')
       .eq('candidate_request_id', candidateRequestId)
       .maybeSingle()
     if (requestError) throw new Error(requestError.message)
-    if (!requestRow || requestRow.activity_id !== activity.activity_id) throw new Error('Candidate request not found for this listing.')
-    query = cleanText(requestRow.requested_query) || query
-    await supabase.from('codex_image_candidate_requests').update({
+    if (!existingRequest || existingRequest.activity_id !== activity.activity_id) throw new Error('Candidate request not found for this listing.')
+    query = cleanText(existingRequest.requested_query) || query
+    requestRow = existingRequest
+    const { error: requestUpdateError } = await supabase.from('codex_image_candidate_requests').update({
       status: 'in_progress',
       started_at: new Date().toISOString(),
       failure_reason: null,
     }).eq('candidate_request_id', candidateRequestId)
+    if (requestUpdateError) throw new Error(requestUpdateError.message)
+  } else {
+    const cancelledAt = new Date().toISOString()
+    const { error: cancelError } = await supabase.from('codex_image_candidate_requests').update({
+      status: 'cancelled',
+      completed_at: cancelledAt,
+      failure_reason: 'Superseded by an immediate SerpAPI search.',
+    }).eq('activity_id', activity.activity_id).in('status', ['pending', 'in_progress'])
+    if (cancelError) throw new Error(cancelError.message)
+    const startedAt = new Date().toISOString()
+    const { data: insertedRequest, error: insertError } = await supabase.from('codex_image_candidate_requests').insert({
+      activity_id: activity.activity_id,
+      requested_query: query.slice(0, 240),
+      request_variant: normalizedRequestVariant,
+      status: 'in_progress',
+      requested_by_user_id: requestedByUserId,
+      started_at: startedAt,
+    }).select('candidate_request_id,activity_id,requested_query,request_variant,requested_at').single()
+    if (insertError) throw new Error(insertError.message)
+    requestRow = insertedRequest
   }
-  if (!query) query = `${cleanText(activity.activity_name)} ${cleanText(activity.address || activity.postcode || activity.borough || 'London')}`.trim()
+  const activeRequestId = cleanText(requestRow?.candidate_request_id || candidateRequestId)
 
   try {
     const searchUrl = new URL('https://serpapi.com/search.json')
@@ -202,24 +229,39 @@ async function searchUnfilteredSerpApiCandidates(
       updated_at: completedAt,
     }).eq('activity_id', activity.activity_id)
     if (activityError) throw new Error(activityError.message)
-    if (candidateRequestId) {
+    if (activeRequestId) {
       const { error: requestError } = await supabase.from('codex_image_candidate_requests').update({
         status: 'completed',
         completed_at: completedAt,
         codex_model: sourceLabel,
         candidate_count: candidates.length,
         failure_reason: null,
-      }).eq('candidate_request_id', candidateRequestId)
+      }).eq('candidate_request_id', activeRequestId)
       if (requestError) throw new Error(requestError.message)
     }
-    return { candidates, query, searchedAt: completedAt, source: sourceLabel }
+    return {
+      candidates,
+      query,
+      searchedAt: completedAt,
+      source: sourceLabel,
+      request: {
+        ...requestRow,
+        candidate_request_id: activeRequestId,
+        requested_query: query,
+        status: 'completed',
+        completed_at: completedAt,
+        codex_model: sourceLabel,
+        candidate_count: candidates.length,
+        failure_reason: null,
+      },
+    }
   } catch (error) {
-    if (candidateRequestId) {
+    if (activeRequestId) {
       await supabase.from('codex_image_candidate_requests').update({
         status: 'failed',
         completed_at: new Date().toISOString(),
         failure_reason: error instanceof Error ? error.message : 'SerpAPI image search failed.',
-      }).eq('candidate_request_id', candidateRequestId)
+      }).eq('candidate_request_id', activeRequestId)
     }
     throw error
   }
@@ -327,7 +369,7 @@ async function storeReviewedImage(
   if (upload.error) throw new Error(upload.error.message)
   const reviewedImageUrl = supabase.storage.from('activity-images').getPublicUrl(path).data.publicUrl
   const sourceUrl = candidate.source_page_url || candidate.image_url
-  const model = cleanText(activity.codex_image_search_model) || 'Codex chat'
+  const model = cleanText(activity.codex_image_search_model) || 'Desktop image review'
   const { error: updateError } = await supabase.from('activities').update({
     reviewed_image_url: reviewedImageUrl,
     reviewed_image_source_url: sourceUrl,
@@ -380,6 +422,7 @@ Deno.serve(async (request) => {
     activity_id?: string
     candidate_request_id?: string
     query?: string
+    request_variant?: string
     candidate_index?: number
     candidate_set_searched_at?: string
   }
@@ -392,6 +435,8 @@ Deno.serve(async (request) => {
         activity,
         cleanText(body.candidate_request_id),
         cleanText(body.query),
+        cleanText(body.request_variant),
+        user.id,
       )
       return jsonResponse({ status: 'searched', ...result })
     }
