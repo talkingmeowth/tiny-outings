@@ -74,7 +74,6 @@ test('uses the requested card-image hierarchy exactly', () => {
     category: 'Family activities',
     audit_image_status: 'replaced',
     admin_cover_image_url: 'https://images.example.test/admin.jpg',
-    reviewed_image_url: 'https://images.example.test/reviewed.jpg',
     user_image_url: 'https://images.example.test/admin-url.jpg',
     audit_image_url: 'https://images.example.test/audited.jpg',
     user_uploaded_image_url: 'https://images.example.test/community.jpg',
@@ -87,7 +86,6 @@ test('uses the requested card-image hierarchy exactly', () => {
   });
   assert.deepEqual(activityImageUrls(item), [
     'https://images.example.test/admin.jpg',
-    'https://images.example.test/reviewed.jpg',
     'https://images.example.test/admin-url.jpg',
     'https://images.example.test/audited.jpg',
     'https://images.example.test/community.jpg',
