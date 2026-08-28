@@ -21,9 +21,10 @@ type Candidate = {
 
 type Proposal = {
   activity_id: string
-  source_queue: 'missing_published' | 'unsuitable_audit' | 'both'
-  candidate_index: number
-  candidate: Candidate
+  source_queue: 'missing_published' | 'unsuitable_audit' | 'both' | 'all_published' | 'all_draft'
+  candidate_index: number | null
+  candidate: Candidate | Record<string, never>
+  terminal_rejection?: boolean
   normalized_candidates?: Candidate[]
   candidate_set_searched_at?: string | null
   confidence: number
@@ -219,19 +220,41 @@ async function targetData(
   supabase: ReturnType<typeof createClient>,
   offset: number,
   pageSize: number,
+  scope: 'targeted' | 'all_unreviewed' | 'failed_applications',
 ) {
-  const { data, error } = await supabase.from('activities')
-    .select('activity_id,activity_name,address,postcode,borough,category,website,organiser_website,source_url,public_listing_status,archive,audit_image_status,image_review_ignored_at,admin_cover_image_url,reviewed_image_url,user_image_url,audit_image_url,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,serpapi_image_candidates,serpapi_image_search_query,serpapi_image_candidates_fetched_at')
+  let query = supabase.from('activities')
+    .select('activity_id,activity_name,address,postcode,borough,category,website,organiser_website,source_url,public_listing_status,archive,audit_image_status,image_review_ignored_at,admin_cover_image_url,reviewed_image_url,user_image_url,audit_image_url,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,serpapi_image_candidates,serpapi_image_search_query,serpapi_image_candidates_fetched_at,website_image_candidates,website_image_candidates_fetched_at')
     .eq('archive', false)
-    .is('image_review_ignored_at', null)
-    .is('reviewed_image_url', null)
+    .in('public_listing_status', ['draft', 'published'])
     .order('activity_id', { ascending: true })
     .range(offset, offset + pageSize - 1)
+  if (scope === 'targeted') query = query.is('image_review_ignored_at', null).is('reviewed_image_url', null)
+  const { data, error } = await query
   if (error) throw new Error(error.message)
-  const { data: failedReviews, error: failedReviewError } = await supabase.from('activity_image_automated_reviews')
+  const activityIds = (data || []).map((activity) => activity.activity_id)
+  const activityIdBatches = Array.from({ length: Math.ceil(activityIds.length / 100) }, (_, index) => activityIds.slice(index * 100, (index + 1) * 100))
+  const existingResponses = scope === 'all_unreviewed'
+    ? await Promise.all(activityIdBatches.map((ids) => supabase.from('activity_image_automated_reviews').select('activity_id').in('activity_id', ids)))
+    : []
+  const existingReviewError = existingResponses.find((response) => response.error)?.error
+  if (existingReviewError) throw new Error(existingReviewError.message)
+  const existingReviews = existingResponses.flatMap((response) => response.data || [])
+  const reviewedActivityIds = new Set((existingReviews || []).map((review) => review.activity_id))
+  const failedResponses = await Promise.all(activityIdBatches.map((ids) => supabase.from('activity_image_automated_reviews')
     .select('activity_id,candidate')
-    .not('apply_failure_reason', 'is', null)
+    .in('activity_id', ids)
+    .not('apply_failure_reason', 'is', null)))
+  const failedReviewError = failedResponses.find((response) => response.error)?.error
   if (failedReviewError) throw new Error(failedReviewError.message)
+  const failedReviews = failedResponses.flatMap((response) => response.data || [])
+  const openResponses = await Promise.all(activityIdBatches.map((ids) => supabase.from('activity_image_automated_reviews')
+    .select('activity_id,status,apply_failure_reason')
+    .in('activity_id', ids)
+    .in('status', ['pending', 'auto_applied'])))
+  const openReviewError = openResponses.find((response) => response.error)?.error
+  if (openReviewError) throw new Error(openReviewError.message)
+  const openReviewByActivity = new Map(openResponses.flatMap((response) => response.data || [])
+    .map((review) => [review.activity_id, review]))
   const failedUrlsByActivity = new Map<string, string[]>()
   for (const review of failedReviews || []) {
     const imageUrl = clean(review.candidate?.image_url)
@@ -242,9 +265,16 @@ async function targetData(
   }
   const rows = (data || []).map((activity) => ({
     ...activity,
-    automated_source_queue: targetQueue(activity),
+    automated_source_queue: targetQueue(activity)
+      || (scope !== 'targeted' ? (activity.public_listing_status === 'draft' ? 'all_draft' : 'all_published') : null),
     automated_failed_image_urls: failedUrlsByActivity.get(activity.activity_id) || [],
   }))
+    .filter((activity) => scope !== 'all_unreviewed' || !reviewedActivityIds.has(activity.activity_id))
+    .filter((activity) => {
+      if (scope !== 'failed_applications' || !failedUrlsByActivity.has(activity.activity_id)) return scope !== 'failed_applications'
+      const openReview = openReviewByActivity.get(activity.activity_id)
+      return !openReview || (openReview.status === 'pending' && Boolean(openReview.apply_failure_reason))
+    })
     .filter((activity) => activity.automated_source_queue)
   return {
     rows,
@@ -272,9 +302,10 @@ async function storeProposals(
 ) {
   if (!proposals.length || proposals.length > 100) throw new Error('Between 1 and 100 proposals are required.')
   for (const proposal of proposals) {
-    if (!clean(proposal.activity_id) || !['missing_published', 'unsuitable_audit', 'both'].includes(proposal.source_queue)) throw new Error('A proposal has invalid activity or queue data.')
-    if (!Number.isInteger(proposal.candidate_index) || proposal.candidate_index < 0 || proposal.candidate_index > 19) throw new Error('A proposal has an invalid candidate index.')
-    if (!validCandidate(proposal.candidate)) throw new Error('A proposal has an invalid candidate.')
+    if (!clean(proposal.activity_id) || !['missing_published', 'unsuitable_audit', 'both', 'all_published', 'all_draft'].includes(proposal.source_queue)) throw new Error('A proposal has invalid activity or queue data.')
+    if (proposal.terminal_rejection !== true
+      && (!Number.isInteger(proposal.candidate_index) || Number(proposal.candidate_index) < 0 || Number(proposal.candidate_index) > 19)) throw new Error('A proposal has an invalid candidate index.')
+    if (proposal.terminal_rejection !== true && !validCandidate(proposal.candidate)) throw new Error('A proposal has an invalid candidate.')
     if (!(Number(proposal.confidence) >= 0 && Number(proposal.confidence) <= 1)) throw new Error('A proposal has invalid confidence.')
     if (!clean(proposal.reason) || !clean(proposal.model_name) || !clean(proposal.model_version) || Number(proposal.training_review_count) < 1) throw new Error('A proposal is missing model audit data.')
   }
@@ -293,7 +324,7 @@ async function storeProposals(
         codex_image_candidates: proposal.normalized_candidates!.slice(0, 20),
         codex_image_search_query: undefined,
         codex_image_searched_at: searchedAt,
-        codex_image_search_model: 'Stored SerpAPI candidates normalized for tagged-choice review',
+        codex_image_search_model: 'Stored image candidates normalized for tagged-choice review',
       }).eq('activity_id', proposal.activity_id)
       if (error) throw new Error(error.message)
     })
@@ -301,6 +332,7 @@ async function storeProposals(
 
   const rows = proposals.map((proposal) => ({
     activity_id: proposal.activity_id,
+    status: proposal.terminal_rejection ? 'rejected' : 'pending',
     source_queue: proposal.source_queue,
     candidate_index: proposal.candidate_index,
     candidate: proposal.candidate,
@@ -312,6 +344,7 @@ async function storeProposals(
     training_review_count: Number(proposal.training_review_count),
     model_metrics: proposal.model_metrics || {},
     feature_snapshot: proposal.feature_snapshot || {},
+    reviewed_at: proposal.terminal_rejection ? supersededAt : null,
   }))
   const { data, error } = await supabase.from('activity_image_automated_reviews').insert(rows)
     .select('automated_review_id,activity_id,status,candidate_index,confidence')
@@ -346,6 +379,21 @@ async function applyProposal(
       apply_failure_reason: 'Listing was archived before automatic application.',
     })
     return { activity_id: proposal.activity_id, status: 'archived' }
+  }
+
+  const protectedImage = clean(activity.admin_cover_image_url)
+    || clean(activity.user_image_url)
+    || clean(activity.user_uploaded_image_url)
+  if (protectedImage || activity.image_review_ignored_at) {
+    await updateAutomatedReview(supabase, automatedReviewId, {
+      status: 'corrected',
+      reviewed_at: attemptedAt,
+      reviewed_candidate_index: null,
+      reviewed_image_url: protectedImage || null,
+      apply_attempted_at: attemptedAt,
+      apply_failure_reason: null,
+    })
+    return { activity_id: proposal.activity_id, status: 'preserved-user-choice' }
   }
 
   const currentReviewedImage = clean(activity.reviewed_image_url)
@@ -424,11 +472,22 @@ async function applyPendingProposals(
   const activityIds = (proposals || []).map((proposal) => proposal.activity_id)
   const { data: activities, error: activityError } = activityIds.length
     ? await supabase.from('activities')
-      .select('activity_id,archive,reviewed_image_url,reviewed_image_original_url')
+      .select('activity_id,archive,image_review_ignored_at,admin_cover_image_url,user_image_url,reviewed_image_url,reviewed_image_original_url')
       .in('activity_id', activityIds)
     : { data: [], error: null }
   if (activityError) throw new Error(activityError.message)
-  const activityById = new Map((activities || []).map((activity) => [activity.activity_id, activity]))
+  const { data: userPhotos, error: userPhotoError } = activityIds.length
+    ? await supabase.from('activity_photos')
+      .select('activity_id,photo_url')
+      .eq('source_provider', 'user_upload')
+      .in('activity_id', activityIds)
+    : { data: [], error: null }
+  if (userPhotoError) throw new Error(userPhotoError.message)
+  const userUploadByActivity = new Map((userPhotos || []).map((photo) => [photo.activity_id, photo.photo_url]))
+  const activityById = new Map((activities || []).map((activity) => [activity.activity_id, {
+    ...activity,
+    user_uploaded_image_url: userUploadByActivity.get(activity.activity_id) || null,
+  }]))
   const tasks = (proposals || []).map((proposal) => async () => {
     try {
       return await applyProposal(supabase, proposal, activityById.get(proposal.activity_id))
@@ -471,6 +530,7 @@ Deno.serve(async (request) => {
     action?: 'training_data' | 'targets' | 'store_proposals' | 'apply_pending' | 'reset_apply_failures'
     offset?: number
     page_size?: number
+    scope?: 'targeted' | 'all_unreviewed' | 'failed_applications'
     proposals?: Proposal[]
     batch_size?: number
   }
@@ -481,7 +541,10 @@ Deno.serve(async (request) => {
     }
     if (body.action === 'targets') {
       const pageSize = Math.min(1000, Math.max(1, Number(body.page_size) || 500))
-      return jsonResponse(await targetData(supabase, Math.max(0, Number(body.offset) || 0), pageSize))
+      const scope = body.scope === 'all_unreviewed'
+        ? 'all_unreviewed'
+        : body.scope === 'failed_applications' ? 'failed_applications' : 'targeted'
+      return jsonResponse(await targetData(supabase, Math.max(0, Number(body.offset) || 0), pageSize, scope))
     }
     if (body.action === 'store_proposals') {
       const stored = await storeProposals(supabase, Array.isArray(body.proposals) ? body.proposals : [])

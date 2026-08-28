@@ -53,6 +53,24 @@ test('normalizes legacy SerpAPI candidates without another API call', () => {
   assert.equal(normalized[0].image_url, 'https://images.test/cafe.jpg');
   assert.equal(normalized[0].width, 1200);
   assert.equal(normalized[0].relevance_reason, 'Google Images result 1');
+  assert.equal(normalized[0].candidate_set_index, 0);
+});
+
+test('falls back to official-website candidates and preserves their source index', () => {
+  const normalized = storedCandidateSet({
+    website_image_candidates: [
+      { original: 'not-a-url' },
+      {
+        original: 'https://venue.test/interior.jpg',
+        link: 'https://venue.test/gallery',
+        title: 'Venue interior and seating',
+        original_width: 1800,
+        original_height: 1200,
+      },
+    ],
+  }, 80);
+  assert.equal(normalized.length, 1);
+  assert.equal(normalized[0].candidate_set_index, 1);
 });
 
 test('uses one selected candidate and the unselected set as tagged choice examples', () => {

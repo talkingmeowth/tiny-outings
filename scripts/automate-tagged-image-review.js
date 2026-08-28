@@ -14,6 +14,11 @@ const reportPath = join(root, 'data', 'automated_image_review_report.generated.j
 const apply = process.argv.includes('--apply');
 const searchMissing = process.argv.includes('--search-missing');
 const autoApply = process.argv.includes('--auto-apply');
+const scopeIndex = process.argv.indexOf('--scope');
+const requestedScope = scopeIndex >= 0 ? process.argv[scopeIndex + 1] : null;
+const scope = requestedScope === 'all-unreviewed'
+  ? 'all_unreviewed'
+  : requestedScope === 'failed-applications' ? 'failed_applications' : 'targeted';
 const limitIndex = process.argv.indexOf('--limit');
 const limit = limitIndex >= 0 ? Math.max(1, Number(process.argv[limitIndex + 1]) || 1) : Number.POSITIVE_INFINITY;
 const concurrencyIndex = process.argv.indexOf('--search-concurrency');
@@ -80,7 +85,7 @@ async function loadPaged(action, pageSize) {
   const rows = [];
   let offset = 0;
   do {
-    const payload = await callFunction('activity-image-auto-review', { action, offset, page_size: pageSize });
+    const payload = await callFunction('activity-image-auto-review', { action, offset, page_size: pageSize, scope });
     rows.push(...(payload.rows || []));
     offset = payload.next_offset;
     console.log(`${action}: loaded ${rows.length}${offset == null ? '' : '+'} rows.`);
@@ -145,18 +150,43 @@ function buildProposals(targets, model) {
   const skipped = [];
   for (const activity of targets.slice(0, Number.isFinite(limit) ? limit : undefined)) {
     const recommendation = rankStoredCandidates(activity, model);
+    const normalizedCandidates = storedCandidateSet(activity);
+    const usedLegacyCandidates = !Array.isArray(activity.codex_image_candidates) || !activity.codex_image_candidates.length;
+    const hasSerpApiCandidates = Array.isArray(activity.serpapi_image_candidates) && activity.serpapi_image_candidates.length;
+    const candidateSetSearchedAt = activity.codex_image_searched_at
+      || (hasSerpApiCandidates ? activity.serpapi_image_candidates_fetched_at : activity.website_image_candidates_fetched_at)
+      || activity.serpapi_image_candidates_fetched_at
+      || null;
     if (!recommendation) {
-      skipped.push({ activity_id: activity.activity_id, activity_name: activity.activity_name, reason: storedCandidateSet(activity).length ? 'no-eligible-candidate' : 'no-stored-candidates' });
+      const reasonCode = normalizedCandidates.length ? 'no-eligible-candidate' : 'no-stored-candidates';
+      skipped.push({ activity_id: activity.activity_id, activity_name: activity.activity_name, reason: reasonCode });
+      proposals.push({
+        activity_id: activity.activity_id,
+        source_queue: activity.automated_source_queue,
+        candidate_index: null,
+        candidate: {},
+        terminal_rejection: true,
+        ...(usedLegacyCandidates && normalizedCandidates.length ? { normalized_candidates: normalizedCandidates } : {}),
+        candidate_set_searched_at: candidateSetSearchedAt,
+        confidence: 0.5,
+        reason: reasonCode === 'no-eligible-candidate'
+          ? 'The review model ran, but every stored candidate failed the logo, icon, Wikimedia, or minimum-resolution policy.'
+          : 'The review model ran, but no stored image candidates were available.',
+        model_name: model.name,
+        model_version: model.version,
+        training_review_count: model.trainingReviewCount,
+        model_metrics: model.metrics,
+        feature_snapshot: { eligible_candidate_count: 0 },
+      });
       continue;
     }
-    const usedLegacyCandidates = !Array.isArray(activity.codex_image_candidates) || !activity.codex_image_candidates.length;
     proposals.push({
       activity_id: activity.activity_id,
       source_queue: activity.automated_source_queue,
       candidate_index: recommendation.candidateIndex,
       candidate: recommendation.candidate,
       ...(usedLegacyCandidates ? { normalized_candidates: recommendation.normalizedCandidates } : {}),
-      candidate_set_searched_at: activity.codex_image_searched_at || activity.serpapi_image_candidates_fetched_at || null,
+      candidate_set_searched_at: candidateSetSearchedAt,
       confidence: recommendation.confidence,
       reason: recommendation.reason,
       model_name: model.name,
@@ -218,7 +248,10 @@ async function main() {
   console.log(`Model trained from ${model.trainingReviewCount} matched manual choices.`);
   console.log(`Held-out accuracy: top-1 ${model.metrics.top_1_accuracy}, top-3 ${model.metrics.top_3_recall}, MRR ${model.metrics.mean_reciprocal_rank}.`);
   const targets = await loadPaged('targets', 500);
-  console.log(`Active missing/unsuitable targets: ${targets.length}.`);
+  const targetLabel = scope === 'all_unreviewed'
+    ? 'Never-reviewed published/draft'
+    : scope === 'failed_applications' ? 'Failed automatic image applications' : 'Active missing/unsuitable';
+  console.log(`${targetLabel} targets: ${targets.length}.`);
   const candidateResult = await fillMissingCandidateSets(targets);
   const { proposals, skipped } = buildProposals(candidateResult.targets, model);
   console.log(`Proposals ready: ${proposals.length}; skipped: ${skipped.length}.`);
@@ -227,6 +260,7 @@ async function main() {
   const report = {
     generated_at: new Date().toISOString(),
     applied: apply,
+    scope,
     searched_missing_candidates: searchMissing,
     model: {
       name: model.name,

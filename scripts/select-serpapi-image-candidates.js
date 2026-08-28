@@ -1,23 +1,30 @@
 /* global process */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { execSync } from 'node:child_process';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { pipeline, RawImage } from '@huggingface/transformers';
 import {
   chooseBestSerpApiCandidate,
   labelsForSerpApiImageAudit,
 } from './lib/serpapi-image-confidence-policy.js';
+import {
+  rankStoredCandidates,
+  trainTaggedImageRanker,
+} from './lib/tagged-image-ranker.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const outputPath = join(root, 'data', 'serpapi_image_candidate_selection.generated.json');
 const modelId = process.env.TINY_OUTINGS_SERPAPI_IMAGE_MODEL || 'Xenova/clip-vit-base-patch32';
 const reselect = process.argv.includes('--reselect');
+const taggedRanker = process.argv.includes('--tagged-ranker');
+const linkedDatabase = process.argv.includes('--linked-database');
 const limitIndex = process.argv.indexOf('--limit');
 const limit = limitIndex >= 0 ? Math.max(1, Number(process.argv[limitIndex + 1]) || 1) : 20;
 
-function readDotEnv(name) {
+function readDotEnv(path) {
   try {
-    return Object.fromEntries(readFileSync(join(root, name), 'utf8').replace(/^\uFEFF/, '')
+    return Object.fromEntries(readFileSync(path, 'utf8').replace(/^\uFEFF/, '')
       .split(/\r?\n/).filter((line) => line && !line.trim().startsWith('#') && line.includes('='))
       .map((line) => {
         const index = line.indexOf('=');
@@ -28,7 +35,8 @@ function readDotEnv(name) {
   }
 }
 
-const localEnv = readDotEnv('.env.local');
+const envPath = process.env.TINY_OUTINGS_ENV_FILE ? resolve(process.env.TINY_OUTINGS_ENV_FILE) : join(root, '.env.local');
+const localEnv = readDotEnv(envPath);
 const supabaseUrl = process.env.VITE_SUPABASE_URL || localEnv.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || localEnv.VITE_SUPABASE_ANON_KEY;
 const jobSecret = process.env.TINY_OUTINGS_IMAGE_JOB_SECRET || localEnv.TINY_OUTINGS_IMAGE_JOB_SECRET;
@@ -95,7 +103,46 @@ async function persistSelections(selections) {
   return batches;
 }
 
-function writeAudit(rows, total, saved) {
+function fetchActivitiesFromLinkedDatabase() {
+  const statement = `select activity_id,activity_name,address,category,website,organiser_website,serpapi_image_candidates,serpapi_image_candidates_fetched_at,serpapi_image_selected_at from public.activities where coalesce(archive, false) = false and public_listing_status in ('draft', 'published') and serpapi_image_candidates_fetched_at is not null order by activity_id asc;`;
+  const escaped = statement.replaceAll('"', '\\"');
+  const command = `npx${process.platform === 'win32' ? '.cmd' : ''} supabase db query --linked --output-format json "${escaped}"`;
+  const output = execSync(command, {
+    cwd: root,
+    encoding: 'utf8',
+    shell: process.platform === 'win32',
+    maxBuffer: 100 * 1024 * 1024,
+  });
+  const start = output.indexOf('{');
+  const end = output.lastIndexOf('}');
+  if (start < 0 || end < start) throw new Error('Could not read linked database SerpAPI candidates.');
+  const payload = JSON.parse(output.slice(start, end + 1));
+  if (!Array.isArray(payload.rows)) throw new Error('Linked database returned no activity rows.');
+  return payload.rows;
+}
+
+async function loadTrainingRows() {
+  const rows = [];
+  for (let offset = 0; ; offset += 200) {
+    const response = await fetch(`${supabaseUrl}/functions/v1/activity-image-auto-review`, {
+      method: 'POST',
+      headers: {
+        apikey: supabaseAnonKey,
+        Authorization: `Bearer ${supabaseAnonKey}`,
+        'Content-Type': 'application/json',
+        'x-tiny-outings-image-job-token': jobSecret,
+      },
+      body: JSON.stringify({ action: 'training_data', offset, page_size: 200 }),
+      signal: AbortSignal.timeout(120000),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || `Could not load tagged image training data: ${response.status}.`);
+    rows.push(...(payload.rows || []));
+    if (payload.next_offset == null) return rows;
+  }
+}
+
+function writeAudit(rows, total, saved, selectedModel = modelId) {
   const summary = rows.reduce((counts, row) => {
     counts[row.status] = (counts[row.status] || 0) + 1;
     return counts;
@@ -103,7 +150,7 @@ function writeAudit(rows, total, saved) {
   mkdirSync(dirname(outputPath), { recursive: true });
   writeFileSync(outputPath, JSON.stringify({
     generated_at: new Date().toISOString(),
-    model: modelId,
+    model: selectedModel,
     candidate_discovery_calls: 0,
     total_stored_candidate_records: total,
     reviewed: rows.length,
@@ -114,10 +161,9 @@ function writeAudit(rows, total, saved) {
 }
 
 async function main() {
-  const activities = await fetchActivities();
+  const activities = linkedDatabase ? fetchActivitiesFromLinkedDatabase() : await fetchActivities();
   const eligible = activities.filter((activity) => {
     const candidates = Array.isArray(activity.serpapi_image_candidates) ? activity.serpapi_image_candidates : [];
-    if (!candidates.length) return false;
     if (reselect) return true;
     return !activity.serpapi_image_selected_at;
   });
@@ -131,14 +177,68 @@ async function main() {
     return;
   }
 
-  console.log(`Loading local vision model ${modelId} to select from ${pending.length} stored candidate sets. No SerpAPI calls will be made.`);
+  const empty = pending.filter((activity) => !Array.isArray(activity.serpapi_image_candidates) || !activity.serpapi_image_candidates.length);
+  const populated = pending.filter((activity) => Array.isArray(activity.serpapi_image_candidates) && activity.serpapi_image_candidates.length);
+  const rows = empty.map((activity) => ({
+    activity_id: activity.activity_id,
+    activity_name: activity.activity_name,
+    candidates_fetched_at: activity.serpapi_image_candidates_fetched_at,
+    status: 'rejected',
+    reason: 'SerpAPI discovery completed but returned no image candidates.',
+    candidate_count: 0,
+  }));
+  const selections = empty.map((activity) => ({
+    activity_id: activity.activity_id,
+    candidate_index: null,
+    selection_reason: 'SerpAPI discovery completed but returned no image candidates.',
+    selection_confidence: null,
+    clear_selected_image: false,
+  }));
+
+  if (taggedRanker) {
+    const model = trainTaggedImageRanker(await loadTrainingRows());
+    console.log(`Selecting ${populated.length} stored SerpAPI sets with the ranker trained from ${model.trainingReviewCount} manual choices. No SerpAPI calls will be made.`);
+    for (const activity of populated) {
+      const recommendation = rankStoredCandidates(activity, model);
+      if (!recommendation) {
+        const reason = 'No stored candidate passed the logo, icon, Wikimedia, and minimum-resolution policy.';
+        rows.push({ activity_id: activity.activity_id, activity_name: activity.activity_name, status: 'rejected', reason });
+        selections.push({ activity_id: activity.activity_id, candidate_index: null, selection_reason: reason, selection_confidence: null, clear_selected_image: false });
+      } else {
+        rows.push({
+          activity_id: activity.activity_id,
+          activity_name: activity.activity_name,
+          status: 'selected',
+          candidate_index: recommendation.candidateIndex,
+          reason: recommendation.reason,
+          confidence: recommendation.confidence,
+        });
+        selections.push({
+          activity_id: activity.activity_id,
+          candidate_index: recommendation.candidateIndex,
+          selection_reason: recommendation.reason,
+          selection_confidence: recommendation.confidence,
+        });
+      }
+    }
+    const saved = await persistSelections(selections);
+    writeAudit(rows, eligible.length, saved, `${model.name} ${model.version}`);
+    console.log(`Selected ${rows.filter((row) => row.status === 'selected').length}; rejected ${rows.filter((row) => row.status === 'rejected').length}. No SerpAPI calls were made.`);
+    return;
+  }
+
+  if (!populated.length) {
+    const saved = await persistSelections(selections);
+    writeAudit(rows, eligible.length, saved);
+    console.log(`Marked ${empty.length} empty SerpAPI candidate sets as reviewed. No SerpAPI calls were made.`);
+    return;
+  }
+  console.log(`Loading local vision model ${modelId} to select from ${populated.length} stored candidate sets. No SerpAPI calls will be made.`);
   const classifier = await pipeline('zero-shot-image-classification', modelId, {
     cache_dir: join(root, 'node_modules', '.cache', 'tiny-outings-vision'),
     dtype: 'q4',
   });
-  const rows = [];
-  const selections = [];
-  for (const activity of pending) {
+  for (const activity of populated) {
     const candidates = activity.serpapi_image_candidates;
     const labels = labelsForSerpApiImageAudit(activity);
     const visualResults = [];

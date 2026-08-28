@@ -1,4 +1,4 @@
-const blockedAssetTerms = /(favicon|icon|logo|wordmark|brand|badge|avatar|tracking|pixel|spinner|placeholder|cookie|consent|newsletter|payment|checkout|app-store|google-play|sprite)/i;
+const blockedAssetTerms = /(favicon|icon|logo|wordmark|brand|badge|avatar|social[-_ ]?(?:icon|link|media)|facebook|fbcdn|scontent|cdninstagram|instagram|twitter|twimg|tiktok|linkedin|pinterest|youtube|tracking|pixel|spinner|placeholder|cookie|consent|newsletter|payment|checkout|app-store|google-play|sprite)/i;
 const weakImageTerms = /(thumb(?:nail)?|small|tiny|low[-_ ]?res|cropped|avatar|profile|header|banner)/i;
 const stopWords = new Set(['a', 'an', 'and', 'at', 'by', 'for', 'from', 'in', 'london', 'of', 'on', 'the', 'to', 'uk', 'with']);
 const cafeSceneTerms = /(cafe|coffee|bakery|interior|inside|seating|tables?|chairs?|terrace|exterior|shopfront|counter)/i;
@@ -106,14 +106,16 @@ export function normalizeStoredCandidate(value, index = 0) {
     width: Number.isFinite(width) && width > 0 ? width : null,
     height: Number.isFinite(height) && height > 0 ? height : null,
     relevance_reason: clean(value.relevance_reason) || `Google Images result ${Number(value.position) || index + 1}`,
+    candidate_set_index: index,
   };
 }
 
-export function storedCandidateSet(activity) {
+export function storedCandidateSet(activity, maximumCandidates = 20) {
   const codexCandidates = Array.isArray(activity?.codex_image_candidates) ? activity.codex_image_candidates : [];
   const legacyCandidates = Array.isArray(activity?.serpapi_image_candidates) ? activity.serpapi_image_candidates : [];
-  const source = codexCandidates.length ? codexCandidates : legacyCandidates;
-  return source.slice(0, 20).map(normalizeStoredCandidate).filter(Boolean);
+  const websiteCandidates = Array.isArray(activity?.website_image_candidates) ? activity.website_image_candidates : [];
+  const source = codexCandidates.length ? codexCandidates : legacyCandidates.length ? legacyCandidates : websiteCandidates;
+  return source.slice(0, maximumCandidates).map(normalizeStoredCandidate).filter(Boolean);
 }
 
 function candidateEligible(activity, candidate) {
@@ -344,8 +346,8 @@ function recommendationReason(activity, choice, model) {
   return `Learned from ${model.trainingReviewCount} manual selections; ${evidence.slice(0, 3).join(', ')}.`;
 }
 
-export function rankStoredCandidates(activity, model) {
-  const candidates = storedCandidateSet(activity);
+export function rankStoredCandidates(activity, model, { maximumCandidates = 20 } = {}) {
+  const candidates = storedCandidateSet(activity, maximumCandidates);
   if (!candidates.length) return null;
   const excludedImageUrls = new Set((activity.automated_failed_image_urls || []).map(clean));
   const ranking = ranked({ activity, candidates }, model.weights, model.stats)
@@ -359,7 +361,7 @@ export function rankStoredCandidates(activity, model) {
   const significantFeatures = Object.fromEntries(Object.entries(choice.features)
     .filter(([, value]) => Math.abs(Number(value)) >= 0.4));
   return {
-    candidateIndex: choice.index,
+    candidateIndex: Number.isInteger(choice.candidate.candidate_set_index) ? choice.candidate.candidate_set_index : choice.index,
     candidate: choice.candidate,
     normalizedCandidates: candidates,
     confidence: Number(confidence.toFixed(4)),

@@ -148,6 +148,53 @@ function extensionFor(contentType: string, imageUrl: string) {
   return imageUrl.match(/\.([a-z]{3,4})(?:[?#]|$)/i)?.[1]?.toLowerCase() || 'jpg'
 }
 
+function readUint32(bytes: Uint8Array, offset: number) {
+  return ((bytes[offset] << 24) + (bytes[offset + 1] << 16) + (bytes[offset + 2] << 8) + bytes[offset + 3]) >>> 0
+}
+
+function downloadedImageDimensions(bytes: Uint8Array, contentType: string) {
+  if (contentType === 'image/png' && bytes.byteLength >= 24
+    && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
+    return { width: readUint32(bytes, 16), height: readUint32(bytes, 20) }
+  }
+  if (contentType === 'image/jpeg' && bytes.byteLength >= 12 && bytes[0] === 0xff && bytes[1] === 0xd8) {
+    const frameMarkers = new Set([0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf])
+    let offset = 2
+    while (offset + 9 < bytes.byteLength) {
+      if (bytes[offset] !== 0xff) { offset += 1; continue }
+      while (offset < bytes.byteLength && bytes[offset] === 0xff) offset += 1
+      const marker = bytes[offset]
+      if (marker === 0xda) break
+      if (frameMarkers.has(marker) && offset + 7 < bytes.byteLength) {
+        return { width: (bytes[offset + 6] << 8) + bytes[offset + 7], height: (bytes[offset + 4] << 8) + bytes[offset + 5] }
+      }
+      if (offset + 2 >= bytes.byteLength) break
+      const length = (bytes[offset + 1] << 8) + bytes[offset + 2]
+      if (length < 2) break
+      offset += length + 1
+    }
+  }
+  if (contentType === 'image/webp' && bytes.byteLength >= 30
+    && String.fromCharCode(...bytes.slice(0, 4)) === 'RIFF'
+    && String.fromCharCode(...bytes.slice(8, 12)) === 'WEBP') {
+    const subtype = String.fromCharCode(...bytes.slice(12, 16))
+    if (subtype === 'VP8X') return { width: 1 + bytes[24] + (bytes[25] << 8) + (bytes[26] << 16), height: 1 + bytes[27] + (bytes[28] << 8) + (bytes[29] << 16) }
+    if (subtype === 'VP8 ' && bytes[23] === 0x9d && bytes[24] === 0x01 && bytes[25] === 0x2a) return { width: ((bytes[27] << 8) + bytes[26]) & 0x3fff, height: ((bytes[29] << 8) + bytes[28]) & 0x3fff }
+    if (subtype === 'VP8L' && bytes[20] === 0x2f) {
+      const packed = (bytes[21] | (bytes[22] << 8) | (bytes[23] << 16) | (bytes[24] << 24)) >>> 0
+      return { width: (packed & 0x3fff) + 1, height: ((packed >>> 14) & 0x3fff) + 1 }
+    }
+  }
+  if (contentType === 'image/avif') {
+    for (let offset = 4; offset + 16 < bytes.byteLength; offset += 1) {
+      if (bytes[offset] === 0x69 && bytes[offset + 1] === 0x73 && bytes[offset + 2] === 0x70 && bytes[offset + 3] === 0x65) {
+        return { width: readUint32(bytes, offset + 8), height: readUint32(bytes, offset + 12) }
+      }
+    }
+  }
+  return null
+}
+
 function stableName(value: string) {
   let hash = 2166136261
   for (let index = 0; index < value.length; index += 1) {
@@ -181,6 +228,8 @@ async function downloadSelectedToStorage(
 
     const bytes = new Uint8Array(await response.arrayBuffer())
     if (bytes.byteLength < 8 * 1024 || bytes.byteLength > maxImageBytes) return null
+    const dimensions = downloadedImageDimensions(bytes, contentType)
+    if (!dimensions || Math.min(dimensions.width, dimensions.height) < 400 || dimensions.width * dimensions.height < 240000) return null
 
     const path = `downloaded/${candidate.source_kind}/${activity.activity_id}-${stableName(candidate.original)}.${extensionFor(contentType, candidate.original)}`
     const upload = await supabase.storage.from('activity-images').upload(path, bytes, {
@@ -193,6 +242,8 @@ async function downloadSelectedToStorage(
     return {
       source_url: candidate.original,
       public_url: supabase.storage.from('activity-images').getPublicUrl(path).data.publicUrl,
+      width: dimensions.width,
+      height: dimensions.height,
     }
   } catch {
     return null
@@ -234,6 +285,25 @@ function uniqueUrls(values: Array<string | null | undefined>) {
   })
 }
 
+function databaseSafeText(value: string | null) {
+  if (value === null) return null
+  return Array.from(String(value)).filter((character) => {
+    const codePoint = character.codePointAt(0) || 0
+    return codePoint !== 0 && !(codePoint >= 0xd800 && codePoint <= 0xdfff)
+  }).join('')
+}
+
+function databaseSafeCandidate(candidate: Candidate): Candidate {
+  return {
+    ...candidate,
+    original: databaseSafeText(candidate.original) || '',
+    thumbnail: databaseSafeText(candidate.thumbnail),
+    title: databaseSafeText(candidate.title),
+    source: databaseSafeText(candidate.source),
+    link: databaseSafeText(candidate.link),
+  }
+}
+
 async function discoverActivityCandidates(
   supabase: ReturnType<typeof createClient>,
   activity: Activity,
@@ -251,18 +321,19 @@ async function discoverActivityCandidates(
       || right.metadata_score - left.metadata_score)
     .filter((candidate) => !seen.has(candidate.original) && Boolean(seen.add(candidate.original)))
     .slice(0, maxStoredCandidates)
-    .map((candidate, index) => ({ ...candidate, position: index + 1 }))
+    .map((candidate, index) => databaseSafeCandidate({ ...candidate, position: index + 1 }))
   const now = new Date().toISOString()
+  const emptyReason = 'Official-website discovery completed but returned no eligible image candidates.'
   const { error } = await supabase.from('activities').update({
     website_image_candidates: candidates,
     website_image_candidates_fetched_at: now,
-    website_image_candidate_pages: [...organiserPages, ...websitePages],
-    website_image_vision_reviewed_at: null,
-    website_image_vision_model: null,
-    website_image_vision_status: null,
+    website_image_candidate_pages: [...organiserPages, ...websitePages].map((page) => databaseSafeText(page)),
+    website_image_vision_reviewed_at: candidates.length ? null : now,
+    website_image_vision_model: candidates.length ? null : 'No-candidate terminal marker',
+    website_image_vision_status: candidates.length ? null : 'rejected',
     website_image_vision_candidate_index: null,
-    website_image_vision_reason: null,
-    website_image_vision_candidates_fetched_at: null,
+    website_image_vision_reason: candidates.length ? null : emptyReason,
+    website_image_vision_candidates_fetched_at: candidates.length ? null : now,
     updated_at: now,
   }).eq('activity_id', activity.activity_id)
   return error
@@ -315,7 +386,7 @@ async function recordVisionReview(
     selection_confidence: selection.selection_confidence ?? null,
     candidate_count: candidates.length,
     selected_source_url: selectedSourceUrl,
-    metadata: { candidate_source: 'official_website', display_model: 'Codex 5.6 Sol' },
+    metadata: { candidate_source: 'official_website', display_model: selection.vision_review.model },
   }, { onConflict: 'activity_id,candidate_set_fetched_at,provider,model,workflow_version' })
   return error
 }
