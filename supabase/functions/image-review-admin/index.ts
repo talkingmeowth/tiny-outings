@@ -3,7 +3,7 @@ import { hasBlockedAssetTerms } from './candidate-policy.js'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-tiny-outings-image-job-token',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
@@ -112,6 +112,10 @@ function normalizeCandidate(activity: Activity, value: unknown): Candidate | nul
 }
 
 async function authenticatedAdmin(request: Request, supabase: ReturnType<typeof createClient>) {
+  const expectedJobToken = Deno.env.get('TINY_OUTINGS_IMAGE_JOB_SECRET') || ''
+  if (expectedJobToken && request.headers.get('x-tiny-outings-image-job-token') === expectedJobToken) {
+    return { id: null, email: 'image-review-job' }
+  }
   const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '').trim() || ''
   if (!token) return null
   try {
@@ -458,6 +462,45 @@ async function setImageReviewIgnored(
   return data
 }
 
+async function findPendingAutomatedReview(
+  supabase: ReturnType<typeof createClient>,
+  automatedReviewId: string,
+  activityId: string,
+) {
+  const { data, error } = await supabase.from('activity_image_automated_reviews')
+    .select('automated_review_id,activity_id,status,candidate_index')
+    .eq('automated_review_id', automatedReviewId)
+    .eq('activity_id', activityId)
+    .eq('status', 'pending')
+    .maybeSingle()
+  if (error) throw new Error(error.message)
+  if (!data) throw new Error('The automated review proposal is no longer pending.')
+  return data
+}
+
+async function completeAutomatedReview(
+  supabase: ReturnType<typeof createClient>,
+  automatedReview: { automated_review_id: string; candidate_index: number },
+  selectedCandidateIndex: number,
+  reviewedImageUrl: string,
+  userId: string,
+) {
+  const reviewedAt = new Date().toISOString()
+  const status = automatedReview.candidate_index === selectedCandidateIndex ? 'approved' : 'corrected'
+  const { data, error } = await supabase.from('activity_image_automated_reviews').update({
+    status,
+    reviewed_at: reviewedAt,
+    reviewed_by_user_id: userId,
+    reviewed_candidate_index: selectedCandidateIndex,
+    reviewed_image_url: reviewedImageUrl,
+  }).eq('automated_review_id', automatedReview.automated_review_id)
+    .eq('status', 'pending')
+    .select('automated_review_id,status,reviewed_at,reviewed_candidate_index')
+    .single()
+  if (error) throw new Error(`Image saved, but the automated review log failed: ${error.message}`)
+  return data
+}
+
 async function archiveActivity(supabase: ReturnType<typeof createClient>, activity: Activity, userId: string) {
   const archivedAt = new Date().toISOString()
   const { data, error } = await supabase.from('activities').update({
@@ -492,6 +535,7 @@ Deno.serve(async (request) => {
     request_variant?: string
     candidate_index?: number
     candidate_set_searched_at?: string
+    automated_review_id?: string
     ignored?: boolean
   }
   if (!body.activity_id || !body.action) return jsonResponse({ error: 'action and activity_id are required.' }, 400)
@@ -513,8 +557,16 @@ Deno.serve(async (request) => {
       if (!Number.isInteger(body.candidate_index) || Number(body.candidate_index) < 0) {
         return jsonResponse({ error: 'candidate_index is required.' }, 400)
       }
-      const result = await storeReviewedImage(supabase, user.id, activity, Number(body.candidate_index), cleanText(body.candidate_set_searched_at))
-      return jsonResponse({ status: 'selected', ...result })
+      const automatedReviewId = cleanText(body.automated_review_id)
+      const automatedReview = automatedReviewId
+        ? await findPendingAutomatedReview(supabase, automatedReviewId, activity.activity_id)
+        : null
+      const selectedCandidateIndex = Number(body.candidate_index)
+      const result = await storeReviewedImage(supabase, user.id, activity, selectedCandidateIndex, cleanText(body.candidate_set_searched_at))
+      const completedAutomatedReview = automatedReview
+        ? await completeAutomatedReview(supabase, automatedReview, selectedCandidateIndex, result.reviewedImageUrl, user.id)
+        : null
+      return jsonResponse({ status: 'selected', ...result, automatedReview: completedAutomatedReview })
     }
     if (body.action === 'publish') {
       if (!user.id) return jsonResponse({ error: 'An administrator user session is required to publish a listing.' }, 403)

@@ -37,6 +37,12 @@ Social websites are allowed as source pages when the administrator selects a gen
 
 `reviewed_image_url` is directly below `admin_cover_image_url` in the card-image hierarchy. It is not an audit replacement field; `audit_image_url` remains reserved for automated audit replacements.
 
+## Automated review queue
+
+`npm run activities:images:auto-review` learns a candidate-ranking model from every row in `activity_image_manual_reviews`. Each manual selection is a positive example and the other candidates shown for that listing are implicit negative examples. The model uses the learned result-position, source-domain, title relevance, reported resolution, framing, category, and official-source preferences to rank stored candidates for active Missing and Unsuitable listings.
+
+Add `--apply` to stage the recommendations in `activity_image_automated_reviews`. Staged recommendations appear in the desktop app's **Automated review** queue and do not participate in the card-image hierarchy. Approving the highlighted candidate downloads it into Storage and writes `reviewed_image_url`; choosing another candidate logs the proposal as corrected. `--search-missing` may be added when a deliberate SerpAPI backfill is wanted for listings that have no stored candidate set.
+
 ## Local development
 
 Use `npm run review:dev`, then open `http://localhost:5174/review/`. For visual-only local QA without authentication, append `?demo=1`; demo mode exists only in Vite development builds.

@@ -29,6 +29,7 @@ data/activity_website_image_downloads.generated.json
 data/activity_image_coverage.generated.json
 data/activity_serpapi_*candidate*.generated.json
 data/activity_serpapi_image_refresh.generated.json
+data/automated_image_review_report.generated.json
 data/cafe_serpapi_image_refresh.generated.json
 data/scraped_image_serpapi_refresh.generated.json
 tmp-wf-media-11253.*

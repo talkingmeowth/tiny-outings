@@ -25,7 +25,7 @@ const ADMIN_EMAILS = new Set([
   'talkingmeowtho6@gmail.com',
   'benfielden@gmail.com',
 ]);
-const PRELOAD_QUEUE_IDS = ['missing_published', 'unsuitable_audit', 'all_published', 'all_draft'];
+const PRELOAD_QUEUE_IDS = ['missing_published', 'unsuitable_audit', 'automated_review', 'all_published', 'all_draft'];
 const PRELOAD_PER_QUEUE = 20;
 const PRELOAD_CONCURRENCY = 6;
 
@@ -60,6 +60,11 @@ const demoActivities = [
     organiser_website: 'https://babysensory.com/leyton', source_url: 'https://example.org/baby-sensory-leyton',
     codex_image_candidates: demoCandidates, codex_image_search_query: 'Baby Sensory Leyton',
     codex_image_searched_at: new Date().toISOString(), codex_image_search_model: 'SerpAPI Google Images — top 20 unfiltered',
+    automated_image_review: {
+      automated_review_id: 'demo-automated-review', status: 'pending', source_queue: 'missing_published', candidate_index: 2,
+      confidence: 0.83, reason: 'Learned from manual selections; strong name match, useful card framing.',
+      model_name: 'Tiny Outings tagged-choice ranker', model_version: 'tagged-ranker-v1', training_review_count: 251,
+    },
   },
   {
     activity_id: 'demo-unsuitable', activity_name: 'Yardarm family café', address: '238 Francis Road, Leyton, London E10 6NQ',
@@ -113,7 +118,12 @@ async function loadAllActivities() {
     .eq('source_provider', 'user_upload')
     .order('created_at', { ascending: false })
     .range(from, from + pageSize - 1), 1).catch(() => []);
-  const [activities, photos] = await Promise.all([activitiesPromise, photosPromise]);
+  const automatedReviewsPromise = loadPages((from) => supabase.from('activity_image_automated_reviews')
+    .select('automated_review_id,activity_id,status,source_queue,candidate_index,candidate,candidate_set_searched_at,confidence,reason,model_name,model_version,training_review_count,model_metrics,created_at')
+    .eq('status', 'pending')
+    .order('created_at', { ascending: true })
+    .range(from, from + pageSize - 1), 1);
+  const [activities, photos, automatedReviews] = await Promise.all([activitiesPromise, photosPromise, automatedReviewsPromise]);
 
   const userImageByActivity = new Map();
   for (const photo of photos) {
@@ -121,10 +131,12 @@ async function loadAllActivities() {
       userImageByActivity.set(String(photo.activity_id), photo.photo_url);
     }
   }
+  const automatedReviewByActivity = new Map(automatedReviews.map((review) => [String(review.activity_id), review]));
   return activities.map((activity) => ({
     ...activity,
     candidate_set_loaded: false,
     user_uploaded_image_url: userImageByActivity.get(String(activity.activity_id)) || null,
+    automated_image_review: automatedReviewByActivity.get(String(activity.activity_id)) || null,
   }));
 }
 
@@ -149,18 +161,19 @@ function SignIn({ message }) {
   );
 }
 
-function CandidateCard({ candidate, index, selected, onSelect, onZoom }) {
+function CandidateCard({ candidate, index, selected, recommended, onSelect, onZoom }) {
   const imageUrl = clean(candidate.thumbnail_url) || clean(candidate.image_url);
   const sourceDomain = clean(candidate.source_domain) || domain(candidate.source_page_url) || domain(candidate.image_url);
   const sourceUrl = clean(candidate.source_page_url) || clean(candidate.image_url);
   const dimensions = candidate.width && candidate.height ? `${candidate.width} × ${candidate.height}` : 'Size unavailable';
   return (
-    <article className={`candidate-card${selected ? ' selected' : ''}`}>
+    <article className={`candidate-card${selected ? ' selected' : ''}${recommended ? ' recommended' : ''}`}>
       <button className="candidate-select" type="button" onClick={() => onSelect(index)} aria-label={`Select candidate ${index + 1}`}>
         <span className="candidate-image-wrap">
           <img src={imageUrl} alt={clean(candidate.title) || `Candidate ${index + 1}`} loading="lazy" />
           <span className="candidate-index">{index + 1}</span>
           {selected ? <span className="selected-badge">Selected</span> : null}
+          {recommended && !selected ? <span className="recommended-badge">Model pick</span> : null}
         </span>
         <span className="candidate-details">
           <strong>{sourceDomain || 'Unknown source'}</strong>
@@ -323,6 +336,9 @@ function App() {
   const selectedActivity = queueActivities.find((activity) => activity.activity_id === selectedId)
     || preparedActivities.find((activity) => activity.activity_id === selectedId)
     || null;
+  const automatedReview = selectedActivity?.automated_image_review?.status === 'pending'
+    ? selectedActivity.automated_image_review
+    : null;
   const queries = useMemo(() => selectedActivity ? searchQueries(selectedActivity) : null, [selectedActivity]);
   const candidates = Array.isArray(selectedActivity?.codex_image_candidates) ? selectedActivity.codex_image_candidates.slice(0, 20) : [];
   const activeImage = selectedActivity ? currentImage(selectedActivity) : null;
@@ -466,11 +482,12 @@ function App() {
   }, [isAdmin, loading, preloadTargetSignature, requestCandidates]);
 
   useEffect(() => {
-    setSelectedCandidate(null);
+    const proposedIndex = Number(selectedActivity?.automated_image_review?.candidate_index);
+    setSelectedCandidate(activeQueue === 'automated_review' && Number.isInteger(proposedIndex) ? proposedIndex : null);
     setZoomedCandidate(null);
     setCandidateRequest(null);
     setCustomQuery(queries?.activity_location || '');
-  }, [selectedActivity?.activity_id, queries?.activity_location]);
+  }, [activeQueue, selectedActivity?.activity_id, selectedActivity?.automated_image_review?.automated_review_id, selectedActivity?.automated_image_review?.candidate_index, queries?.activity_location]);
 
   useEffect(() => {
     if (isDemo || !selectedActivity || !supabase) return undefined;
@@ -512,6 +529,9 @@ function App() {
 
   async function saveSelected() {
     if (!selectedActivity || selectedCandidate == null) return;
+    const activityId = selectedActivity.activity_id;
+    const pendingAutomatedReview = activeQueue === 'automated_review' ? automatedReview : null;
+    const acceptedModelChoice = pendingAutomatedReview?.candidate_index === selectedCandidate;
     setBusy('save');
     setNotice('');
     if (isDemo) {
@@ -521,6 +541,7 @@ function App() {
         reviewed_image_url: candidate.image_url,
         reviewed_image_source_url: candidate.source_page_url || candidate.image_url,
         reviewed_image_original_url: candidate.image_url,
+        automated_image_review: null,
       } : activity));
       setSelectedCandidate(null);
       setBusy('');
@@ -533,21 +554,27 @@ function App() {
         activity_id: selectedActivity.activity_id,
         candidate_index: selectedCandidate,
         candidate_set_searched_at: selectedActivity.codex_image_searched_at,
+        ...(pendingAutomatedReview ? { automated_review_id: pendingAutomatedReview.automated_review_id } : {}),
       },
     }));
     if (response.error || response.data?.error) {
       setNotice(`Could not save the selected image: ${await edgeFunctionErrorMessage(response, 'Image review failed.')}`);
     } else {
-      setActivities((current) => current.map((activity) => activity.activity_id === selectedActivity.activity_id ? {
+      setActivities((current) => current.map((activity) => activity.activity_id === activityId ? {
         ...activity,
         reviewed_image_url: response.data.reviewedImageUrl,
         reviewed_image_source_url: response.data.sourceUrl,
         reviewed_image_original_url: response.data.candidate?.image_url,
         reviewed_image_selected_at: response.data.selectedAt,
         reviewed_image_model: response.data.model,
+        automated_image_review: response.data.automatedReview ? null : activity.automated_image_review,
       } : activity));
       setSelectedCandidate(null);
-      setNotice('Reviewed image downloaded, stored, and applied to the listing.');
+      setNotice(pendingAutomatedReview
+        ? acceptedModelChoice
+          ? 'Automated choice approved, downloaded, and applied to the listing.'
+          : 'Your correction was downloaded and applied; the model proposal was logged as corrected.'
+        : 'Reviewed image downloaded, stored, and applied to the listing.');
     }
     setBusy('');
   }
@@ -707,7 +734,9 @@ function App() {
                   <span className="listing-copy">
                     <strong>{activity.activity_name || 'Untitled listing'}</strong>
                     <span>{bestLocation(activity)} · {activity.category || 'Uncategorised'}</span>
-                    <small>{activity.public_listing_status === 'draft' ? 'Draft' : image.label}</small>
+                    <small>{activity.automated_image_review?.status === 'pending'
+                      ? `Model pick ${Math.round(Number(activity.automated_image_review.confidence) * 100)}%`
+                      : activity.public_listing_status === 'draft' ? 'Draft' : image.label}</small>
                   </span>
                 </button>
               );
@@ -725,6 +754,7 @@ function App() {
                   <div className="status-line">
                     <span className={`status-badge ${selectedActivity.public_listing_status}`}>{selectedActivity.public_listing_status === 'draft' ? 'Draft' : 'Published'}</span>
                     {selectedActivity.audit_image_status ? <span className="audit-badge">Audit: {selectedActivity.audit_image_status.replaceAll('_', ' ')}</span> : null}
+                    {automatedReview ? <span className="automated-badge">Model pick {Math.round(Number(automatedReview.confidence) * 100)}%</span> : null}
                     {selectedActivity.image_review_ignored_at ? <span className="ignored-badge">Ignored</span> : null}
                   </div>
                   <h1>{selectedActivity.activity_name || 'Untitled listing'}</h1>
@@ -758,6 +788,21 @@ function App() {
                 <div><dt>Listing ID</dt><dd className="mono">{selectedActivity.activity_id}</dd></div>
               </dl>
 
+              {automatedReview ? (
+                <section className="automated-review-panel">
+                  <div className="section-title">
+                    <div><p className="eyebrow">Automated recommendation</p><h2>Candidate {Number(automatedReview.candidate_index) + 1}</h2></div>
+                    <span className="confidence-chip">{Math.round(Number(automatedReview.confidence) * 100)}% confidence</span>
+                  </div>
+                  <p>{automatedReview.reason}</p>
+                  <div className="automated-review-meta">
+                    <span>{automatedReview.model_name} · {automatedReview.model_version}</span>
+                    <span>Learned from {compactNumber(automatedReview.training_review_count)} manual choices</span>
+                  </div>
+                  <p className="automated-review-help">Approve the highlighted image, or select a different candidate to save a correction. Nothing reaches the main app until you save.</p>
+                </section>
+              ) : null}
+
               <section className="current-image-panel">
                 <div className="section-title"><div><p className="eyebrow">Card now</p><h2>Current image</h2></div><span className="source-chip">{activeImage.label}</span></div>
                 <div className="current-image-frame">
@@ -789,12 +834,12 @@ function App() {
 
             <section className="candidate-column">
               <div className="candidate-header">
-                <div><p className="eyebrow">Unfiltered Google Images results</p><h2>Candidate gallery <span>{candidates.length}</span></h2></div>
-                <div className="candidate-actions"><button className="text-button" type="button" disabled={selectedCandidate == null} onClick={() => setSelectedCandidate(null)}>Clear selection</button><button className="primary-button" type="button" disabled={selectedCandidate == null || busy === 'save'} onClick={saveSelected}>{busy === 'save' ? 'Downloading…' : 'Use selected image'}</button></div>
+                <div><p className="eyebrow">{automatedReview ? 'Model-ranked Google Images results' : 'Unfiltered Google Images results'}</p><h2>Candidate gallery <span>{candidates.length}</span></h2></div>
+                <div className="candidate-actions"><button className="text-button" type="button" disabled={selectedCandidate == null} onClick={() => setSelectedCandidate(null)}>Clear selection</button><button className="primary-button" type="button" disabled={selectedCandidate == null || busy === 'save'} onClick={saveSelected}>{busy === 'save' ? 'Downloading…' : automatedReview ? automatedReview.candidate_index === selectedCandidate ? 'Approve model choice' : 'Save correction' : 'Use selected image'}</button></div>
               </div>
               {candidates.length ? (
                 <div className="candidate-grid">
-                  {candidates.map((candidate, index) => <CandidateCard key={`${candidate.image_url}-${index}`} candidate={candidate} index={index} selected={selectedCandidate === index} onSelect={selectCandidate} onZoom={(imageCandidate, candidateIndex) => setZoomedCandidate({ candidate: imageCandidate, index: candidateIndex })} />)}
+                  {candidates.map((candidate, index) => <CandidateCard key={`${candidate.image_url}-${index}`} candidate={candidate} index={index} selected={selectedCandidate === index} recommended={automatedReview?.candidate_index === index} onSelect={selectCandidate} onZoom={(imageCandidate, candidateIndex) => setZoomedCandidate({ candidate: imageCandidate, index: candidateIndex })} />)}
                 </div>
               ) : (
                 <div className="waiting-panel">

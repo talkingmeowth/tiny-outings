@@ -26,18 +26,20 @@ function listing(overrides = {}) {
   };
 }
 
-test('builds the five live queue counts and resolves reviewed unsuitable images', () => {
+test('builds the six live queue counts and resolves reviewed unsuitable images', () => {
   const activities = [
     listing({ activity_id: 'missing' }),
     listing({ activity_id: 'audited', address: 'Hackney, London E8', audit_image_status: 'needs_replacement', website_image_url: 'https://bad.test/photo.jpg' }),
     listing({ activity_id: 'resolved', address: 'Camden, London NW1', audit_image_status: 'needs_replacement', reviewed_image_url: 'https://good.test/photo.jpg' }),
     listing({ activity_id: 'draft', address: 'Islington, London N1', public_listing_status: 'draft' }),
     listing({ activity_id: 'ignored', image_review_ignored_at: '2026-08-25T18:00:00Z' }),
+    listing({ activity_id: 'automated', automated_image_review: { status: 'pending', candidate_index: 2 } }),
   ];
   assert.deepEqual(queueCounts(activities), {
-    missing_published: 1,
+    missing_published: 2,
     unsuitable_audit: 1,
-    all_published: 3,
+    automated_review: 1,
+    all_published: 4,
     all_draft: 1,
     ignored: 1,
   });
@@ -70,6 +72,7 @@ test('ignored listings only appear in the ignored queue', () => {
   const ignored = listing({ activity_id: 'ignored', audit_image_status: 'needs_replacement', image_review_ignored_at: '2026-08-25T18:00:00Z' });
   assert.equal(activitiesForQueue([ignored], 'missing_published').length, 0);
   assert.equal(activitiesForQueue([ignored], 'unsuitable_audit').length, 0);
+  assert.equal(activitiesForQueue([ignored], 'automated_review').length, 0);
   assert.equal(activitiesForQueue([ignored], 'all_published').length, 0);
   assert.deepEqual(activitiesForQueue([ignored], 'ignored').map((activity) => activity.activity_id), ['ignored']);
 });
@@ -79,13 +82,23 @@ test('archived listings do not appear in any image-review queue', () => {
   assert.deepEqual(queueCounts([archived]), {
     missing_published: 0,
     unsuitable_audit: 0,
+    automated_review: 0,
     all_published: 0,
     all_draft: 0,
     ignored: 0,
   });
-  for (const queueId of ['missing_published', 'unsuitable_audit', 'all_published', 'all_draft', 'ignored']) {
+  for (const queueId of ['missing_published', 'unsuitable_audit', 'automated_review', 'all_published', 'all_draft', 'ignored']) {
     assert.equal(activitiesForQueue([archived], queueId).length, 0);
   }
+});
+
+test('only pending model proposals appear in automated review', () => {
+  const activities = [
+    listing({ activity_id: 'pending', automated_image_review: { status: 'pending', candidate_index: 1 } }),
+    listing({ activity_id: 'approved', automated_image_review: { status: 'approved', candidate_index: 0 } }),
+    listing({ activity_id: 'none' }),
+  ];
+  assert.deepEqual(activitiesForQueue(activities, 'automated_review').map((activity) => activity.activity_id), ['pending']);
 });
 
 test('interleaves and deduplicates candidate preload targets across active queues', () => {

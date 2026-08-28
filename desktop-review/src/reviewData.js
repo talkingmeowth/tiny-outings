@@ -70,6 +70,7 @@ function shareListingImages(activities) {
 export const QUEUES = [
   { id: 'missing_published', label: 'Missing — Published', description: 'Live listings with no usable card image.' },
   { id: 'unsuitable_audit', label: 'Unsuitable — Audit', description: 'Listings the image audit marked for replacement.' },
+  { id: 'automated_review', label: 'Automated review', description: 'Model-selected images waiting for you to approve or correct them.' },
   { id: 'all_published', label: 'All — Published', description: 'Every live listing, with or without an image.' },
   { id: 'all_draft', label: 'All — Draft', description: 'Every unpublished listing.' },
   { id: 'ignored', label: 'Ignored', description: 'Listings removed from active image review.' },
@@ -183,6 +184,10 @@ export function isImageReviewIgnored(activity) {
   return Boolean(activity.image_review_ignored_at);
 }
 
+export function hasPendingAutomatedReview(activity) {
+  return activity?.automated_image_review?.status === 'pending';
+}
+
 export function activitiesForQueue(activities, queueId) {
   return preparedActivitiesForQueue(prepareActivities(activities), queueId);
 }
@@ -190,6 +195,7 @@ export function activitiesForQueue(activities, queueId) {
 export function preparedActivitiesForQueue(prepared, queueId) {
   if (queueId === 'ignored') return prepared.filter(isImageReviewIgnored);
   const reviewable = prepared.filter((activity) => !isImageReviewIgnored(activity));
+  if (queueId === 'automated_review') return reviewable.filter(hasPendingAutomatedReview);
   if (queueId === 'missing_published') {
     return reviewable.filter((activity) => activity.public_listing_status === 'published' && !currentImage(activity).url);
   }
