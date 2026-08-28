@@ -1,4 +1,8 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import {
+  blockedWebsiteImageTerms,
+  extractWebsiteImageCandidates,
+} from '../_shared/website-image-candidate-policy.js'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,8 +16,8 @@ const adminEmails = new Set([
   'benfielden@gmail.com',
 ])
 const maxImageBytes = 8 * 1024 * 1024
+const maxStoredCandidates = 80
 const acceptedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif'])
-const blockedImageTerms = /(favicon|icon|logo|brand|wordmark|site-logo|social[-_ ]?(?:icon|link|media)|facebook[.]com\/tr|facebook[.]net\/tr|twitter[0-9_-]*\.(?:png|jpe?g|webp)|tracking|pixel|spinner|placeholder|cookie|consent|newsletter|payment|checkout|app-store|google-play|\/flags\/|site-flag|country-selector|language-selector|assets\/revamp\/pictures\/categories)/i
 
 type Activity = {
   activity_id: string
@@ -32,9 +36,39 @@ type Activity = {
   admin_cover_image_url: string | null
   website_downloaded_image: string | null
   organiser_website_downloaded_image: string | null
+  website_image_candidates: Candidate[] | null
+  website_image_candidates_fetched_at: string | null
+  website_image_vision_candidates_fetched_at: string | null
 }
 
-type Candidate = { url: string; score: number }
+type Candidate = {
+  original: string
+  thumbnail: string | null
+  title: string | null
+  source: string | null
+  link: string | null
+  position: number | null
+  original_width: number | null
+  original_height: number | null
+  source_kind: 'website' | 'organiser'
+  metadata_score: number
+}
+
+type SelectionRequest = {
+  activity_id: string
+  candidate_index: number | null
+  selection_reason: string
+  selection_confidence?: number | null
+  reviewed_width?: number | null
+  reviewed_height?: number | null
+  clear_selected_image?: boolean
+  vision_review: {
+    provider: 'codex'
+    model: string
+    workflow_version: string
+    candidate_set_fetched_at: string
+  }
+}
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -76,33 +110,8 @@ async function authorize(request: Request, supabase: ReturnType<typeof createCli
   return !error && Boolean(data.user?.email && adminEmails.has(data.user.email.toLowerCase()))
 }
 
-function decodeHtml(value: string) {
-  return value
-    .replaceAll('&amp;', '&')
-    .replaceAll('&quot;', '"')
-    .replaceAll('&#39;', "'")
-    .replaceAll('&lt;', '<')
-    .replaceAll('&gt;', '>')
-}
-
-function attribute(tag: string, name: string) {
-  return tag.match(new RegExp(`\\b${name}\\s*=\\s*["']([^"']+)["']`, 'i'))?.[1] || null
-}
-
-function absoluteUrl(value: string | null, baseUrl: string) {
-  if (!value) return null
-  try {
-    const url = new URL(decodeHtml(value), baseUrl)
-    if (!['http:', 'https:'].includes(url.protocol)) return null
-    if (url.protocol === 'http:') url.protocol = 'https:'
-    return url.toString()
-  } catch {
-    return null
-  }
-}
-
 function usableImageUrl(value: string | null) {
-  if (!value || blockedImageTerms.test(value)) return false
+  if (!value || blockedWebsiteImageTerms.test(value)) return false
   try {
     const url = new URL(value)
     return ['http:', 'https:'].includes(url.protocol)
@@ -111,75 +120,7 @@ function usableImageUrl(value: string | null) {
   }
 }
 
-function candidateScore(url: string, context = '') {
-  const text = `${url} ${context}`.toLowerCase()
-  let score = 0
-  // When replacing a logo, a recognisable venue exterior is most useful to a
-  // parent choosing where to go; a venue interior is the next best option.
-  if (/(front|exterior|facade|shopfront|storefront|outside|street|building)/.test(text)) score += 60
-  else if (/(interior|inside|dining|seating|venue|studio|class|play|people|baby|family|room|space)/.test(text)) score += 45
-  else if (/(food|coffee|kitchen)/.test(text)) score += 15
-  if (/(hero|feature|gallery)/.test(text)) score += 10
-  if (/(full|large|original|2048|1600|1200|1080|1024)/.test(text)) score += 12
-  if (/(thumbnail|thumb|150x150|200x200|300x300|banner|social-share|default)/.test(text)) score -= 18
-  if (/(graphic|illustration|cartoon|poster|flyer|template|stock)/.test(text)) score -= 15
-  if (/(logo|brand|wordmark|badge|avatar)/.test(text)) score -= 30
-  return score
-}
-
-function imageCandidatesFromPage(html: string, baseUrl: string) {
-  const candidates: Candidate[] = []
-  const add = (rawUrl: string | null, context = '') => {
-    const url = absoluteUrl(rawUrl, baseUrl)
-    if (url && usableImageUrl(url) && !blockedImageTerms.test(context)) {
-      candidates.push({ url, score: candidateScore(url, context) })
-    }
-  }
-
-  for (const tag of html.match(/<meta\s+[^>]*>/gi) || []) {
-    const key = (attribute(tag, 'property') || attribute(tag, 'name') || '').toLowerCase()
-    if (['og:image', 'og:image:url', 'twitter:image', 'twitter:image:src'].includes(key)) {
-      add(attribute(tag, 'content'), key)
-    }
-  }
-
-  for (const script of html.match(/<script\s+[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi) || []) {
-    try {
-      const parsed = JSON.parse(script.replace(/^<script[^>]*>/i, '').replace(/<\/script>$/i, '').trim())
-      const nodes = Array.isArray(parsed) ? parsed : [parsed, ...(parsed?.['@graph'] || [])]
-      for (const node of nodes) {
-        const image = Array.isArray(node?.image) ? node.image[0] : node?.image
-        add(typeof image === 'string' ? image : image?.url || null, 'structured image')
-      }
-    } catch {
-      // Invalid structured data is common. Metadata and image tags remain useful.
-    }
-  }
-
-  for (const tag of html.match(/<img\s+[^>]*>/gi) || []) {
-    const srcset = attribute(tag, 'srcset') || attribute(tag, 'data-srcset')
-    const srcsetUrl = srcset?.split(',')
-      .map((item) => {
-        const [url, width] = item.trim().split(/\s+/)
-        return { url, width: Number(width?.replace(/\D/g, '') || 0) }
-      })
-      .sort((left, right) => right.width - left.width)[0]?.url || null
-    const rawUrl = srcsetUrl || attribute(tag, 'data-lazyload') || attribute(tag, 'data-src') || attribute(tag, 'data-original') || attribute(tag, 'src')
-    const context = [attribute(tag, 'alt'), attribute(tag, 'title'), attribute(tag, 'class')].filter(Boolean).join(' ')
-    add(rawUrl, context)
-  }
-
-  for (const match of html.matchAll(/background(?:-image)?\s*:\s*url\(([^)]+)\)/gi)) {
-    add(match[1].trim().replace(/^["']|["']$/g, ''), 'background image')
-  }
-
-  const seen = new Set<string>()
-  return candidates
-    .sort((left, right) => right.score - left.score)
-    .filter((candidate) => !seen.has(candidate.url) && Boolean(seen.add(candidate.url)))
-}
-
-async function pageCandidates(sourceUrl: string) {
+async function pageCandidates(sourceUrl: string, sourceKind: 'website' | 'organiser') {
   try {
     const response = await fetch(sourceUrl, {
       redirect: 'follow',
@@ -190,7 +131,7 @@ async function pageCandidates(sourceUrl: string) {
       },
     })
     if (!response.ok || !(response.headers.get('content-type') || '').includes('text/html')) return []
-    return imageCandidatesFromPage(await response.text(), response.url || sourceUrl)
+    return extractWebsiteImageCandidates(await response.text(), response.url || sourceUrl, sourceKind) as Candidate[]
   } catch {
     return []
   }
@@ -216,63 +157,46 @@ function stableName(value: string) {
   return (hash >>> 0).toString(36)
 }
 
-async function downloadToStorage(
+async function downloadSelectedToStorage(
   supabase: ReturnType<typeof createClient>,
   activity: Activity,
-  sourceKind: 'website' | 'organiser',
-  candidates: Candidate[],
+  candidate: Candidate,
+  selection: SelectionRequest,
 ) {
-  const rankedCandidates = [...candidates]
-    .filter((candidate) => !blockedImageTerms.test(candidate.url))
-    .sort((left, right) => right.score - left.score)
-  for (const candidate of rankedCandidates) {
-    try {
-      const response = await fetch(candidate.url, {
-        redirect: 'follow',
-        signal: AbortSignal.timeout(20000),
-        headers: { Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8' },
-      })
-      const contentType = (response.headers.get('content-type') || '').split(';')[0].toLowerCase()
-      const declaredSize = Number(response.headers.get('content-length') || 0)
-      if (!response.ok || !acceptedMimeTypes.has(contentType) || (declaredSize && declaredSize > maxImageBytes)) continue
+  if (!usableActivityImageUrl(activity, candidate.original) || blockedWebsiteImageTerms.test(`${candidate.original} ${candidate.title || ''}`)) return null
+  // HTML width/height attributes are commonly responsive display sizes rather
+  // than the dimensions of the original asset. Trust the dimensions measured
+  // from the downloaded file during the authenticated Codex review instead.
+  const reviewedShortestSide = Math.min(Number(selection.reviewed_width || 0), Number(selection.reviewed_height || 0))
+  if (reviewedShortestSide > 0 && reviewedShortestSide < 400) return null
+  try {
+    const response = await fetch(candidate.original, {
+      redirect: 'follow',
+      signal: AbortSignal.timeout(25000),
+      headers: { Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8' },
+    })
+    const contentType = (response.headers.get('content-type') || '').split(';')[0].toLowerCase()
+    const declaredSize = Number(response.headers.get('content-length') || 0)
+    if (!response.ok || !acceptedMimeTypes.has(contentType) || (declaredSize && declaredSize > maxImageBytes)) return null
 
-      const bytes = new Uint8Array(await response.arrayBuffer())
-      if (bytes.byteLength < 1024 || bytes.byteLength > maxImageBytes) continue
+    const bytes = new Uint8Array(await response.arrayBuffer())
+    if (bytes.byteLength < 8 * 1024 || bytes.byteLength > maxImageBytes) return null
 
-      const path = `downloaded/${sourceKind}/${activity.activity_id}-${stableName(candidate.url)}.${extensionFor(contentType, candidate.url)}`
-      const upload = await supabase.storage.from('activity-images').upload(path, bytes, {
-        contentType,
-        cacheControl: '31536000',
-        upsert: true,
-      })
-      if (upload.error) continue
+    const path = `downloaded/${candidate.source_kind}/${activity.activity_id}-${stableName(candidate.original)}.${extensionFor(contentType, candidate.original)}`
+    const upload = await supabase.storage.from('activity-images').upload(path, bytes, {
+      contentType,
+      cacheControl: '31536000',
+      upsert: true,
+    })
+    if (upload.error) return null
 
-      return {
-        source_url: candidate.url,
-        public_url: supabase.storage.from('activity-images').getPublicUrl(path).data.publicUrl,
-      }
-    } catch {
-      // Try the next validated candidate from the same official page.
+    return {
+      source_url: candidate.original,
+      public_url: supabase.storage.from('activity-images').getPublicUrl(path).data.publicUrl,
     }
+  } catch {
+    return null
   }
-  return null
-}
-
-function hasCardImage(activity: Activity) {
-  const allowsWikimedia = allowsWikimediaImages(activity)
-  return [
-    ['admin_cover_image_url', activity.admin_cover_image_url],
-    ['user_image_url', activity.user_image_url],
-    ['scraped_image_url', activity.scraped_image_url],
-    ['organiser_website_downloaded_image', activity.organiser_website_downloaded_image],
-    ['website_downloaded_image', activity.website_downloaded_image],
-    ['wikimedia_image_url', activity.wikimedia_image_url],
-    ['website_image_url', activity.website_image_url],
-    ['listing_image_url', activity.listing_image_url],
-    ['image_url', activity.image_url],
-  ].some(([field, image]) => usableImageUrl(image)
-    && (allowsWikimedia || (field !== 'wikimedia_image_url' && !isWikimediaUrl(image)))
-    && (allowsWikimedia || field !== 'scraped_image_url' || !isWikimediaUrl(activity.image_source_url)))
 }
 
 function allowsWikimediaImages(activity: Pick<Activity, 'category'>) {
@@ -310,72 +234,170 @@ function uniqueUrls(values: Array<string | null | undefined>) {
   })
 }
 
-async function processActivity(
+async function discoverActivityCandidates(
   supabase: ReturnType<typeof createClient>,
   activity: Activity,
-  replaceLogo: boolean,
 ) {
-  if (hasCardImage(activity) && !replaceLogo) return { activity_id: activity.activity_id, status: 'already-covered' }
-
   const organiserPages = uniqueUrls([activity.organiser_website])
   const websitePages = uniqueUrls([activity.website, activity.source_url]).filter((url) => !organiserPages.includes(url))
-  const organiserCandidates = activity.organiser_website
-    ? (await Promise.all(organiserPages.map(pageCandidates))).flat()
-    : []
-  const organiserImage = await downloadToStorage(
-    supabase,
-    activity,
-    'organiser',
-    organiserCandidates.filter((candidate): candidate is Candidate => Boolean(
-      candidate.url
-      && usableActivityImageUrl(activity, candidate.url)
-      && (!replaceLogo || candidate.score >= 40),
-    )),
-  )
-  if (organiserImage) {
-    const { error } = await supabase.from('activities').update({
-      organiser_website_downloaded_image: organiserImage.public_url,
-      ...(replaceLogo ? {
-        scraped_image_url: organiserImage.public_url,
-        image_source_url: organiserImage.source_url,
-      } : {}),
-      updated_at: new Date().toISOString(),
-    }).eq('activity_id', activity.activity_id)
-    return error
-      ? { activity_id: activity.activity_id, status: 'update-failed', reason: error.message }
-      : { activity_id: activity.activity_id, status: 'organiser-downloaded', source_url: organiserImage.source_url }
-  }
-
-  const websiteCandidates = [
-    // Do not reuse a legacy listing image when this is a logo replacement.
-    // Page extraction gives us a distinct venue photo to rank instead.
-    ...(replaceLogo ? [] : [{ url: activity.listing_image_url, score: 100 }]),
-    ...(replaceLogo || activity.organiser_website ? [] : [{ url: activity.website_image_url, score: 95 }]),
-    ...(await Promise.all(websitePages.map(pageCandidates))).flat(),
-  ]
-  const websiteImage = await downloadToStorage(
-    supabase,
-    activity,
-    'website',
-    websiteCandidates.filter((candidate): candidate is Candidate => Boolean(
-      candidate.url
-      && usableActivityImageUrl(activity, candidate.url)
-      && (!replaceLogo || candidate.score >= 40),
-    )),
-  )
-  if (!websiteImage) return { activity_id: activity.activity_id, status: 'no-usable-image' }
-
+  const pageResults = await Promise.all([
+    ...organiserPages.map((page) => pageCandidates(page, 'organiser')),
+    ...websitePages.map((page) => pageCandidates(page, 'website')),
+  ])
+  const seen = new Set<string>()
+  const candidates = pageResults.flat()
+    .filter((candidate) => usableActivityImageUrl(activity, candidate.original))
+    .sort((left, right) => Number(right.source_kind === 'organiser') - Number(left.source_kind === 'organiser')
+      || right.metadata_score - left.metadata_score)
+    .filter((candidate) => !seen.has(candidate.original) && Boolean(seen.add(candidate.original)))
+    .slice(0, maxStoredCandidates)
+    .map((candidate, index) => ({ ...candidate, position: index + 1 }))
+  const now = new Date().toISOString()
   const { error } = await supabase.from('activities').update({
-    website_downloaded_image: websiteImage.public_url,
-    ...(replaceLogo ? {
-      scraped_image_url: websiteImage.public_url,
-      image_source_url: websiteImage.source_url,
-    } : {}),
-    updated_at: new Date().toISOString(),
+    website_image_candidates: candidates,
+    website_image_candidates_fetched_at: now,
+    website_image_candidate_pages: [...organiserPages, ...websitePages],
+    website_image_vision_reviewed_at: null,
+    website_image_vision_model: null,
+    website_image_vision_status: null,
+    website_image_vision_candidate_index: null,
+    website_image_vision_reason: null,
+    website_image_vision_candidates_fetched_at: null,
+    updated_at: now,
   }).eq('activity_id', activity.activity_id)
   return error
     ? { activity_id: activity.activity_id, status: 'update-failed', reason: error.message }
-    : { activity_id: activity.activity_id, status: 'website-downloaded', source_url: websiteImage.source_url }
+    : {
+      activity_id: activity.activity_id,
+      activity_name: activity.activity_name,
+      status: candidates.length ? 'candidates-stored' : 'no-candidates-found',
+      candidate_count: candidates.length,
+      pages_scanned: organiserPages.length + websitePages.length,
+      candidates_fetched_at: now,
+    }
+}
+
+function sameTimestamp(left: string | null, right: string | null) {
+  return Boolean(left && right && Date.parse(left) === Date.parse(right))
+}
+
+function visionFields(selection: SelectionRequest, now: string, status: 'selected' | 'rejected' | 'selection_download_failed') {
+  return {
+    website_image_vision_reviewed_at: now,
+    website_image_vision_model: selection.vision_review.model,
+    website_image_vision_status: status,
+    website_image_vision_candidate_index: selection.candidate_index,
+    website_image_vision_reason: selection.selection_reason,
+    website_image_vision_candidates_fetched_at: selection.vision_review.candidate_set_fetched_at,
+  }
+}
+
+async function recordVisionReview(
+  supabase: ReturnType<typeof createClient>,
+  activity: Activity,
+  selection: SelectionRequest,
+  now: string,
+  applicationStatus: 'selected' | 'rejected' | 'selection_download_failed',
+  selectedSourceUrl: string | null,
+) {
+  const candidates = Array.isArray(activity.website_image_candidates) ? activity.website_image_candidates : []
+  const { error } = await supabase.from('activity_website_image_llm_reviews').upsert({
+    activity_id: activity.activity_id,
+    candidate_set_fetched_at: selection.vision_review.candidate_set_fetched_at,
+    reviewed_at: now,
+    provider: selection.vision_review.provider,
+    model: selection.vision_review.model,
+    workflow_version: selection.vision_review.workflow_version,
+    decision: selection.candidate_index === null ? 'rejected' : 'selected',
+    application_status: applicationStatus,
+    selected_candidate_index: selection.candidate_index,
+    selection_reason: selection.selection_reason,
+    selection_confidence: selection.selection_confidence ?? null,
+    candidate_count: candidates.length,
+    selected_source_url: selectedSourceUrl,
+    metadata: { candidate_source: 'official_website', display_model: 'Codex 5.6 Sol' },
+  }, { onConflict: 'activity_id,candidate_set_fetched_at,provider,model,workflow_version' })
+  return error
+}
+
+async function storeSelectedCandidate(
+  supabase: ReturnType<typeof createClient>,
+  selection: SelectionRequest,
+) {
+  const { data, error } = await supabase.from('activities')
+    .select('activity_id,activity_name,category,website,organiser_website,source_url,image_url,scraped_image_url,image_source_url,website_image_url,listing_image_url,wikimedia_image_url,user_image_url,admin_cover_image_url,website_downloaded_image,organiser_website_downloaded_image,website_image_candidates,website_image_candidates_fetched_at,website_image_vision_candidates_fetched_at')
+    .eq('activity_id', selection.activity_id)
+    .maybeSingle()
+  if (error || !data) return { activity_id: selection.activity_id, status: 'selection-failed', reason: error?.message || 'Activity not found.' }
+  const activity = data as Activity
+  if (selection.vision_review.provider !== 'codex' || !selection.vision_review.model || !selection.vision_review.workflow_version) {
+    return { activity_id: selection.activity_id, status: 'selection-failed', reason: 'A complete Codex vision review record is required.' }
+  }
+  if (!sameTimestamp(activity.website_image_candidates_fetched_at, selection.vision_review.candidate_set_fetched_at)) {
+    return { activity_id: selection.activity_id, status: 'selection-failed', reason: 'The reviewed website candidate set is no longer current.' }
+  }
+  const candidates = Array.isArray(activity.website_image_candidates) ? activity.website_image_candidates : []
+  if (!candidates.length) return { activity_id: selection.activity_id, status: 'selection-failed', reason: 'The website candidate set is empty.' }
+  const now = new Date().toISOString()
+
+  if (selection.candidate_index === null) {
+    const update = {
+      ...(selection.clear_selected_image ? { organiser_website_downloaded_image: null, website_downloaded_image: null } : {}),
+      website_image_selected_at: null,
+      ...visionFields(selection, now, 'rejected'),
+      updated_at: now,
+    }
+    const { error: updateError } = await supabase.from('activities').update(update).eq('activity_id', activity.activity_id)
+    if (updateError) return { activity_id: activity.activity_id, status: 'selection-failed', reason: updateError.message }
+    const reviewError = await recordVisionReview(supabase, activity, selection, now, 'rejected', null)
+    return reviewError
+      ? { activity_id: activity.activity_id, status: 'review-log-failed', reason: reviewError.message }
+      : { activity_id: activity.activity_id, status: 'no-high-confidence-candidate' }
+  }
+
+  const candidate = candidates[selection.candidate_index]
+  if (!candidate) return { activity_id: activity.activity_id, status: 'selection-failed', reason: 'The selected website candidate is no longer available.' }
+  const downloaded = await downloadSelectedToStorage(supabase, activity, candidate, selection)
+  if (!downloaded) {
+    const update = { ...visionFields(selection, now, 'selection_download_failed'), updated_at: now }
+    await supabase.from('activities').update(update).eq('activity_id', activity.activity_id)
+    const reviewError = await recordVisionReview(supabase, activity, selection, now, 'selection_download_failed', candidate.original)
+    return reviewError
+      ? { activity_id: activity.activity_id, status: 'review-log-failed', reason: reviewError.message }
+      : { activity_id: activity.activity_id, status: 'selection-download-failed' }
+  }
+
+  const selectedFields = candidate.source_kind === 'organiser'
+    ? { organiser_website_downloaded_image: downloaded.public_url, website_downloaded_image: null }
+    : { organiser_website_downloaded_image: null, website_downloaded_image: downloaded.public_url }
+  const { error: updateError } = await supabase.from('activities').update({
+    ...selectedFields,
+    website_image_selected_at: now,
+    ...visionFields(selection, now, 'selected'),
+    updated_at: now,
+  }).eq('activity_id', activity.activity_id)
+  if (updateError) return { activity_id: activity.activity_id, status: 'selection-failed', reason: updateError.message }
+  const reviewError = await recordVisionReview(supabase, activity, selection, now, 'selected', candidate.original)
+  return reviewError
+    ? { activity_id: activity.activity_id, status: 'review-log-failed', reason: reviewError.message }
+    : { activity_id: activity.activity_id, status: 'selected', source_url: candidate.original, stored_url: downloaded.public_url, source_kind: candidate.source_kind }
+}
+
+async function loadReviewQueue(
+  supabase: ReturnType<typeof createClient>,
+  body: Record<string, unknown>,
+) {
+  const requestedIds = Array.isArray(body.activity_ids)
+    ? [...new Set(body.activity_ids.filter((id): id is string => typeof id === 'string' && /^[0-9a-f-]{36}$/i.test(id)))].slice(0, 25)
+    : []
+  const batchSize = Math.min(25, Math.max(1, Number(body.batch_size || 20)))
+  let query = supabase.from('codex_website_image_review_queue').select('*').order('activity_id').limit(batchSize)
+  if (requestedIds.length) query = query.in('activity_id', requestedIds)
+  if (!requestedIds.length && typeof body.cursor === 'string') query = query.gt('activity_id', body.cursor)
+  const { data, error } = await query
+  if (error) throw new Error(error.message)
+  const rows = data || []
+  return { rows, next_cursor: rows.length === batchSize ? rows.at(-1)?.activity_id || null : null }
 }
 
 async function mapWithConcurrency<T, R>(items: T[], limit: number, mapper: (item: T) => Promise<R>) {
@@ -403,15 +425,23 @@ Deno.serve(async (request) => {
   if (!(await authorize(request, supabase))) return jsonResponse({ error: 'Only Tiny Outings administrators or the manual update job can download images.' }, 403)
 
   try {
-    const body = await request.json().catch(() => ({}))
+    const body = await request.json().catch(() => ({})) as Record<string, unknown>
+    if (body.review_queue === true) return jsonResponse(await loadReviewQueue(supabase, body))
+
+    if (Array.isArray(body.selections)) {
+      const selections = body.selections.slice(0, 20) as SelectionRequest[]
+      if (!selections.length) return jsonResponse({ error: 'Provide at least one website image selection.' }, 400)
+      const results = await mapWithConcurrency(selections, 3, (selection) => storeSelectedCandidate(supabase, selection))
+      return jsonResponse({ processed: results.length, results })
+    }
+
     const activityIds = Array.isArray(body.activity_ids)
       ? [...new Set(body.activity_ids.filter((id: unknown): id is string => typeof id === 'string' && /^[0-9a-f-]{36}$/i.test(id)))].slice(0, 25)
       : []
-    const replaceLogo = body.replace_logo === true
     if (!activityIds.length) return jsonResponse({ error: 'Provide up to 25 activity_ids.' }, 400)
 
     const { data, error } = await supabase.from('activities')
-      .select('activity_id,activity_name,category,website,organiser_website,source_url,image_url,scraped_image_url,image_source_url,website_image_url,listing_image_url,wikimedia_image_url,user_image_url,admin_cover_image_url,website_downloaded_image,organiser_website_downloaded_image')
+      .select('activity_id,activity_name,category,website,organiser_website,source_url,image_url,scraped_image_url,image_source_url,website_image_url,listing_image_url,wikimedia_image_url,user_image_url,admin_cover_image_url,website_downloaded_image,organiser_website_downloaded_image,website_image_candidates,website_image_candidates_fetched_at,website_image_vision_candidates_fetched_at')
       .in('public_listing_status', ['draft', 'published'])
       .eq('archive', false)
       .in('activity_id', activityIds)
@@ -420,9 +450,9 @@ Deno.serve(async (request) => {
     const results = await mapWithConcurrency(
       (data || []) as Activity[],
       4,
-      (activity) => processActivity(supabase, activity, replaceLogo),
+      (activity) => discoverActivityCandidates(supabase, activity),
     )
-    return jsonResponse({ processed: results.length, replace_logo: replaceLogo, results })
+    return jsonResponse({ processed: results.length, selection_required: true, results })
   } catch (error) {
     return jsonResponse({ error: error instanceof Error ? error.message : 'Image download failed.' }, 500)
   }

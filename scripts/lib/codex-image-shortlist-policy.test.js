@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  assessDownloadedImageQuality,
   chooseShortlist,
   hammingDistance,
   imageCacheKey,
@@ -42,6 +43,16 @@ test('official cafe interiors score above food-only directory photos', () => {
   }), 1);
   assert.ok(interior.score > food.score + 30);
   assert.equal(interior.official, true);
+});
+
+test('an image discovered directly on the official website does not need its filename to repeat the activity name', () => {
+  const result = scoreCandidateMetadata(cafe, candidate({
+    original: 'https://brightbean.example/media/dsc-1042.jpg',
+    title: 'Interior and seating',
+    source_kind: 'organiser',
+  }), 0);
+  assert.equal(result.rejected, false);
+  assert.equal(result.official, true);
 });
 
 test('logos and extreme aspect ratios are rejected before vision review', () => {
@@ -114,6 +125,18 @@ test('cache keys change with candidate URL but stay scoped to the activity', () 
   const second = imageCacheKey('activity-1', 2, 'https://images.example/b.jpg');
   assert.match(first, /^activity-1\/2-[a-f0-9]{12}\.jpg$/);
   assert.notEqual(first, second);
+});
+
+test('downloaded thumbnails, soft images, and blank logo-like graphics cannot reach vision', () => {
+  const tiny = assessDownloadedImageQuality({ width: 280, height: 180, entropy: 4.2, sharpness: 2.2 });
+  const soft = assessDownloadedImageQuality({ width: 1400, height: 900, entropy: 4.2, sharpness: 0.4 });
+  const blank = assessDownloadedImageQuality({ width: 1400, height: 900, entropy: 0.8, sharpness: 2.2 });
+  const photograph = assessDownloadedImageQuality({ width: 1400, height: 900, entropy: 4.2, sharpness: 2.2 });
+  assert.equal(tiny.rejected, true);
+  assert.equal(soft.rejected, true);
+  assert.equal(blank.rejected, true);
+  assert.equal(photograph.rejected, false);
+  assert.ok(photograph.score > 20);
 });
 
 test('Wikimedia candidates are rejected outside the category allowlist', () => {

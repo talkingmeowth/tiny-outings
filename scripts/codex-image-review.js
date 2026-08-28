@@ -5,6 +5,7 @@ import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import {
+  assessDownloadedImageQuality,
   candidateHost,
   chooseShortlist,
   imageCacheKey,
@@ -12,14 +13,19 @@ import {
 } from './lib/codex-image-shortlist-policy.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
-const queueOutputPath = join(root, 'data', 'codex_image_review_queue.generated.json');
-const shortlistOutputPath = join(root, 'data', 'codex_image_shortlist.generated.json');
-const applyOutputPath = join(root, 'data', 'codex_image_review_apply.generated.json');
-const decisionsOutputPath = join(root, 'data', 'codex_image_review_decisions.generated.json');
-const cacheRoot = join(root, 'data', 'codex-image-review-cache');
-const sheetRoot = join(root, 'data', 'codex-image-review-sheets');
+const sourceIndex = process.argv.indexOf('--source');
+const candidateSource = sourceIndex >= 0 ? String(process.argv[sourceIndex + 1] || '').toLowerCase() : 'serpapi';
+if (!['serpapi', 'website'].includes(candidateSource)) throw new Error('--source must be serpapi or website.');
+const outputPrefix = candidateSource === 'website' ? 'codex_website_image' : 'codex_image';
+const queueOutputPath = join(root, 'data', `${outputPrefix}_review_queue.generated.json`);
+const shortlistOutputPath = join(root, 'data', `${outputPrefix}_shortlist.generated.json`);
+const applyOutputPath = join(root, 'data', `${outputPrefix}_review_apply.generated.json`);
+const decisionsOutputPath = join(root, 'data', `${outputPrefix}_review_decisions.generated.json`);
+const cacheRoot = join(root, 'data', `codex-${candidateSource}-image-review-cache-v2`);
+const sheetRoot = join(root, 'data', `codex-${candidateSource}-image-review-sheets`);
 const model = 'gpt-5.6-sol';
-const workflowVersion = 'codex-visual-v2';
+const workflowVersion = candidateSource === 'website' ? 'codex-website-visual-v1' : 'codex-visual-v2';
+const imageFunctionName = candidateSource === 'website' ? 'activity-website-image-downloader' : 'cafe-image-importer';
 const applyIndex = process.argv.indexOf('--apply');
 const applyPath = applyIndex >= 0 ? process.argv[applyIndex + 1] : null;
 const validateIndex = process.argv.indexOf('--validate-decisions');
@@ -78,7 +84,7 @@ async function callImageFunction(body, timeout = 150000) {
   const maximumAttempts = 4;
   for (let attempt = 1; attempt <= maximumAttempts; attempt += 1) {
     try {
-      const response = await fetch(`${supabaseUrl}/functions/v1/cafe-image-importer`, {
+      const response = await fetch(`${supabaseUrl}/functions/v1/${imageFunctionName}`, {
         method: 'POST',
         headers: {
           apikey: supabaseAnonKey,
@@ -124,7 +130,7 @@ async function fetchReviewQueue() {
         activity_ids: activityIds,
       });
       rows.push(...(payload.rows || []));
-      console.log(`Codex vision review queue: loaded ${rows.length}/${requested.length} new candidate sets.`);
+      console.log(`Codex ${candidateSource} vision queue: loaded ${rows.length}/${requested.length} candidate sets.`);
     }
     return rows.slice(offset, Number.isFinite(limit) ? offset + limit : undefined);
   }
@@ -141,7 +147,7 @@ async function fetchReviewQueue() {
     });
     rows.push(...(payload.rows || []));
     cursor = payload.next_cursor || null;
-    console.log(`Codex vision review queue: loaded ${rows.length}${cursor ? '+' : ''} pending candidate sets.`);
+    console.log(`Codex ${candidateSource} vision queue: loaded ${rows.length}${cursor ? '+' : ''} pending candidate sets.`);
   } while (cursor && rows.length < target);
   return rows.slice(offset, Number.isFinite(limit) ? offset + limit : undefined);
 }
@@ -172,12 +178,22 @@ function decisionRows(path) {
       && !row.finalist_candidate_indices.includes(row.candidate_index)) {
       throw new Error(`Decision ${index + 1} selects a raw candidate that was not shown on its contact sheet.`);
     }
+    if (row.candidate_index !== null && (
+      !Number.isFinite(Number(row.reviewed_width))
+      || !Number.isFinite(Number(row.reviewed_height))
+      || Number(row.reviewed_width) < 400
+      || Number(row.reviewed_height) < 400
+    )) {
+      throw new Error(`Decision ${index + 1} is missing verified source dimensions of at least 400px per side.`);
+    }
     if (!String(row.reason || '').trim()) throw new Error(`Decision ${index + 1} is missing a reason.`);
     return {
       activity_id: row.activity_id,
       candidate_index: row.candidate_index,
-      selection_reason: `Codex 5.6 Sol vision review: ${String(row.reason).trim()}`,
+      selection_reason: `Codex 5.6 Sol ${candidateSource} vision review: ${String(row.reason).trim()}`,
       selection_confidence: Number.isFinite(Number(row.confidence)) ? Number(row.confidence) : null,
+      reviewed_width: row.candidate_index === null ? null : Number(row.reviewed_width),
+      reviewed_height: row.candidate_index === null ? null : Number(row.reviewed_height),
       clear_selected_image: row.candidate_index === null,
       vision_review: {
         provider: 'codex',
@@ -205,6 +221,7 @@ async function applyDecisions(path) {
     provider: 'codex',
     model,
     workflow_version: workflowVersion,
+    candidate_source: candidateSource,
     reviewed: selections.length,
     selected: results.filter((row) => row.status === 'selected').length,
     rejected: results.filter((row) => row.status === 'no-high-confidence-candidate').length,
@@ -243,11 +260,13 @@ function createDecisions(choicesValue) {
       candidate_set_fetched_at: activity.candidate_set_fetched_at,
       finalist_candidate_indices: activity.finalists.map((entry) => entry.candidate_index),
       candidate_index: finalist?.candidate_index ?? null,
+      reviewed_width: finalist?.downloaded_width ?? null,
+      reviewed_height: finalist?.downloaded_height ?? null,
       reason: finalist
         ? cafe
-          ? `Codex vision selected F${finalistNumber} as the clearest representative view of the cafe exterior, interior or seating.`
-          : `Codex vision selected F${finalistNumber} as the clearest representative view of the listed activity or venue.`
-        : 'Codex vision found no finalist that reliably and clearly represented the listed activity or venue.',
+          ? `Codex vision selected F${finalistNumber} as the clearest high-quality, non-logo view of the cafe exterior, interior or seating.`
+          : `Codex vision selected F${finalistNumber} as the clearest high-quality, non-logo view of the listed activity or venue.`
+        : `Codex vision found no high-quality, non-logo ${candidateSource} finalist that reliably represented the listed activity or venue.`,
       confidence: finalist ? 0.9 : 0.95,
     };
   });
@@ -256,6 +275,7 @@ function createDecisions(choicesValue) {
     provider: 'codex',
     model,
     workflow_version: workflowVersion,
+    candidate_source: candidateSource,
     decisions,
   });
   console.log(`Created ${decisions.length} Codex decisions (${decisions.filter((row) => row.candidate_index !== null).length} selected, ${decisions.filter((row) => row.candidate_index === null).length} rejected): ${decisionsOutputPath}`);
@@ -302,11 +322,12 @@ function differenceHash(bytes) {
 async function cachedImageAssessment(activity, candidate, metadataAssessment) {
   const relativePath = imageCacheKey(activity.activity_id, metadataAssessment.index, candidate.original);
   const cachePath = join(cacheRoot, relativePath);
+  const metadataPath = `${cachePath}.json`;
   try {
     if (!existsSync(cachePath)) {
       let sourceBuffer = null;
       let failure = null;
-      for (const url of [candidate.thumbnail, candidate.original].filter(Boolean)) {
+      for (const url of [candidate.original, candidate.thumbnail].filter(Boolean)) {
         try {
           const response = await fetch(url, {
             redirect: 'follow',
@@ -325,42 +346,46 @@ async function cachedImageAssessment(activity, candidate, metadataAssessment) {
       }
       if (!sourceBuffer) throw failure || new Error('No downloadable thumbnail or original image.');
       mkdirSync(dirname(cachePath), { recursive: true });
+      const sourceMetadata = await sharp(sourceBuffer, { failOn: 'warning' }).metadata();
       const normalised = await sharp(sourceBuffer, { failOn: 'warning' }).rotate()
         .resize({ width: 720, height: 540, fit: 'inside', withoutEnlargement: true })
         .flatten({ background: '#f3f1eb' })
         .jpeg({ quality: 84, mozjpeg: true })
         .toBuffer();
       writeFileSync(cachePath, normalised);
+      writeFileSync(metadataPath, JSON.stringify({ width: sourceMetadata.width || null, height: sourceMetadata.height || null }));
     }
+    const sourceMetadata = existsSync(metadataPath)
+      ? JSON.parse(readFileSync(metadataPath, 'utf8'))
+      : { width: candidate.original_width || null, height: candidate.original_height || null };
     const [imageMetadata, stats, hashBytes] = await Promise.all([
       sharp(cachePath).metadata(),
       sharp(cachePath).stats(),
       sharp(cachePath).resize(9, 8, { fit: 'fill' }).grayscale().raw().toBuffer(),
     ]);
-    const entropy = stats.channels.reduce((sum, channel) => sum + Number(channel.entropy || 0), 0) / Math.max(1, stats.channels.length);
+    const channelEntropy = stats.channels.reduce((sum, channel) => sum + Number(channel.entropy || 0), 0) / Math.max(1, stats.channels.length);
+    const entropy = Number(stats.entropy || channelEntropy || 0);
     const sharpness = Number(stats.sharpness || 0);
-    const ratio = Number(imageMetadata.width || 1) / Number(imageMetadata.height || 1);
-    let imageScore = 0;
-    const imageReasons = [];
-    if (entropy < 1.45) { imageScore -= 24; imageReasons.push('very low visual entropy'); }
-    else if (entropy < 2.1) { imageScore -= 10; imageReasons.push('low visual entropy'); }
-    else if (entropy >= 3.5 && entropy <= 7.8) { imageScore += 6; imageReasons.push('photographic detail'); }
-    if (sharpness && sharpness < 0.8) { imageScore -= 12; imageReasons.push('soft image'); }
-    else if (sharpness >= 2) { imageScore += 5; imageReasons.push('good sharpness'); }
-    if (ratio >= 1.15 && ratio <= 2.1) imageScore += 7;
-    else if (ratio < 0.5 || ratio > 2.8) imageScore -= 18;
+    const quality = assessDownloadedImageQuality({
+      width: sourceMetadata.width || imageMetadata.width,
+      height: sourceMetadata.height || imageMetadata.height,
+      entropy,
+      sharpness,
+    });
     return {
       ...metadataAssessment,
       candidate,
       cache_path: cachePath,
       perceptual_hash: differenceHash(hashBytes),
-      downloaded_width: imageMetadata.width,
-      downloaded_height: imageMetadata.height,
+      downloaded_width: sourceMetadata.width || imageMetadata.width,
+      downloaded_height: sourceMetadata.height || imageMetadata.height,
       entropy: Number(entropy.toFixed(3)),
       sharpness: Number(sharpness.toFixed(3)),
-      image_score: imageScore,
-      image_reasons: imageReasons,
-      total_score: metadataAssessment.score + imageScore,
+      image_score: quality.score,
+      image_reasons: quality.reasons,
+      rejected: metadataAssessment.rejected || quality.rejected,
+      reject_reasons: [...metadataAssessment.reject_reasons, ...quality.reject_reasons],
+      total_score: metadataAssessment.score + quality.score,
       download_failed: false,
     };
   } catch (error) {
@@ -391,9 +416,10 @@ async function buildActivitySheet(activity, finalists, ordinal) {
   }
   const labels = finalists.map((finalist, index) => {
     const domain = finalist.source_domain || candidateHost(finalist.candidate.link) || candidateHost(finalist.candidate.original) || 'unknown source';
+    const dimensions = `${finalist.downloaded_width || '?'}x${finalist.downloaded_height || '?'}`;
     return `<rect x="${index * tileWidth + 8}" y="70" width="92" height="29" rx="5" fill="#111827" fill-opacity="0.92"/>
       <text x="${index * tileWidth + 16}" y="91" font-family="Arial" font-size="17" font-weight="700" fill="#ffffff">F${index + 1} / raw ${finalist.index}</text>
-      <text x="${index * tileWidth + 8}" y="245" font-family="Arial" font-size="14" fill="#24383a">${xml(short(domain, 28))}</text>`;
+      <text x="${index * tileWidth + 8}" y="245" font-family="Arial" font-size="13" fill="#24383a">${xml(short(`${domain}  ${dimensions}`, 31))}</text>`;
   }).join('');
   const emptyState = finalists.length ? '' : `
     <rect x="8" y="76" width="1184" height="150" rx="8" fill="#e7e4dc"/>
@@ -446,7 +472,10 @@ async function shortlistActivity(activity, ordinal) {
   }));
   const eligible = metadata.filter((entry) => !entry.rejected)
     .sort((left, right) => right.score - left.score || left.index - right.index);
-  const downloadPool = eligible.slice(0, 10);
+  // Website pages can expose many images. Download every eligible page image
+  // (up to the server-side safety cap) so quality is measured from the image
+  // bytes before the compact 3-5 finalist sheet is shown to Codex vision.
+  const downloadPool = eligible.slice(0, candidateSource === 'website' ? 80 : 10);
   const assessed = await mapWithConcurrency(downloadPool, 6, (entry) => cachedImageAssessment(activity, entry.candidate, entry));
   const finalists = chooseShortlist(assessed, maximumFinalists, 3);
   const activitySheetPath = await buildActivitySheet(activity, finalists, ordinal);
@@ -459,6 +488,7 @@ async function shortlistActivity(activity, ordinal) {
     category: activity.category,
     address: activity.address,
     candidate_set_fetched_at: activity.serpapi_image_candidates_fetched_at,
+    candidate_source: candidateSource,
     raw_candidate_count: candidates.length,
     metadata_rejected: metadata.filter((entry) => entry.rejected).length,
     removed_before_download: Math.max(0, eligible.length - downloadPool.length),
@@ -483,6 +513,8 @@ async function shortlistActivity(activity, ordinal) {
       title: entry.candidate.title || null,
       original_width: entry.candidate.original_width || null,
       original_height: entry.candidate.original_height || null,
+      downloaded_width: entry.downloaded_width || null,
+      downloaded_height: entry.downloaded_height || null,
       google_images_position: entry.candidate.position || entry.index + 1,
       deterministic_reasons: [...entry.reasons, ...(entry.image_reasons || [])],
     })),
@@ -501,6 +533,7 @@ async function prepareReviewSheets() {
     provider: 'codex',
     model,
     workflow_version: workflowVersion,
+    candidate_source: candidateSource,
     pending: rows.length,
     rows,
   });
@@ -539,9 +572,10 @@ async function prepareReviewSheets() {
     provider: 'codex',
     model,
     workflow_version: workflowVersion,
+    candidate_source: candidateSource,
     dry_run: dryRun,
     activity_ids_file: activityIdsFile,
-    instructions: 'Review each labelled finalist strip with Codex multimodal vision. For cafes prefer a clear exterior/storefront, then an identifiable interior or seating overview. For every category prefer a genuine wide view that best explains the activity. Return null when no finalist is reliable. Raw candidate indices are zero-based and must be copied exactly from the labels.',
+    instructions: `Review each labelled ${candidateSource} finalist strip with Codex multimodal vision. Never select a logo, icon, poster, text graphic, blurred image, visibly pixelated image, or generic image that does not represent the listing. For cafes prefer a clear interior or seating overview, then an identifiable exterior/storefront. For every category prefer a genuine wide view that best explains the activity. Return null when no finalist is reliable. Raw candidate indices are zero-based and must be copied exactly from the labels.`,
     summary,
     batch_sheets: batchSheets,
     activities: prepared,

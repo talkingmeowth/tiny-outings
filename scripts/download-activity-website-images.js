@@ -1,19 +1,23 @@
 /* global process */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { allowsWikimediaImages, isWikimediaUrl } from '../src/wikimediaImagePolicy.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const outputPath = join(root, 'data', 'activity_website_image_downloads.generated.json');
 const batchSize = Math.min(Math.max(Number(process.env.ACTIVITY_IMAGE_DOWNLOAD_BATCH_SIZE || 20), 1), 25);
-const maxActivities = Math.max(Number(process.env.ACTIVITY_IMAGE_DOWNLOAD_LIMIT || 1200), 1);
+const limitIndex = process.argv.indexOf('--limit');
+const maxActivities = Math.max(Number(limitIndex >= 0 ? process.argv[limitIndex + 1] : process.env.ACTIVITY_IMAGE_DOWNLOAD_LIMIT || 1200), 1);
 const linkedDatabase = process.argv.includes('--linked-database');
+const reselectDownloaded = process.argv.includes('--reselect-downloaded');
+const createdAfterIndex = process.argv.indexOf('--created-after');
+const createdAfter = createdAfterIndex >= 0 ? process.argv[createdAfterIndex + 1] || null : null;
 
 function readDotEnv(name) {
   try {
-    return Object.fromEntries(readFileSync(join(root, name), 'utf8').replace(/^\uFEFF/, '')
+    const path = process.env.TINY_OUTINGS_ENV_FILE ? resolve(process.env.TINY_OUTINGS_ENV_FILE) : join(root, name);
+    return Object.fromEntries(readFileSync(path, 'utf8').replace(/^\uFEFF/, '')
       .split(/\r?\n/).filter((line) => line && !line.trim().startsWith('#') && line.includes('='))
       .map((line) => {
         const index = line.indexOf('=');
@@ -39,29 +43,12 @@ function usableUrl(value) {
   }
 }
 
-function hasCardImage(activity) {
-  const allowsWikimedia = allowsWikimediaImages(activity);
-  return [
-    ['admin_cover_image_url', activity.admin_cover_image_url],
-    ['user_image_url', activity.user_image_url],
-    ['scraped_image_url', activity.scraped_image_url],
-    ['organiser_website_downloaded_image', activity.organiser_website_downloaded_image],
-    ['website_downloaded_image', activity.website_downloaded_image],
-    ['wikimedia_image_url', activity.wikimedia_image_url],
-    ['website_image_url', activity.website_image_url],
-    ['listing_image_url', activity.listing_image_url],
-    ['image_url', activity.image_url],
-  ].some(([field, imageUrl]) => usableUrl(imageUrl)
-    && (allowsWikimedia || (field !== 'wikimedia_image_url' && !isWikimediaUrl(imageUrl)))
-    && (allowsWikimedia || field !== 'scraped_image_url' || !isWikimediaUrl(activity.image_source_url)));
-}
-
 async function fetchActivities() {
   const columns = [
-    'activity_id', 'activity_name', 'category', 'website', 'organiser_website', 'source_url', 'image_source_url',
+    'activity_id', 'activity_name', 'category', 'website', 'organiser_website', 'source_url', 'created_at',
     'image_url', 'scraped_image_url', 'website_image_url', 'listing_image_url',
     'wikimedia_image_url', 'user_image_url', 'admin_cover_image_url',
-    'website_downloaded_image', 'organiser_website_downloaded_image',
+    'website_downloaded_image', 'organiser_website_downloaded_image', 'website_image_candidates_fetched_at', 'website_image_vision_candidates_fetched_at',
   ].join(',');
   const activities = [];
   for (let offset = 0; ; offset += 1000) {
@@ -78,10 +65,10 @@ async function fetchActivities() {
 
 function fetchActivitiesFromLinkedDatabase() {
   const columns = [
-    'activity_id', 'activity_name', 'category', 'website', 'organiser_website', 'source_url', 'image_source_url',
+    'activity_id', 'activity_name', 'category', 'website', 'organiser_website', 'source_url', 'created_at',
     'image_url', 'scraped_image_url', 'website_image_url', 'listing_image_url',
     'wikimedia_image_url', 'user_image_url', 'admin_cover_image_url',
-    'website_downloaded_image', 'organiser_website_downloaded_image',
+    'website_downloaded_image', 'organiser_website_downloaded_image', 'website_image_candidates_fetched_at', 'website_image_vision_candidates_fetched_at',
   ].join(',');
   const statement = `select ${columns} from public.activities where coalesce(archive, false) = false and public_listing_status in ('draft', 'published') order by activity_id asc;`;
   const escaped = statement.replaceAll('"', '\\"');
@@ -132,16 +119,25 @@ async function main() {
   if (!jobSecret) throw new Error('Missing TINY_OUTINGS_IMAGE_JOB_SECRET. The manual downloader cannot run without its server-side job token.');
 
   const activities = linkedDatabase ? fetchActivitiesFromLinkedDatabase() : await fetchActivities();
-  const targets = activities.filter((activity) => (
-    !hasCardImage(activity)
-    && [activity.organiser_website, activity.website, activity.source_url, activity.image_url].some(usableUrl)
-  )).slice(0, maxActivities);
+  const eligible = activities.filter((activity) => {
+    const hasWebsiteSource = [activity.organiser_website, activity.website, activity.source_url].some(usableUrl);
+    if (!hasWebsiteSource) return false;
+    if (reselectDownloaded) {
+      const hasDownloadedImage = [activity.organiser_website_downloaded_image, activity.website_downloaded_image].some(usableUrl);
+      const currentSetAlreadyReviewed = activity.website_image_candidates_fetched_at
+        && Date.parse(activity.website_image_candidates_fetched_at) === Date.parse(activity.website_image_vision_candidates_fetched_at);
+      return hasDownloadedImage && !currentSetAlreadyReviewed;
+    }
+    if (createdAfter) return Number.isFinite(Date.parse(activity.created_at)) && Date.parse(activity.created_at) >= Date.parse(createdAfter);
+    return !activity.website_image_candidates_fetched_at;
+  });
+  const targets = eligible.slice(0, maxActivities);
   const batches = [];
   for (let index = 0; index < targets.length; index += batchSize) {
     const ids = targets.slice(index, index + batchSize).map((activity) => activity.activity_id);
     const response = await invokeDownloader(ids);
     batches.push(response);
-    console.log(`Downloaded image batch ${batches.length}: ${response.processed} activities.`);
+    console.log(`Website candidate batch ${batches.length}: scanned ${response.processed} activities.`);
   }
 
   const results = batches.flatMap((batch) => batch.results || []);
@@ -152,16 +148,18 @@ async function main() {
   const audit = {
     generated_at: new Date().toISOString(),
     source: linkedDatabase ? 'linked_database' : 'public_api',
+    mode: reselectDownloaded ? 'reselect_downloaded' : createdAfter ? 'created_after' : 'unscanned',
+    created_after: createdAfter,
     scanned: activities.length,
     targeted: targets.length,
-    skipped_by_limit: Math.max(0, activities.filter((activity) => !hasCardImage(activity)).length - targets.length),
+    skipped_by_limit: Math.max(0, eligible.length - targets.length),
     summary,
     results,
   };
   mkdirSync(dirname(outputPath), { recursive: true });
   writeFileSync(outputPath, JSON.stringify(audit, null, 2) + '\n');
   console.log(JSON.stringify(summary, null, 2));
-  console.log(`Image download audit: ${outputPath}`);
+  console.log(`Website candidate discovery audit: ${outputPath}`);
 }
 
 main().catch((error) => {

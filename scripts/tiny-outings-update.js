@@ -78,6 +78,24 @@ const jobs = [
 // must run after generated SQL has been applied to the linked project.
 const postApplyJobs = [
   {
+    name: 'discover-website-image-candidates',
+    // Collect every unique non-utility image exposed by each new activity,
+    // listing, and organiser page. Nothing is applied before vision review.
+    script: 'download-activity-website-images.js',
+    args: ['--linked-database', '--created-after', runStartedAt],
+    output: 'data/activity_website_image_downloads.generated.json',
+    optional: 'images',
+  },
+  {
+    name: 'prepare-codex-website-image-review-sheets',
+    // All eligible website images are downloaded and measured. Only sharp,
+    // adequately sized, non-logo finalists reach the compact Codex sheet.
+    script: 'codex-image-review.js',
+    args: ['--source', 'website', '--activity-ids-file', 'data/activity_website_image_downloads.generated.json'],
+    output: 'data/codex_website_image_shortlist.generated.json',
+    optional: 'images',
+  },
+  {
     name: 'serpapi-image-enrichment',
     script: 'refresh-cafe-serpapi-images.js',
     // Automatic paid searches are limited to records created during this run.
@@ -97,13 +115,6 @@ const postApplyJobs = [
     optional: 'images',
   },
   {
-    name: 'download-website-images',
-    script: 'download-activity-website-images.js',
-    args: ['--linked-database'],
-    output: 'data/activity_website_image_downloads.generated.json',
-    optional: 'images',
-  },
-  {
     name: 'image-coverage-report',
     script: 'audit-activity-image-coverage.js',
     args: ['--linked-database'],
@@ -118,10 +129,10 @@ function printHelp() {
 Runs every supported Tiny Outings importer across London and then applies the
 same shared quality contract to all results:
   - source and organiser website discovery, direct Happity listing repair, and link health checks
-  - website and organiser image extraction using the shared image-quality policy
-  - durable download of missing official website images into Supabase Storage
-    followed by one SerpAPI candidate discovery for each new record and compact,
-    cached contact sheets for Codex multimodal review without another SerpAPI call
+  - complete website and organiser image candidate extraction, local quality checks,
+    and compact contact sheets for Codex vision before any website image is stored
+  - one SerpAPI candidate discovery for each new record followed by the same compact,
+    cached contact-sheet review without another paid search call
   - missing-coordinate resolution followed by Google Places identity, Maps location, canonical link, and permanent-closure validation
   - age suitability and "Any time" completion for unknown availability
   - existing-record updates, cross-source duplicate consolidation, and expiry archiving with reasons
@@ -275,7 +286,7 @@ writeFileSync(auditPath, JSON.stringify({
   google_places_validation: 'required',
   manual_review: 'new importer and user-submitted listings are queued as drafts for administrator review',
   archive_protection: 'database trigger preserves archive=true and archived status',
-  downloaded_website_images: 'post-apply Edge Function stores vetted images from organiser and listing websites',
+  downloaded_website_images: 'official website candidates are stored only after Codex vision rejects logos and low-quality images',
   image_candidate_review: 'SerpAPI candidates are queued for gpt-5.6-sol Codex vision; decisions are logged against the exact candidate-fetch timestamp',
   jobs: results,
 }, null, 2) + '\n');

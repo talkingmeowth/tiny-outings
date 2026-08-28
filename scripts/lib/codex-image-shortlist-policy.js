@@ -104,11 +104,13 @@ export function scoreCandidateMetadata(activity, candidate, index = 0) {
   const officialHosts = [activity.website, activity.organiser_website].map(candidateHost).filter(Boolean);
   const candidateHosts = [candidate.original, candidate.link].map(candidateHost).filter(Boolean);
   const official = candidateHosts.some((host) => officialHosts.some((expected) => sameOrSubdomain(host, expected)));
+  const officialWebsiteCandidate = ['website', 'organiser'].includes(candidate.source_kind) && official;
   const profile = categoryProfile(activity);
   const dimensions = dimensionScore(candidate);
   const nameCoverage = matchedNameTerms.length / Math.max(1, nameTerms.length);
   const hasIdentityEvidence = exactName
     || nameCoverage >= 0.5
+    || officialWebsiteCandidate
     || (official && matchedNameTerms.length > 0)
     || (matchedNameTerms.length > 0 && matchedLocationTerms.length > 0);
   const reasons = [];
@@ -166,6 +168,26 @@ export function imageCacheKey(activityId, candidateIndex, url) {
   return `${activityId}/${candidateIndex}-${createHash('sha1').update(String(url)).digest('hex').slice(0, 12)}.jpg`;
 }
 
+export function assessDownloadedImageQuality({ width, height, entropy, sharpness }) {
+  const shortest = Math.min(Number(width || 0), Number(height || 0));
+  const ratio = Number(width || 1) / Math.max(1, Number(height || 1));
+  const rejectReasons = [];
+  const reasons = [];
+  let score = 0;
+  if (shortest < 400) rejectReasons.push('downloaded_dimensions_too_small');
+  else if (shortest >= 1000) { score += 18; reasons.push('high resolution'); }
+  else if (shortest >= 640) { score += 12; reasons.push('good resolution'); }
+  else score += 5;
+  if (ratio < 0.5 || ratio > 2.8) rejectReasons.push('downloaded_extreme_aspect_ratio');
+  else if (ratio >= 1.15 && ratio <= 2.1) score += 7;
+  if (Number(entropy || 0) < 1.45) rejectReasons.push('likely_logo_or_blank_graphic');
+  else if (entropy < 2.1) { score -= 10; reasons.push('low visual entropy'); }
+  else if (entropy >= 3.5 && entropy <= 7.8) { score += 6; reasons.push('photographic detail'); }
+  if (Number(sharpness || 0) > 0 && sharpness < 0.7) rejectReasons.push('downloaded_image_too_soft');
+  else if (sharpness >= 2) { score += 5; reasons.push('good sharpness'); }
+  return { score, rejected: rejectReasons.length > 0, reject_reasons: rejectReasons, reasons };
+}
+
 export function hammingDistance(left, right) {
   if (!left || !right || left.length !== right.length) return Number.POSITIVE_INFINITY;
   let distance = 0;
@@ -199,7 +221,11 @@ export function chooseShortlist(assessments, maximum = 5, minimum = 3) {
         && !entry.reject_reasons.includes('very_small_dimensions')
         && !entry.reject_reasons.includes('extreme_aspect_ratio')
         && !entry.reject_reasons.includes('graphic_or_document_metadata')
-        && !entry.reject_reasons.includes('wikimedia_category_not_allowed'))
+        && !entry.reject_reasons.includes('wikimedia_category_not_allowed')
+        && !entry.reject_reasons.includes('downloaded_dimensions_too_small')
+        && !entry.reject_reasons.includes('downloaded_extreme_aspect_ratio')
+        && !entry.reject_reasons.includes('downloaded_image_too_soft')
+        && !entry.reject_reasons.includes('likely_logo_or_blank_graphic'))
       .sort((left, right) => right.total_score - left.total_score || left.index - right.index);
     for (const entry of fallbacks) {
       if (selected.some((kept) => hammingDistance(kept.perceptual_hash, entry.perceptual_hash) <= 5)) continue;
