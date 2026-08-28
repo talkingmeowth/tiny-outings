@@ -347,7 +347,9 @@ function recommendationReason(activity, choice, model) {
 export function rankStoredCandidates(activity, model) {
   const candidates = storedCandidateSet(activity);
   if (!candidates.length) return null;
-  const ranking = ranked({ activity, candidates }, model.weights, model.stats);
+  const excludedImageUrls = new Set((activity.automated_failed_image_urls || []).map(clean));
+  const ranking = ranked({ activity, candidates }, model.weights, model.stats)
+    .filter((row) => !excludedImageUrls.has(clean(row.candidate.image_url)));
   if (!ranking.length) return null;
   const choice = ranking[0];
   const runnerUp = ranking[1];
@@ -361,7 +363,7 @@ export function rankStoredCandidates(activity, model) {
     candidate: choice.candidate,
     normalizedCandidates: candidates,
     confidence: Number(confidence.toFixed(4)),
-    reason: recommendationReason(activity, choice, model),
+    reason: `${excludedImageUrls.size ? `Excluded ${excludedImageUrls.size} candidate${excludedImageUrls.size === 1 ? '' : 's'} that failed download validation. ` : ''}${recommendationReason(activity, choice, model)}`,
     featureSnapshot: {
       score: Number(choice.score.toFixed(5)),
       runner_up_score: runnerUp ? Number(runnerUp.score.toFixed(5)) : null,

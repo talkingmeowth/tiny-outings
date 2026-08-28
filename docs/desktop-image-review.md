@@ -41,7 +41,7 @@ Social websites are allowed as source pages when the administrator selects a gen
 
 `npm run activities:images:auto-review` learns a candidate-ranking model from every row in `activity_image_manual_reviews`. Each manual selection is a positive example and the other candidates shown for that listing are implicit negative examples. The model uses the learned result-position, source-domain, title relevance, reported resolution, framing, category, and official-source preferences to rank stored candidates for active Missing and Unsuitable listings.
 
-Add `--apply` to stage the recommendations in `activity_image_automated_reviews`. Staged recommendations appear in the desktop app's **Automated review** queue and do not participate in the card-image hierarchy. Approving the highlighted candidate downloads it into Storage and writes `reviewed_image_url`; choosing another candidate logs the proposal as corrected. `--search-missing` may be added when a deliberate SerpAPI backfill is wanted for listings that have no stored candidate set.
+Add `--apply` to stage the recommendations in `activity_image_automated_reviews` and immediately download each choice into Storage as `reviewed_image_url`. Applied rows remain in an `auto_applied` state in the desktop app's **Automated review** queue. A human confirmation changes one to `approved` and removes it from the queue; choosing another candidate records `corrected`. `npm run activities:images:auto-review:approve` can resume any interrupted application batch. `--search-missing` may be added when a deliberate SerpAPI backfill is wanted for listings that have no stored candidate set.
 
 ## Local development
 

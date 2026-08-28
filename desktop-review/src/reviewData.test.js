@@ -92,13 +92,14 @@ test('archived listings do not appear in any image-review queue', () => {
   }
 });
 
-test('only pending model proposals appear in automated review', () => {
+test('pending and auto-applied model proposals remain in automated review', () => {
   const activities = [
     listing({ activity_id: 'pending', automated_image_review: { status: 'pending', candidate_index: 1 } }),
+    listing({ activity_id: 'auto-applied', reviewed_image_url: 'https://reviewed.test/model.jpg', automated_image_review: { status: 'auto_applied', candidate_index: 2 } }),
     listing({ activity_id: 'approved', automated_image_review: { status: 'approved', candidate_index: 0 } }),
     listing({ activity_id: 'none' }),
   ];
-  assert.deepEqual(activitiesForQueue(activities, 'automated_review').map((activity) => activity.activity_id), ['pending']);
+  assert.deepEqual(activitiesForQueue(activities, 'automated_review').map((activity) => activity.activity_id), ['pending', 'auto-applied']);
 });
 
 test('interleaves and deduplicates candidate preload targets across active queues', () => {

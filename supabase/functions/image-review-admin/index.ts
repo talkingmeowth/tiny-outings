@@ -471,10 +471,10 @@ async function findPendingAutomatedReview(
     .select('automated_review_id,activity_id,status,candidate_index')
     .eq('automated_review_id', automatedReviewId)
     .eq('activity_id', activityId)
-    .eq('status', 'pending')
+    .in('status', ['pending', 'auto_applied'])
     .maybeSingle()
   if (error) throw new Error(error.message)
-  if (!data) throw new Error('The automated review proposal is no longer pending.')
+  if (!data) throw new Error('The automated review proposal is no longer awaiting review.')
   return data
 }
 
@@ -494,7 +494,7 @@ async function completeAutomatedReview(
     reviewed_candidate_index: selectedCandidateIndex,
     reviewed_image_url: reviewedImageUrl,
   }).eq('automated_review_id', automatedReview.automated_review_id)
-    .eq('status', 'pending')
+    .in('status', ['pending', 'auto_applied'])
     .select('automated_review_id,status,reviewed_at,reviewed_candidate_index')
     .single()
   if (error) throw new Error(`Image saved, but the automated review log failed: ${error.message}`)

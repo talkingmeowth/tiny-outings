@@ -13,6 +13,7 @@ const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const reportPath = join(root, 'data', 'automated_image_review_report.generated.json');
 const apply = process.argv.includes('--apply');
 const searchMissing = process.argv.includes('--search-missing');
+const autoApply = process.argv.includes('--auto-apply');
 const limitIndex = process.argv.indexOf('--limit');
 const limit = limitIndex >= 0 ? Math.max(1, Number(process.argv[limitIndex + 1]) || 1) : Number.POSITIVE_INFINITY;
 const concurrencyIndex = process.argv.indexOf('--search-concurrency');
@@ -179,7 +180,39 @@ async function storeProposals(proposals) {
   return stored;
 }
 
+async function applyPendingImages(maximumPasses = 3) {
+  let applied = 0;
+  let preserved = 0;
+  let failed = 0;
+  for (let pass = 1; pass <= maximumPasses; pass += 1) {
+    if (pass > 1) {
+      const reset = await callFunction('activity-image-auto-review', { action: 'reset_apply_failures' });
+      if (!reset.reset_count) break;
+      console.log(`Retry pass ${pass}: reset ${reset.reset_count} failed applications.`);
+    }
+    let remaining = 1;
+    let passProcessed = 0;
+    while (remaining > 0) {
+      const payload = await callFunction('activity-image-auto-review', { action: 'apply_pending', batch_size: 20 }, 180000);
+      const rows = payload.rows || [];
+      if (!rows.length) break;
+      passProcessed += rows.length;
+      applied += rows.filter((row) => ['auto-applied', 'already-applied'].includes(row.status)).length;
+      preserved += rows.filter((row) => ['preserved-existing-review', 'archived'].includes(row.status)).length;
+      failed += rows.filter((row) => row.status === 'failed').length;
+      remaining = Number(payload.remaining_count) || 0;
+      console.log(`Automatic image application pass ${pass}: ${passProcessed} processed, ${remaining} ready in this pass (${applied} applied, ${preserved} preserved, ${failed} failed attempts total).`);
+    }
+  }
+  return { applied, preserved, failedAttempts: failed };
+}
+
 async function main() {
+  if (autoApply) {
+    const result = await applyPendingImages();
+    console.log(`Automatic model selections applied: ${result.applied}; existing human choices preserved: ${result.preserved}; failed attempts: ${result.failedAttempts}.`);
+    return;
+  }
   const trainingRows = await loadPaged('training_data', 100);
   const model = trainTaggedImageRanker(trainingRows);
   console.log(`Model trained from ${model.trainingReviewCount} matched manual choices.`);
@@ -190,6 +223,7 @@ async function main() {
   const { proposals, skipped } = buildProposals(candidateResult.targets, model);
   console.log(`Proposals ready: ${proposals.length}; skipped: ${skipped.length}.`);
   const stored = apply ? await storeProposals(proposals) : 0;
+  const automaticApplication = apply && stored ? await applyPendingImages() : null;
   const report = {
     generated_at: new Date().toISOString(),
     applied: apply,
@@ -207,6 +241,7 @@ async function main() {
     serpapi_failure_count: candidateResult.failed.length,
     proposal_count: proposals.length,
     stored_count: stored,
+    automatic_application: automaticApplication,
     skipped_counts: Object.fromEntries([...new Set(skipped.map((row) => row.reason))].map((reason) => [reason, skipped.filter((row) => row.reason === reason).length])),
     search_failures: candidateResult.failed,
     skipped,

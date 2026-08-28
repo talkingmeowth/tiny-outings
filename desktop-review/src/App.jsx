@@ -61,7 +61,7 @@ const demoActivities = [
     codex_image_candidates: demoCandidates, codex_image_search_query: 'Baby Sensory Leyton',
     codex_image_searched_at: new Date().toISOString(), codex_image_search_model: 'SerpAPI Google Images — top 20 unfiltered',
     automated_image_review: {
-      automated_review_id: 'demo-automated-review', status: 'pending', source_queue: 'missing_published', candidate_index: 2,
+      automated_review_id: 'demo-automated-review', status: 'auto_applied', source_queue: 'missing_published', candidate_index: 2,
       confidence: 0.83, reason: 'Learned from manual selections; strong name match, useful card framing.',
       model_name: 'Tiny Outings tagged-choice ranker', model_version: 'tagged-ranker-v1', training_review_count: 251,
     },
@@ -119,8 +119,8 @@ async function loadAllActivities() {
     .order('created_at', { ascending: false })
     .range(from, from + pageSize - 1), 1).catch(() => []);
   const automatedReviewsPromise = loadPages((from) => supabase.from('activity_image_automated_reviews')
-    .select('automated_review_id,activity_id,status,source_queue,candidate_index,candidate,candidate_set_searched_at,confidence,reason,model_name,model_version,training_review_count,model_metrics,created_at')
-    .eq('status', 'pending')
+    .select('automated_review_id,activity_id,status,source_queue,candidate_index,candidate,candidate_set_searched_at,confidence,reason,model_name,model_version,training_review_count,model_metrics,created_at,auto_applied_at,auto_applied_image_url,apply_failure_reason,apply_attempted_at')
+    .in('status', ['pending', 'auto_applied'])
     .order('created_at', { ascending: true })
     .range(from, from + pageSize - 1), 1);
   const [activities, photos, automatedReviews] = await Promise.all([activitiesPromise, photosPromise, automatedReviewsPromise]);
@@ -336,7 +336,7 @@ function App() {
   const selectedActivity = queueActivities.find((activity) => activity.activity_id === selectedId)
     || preparedActivities.find((activity) => activity.activity_id === selectedId)
     || null;
-  const automatedReview = selectedActivity?.automated_image_review?.status === 'pending'
+  const automatedReview = ['pending', 'auto_applied'].includes(selectedActivity?.automated_image_review?.status)
     ? selectedActivity.automated_image_review
     : null;
   const queries = useMemo(() => selectedActivity ? searchQueries(selectedActivity) : null, [selectedActivity]);
@@ -734,7 +734,7 @@ function App() {
                   <span className="listing-copy">
                     <strong>{activity.activity_name || 'Untitled listing'}</strong>
                     <span>{bestLocation(activity)} · {activity.category || 'Uncategorised'}</span>
-                    <small>{activity.automated_image_review?.status === 'pending'
+                    <small>{['pending', 'auto_applied'].includes(activity.automated_image_review?.status)
                       ? `Model pick ${Math.round(Number(activity.automated_image_review.confidence) * 100)}%`
                       : activity.public_listing_status === 'draft' ? 'Draft' : image.label}</small>
                   </span>
@@ -795,11 +795,16 @@ function App() {
                     <span className="confidence-chip">{Math.round(Number(automatedReview.confidence) * 100)}% confidence</span>
                   </div>
                   <p>{automatedReview.reason}</p>
+                  {automatedReview.status === 'auto_applied'
+                    ? <p className="auto-applied-note">Applied to the live card automatically · awaiting your confirmation</p>
+                    : automatedReview.apply_failure_reason
+                      ? <p className="auto-apply-failure">Could not auto-apply: {automatedReview.apply_failure_reason}</p>
+                      : null}
                   <div className="automated-review-meta">
                     <span>{automatedReview.model_name} · {automatedReview.model_version}</span>
                     <span>Learned from {compactNumber(automatedReview.training_review_count)} manual choices</span>
                   </div>
-                  <p className="automated-review-help">Approve the highlighted image, or select a different candidate to save a correction. Nothing reaches the main app until you save.</p>
+                  <p className="automated-review-help">Confirm the highlighted image to finish this review, or select a different candidate to save a correction.</p>
                 </section>
               ) : null}
 
@@ -835,7 +840,7 @@ function App() {
             <section className="candidate-column">
               <div className="candidate-header">
                 <div><p className="eyebrow">{automatedReview ? 'Model-ranked Google Images results' : 'Unfiltered Google Images results'}</p><h2>Candidate gallery <span>{candidates.length}</span></h2></div>
-                <div className="candidate-actions"><button className="text-button" type="button" disabled={selectedCandidate == null} onClick={() => setSelectedCandidate(null)}>Clear selection</button><button className="primary-button" type="button" disabled={selectedCandidate == null || busy === 'save'} onClick={saveSelected}>{busy === 'save' ? 'Downloading…' : automatedReview ? automatedReview.candidate_index === selectedCandidate ? 'Approve model choice' : 'Save correction' : 'Use selected image'}</button></div>
+                <div className="candidate-actions"><button className="text-button" type="button" disabled={selectedCandidate == null} onClick={() => setSelectedCandidate(null)}>Clear selection</button><button className="primary-button" type="button" disabled={selectedCandidate == null || busy === 'save'} onClick={saveSelected}>{busy === 'save' ? 'Downloading…' : automatedReview ? automatedReview.candidate_index === selectedCandidate ? automatedReview.status === 'auto_applied' ? 'Confirm model choice' : 'Approve model choice' : 'Save correction' : 'Use selected image'}</button></div>
               </div>
               {candidates.length ? (
                 <div className="candidate-grid">

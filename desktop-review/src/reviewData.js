@@ -185,7 +185,7 @@ export function isImageReviewIgnored(activity) {
 }
 
 export function hasPendingAutomatedReview(activity) {
-  return activity?.automated_image_review?.status === 'pending';
+  return ['pending', 'auto_applied'].includes(activity?.automated_image_review?.status);
 }
 
 export function activitiesForQueue(activities, queueId) {

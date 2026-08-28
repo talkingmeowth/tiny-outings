@@ -94,3 +94,18 @@ test('never recommends Wikimedia outside the allowed categories', () => {
   }, model);
   assert.equal(result.candidateIndex, 1);
 });
+
+test('uses the next learned choice after a candidate fails download validation', () => {
+  const model = trainTaggedImageRanker(Array.from({ length: 30 }, (_, index) => review(index)));
+  const targetCandidates = candidates('fallback-place', 0);
+  const result = rankStoredCandidates({
+    activity_id: 'fallback-target',
+    activity_name: 'fallback-place',
+    category: 'Cafes & food',
+    website: 'https://official-fallback-place.test',
+    codex_image_candidates: targetCandidates,
+    automated_failed_image_urls: [targetCandidates[0].image_url],
+  }, model);
+  assert.notEqual(result.candidateIndex, 0);
+  assert.match(result.reason, /Excluded 1 candidate/);
+});

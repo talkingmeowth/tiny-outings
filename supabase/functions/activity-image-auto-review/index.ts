@@ -5,6 +5,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-tiny-outings-image-job-token',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
+const acceptedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif'])
+const maxImageBytes = 8 * 1024 * 1024
 
 type Candidate = {
   image_url: string
@@ -103,6 +105,91 @@ function validCandidate(candidate: unknown): candidate is Candidate {
   }
 }
 
+function readUint32(bytes: Uint8Array, offset: number) {
+  return ((bytes[offset] << 24) + (bytes[offset + 1] << 16) + (bytes[offset + 2] << 8) + bytes[offset + 3]) >>> 0
+}
+
+function downloadedImageDimensions(bytes: Uint8Array, contentType: string) {
+  if (contentType === 'image/png' && bytes.byteLength >= 24
+    && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
+    return { width: readUint32(bytes, 16), height: readUint32(bytes, 20) }
+  }
+  if (contentType === 'image/jpeg' && bytes.byteLength >= 12 && bytes[0] === 0xff && bytes[1] === 0xd8) {
+    const frameMarkers = new Set([0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf])
+    let offset = 2
+    while (offset + 9 < bytes.byteLength) {
+      if (bytes[offset] !== 0xff) { offset += 1; continue }
+      while (offset < bytes.byteLength && bytes[offset] === 0xff) offset += 1
+      const marker = bytes[offset]
+      if (marker === 0xda) break
+      if (frameMarkers.has(marker) && offset + 7 < bytes.byteLength) {
+        return { width: (bytes[offset + 6] << 8) + bytes[offset + 7], height: (bytes[offset + 4] << 8) + bytes[offset + 5] }
+      }
+      if (offset + 2 >= bytes.byteLength) break
+      const length = (bytes[offset + 1] << 8) + bytes[offset + 2]
+      if (length < 2) break
+      offset += length + 1
+    }
+  }
+  if (contentType === 'image/webp' && bytes.byteLength >= 30
+    && String.fromCharCode(...bytes.slice(0, 4)) === 'RIFF'
+    && String.fromCharCode(...bytes.slice(8, 12)) === 'WEBP') {
+    const subtype = String.fromCharCode(...bytes.slice(12, 16))
+    if (subtype === 'VP8X') return { width: 1 + bytes[24] + (bytes[25] << 8) + (bytes[26] << 16), height: 1 + bytes[27] + (bytes[28] << 8) + (bytes[29] << 16) }
+    if (subtype === 'VP8 ' && bytes[23] === 0x9d && bytes[24] === 0x01 && bytes[25] === 0x2a) return { width: ((bytes[27] << 8) + bytes[26]) & 0x3fff, height: ((bytes[29] << 8) + bytes[28]) & 0x3fff }
+    if (subtype === 'VP8L' && bytes[20] === 0x2f) {
+      const packed = (bytes[21] | (bytes[22] << 8) | (bytes[23] << 16) | (bytes[24] << 24)) >>> 0
+      return { width: (packed & 0x3fff) + 1, height: ((packed >>> 14) & 0x3fff) + 1 }
+    }
+  }
+  if (contentType === 'image/avif') {
+    for (let offset = 4; offset + 16 < bytes.byteLength; offset += 1) {
+      if (bytes[offset] === 0x69 && bytes[offset + 1] === 0x73 && bytes[offset + 2] === 0x70 && bytes[offset + 3] === 0x65) {
+        return { width: readUint32(bytes, offset + 8), height: readUint32(bytes, offset + 12) }
+      }
+    }
+  }
+  return null
+}
+
+function extensionFor(contentType: string) {
+  return ({ 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/avif': 'avif' } as Record<string, string>)[contentType] || 'jpg'
+}
+
+async function downloadCandidateUrl(imageUrl: string, signal: AbortSignal) {
+  const response = await fetch(imageUrl, {
+    redirect: 'follow',
+    signal,
+    headers: { Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8' },
+  })
+  const contentType = (response.headers.get('content-type') || '').split(';')[0].toLowerCase()
+  const declaredSize = Number(response.headers.get('content-length') || 0)
+  if (!response.ok || !acceptedMimeTypes.has(contentType) || (declaredSize && declaredSize > maxImageBytes)) {
+    throw new Error('Image response was not usable.')
+  }
+  const bytes = new Uint8Array(await response.arrayBuffer())
+  if (bytes.byteLength < 5 * 1024 || bytes.byteLength > maxImageBytes) throw new Error('Image file size was not usable.')
+  const dimensions = downloadedImageDimensions(bytes, contentType)
+  if (!dimensions || Math.min(dimensions.width, dimensions.height) < 300 || dimensions.width * dimensions.height < 180000) {
+    throw new Error('Image resolution was not usable.')
+  }
+  return { bytes, contentType, dimensions }
+}
+
+async function downloadCandidate(candidate: Candidate) {
+  const imageUrls = [...new Set([candidate.image_url, candidate.thumbnail_url].filter((value): value is string => Boolean(value)))]
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 15000)
+  try {
+    return await Promise.any(imageUrls.map((imageUrl) => downloadCandidateUrl(imageUrl, controller.signal)))
+  } catch {
+    throw new Error('The model-selected image could not be downloaded at sufficient resolution.')
+  } finally {
+    clearTimeout(timeout)
+    controller.abort()
+  }
+}
+
 async function trainingData(
   supabase: ReturnType<typeof createClient>,
   offset: number,
@@ -141,7 +228,23 @@ async function targetData(
     .order('activity_id', { ascending: true })
     .range(offset, offset + pageSize - 1)
   if (error) throw new Error(error.message)
-  const rows = (data || []).map((activity) => ({ ...activity, automated_source_queue: targetQueue(activity) }))
+  const { data: failedReviews, error: failedReviewError } = await supabase.from('activity_image_automated_reviews')
+    .select('activity_id,candidate')
+    .not('apply_failure_reason', 'is', null)
+  if (failedReviewError) throw new Error(failedReviewError.message)
+  const failedUrlsByActivity = new Map<string, string[]>()
+  for (const review of failedReviews || []) {
+    const imageUrl = clean(review.candidate?.image_url)
+    if (!imageUrl) continue
+    const urls = failedUrlsByActivity.get(review.activity_id) || []
+    if (!urls.includes(imageUrl)) urls.push(imageUrl)
+    failedUrlsByActivity.set(review.activity_id, urls)
+  }
+  const rows = (data || []).map((activity) => ({
+    ...activity,
+    automated_source_queue: targetQueue(activity),
+    automated_failed_image_urls: failedUrlsByActivity.get(activity.activity_id) || [],
+  }))
     .filter((activity) => activity.automated_source_queue)
   return {
     rows,
@@ -216,6 +319,147 @@ async function storeProposals(
   return data || []
 }
 
+async function updateAutomatedReview(
+  supabase: ReturnType<typeof createClient>,
+  automatedReviewId: string,
+  values: Record<string, unknown>,
+) {
+  const { error } = await supabase.from('activity_image_automated_reviews').update(values)
+    .eq('automated_review_id', automatedReviewId)
+  if (error) throw new Error(error.message)
+}
+
+async function applyProposal(
+  supabase: ReturnType<typeof createClient>,
+  proposal: Record<string, unknown>,
+  activity: Record<string, unknown> | undefined,
+) {
+  const attemptedAt = new Date().toISOString()
+  const automatedReviewId = clean(proposal.automated_review_id)
+  const candidate = proposal.candidate as Candidate
+  if (!activity) throw new Error('Activity not found.')
+  if (activity.archive) {
+    await updateAutomatedReview(supabase, automatedReviewId, {
+      status: 'rejected',
+      reviewed_at: attemptedAt,
+      apply_attempted_at: attemptedAt,
+      apply_failure_reason: 'Listing was archived before automatic application.',
+    })
+    return { activity_id: proposal.activity_id, status: 'archived' }
+  }
+
+  const currentReviewedImage = clean(activity.reviewed_image_url)
+  if (currentReviewedImage) {
+    const selectedSameCandidate = clean(activity.reviewed_image_original_url) === clean(candidate.image_url)
+    await updateAutomatedReview(supabase, automatedReviewId, selectedSameCandidate ? {
+      status: 'auto_applied',
+      auto_applied_at: attemptedAt,
+      auto_applied_image_url: currentReviewedImage,
+      apply_attempted_at: attemptedAt,
+      apply_failure_reason: null,
+    } : {
+      status: 'corrected',
+      reviewed_at: attemptedAt,
+      reviewed_candidate_index: null,
+      reviewed_image_url: currentReviewedImage,
+      apply_attempted_at: attemptedAt,
+      apply_failure_reason: null,
+    })
+    return { activity_id: proposal.activity_id, status: selectedSameCandidate ? 'already-applied' : 'preserved-existing-review' }
+  }
+
+  const downloaded = await downloadCandidate(candidate)
+  const selectedAt = new Date().toISOString()
+  const path = `reviewed/automated/${proposal.activity_id}/${automatedReviewId}.${extensionFor(downloaded.contentType)}`
+  const upload = await supabase.storage.from('activity-images').upload(path, downloaded.bytes, {
+    contentType: downloaded.contentType,
+    cacheControl: '31536000',
+    upsert: true,
+  })
+  if (upload.error) throw new Error(upload.error.message)
+  const reviewedImageUrl = supabase.storage.from('activity-images').getPublicUrl(path).data.publicUrl
+  const sourceUrl = clean(candidate.source_page_url) || clean(candidate.image_url)
+  const model = `${clean(proposal.model_name)} ${clean(proposal.model_version)} auto-applied`
+  const { data: updatedActivity, error: activityError } = await supabase.from('activities').update({
+    reviewed_image_url: reviewedImageUrl,
+    reviewed_image_source_url: sourceUrl,
+    reviewed_image_original_url: clean(candidate.image_url),
+    reviewed_image_selected_at: selectedAt,
+    reviewed_image_model: model,
+    reviewed_image_selected_by_user_id: null,
+    updated_at: selectedAt,
+  }).eq('activity_id', proposal.activity_id)
+    .is('reviewed_image_url', null)
+    .select('activity_id')
+    .maybeSingle()
+  if (activityError) throw new Error(activityError.message)
+  if (!updatedActivity) throw new Error('A human image review was saved before the automatic update could be applied.')
+  await updateAutomatedReview(supabase, automatedReviewId, {
+    status: 'auto_applied',
+    auto_applied_at: selectedAt,
+    auto_applied_image_url: reviewedImageUrl,
+    apply_attempted_at: attemptedAt,
+    apply_failure_reason: null,
+  })
+  return {
+    activity_id: proposal.activity_id,
+    status: 'auto-applied',
+    reviewed_image_url: reviewedImageUrl,
+    width: downloaded.dimensions.width,
+    height: downloaded.dimensions.height,
+  }
+}
+
+async function applyPendingProposals(
+  supabase: ReturnType<typeof createClient>,
+  batchSize: number,
+) {
+  const { data: proposals, error } = await supabase.from('activity_image_automated_reviews')
+    .select('automated_review_id,activity_id,status,candidate_index,candidate,model_name,model_version')
+    .eq('status', 'pending')
+    .is('apply_failure_reason', null)
+    .order('created_at', { ascending: true })
+    .limit(batchSize)
+  if (error) throw new Error(error.message)
+  const activityIds = (proposals || []).map((proposal) => proposal.activity_id)
+  const { data: activities, error: activityError } = activityIds.length
+    ? await supabase.from('activities')
+      .select('activity_id,archive,reviewed_image_url,reviewed_image_original_url')
+      .in('activity_id', activityIds)
+    : { data: [], error: null }
+  if (activityError) throw new Error(activityError.message)
+  const activityById = new Map((activities || []).map((activity) => [activity.activity_id, activity]))
+  const tasks = (proposals || []).map((proposal) => async () => {
+    try {
+      return await applyProposal(supabase, proposal, activityById.get(proposal.activity_id))
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Automatic image application failed.'
+      await updateAutomatedReview(supabase, proposal.automated_review_id, {
+        apply_attempted_at: new Date().toISOString(),
+        apply_failure_reason: message,
+      })
+      return { activity_id: proposal.activity_id, status: 'failed', error: message }
+    }
+  })
+  const rows = await runWithConcurrency(tasks, 4)
+  const { count, error: countError } = await supabase.from('activity_image_automated_reviews')
+    .select('automated_review_id', { count: 'exact', head: true })
+    .eq('status', 'pending')
+    .is('apply_failure_reason', null)
+  if (countError) throw new Error(countError.message)
+  return { rows, remaining_count: count || 0 }
+}
+
+async function resetApplyFailures(supabase: ReturnType<typeof createClient>) {
+  const { data, error } = await supabase.from('activity_image_automated_reviews').update({
+    apply_failure_reason: null,
+  }).eq('status', 'pending')
+    .not('apply_failure_reason', 'is', null)
+    .select('automated_review_id')
+  if (error) throw new Error(error.message)
+  return data?.length || 0
+}
+
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   if (request.method !== 'POST') return jsonResponse({ error: 'Use POST.' }, 405)
@@ -224,10 +468,11 @@ Deno.serve(async (request) => {
   if (!key) return jsonResponse({ error: 'Supabase service credentials are unavailable.' }, 500)
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, key)
   const body = await request.json().catch(() => ({})) as {
-    action?: 'training_data' | 'targets' | 'store_proposals'
+    action?: 'training_data' | 'targets' | 'store_proposals' | 'apply_pending' | 'reset_apply_failures'
     offset?: number
     page_size?: number
     proposals?: Proposal[]
+    batch_size?: number
   }
   try {
     if (body.action === 'training_data') {
@@ -241,6 +486,14 @@ Deno.serve(async (request) => {
     if (body.action === 'store_proposals') {
       const stored = await storeProposals(supabase, Array.isArray(body.proposals) ? body.proposals : [])
       return jsonResponse({ stored_count: stored.length, rows: stored })
+    }
+    if (body.action === 'apply_pending') {
+      const batchSize = Math.min(20, Math.max(1, Number(body.batch_size) || 10))
+      const result = await applyPendingProposals(supabase, batchSize)
+      return jsonResponse({ processed_count: result.rows.length, ...result })
+    }
+    if (body.action === 'reset_apply_failures') {
+      return jsonResponse({ reset_count: await resetApplyFailures(supabase) })
     }
     return jsonResponse({ error: 'Unsupported action.' }, 400)
   } catch (error) {

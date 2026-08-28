@@ -36,6 +36,7 @@
     "activities:images:auto-review": "node scripts/automate-tagged-image-review.js",
     "activities:images:auto-review:apply": "node scripts/automate-tagged-image-review.js --apply",
     "activities:images:auto-review:complete": "node scripts/automate-tagged-image-review.js --apply --search-missing",
+    "activities:images:auto-review:approve": "node scripts/automate-tagged-image-review.js --auto-apply",
     "activities:images:reselect-serpapi": "node scripts/select-serpapi-image-candidates.js --reselect",
     "activities:images:coverage": "node scripts/audit-activity-image-coverage.js --linked-database",
     "activities:images:refresh-cafe-venues": "node scripts/select-serpapi-image-candidates.js --reselect --limit 20",

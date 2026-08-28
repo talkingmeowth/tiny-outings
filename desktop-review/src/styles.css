@@ -103,6 +103,8 @@ a { color: #17604e; }
 .confidence-chip { border-radius: 100px; padding: 5px 8px; background: #e5d9f6; color: #60428a; font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: .05em; }
 .automated-review-meta { display: grid; gap: 3px; padding-top: 10px; border-top: 1px solid #ded2ed; color: #776986; font-size: 9px; }
 .automated-review-panel .automated-review-help { margin-bottom: 0; color: #6f637b; font-size: 9px; }
+.automated-review-panel .auto-applied-note { border-radius: 7px; padding: 8px 9px; background: #deefe8; color: #27614f; font-size: 10px; font-weight: 800; }
+.automated-review-panel .auto-apply-failure { border-radius: 7px; padding: 8px 9px; background: #f7ded8; color: #8d3d2d; font-size: 10px; font-weight: 750; }
 
 .search-panel { margin-top: 25px; padding: 17px; border: 1px solid #d6e4df; border-radius: 13px; background: #f5faf8; }
 .search-panel > p { color: #61746d; font-size: 11px; line-height: 1.5; }
