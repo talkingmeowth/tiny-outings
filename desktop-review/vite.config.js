@@ -7,6 +7,7 @@ const repoRoot = fileURLToPath(new URL('..', import.meta.url));
 export default defineConfig({
   root: fileURLToPath(new URL('.', import.meta.url)),
   envDir: repoRoot,
+  publicDir: fileURLToPath(new URL('../public', import.meta.url)),
   base: '/review/',
   plugins: [react()],
   build: {

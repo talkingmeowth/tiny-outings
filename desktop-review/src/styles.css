@@ -129,10 +129,14 @@ a { color: #17604e; }
 .candidate-card:hover { border-color: #89a79e; transform: translateY(-1px); box-shadow: 0 6px 15px rgb(31 70 59 / .09); }
 .candidate-card.selected { border-color: #16614e; box-shadow: 0 0 0 3px #2e8069, 0 7px 18px rgb(23 78 63 / .17); transform: translateY(-1px); }
 .candidate-card.recommended:not(.selected) { border-color: #8e71b5; box-shadow: 0 0 0 2px #b49bd4, 0 7px 18px rgb(83 54 118 / .13); }
+.candidate-card.category-illustration { border-color: #d6a665; background: #fffaf1; }
+.candidate-card.category-illustration:not(.selected) { box-shadow: 0 0 0 2px #f1d3a8, 0 7px 18px rgb(115 73 28 / .1); }
+.candidate-card.category-illustration .candidate-image-wrap { background: #f7e9d2; }
 .candidate-select { width: 100%; display: block; border: 0; padding: 0; background: transparent; text-align: left; cursor: pointer; }
 .candidate-image-wrap { position: relative; display: block; height: 154px; overflow: hidden; background: #dfdcd3; }
 .candidate-image-wrap img { width: 100%; height: 100%; display: block; object-fit: cover; }
 .candidate-index { position: absolute; left: 8px; top: 8px; display: grid; place-items: center; min-width: 23px; height: 23px; padding: 0 6px; border-radius: 7px; background: rgb(14 42 35 / .82); color: #fff; font-size: 10px; font-weight: 900; }
+.candidate-index.illustrated { background: rgb(124 74 23 / .9); text-transform: uppercase; letter-spacing: .04em; }
 .selected-badge { position: absolute; right: 8px; top: 8px; border-radius: 100px; padding: 5px 8px; background: #f5ae61; color: #183c32; font-size: 9px; font-weight: 900; text-transform: uppercase; }
 .recommended-badge { position: absolute; right: 8px; top: 8px; border-radius: 100px; padding: 5px 8px; background: #e4d7f4; color: #563a7e; font-size: 9px; font-weight: 900; text-transform: uppercase; }
 .candidate-details { display: grid; gap: 4px; padding: 10px 11px 12px; }

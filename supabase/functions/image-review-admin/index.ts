@@ -14,6 +14,8 @@ const adminEmails = new Set([
 ])
 const acceptedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif'])
 const maxImageBytes = 8 * 1024 * 1024
+const categoryIllustrationSelectionKind = 'category_illustration'
+const reviewAppBaseUrl = 'https://tiny-outings-cpjh.onrender.com/review/'
 
 type Activity = {
   activity_id: string
@@ -46,6 +48,7 @@ type Candidate = {
   width: number | null
   height: number | null
   relevance_reason: string | null
+  selection_kind?: typeof categoryIllustrationSelectionKind
 }
 
 function jsonResponse(body: unknown, status = 200) {
@@ -73,6 +76,29 @@ function domain(value: unknown) {
     return new URL(cleanText(value)).hostname.toLowerCase().replace(/^www\./, '')
   } catch {
     return ''
+  }
+}
+
+function categoryIllustrationFilename(activity: Pick<Activity, 'category'>) {
+  const category = cleanText(activity.category).toLowerCase()
+  if (category.includes('park')) return 'park-placeholder.svg'
+  if (category.includes('book')) return 'bookshop-placeholder.svg'
+  if (category.includes('cafe') || category.includes('café')) return 'family-cafe-placeholder.svg'
+  return 'family-outing-placeholder.svg'
+}
+
+function categoryIllustrationCandidate(activity: Activity): Candidate {
+  const imageUrl = new URL(`images/${categoryIllustrationFilename(activity)}`, reviewAppBaseUrl).toString()
+  return {
+    image_url: imageUrl,
+    thumbnail_url: null,
+    source_page_url: imageUrl,
+    source_domain: domain(imageUrl),
+    title: `${cleanText(activity.category) || 'Family activity'} illustrated category image`,
+    width: 1200,
+    height: 720,
+    relevance_reason: 'Illustrated category option selected in desktop image review.',
+    selection_kind: categoryIllustrationSelectionKind,
   }
 }
 
@@ -367,6 +393,30 @@ async function downloadCandidate(candidate: Candidate) {
   }
 }
 
+async function downloadCategoryIllustration(candidate: Candidate) {
+  const expectedPrefix = new URL('images/', reviewAppBaseUrl).toString()
+  if (!candidate.image_url.startsWith(expectedPrefix) || !candidate.image_url.endsWith('.svg')) {
+    throw new Error('The category illustration path was not recognised.')
+  }
+  const response = await fetch(candidate.image_url, {
+    redirect: 'follow',
+    signal: AbortSignal.timeout(12000),
+    headers: { Accept: 'image/svg+xml' },
+  })
+  const contentType = (response.headers.get('content-type') || '').split(';')[0].toLowerCase()
+  const declaredSize = Number(response.headers.get('content-length') || 0)
+  if (!response.ok || contentType !== 'image/svg+xml' || (declaredSize && declaredSize > 256 * 1024)) {
+    throw new Error('The illustrated category image could not be downloaded.')
+  }
+  const bytes = new Uint8Array(await response.arrayBuffer())
+  const svg = new TextDecoder().decode(bytes).trim()
+  if (bytes.byteLength < 200 || bytes.byteLength > 256 * 1024 || !svg.startsWith('<svg')
+    || /<script\b|\bon\w+\s*=|javascript:/i.test(svg)) {
+    throw new Error('The illustrated category image was not usable.')
+  }
+  return { bytes, contentType: 'image/svg+xml' }
+}
+
 async function storeReviewedImage(
   supabase: ReturnType<typeof createClient>,
   userId: string,
@@ -418,6 +468,59 @@ async function storeReviewedImage(
     source_page_url: candidate.source_page_url,
     search_query: cleanText(activity.codex_image_search_query),
     candidate: { ...candidate, downloaded_width: downloaded.dimensions.width, downloaded_height: downloaded.dimensions.height },
+    model,
+    selected_by_user_id: userId,
+  })
+  const [{ error: updateError }, { error: logError }] = await Promise.all([activityUpdate, reviewLog])
+  if (updateError) throw new Error(updateError.message)
+  if (logError) throw new Error(`Image saved, but the manual review log failed: ${logError.message}`)
+  return { reviewedImageUrl, sourceUrl, selectedAt, model, candidate }
+}
+
+async function storeCategoryIllustration(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+  activity: Activity,
+) {
+  const candidate = categoryIllustrationCandidate(activity)
+  const sourceUrl = candidate.image_url
+  const model = 'Tiny Outings illustrated category image'
+  if (cleanText(activity.reviewed_image_original_url) === candidate.image_url && cleanText(activity.reviewed_image_url)) {
+    return {
+      reviewedImageUrl: cleanText(activity.reviewed_image_url),
+      sourceUrl: cleanText(activity.reviewed_image_source_url) || sourceUrl,
+      selectedAt: cleanText(activity.reviewed_image_selected_at) || new Date().toISOString(),
+      model: cleanText(activity.reviewed_image_model) || model,
+      candidate,
+    }
+  }
+  const downloaded = await downloadCategoryIllustration(candidate)
+  const selectedAt = new Date().toISOString()
+  const filename = categoryIllustrationFilename(activity)
+  const path = `reviewed/${activity.activity_id}/category-${filename}`
+  const upload = await supabase.storage.from('activity-images').upload(path, downloaded.bytes, {
+    contentType: downloaded.contentType,
+    cacheControl: '31536000',
+    upsert: true,
+  })
+  if (upload.error) throw new Error(upload.error.message)
+  const reviewedImageUrl = supabase.storage.from('activity-images').getPublicUrl(path).data.publicUrl
+  const activityUpdate = supabase.from('activities').update({
+    reviewed_image_url: reviewedImageUrl,
+    reviewed_image_source_url: sourceUrl,
+    reviewed_image_original_url: candidate.image_url,
+    reviewed_image_selected_at: selectedAt,
+    reviewed_image_model: model,
+    reviewed_image_selected_by_user_id: userId,
+    updated_at: selectedAt,
+  }).eq('activity_id', activity.activity_id)
+  const reviewLog = supabase.from('activity_image_manual_reviews').insert({
+    activity_id: activity.activity_id,
+    reviewed_image_url: reviewedImageUrl,
+    original_image_url: candidate.image_url,
+    source_page_url: candidate.source_page_url,
+    search_query: `Illustrated category image: ${cleanText(activity.category) || 'Family activity'}`,
+    candidate,
     model,
     selected_by_user_id: userId,
   })
@@ -480,8 +583,8 @@ async function findPendingAutomatedReview(
 
 async function completeAutomatedReview(
   supabase: ReturnType<typeof createClient>,
-  automatedReview: { automated_review_id: string; candidate_index: number },
-  selectedCandidateIndex: number,
+  automatedReview: { automated_review_id: string; candidate_index: number | null },
+  selectedCandidateIndex: number | null,
   reviewedImageUrl: string,
   userId: string,
 ) {
@@ -534,6 +637,7 @@ Deno.serve(async (request) => {
     query?: string
     request_variant?: string
     candidate_index?: number
+    selection_kind?: 'search_candidate' | typeof categoryIllustrationSelectionKind
     candidate_set_searched_at?: string
     automated_review_id?: string
     ignored?: boolean
@@ -554,15 +658,18 @@ Deno.serve(async (request) => {
     }
     if (body.action === 'select') {
       if (!user.id) return jsonResponse({ error: 'An administrator user session is required to select an image.' }, 403)
-      if (!Number.isInteger(body.candidate_index) || Number(body.candidate_index) < 0) {
+      const selectedCategoryIllustration = body.selection_kind === categoryIllustrationSelectionKind
+      if (!selectedCategoryIllustration && (!Number.isInteger(body.candidate_index) || Number(body.candidate_index) < 0)) {
         return jsonResponse({ error: 'candidate_index is required.' }, 400)
       }
       const automatedReviewId = cleanText(body.automated_review_id)
       const automatedReview = automatedReviewId
         ? await findPendingAutomatedReview(supabase, automatedReviewId, activity.activity_id)
         : null
-      const selectedCandidateIndex = Number(body.candidate_index)
-      const result = await storeReviewedImage(supabase, user.id, activity, selectedCandidateIndex, cleanText(body.candidate_set_searched_at))
+      const selectedCandidateIndex = selectedCategoryIllustration ? null : Number(body.candidate_index)
+      const result = selectedCategoryIllustration
+        ? await storeCategoryIllustration(supabase, user.id, activity)
+        : await storeReviewedImage(supabase, user.id, activity, selectedCandidateIndex as number, cleanText(body.candidate_set_searched_at))
       const completedAutomatedReview = automatedReview
         ? await completeAutomatedReview(supabase, automatedReview, selectedCandidateIndex, result.reviewedImageUrl, user.id)
         : null

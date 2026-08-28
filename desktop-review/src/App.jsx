@@ -3,6 +3,10 @@ import { hasSupabaseConfig, supabase } from './supabase.js';
 import { edgeFunctionErrorMessage } from './functionErrors.js';
 import { invokeFunctionWithRetry } from './functionRetry.js';
 import {
+  CATEGORY_ILLUSTRATION_SELECTION_KIND,
+  categoryIllustrationCandidate,
+} from './categoryIllustrations.js';
+import {
   QUEUES,
   activitiesToPreload,
   bestLocation,
@@ -161,17 +165,19 @@ function SignIn({ message }) {
   );
 }
 
-function CandidateCard({ candidate, index, selected, recommended, onSelect, onZoom }) {
+function CandidateCard({ candidate, index, selectionKey = index, selected, recommended, onSelect, onZoom }) {
+  const illustrated = candidate.is_category_illustration === true;
   const imageUrl = clean(candidate.thumbnail_url) || clean(candidate.image_url);
   const sourceDomain = clean(candidate.source_domain) || domain(candidate.source_page_url) || domain(candidate.image_url);
   const sourceUrl = clean(candidate.source_page_url) || clean(candidate.image_url);
-  const dimensions = candidate.width && candidate.height ? `${candidate.width} × ${candidate.height}` : 'Size unavailable';
+  const dimensions = illustrated ? 'Illustrated category artwork' : candidate.width && candidate.height ? `${candidate.width} × ${candidate.height}` : 'Size unavailable';
+  const candidateLabel = illustrated ? 'illustrated category image' : `candidate ${index + 1}`;
   return (
-    <article className={`candidate-card${selected ? ' selected' : ''}${recommended ? ' recommended' : ''}`}>
-      <button className="candidate-select" type="button" onClick={() => onSelect(index)} aria-label={`Select candidate ${index + 1}`}>
+    <article className={`candidate-card${illustrated ? ' category-illustration' : ''}${selected ? ' selected' : ''}${recommended ? ' recommended' : ''}`}>
+      <button className="candidate-select" type="button" onClick={() => onSelect(selectionKey)} aria-label={`Select ${candidateLabel}`}>
         <span className="candidate-image-wrap">
-          <img src={imageUrl} alt={clean(candidate.title) || `Candidate ${index + 1}`} loading="lazy" />
-          <span className="candidate-index">{index + 1}</span>
+          <img src={imageUrl} alt={clean(candidate.title) || candidateLabel} loading="lazy" />
+          <span className={`candidate-index${illustrated ? ' illustrated' : ''}`}>{illustrated ? 'Category art' : index + 1}</span>
           {selected ? <span className="selected-badge">Selected</span> : null}
           {recommended && !selected ? <span className="recommended-badge">Model pick</span> : null}
         </span>
@@ -191,6 +197,7 @@ function CandidateCard({ candidate, index, selected, recommended, onSelect, onZo
 }
 
 function CandidateLightbox({ candidate, index, onClose }) {
+  const illustrated = candidate.is_category_illustration === true;
   const fullImageUrl = clean(candidate.image_url) || clean(candidate.thumbnail_url);
   const thumbnailUrl = clean(candidate.thumbnail_url);
   const sourceUrl = clean(candidate.source_page_url);
@@ -210,14 +217,14 @@ function CandidateLightbox({ candidate, index, onClose }) {
   }
 
   return (
-    <div className="image-lightbox" role="dialog" aria-modal="true" aria-label={`Candidate ${index + 1} enlarged`} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+    <div className="image-lightbox" role="dialog" aria-modal="true" aria-label={illustrated ? 'Illustrated category image enlarged' : `Candidate ${index + 1} enlarged`} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <section className="image-lightbox-panel">
         <div className="image-lightbox-stage">
-          <img src={fullImageUrl} alt={clean(candidate.title) || `Candidate ${index + 1} enlarged`} onError={useThumbnailFallback} />
+          <img src={fullImageUrl} alt={clean(candidate.title) || (illustrated ? 'Illustrated category image enlarged' : `Candidate ${index + 1} enlarged`)} onError={useThumbnailFallback} />
         </div>
         <aside className="image-lightbox-details">
           <button className="lightbox-close" type="button" onClick={onClose} aria-label="Close enlarged image">×</button>
-          <p className="eyebrow">Candidate {index + 1}</p>
+          <p className="eyebrow">{illustrated ? 'Illustrated category option' : `Candidate ${index + 1}`}</p>
           <h2>{candidate.title || sourceDomain || 'Image candidate'}</h2>
           <dl>
             <div><dt>Source</dt><dd>{sourceDomain || 'Unknown source'}</dd></div>
@@ -341,6 +348,7 @@ function App() {
     : null;
   const queries = useMemo(() => selectedActivity ? searchQueries(selectedActivity) : null, [selectedActivity]);
   const candidates = Array.isArray(selectedActivity?.codex_image_candidates) ? selectedActivity.codex_image_candidates.slice(0, 20) : [];
+  const illustratedCandidate = selectedActivity ? categoryIllustrationCandidate(selectedActivity) : null;
   const activeImage = selectedActivity ? currentImage(selectedActivity) : null;
 
   const requestCandidates = useCallback((activity, variant = 'activity_location', requestedQuery = '', background = false) => {
@@ -531,11 +539,14 @@ function App() {
     if (!selectedActivity || selectedCandidate == null) return;
     const activityId = selectedActivity.activity_id;
     const pendingAutomatedReview = activeQueue === 'automated_review' ? automatedReview : null;
-    const acceptedModelChoice = pendingAutomatedReview?.candidate_index === selectedCandidate;
+    const selectedCategoryIllustration = selectedCandidate === CATEGORY_ILLUSTRATION_SELECTION_KIND;
+    const selectedCandidateIndex = selectedCategoryIllustration ? null : Number(selectedCandidate);
+    const candidate = selectedCategoryIllustration ? illustratedCandidate : candidates[selectedCandidateIndex];
+    if (!candidate || (!selectedCategoryIllustration && !Number.isInteger(selectedCandidateIndex))) return;
+    const acceptedModelChoice = !selectedCategoryIllustration && pendingAutomatedReview?.candidate_index === selectedCandidateIndex;
     setBusy('save');
     setNotice('');
     if (isDemo) {
-      const candidate = candidates[selectedCandidate];
       setActivities((current) => current.map((activity) => activity.activity_id === selectedActivity.activity_id ? {
         ...activity,
         reviewed_image_url: candidate.image_url,
@@ -552,8 +563,11 @@ function App() {
       body: {
         action: 'select',
         activity_id: selectedActivity.activity_id,
-        candidate_index: selectedCandidate,
-        candidate_set_searched_at: selectedActivity.codex_image_searched_at,
+        selection_kind: selectedCategoryIllustration ? CATEGORY_ILLUSTRATION_SELECTION_KIND : 'search_candidate',
+        ...(!selectedCategoryIllustration ? {
+          candidate_index: selectedCandidateIndex,
+          candidate_set_searched_at: selectedActivity.codex_image_searched_at,
+        } : {}),
         ...(pendingAutomatedReview ? { automated_review_id: pendingAutomatedReview.automated_review_id } : {}),
       },
     }));
@@ -570,7 +584,11 @@ function App() {
         automated_image_review: response.data.automatedReview ? null : activity.automated_image_review,
       } : activity));
       setSelectedCandidate(null);
-      setNotice(pendingAutomatedReview
+      setNotice(selectedCategoryIllustration
+        ? pendingAutomatedReview
+          ? 'Illustrated category image applied; the model proposal was logged as corrected.'
+          : 'Illustrated category image stored and applied to the listing.'
+        : pendingAutomatedReview
         ? acceptedModelChoice
           ? 'Automated choice approved, downloaded, and applied to the listing.'
           : 'Your correction was downloaded and applied; the model proposal was logged as corrected.'
@@ -669,6 +687,7 @@ function App() {
 
   const selectedQueue = QUEUES.find((queue) => queue.id === activeQueue);
   const requestStatus = candidateRequest?.status || (candidates.length ? 'completed' : selectedActivity?.candidate_set_loaded ? 'not_requested' : 'loading');
+  const selectedIsCategoryIllustration = selectedCandidate === CATEGORY_ILLUSTRATION_SELECTION_KIND;
   const candidateSource = candidates.length
     ? selectedActivity.codex_image_search_model || candidateRequest?.codex_model || 'Saved image candidates'
     : 'SerpAPI Google Images';
@@ -839,11 +858,12 @@ function App() {
 
             <section className="candidate-column">
               <div className="candidate-header">
-                <div><p className="eyebrow">{automatedReview ? 'Model-ranked Google Images results' : 'Unfiltered Google Images results'}</p><h2>Candidate gallery <span>{candidates.length}</span></h2></div>
-                <div className="candidate-actions"><button className="text-button" type="button" disabled={selectedCandidate == null} onClick={() => setSelectedCandidate(null)}>Clear selection</button><button className="primary-button" type="button" disabled={selectedCandidate == null || busy === 'save'} onClick={saveSelected}>{busy === 'save' ? 'Downloading…' : automatedReview ? automatedReview.candidate_index === selectedCandidate ? automatedReview.status === 'auto_applied' ? 'Confirm model choice' : 'Approve model choice' : 'Save correction' : 'Use selected image'}</button></div>
+                <div><p className="eyebrow">{automatedReview ? 'Model-ranked results + category illustration' : 'Google Images results + category illustration'}</p><h2>Candidate gallery <span>{candidates.length + (illustratedCandidate ? 1 : 0)}</span></h2></div>
+                <div className="candidate-actions"><button className="text-button" type="button" disabled={selectedCandidate == null} onClick={() => setSelectedCandidate(null)}>Clear selection</button><button className="primary-button" type="button" disabled={selectedCandidate == null || busy === 'save'} onClick={saveSelected}>{busy === 'save' ? 'Downloading…' : selectedIsCategoryIllustration ? 'Use category image' : automatedReview ? automatedReview.candidate_index === selectedCandidate ? automatedReview.status === 'auto_applied' ? 'Confirm model choice' : 'Approve model choice' : 'Save correction' : 'Use selected image'}</button></div>
               </div>
-              {candidates.length ? (
+              {illustratedCandidate ? (
                 <div className="candidate-grid">
+                  <CandidateCard key={CATEGORY_ILLUSTRATION_SELECTION_KIND} candidate={illustratedCandidate} index={-1} selectionKey={CATEGORY_ILLUSTRATION_SELECTION_KIND} selected={selectedIsCategoryIllustration} recommended={false} onSelect={selectCandidate} onZoom={(imageCandidate) => setZoomedCandidate({ candidate: imageCandidate, index: -1 })} />
                   {candidates.map((candidate, index) => <CandidateCard key={`${candidate.image_url}-${index}`} candidate={candidate} index={index} selected={selectedCandidate === index} recommended={automatedReview?.candidate_index === index} onSelect={selectCandidate} onZoom={(imageCandidate, candidateIndex) => setZoomedCandidate({ candidate: imageCandidate, index: candidateIndex })} />)}
                 </div>
               ) : (
