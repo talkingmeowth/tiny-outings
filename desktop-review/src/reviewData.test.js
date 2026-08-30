@@ -282,25 +282,29 @@ test('builds ordered displayed-image source options and counts category placehol
   ]);
 });
 
-test('adds labelled candidates from populated hierarchy and legacy source fields', () => {
+test('adds hierarchy and audit candidates but excludes the legacy scraped image', () => {
   const candidates = storedImageCandidates(listing({
     user_image_url: 'https://storage.test/user.jpg',
     model_selected_url: 'https://storage.test/model.jpg',
+    audit_image_url: 'https://storage.test/audit.jpg',
+    audit_image_source_url: 'https://auditor.test/replacement',
     scraped_image_url: 'https://storage.test/scraped.jpg',
     image_source_url: 'https://venue.test/gallery',
   }));
   assert.deepEqual(candidates.map((candidate) => candidate.source_field), [
     'user_image_url',
     'model_selected_url',
-    'scraped_image_url',
+    'audit_image_url',
   ]);
   assert.equal(candidates[0].source_label, 'Admin image URL');
-  assert.equal(candidates[2].source_page_url, 'https://venue.test/gallery');
+  assert.equal(candidates[2].source_page_url, 'https://auditor.test/replacement');
+  assert.equal(candidates.some((candidate) => candidate.image_url === 'https://storage.test/scraped.jpg'), false);
 });
 
 test('round-trips stored-source candidate selection keys safely', () => {
   const selection = storedSourceSelectionKey('website_image_url');
   assert.equal(storedSourceFieldForSelection(selection), 'website_image_url');
+  assert.equal(storedSourceFieldForSelection('stored_source:scraped_image_url'), '');
   assert.equal(storedSourceFieldForSelection('stored_source:not_a_field'), '');
   assert.equal(storedSourceFieldForSelection(3), '');
 });

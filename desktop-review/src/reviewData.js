@@ -90,7 +90,6 @@ export const IMAGE_SOURCE_LABELS = {
   listing_image_url: 'Listing image',
   category_placeholder: 'Illustrated category image',
   audit_image_url: 'Legacy audit replacement',
-  scraped_image_url: 'Legacy scraped image',
 };
 
 export const DISPLAY_IMAGE_SOURCE_ORDER = [
@@ -101,7 +100,6 @@ export const DISPLAY_IMAGE_SOURCE_ORDER = [
 export const STORED_CANDIDATE_FIELDS = [
   ...activityImageFields,
   'audit_image_url',
-  'scraped_image_url',
 ];
 
 const storedSourceSelectionPrefix = 'stored_source:';
@@ -195,7 +193,6 @@ export function currentImage(activity) {
   if (field === 'reviewed_image_url') sourceUrl = activity.reviewed_image_source_url || activity.reviewed_image_original_url || url;
   if (field === 'model_selected_url') sourceUrl = activity.automated_image_review?.candidate?.source_page_url || activity.automated_image_review?.candidate?.image_url || url;
   if (field === 'audit_image_url') sourceUrl = activity.audit_image_source_url || url;
-  if (field === 'scraped_image_url') sourceUrl = activity.image_source_url || url;
   if (field === 'category_placeholder') sourceUrl = url;
   if (['organiser_website_downloaded_image', 'website_downloaded_image', 'website_image_url', 'listing_image_url'].includes(field)) {
     sourceUrl = activity.image_source_url || activity.organiser_website || activity.website || activity.source_url || url;
@@ -221,7 +218,6 @@ export function imageSourceOptions(activities) {
 function storedCandidateSourceUrl(activity, field, imageUrl) {
   if (field === 'reviewed_image_url') return activity.reviewed_image_source_url || activity.reviewed_image_original_url || imageUrl;
   if (field === 'audit_image_url') return activity.audit_image_source_url || imageUrl;
-  if (field === 'scraped_image_url') return activity.image_source_url || imageUrl;
   if (field === 'organiser_website_downloaded_image') return activity.organiser_website || activity.website || imageUrl;
   if (['website_downloaded_image', 'website_image_url', 'listing_image_url'].includes(field)) {
     return activity.image_source_url || activity.website || activity.source_url || imageUrl;
