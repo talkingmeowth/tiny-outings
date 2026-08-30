@@ -72,9 +72,10 @@ function isMissingPublished(activity: Record<string, unknown>) {
   return ![
     activity.admin_cover_image_url,
     activity.reviewed_image_url,
-    activity.model_selected_url,
+    activity.use_category_image ? 'category_placeholder' : null,
     activity.user_image_url,
-    activity.audit_image_status === 'replaced' ? activity.audit_image_url : null,
+    activity.user_uploaded_image_url,
+    activity.model_selected_url,
     activity.organiser_website_downloaded_image,
     activity.website_downloaded_image,
     activity.wikimedia_image_url,
@@ -225,12 +226,12 @@ async function targetData(
   scope: 'targeted' | 'all_unreviewed' | 'failed_applications',
 ) {
   let query = supabase.from('activities')
-    .select('activity_id,activity_name,address,postcode,borough,category,website,organiser_website,source_url,public_listing_status,archive,audit_image_status,image_review_ignored_at,admin_cover_image_url,reviewed_image_url,model_selected_url,user_image_url,audit_image_url,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,serpapi_image_candidates,serpapi_image_search_query,serpapi_image_candidates_fetched_at,website_image_candidates,website_image_candidates_fetched_at')
+    .select('activity_id,activity_name,address,postcode,borough,category,website,organiser_website,source_url,public_listing_status,archive,audit_image_status,image_review_ignored_at,admin_cover_image_url,reviewed_image_url,use_category_image,model_selected_url,user_image_url,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,serpapi_image_candidates,serpapi_image_search_query,serpapi_image_candidates_fetched_at,website_image_candidates,website_image_candidates_fetched_at')
     .eq('archive', false)
     .in('public_listing_status', ['draft', 'published'])
     .order('activity_id', { ascending: true })
     .range(offset, offset + pageSize - 1)
-  if (scope === 'targeted') query = query.is('image_review_ignored_at', null).is('reviewed_image_url', null).is('model_selected_url', null)
+  if (scope === 'targeted') query = query.is('image_review_ignored_at', null).is('reviewed_image_url', null).eq('use_category_image', false).is('model_selected_url', null)
   const { data, error } = await query
   if (error) throw new Error(error.message)
   const activityIds = (data || []).map((activity) => activity.activity_id)
@@ -386,12 +387,12 @@ async function applyProposal(
   const protectedImage = clean(activity.admin_cover_image_url)
     || clean(activity.user_image_url)
     || clean(activity.user_uploaded_image_url)
-  if (protectedImage || activity.image_review_ignored_at) {
+  if (protectedImage || activity.use_category_image || activity.image_review_ignored_at) {
     await updateAutomatedReview(supabase, automatedReviewId, {
       status: 'corrected',
       reviewed_at: attemptedAt,
       reviewed_candidate_index: null,
-      reviewed_image_url: protectedImage || null,
+    reviewed_image_url: protectedImage || null,
       apply_attempted_at: attemptedAt,
       apply_failure_reason: null,
     })
@@ -447,6 +448,7 @@ async function applyProposal(
   }).eq('activity_id', proposal.activity_id)
     .is('reviewed_image_url', null)
     .is('model_selected_url', null)
+    .eq('use_category_image', false)
     .select('activity_id')
     .maybeSingle()
   if (activityError) throw new Error(activityError.message)
@@ -481,7 +483,7 @@ async function applyPendingProposals(
   const activityIds = (proposals || []).map((proposal) => proposal.activity_id)
   const { data: activities, error: activityError } = activityIds.length
     ? await supabase.from('activities')
-      .select('activity_id,archive,image_review_ignored_at,admin_cover_image_url,user_image_url,reviewed_image_url,reviewed_image_original_url,model_selected_url')
+      .select('activity_id,archive,image_review_ignored_at,admin_cover_image_url,user_image_url,reviewed_image_url,use_category_image,reviewed_image_original_url,model_selected_url')
       .in('activity_id', activityIds)
     : { data: [], error: null }
   if (activityError) throw new Error(activityError.message)

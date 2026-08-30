@@ -89,10 +89,9 @@ test('uses the requested card-image hierarchy exactly', () => {
   assert.deepEqual(activityImageUrls(item), [
     'https://images.example.test/admin.jpg',
     'https://images.example.test/reviewed.jpg',
-    'https://images.example.test/model.jpg',
     'https://images.example.test/admin-url.jpg',
-    'https://images.example.test/audited.jpg',
     'https://images.example.test/community.jpg',
+    'https://images.example.test/model.jpg',
     'https://images.example.test/organiser.jpg',
     'https://images.example.test/website-download.jpg',
     'https://images.example.test/wikimedia.jpg',
@@ -114,22 +113,21 @@ test('uses a desktop-reviewed image below an admin cover and above other sources
   assert.deepEqual(activityImageUrls(reviewed), [
     'https://images.example.test/reviewed.jpg',
     'https://images.example.test/admin-url.jpg',
-    'https://images.example.test/audited.jpg',
   ]);
   assert.equal(shareListingImages([reviewed])[0].shared_card_image_source, 'reviewed_image_url');
   assert.equal(shareListingImages([{ ...reviewed, admin_cover_image_url: 'https://images.example.test/admin.jpg' }])[0].shared_card_image_source, 'admin_cover_image_url');
 });
 
-test('keeps model selections distinct and below manually reviewed images', () => {
+test('keeps model selections below manual and user images', () => {
   const modelSelected = activity({
     model_selected_url: 'https://images.example.test/model.jpg',
     user_image_url: 'https://images.example.test/admin-url.jpg',
   });
   assert.deepEqual(activityImageUrls(modelSelected), [
-    'https://images.example.test/model.jpg',
     'https://images.example.test/admin-url.jpg',
+    'https://images.example.test/model.jpg',
   ]);
-  assert.equal(shareListingImages([modelSelected])[0].shared_card_image_source, 'model_selected_url');
+  assert.equal(shareListingImages([modelSelected])[0].shared_card_image_source, 'user_image_url');
   assert.equal(shareListingImages([{ ...modelSelected, reviewed_image_url: 'https://images.example.test/manual.jpg' }])[0].shared_card_image_source, 'reviewed_image_url');
 });
 
@@ -143,18 +141,32 @@ test('keeps an original hierarchy source visible when its audit needs replacemen
   assert.equal(shareListingImages([rejected])[0].shared_card_image_source, 'website_image_url');
 });
 
-test('uses audit_image_url for a genuine audit replacement', () => {
+test('keeps audit replacements outside the automatic hierarchy', () => {
   const replacement = activity({
     audit_image_status: 'replaced',
     audit_image_url: 'https://images.example.test/audit-replacement.jpg',
     audit_image_source_url: 'https://images.example.test/audit-replacement.jpg',
     website_image_url: 'https://images.example.test/lower-priority.jpg',
   });
-  assert.deepEqual(activityImageUrls(replacement), [
-    'https://images.example.test/audit-replacement.jpg',
-    'https://images.example.test/lower-priority.jpg',
+  assert.deepEqual(activityImageUrls(replacement), ['https://images.example.test/lower-priority.jpg']);
+  assert.equal(shareListingImages([replacement])[0].shared_card_image_source, 'website_image_url');
+});
+
+test('uses an explicitly selected category illustration at the reviewed-image priority', () => {
+  const categoryChoice = activity({
+    category: 'Cafes & food',
+    use_category_image: true,
+    reviewed_image_url: 'https://images.example.test/old-reviewed.jpg',
+    user_image_url: 'https://images.example.test/admin-url.jpg',
+    model_selected_url: 'https://images.example.test/model.jpg',
+  });
+  assert.deepEqual(activityImageUrls(categoryChoice), [
+    '/images/family-cafe-placeholder.svg',
+    'https://images.example.test/admin-url.jpg',
+    'https://images.example.test/model.jpg',
   ]);
-  assert.equal(shareListingImages([replacement])[0].shared_card_image_source, 'audit_image_url');
+  assert.equal(shareListingImages([categoryChoice])[0].shared_card_image_source, 'category_placeholder');
+  assert.equal(shareListingImages([{ ...categoryChoice, admin_cover_image_url: 'https://images.example.test/admin.jpg' }])[0].shared_card_image_source, 'admin_cover_image_url');
 });
 
 test('an admin cover can replace an image that failed the non-admin audit', () => {

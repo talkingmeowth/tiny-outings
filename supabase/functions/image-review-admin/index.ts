@@ -16,6 +16,21 @@ const acceptedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'ima
 const maxImageBytes = 8 * 1024 * 1024
 const categoryIllustrationSelectionKind = 'category_illustration'
 const reviewAppBaseUrl = 'https://tiny-outings-cpjh.onrender.com/review/'
+const storedSourceFields = [
+  'admin_cover_image_url',
+  'reviewed_image_url',
+  'user_image_url',
+  'user_uploaded_image_url',
+  'model_selected_url',
+  'organiser_website_downloaded_image',
+  'website_downloaded_image',
+  'wikimedia_image_url',
+  'website_image_url',
+  'listing_image_url',
+  'audit_image_url',
+  'scraped_image_url',
+] as const
+type StoredSourceField = typeof storedSourceFields[number]
 
 type Activity = {
   activity_id: string
@@ -37,7 +52,23 @@ type Activity = {
   reviewed_image_original_url?: string | null
   reviewed_image_selected_at?: string | null
   reviewed_image_model?: string | null
+  use_category_image?: boolean
   model_selected_url?: string | null
+  admin_cover_image_url?: string | null
+  user_image_url?: string | null
+  user_uploaded_image_url?: string | null
+  organiser_website_downloaded_image?: string | null
+  website_downloaded_image?: string | null
+  wikimedia_image_url?: string | null
+  website_image_url?: string | null
+  listing_image_url?: string | null
+  audit_image_url?: string | null
+  audit_image_source_url?: string | null
+  scraped_image_url?: string | null
+  image_source_url?: string | null
+  website?: string | null
+  organiser_website?: string | null
+  source_url?: string | null
 }
 
 type Candidate = {
@@ -49,7 +80,8 @@ type Candidate = {
   width: number | null
   height: number | null
   relevance_reason: string | null
-  selection_kind?: typeof categoryIllustrationSelectionKind
+  selection_kind?: typeof categoryIllustrationSelectionKind | 'hierarchy_source'
+  source_field?: StoredSourceField
 }
 
 function jsonResponse(body: unknown, status = 200) {
@@ -84,7 +116,7 @@ function categoryIllustrationFilename(activity: Pick<Activity, 'category'>) {
   const category = cleanText(activity.category).toLowerCase()
   if (category.includes('park')) return 'park-placeholder.svg'
   if (category.includes('book')) return 'bookshop-placeholder.svg'
-  if (category.includes('cafe') || category.includes('café')) return 'family-cafe-placeholder.svg'
+  if (category.includes('caf')) return 'family-cafe-placeholder.svg'
   return 'family-outing-placeholder.svg'
 }
 
@@ -161,13 +193,64 @@ async function authenticatedAdmin(request: Request, supabase: ReturnType<typeof 
 async function findActivity(supabase: ReturnType<typeof createClient>, activityId: string) {
   const { data, error } = await supabase
     .from('activities')
-    .select('activity_id,activity_name,address,postcode,borough,category,public_listing_status,archive,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,image_review_ignored_at,image_review_ignored_by_user_id,reviewed_image_url,reviewed_image_source_url,reviewed_image_original_url,reviewed_image_selected_at,reviewed_image_model,model_selected_url')
+    .select('activity_id,activity_name,address,postcode,borough,category,public_listing_status,archive,website,organiser_website,source_url,image_source_url,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,image_review_ignored_at,image_review_ignored_by_user_id,admin_cover_image_url,reviewed_image_url,use_category_image,reviewed_image_source_url,reviewed_image_original_url,reviewed_image_selected_at,reviewed_image_model,user_image_url,model_selected_url,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,audit_image_url,audit_image_source_url,scraped_image_url')
     .eq('activity_id', activityId)
     .eq('archive', false)
     .maybeSingle()
   if (error) throw new Error(error.message)
   if (!data) throw new Error('Listing not found.')
   return data as Activity
+}
+
+function isStoredSourceField(value: unknown): value is StoredSourceField {
+  return storedSourceFields.includes(cleanText(value) as StoredSourceField)
+}
+
+function storedSourcePageUrl(activity: Activity, field: StoredSourceField, imageUrl: string) {
+  if (field === 'reviewed_image_url') return cleanText(activity.reviewed_image_source_url) || cleanText(activity.reviewed_image_original_url) || imageUrl
+  if (field === 'audit_image_url') return cleanText(activity.audit_image_source_url) || imageUrl
+  if (field === 'scraped_image_url') return cleanText(activity.image_source_url) || imageUrl
+  if (field === 'organiser_website_downloaded_image') return cleanText(activity.organiser_website) || cleanText(activity.website) || imageUrl
+  if (['website_downloaded_image', 'website_image_url', 'listing_image_url'].includes(field)) {
+    return cleanText(activity.image_source_url) || cleanText(activity.website) || cleanText(activity.source_url) || imageUrl
+  }
+  return imageUrl
+}
+
+async function storedSourceCandidate(
+  supabase: ReturnType<typeof createClient>,
+  activity: Activity,
+  field: StoredSourceField,
+) {
+  let imageUrl = cleanText(activity[field])
+  if (field === 'user_uploaded_image_url') {
+    const { data, error } = await supabase.from('activity_photos')
+      .select('photo_url')
+      .eq('activity_id', activity.activity_id)
+      .eq('source_provider', 'user_upload')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (error) throw new Error(error.message)
+    imageUrl = cleanText(data?.photo_url)
+  }
+  if (!validHttpUrl(imageUrl)) throw new Error(`${field} no longer contains a usable image URL.`)
+  const sourcePageUrl = storedSourcePageUrl(activity, field, imageUrl)
+  if (!allowsWikimediaImages(activity) && [imageUrl, sourcePageUrl].some(isWikimediaSource)) {
+    throw new Error('Wikimedia images are not allowed for this activity category.')
+  }
+  return {
+    image_url: imageUrl,
+    thumbnail_url: null,
+    source_page_url: validHttpUrl(sourcePageUrl) ? sourcePageUrl : imageUrl,
+    source_domain: domain(sourcePageUrl) || domain(imageUrl),
+    title: field,
+    width: null,
+    height: null,
+    relevance_reason: `Existing listing image from ${field}.`,
+    selection_kind: 'hierarchy_source' as const,
+    source_field: field,
+  }
 }
 
 async function searchUnfilteredSerpApiCandidates(
@@ -394,24 +477,20 @@ async function downloadCandidate(candidate: Candidate) {
   }
 }
 
-async function storeReviewedImage(
+async function storeReviewedCandidate(
   supabase: ReturnType<typeof createClient>,
   userId: string,
   activity: Activity,
-  candidateIndex: number,
-  expectedSearchedAt: string,
+  candidate: Candidate,
+  storageKey: string,
+  searchQuery: string,
+  model: string,
 ) {
-  if (expectedSearchedAt && Date.parse(expectedSearchedAt) !== Date.parse(activity.codex_image_searched_at || '')) {
-    throw new Error('The candidate set changed. Refresh the listing before saving.')
-  }
-  const candidates = Array.isArray(activity.codex_image_candidates) ? activity.codex_image_candidates : []
-  const candidate = normalizeCandidate(activity, candidates[candidateIndex])
-  if (!candidate) throw new Error('The selected candidate is no longer available.')
   const sourceUrl = candidate.source_page_url || candidate.image_url
-  const model = cleanText(activity.codex_image_search_model) || 'Desktop image review'
   if (cleanText(activity.reviewed_image_original_url) === candidate.image_url
     && cleanText(activity.reviewed_image_url)
-    && !cleanText(activity.model_selected_url)) {
+    && !cleanText(activity.model_selected_url)
+    && !activity.use_category_image) {
     return {
       reviewedImageUrl: cleanText(activity.reviewed_image_url),
       sourceUrl: cleanText(activity.reviewed_image_source_url) || sourceUrl,
@@ -419,12 +498,14 @@ async function storeReviewedImage(
       model: cleanText(activity.reviewed_image_model) || model,
       candidate,
       clearedModelSelection: false,
+      useCategoryImage: false,
     }
   }
   const downloaded = await downloadCandidate(candidate)
   const selectedAt = new Date().toISOString()
-  const revision = Date.parse(activity.codex_image_searched_at || selectedAt)
-  const path = `reviewed/${activity.activity_id}/${revision}-${candidateIndex}.${extensionFor(downloaded.contentType)}`
+  const revision = Date.parse(selectedAt)
+  const safeStorageKey = storageKey.replace(/[^a-z0-9_-]+/gi, '-').slice(0, 80)
+  const path = `reviewed/${activity.activity_id}/${revision}-${safeStorageKey}.${extensionFor(downloaded.contentType)}`
   const upload = await supabase.storage.from('activity-images').upload(path, downloaded.bytes, {
     contentType: downloaded.contentType,
     cacheControl: '31536000',
@@ -439,6 +520,7 @@ async function storeReviewedImage(
     reviewed_image_selected_at: selectedAt,
     reviewed_image_model: model,
     reviewed_image_selected_by_user_id: userId,
+    use_category_image: false,
     model_selected_url: null,
     updated_at: selectedAt,
   }).eq('activity_id', activity.activity_id)
@@ -447,7 +529,7 @@ async function storeReviewedImage(
     reviewed_image_url: reviewedImageUrl,
     original_image_url: candidate.image_url,
     source_page_url: candidate.source_page_url,
-    search_query: cleanText(activity.codex_image_search_query),
+    search_query: searchQuery,
     candidate: { ...candidate, downloaded_width: downloaded.dimensions.width, downloaded_height: downloaded.dimensions.height },
     model,
     selected_by_user_id: userId,
@@ -455,14 +537,55 @@ async function storeReviewedImage(
   const [{ error: updateError }, { error: logError }] = await Promise.all([activityUpdate, reviewLog])
   if (updateError) throw new Error(updateError.message)
   if (logError) throw new Error(`Image saved, but the manual review log failed: ${logError.message}`)
-  return { reviewedImageUrl, sourceUrl, selectedAt, model, candidate, clearedModelSelection: true }
+  return { reviewedImageUrl, sourceUrl, selectedAt, model, candidate, clearedModelSelection: true, useCategoryImage: false }
+}
+
+async function storeSearchCandidate(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+  activity: Activity,
+  candidateIndex: number,
+  expectedSearchedAt: string,
+) {
+  if (expectedSearchedAt && Date.parse(expectedSearchedAt) !== Date.parse(activity.codex_image_searched_at || '')) {
+    throw new Error('The candidate set changed. Refresh the listing before saving.')
+  }
+  const candidates = Array.isArray(activity.codex_image_candidates) ? activity.codex_image_candidates : []
+  const candidate = normalizeCandidate(activity, candidates[candidateIndex])
+  if (!candidate) throw new Error('The selected candidate is no longer available.')
+  return storeReviewedCandidate(
+    supabase,
+    userId,
+    activity,
+    candidate,
+    `serpapi-${candidateIndex}`,
+    cleanText(activity.codex_image_search_query),
+    cleanText(activity.codex_image_search_model) || 'Desktop image review',
+  )
+}
+
+async function storeExistingSource(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+  activity: Activity,
+  sourceField: StoredSourceField,
+) {
+  const candidate = await storedSourceCandidate(supabase, activity, sourceField)
+  return storeReviewedCandidate(
+    supabase,
+    userId,
+    activity,
+    candidate,
+    `stored-${sourceField}`,
+    `Existing listing image: ${sourceField}`,
+    `Desktop image review — ${sourceField}`,
+  )
 }
 
 async function storeCategoryIllustration(
   supabase: ReturnType<typeof createClient>,
   userId: string,
   activity: Activity,
-  clearModelSelection: boolean,
 ) {
   const candidate = categoryIllustrationCandidate(activity)
   const sourceUrl = candidate.image_url
@@ -475,7 +598,7 @@ async function storeCategoryIllustration(
     reviewed_image_selected_at: null,
     reviewed_image_model: null,
     reviewed_image_selected_by_user_id: null,
-    ...(clearModelSelection ? { model_selected_url: null } : {}),
+    use_category_image: true,
     updated_at: selectedAt,
   }).eq('activity_id', activity.activity_id)
   const reviewLog = supabase.from('activity_image_manual_reviews').insert({
@@ -491,7 +614,7 @@ async function storeCategoryIllustration(
   const [{ error: updateError }, { error: logError }] = await Promise.all([activityUpdate, reviewLog])
   if (updateError) throw new Error(updateError.message)
   if (logError) throw new Error(`Image saved, but the manual review log failed: ${logError.message}`)
-  return { reviewedImageUrl: null, sourceUrl, selectedAt, model, candidate, clearedModelSelection: clearModelSelection }
+  return { reviewedImageUrl: null, sourceUrl, selectedAt, model, candidate, clearedModelSelection: false, useCategoryImage: true }
 }
 
 async function publishDraft(supabase: ReturnType<typeof createClient>, activity: Activity, userId: string) {
@@ -568,6 +691,27 @@ async function completeAutomatedReview(
   return data
 }
 
+async function useNextHierarchyImage(
+  supabase: ReturnType<typeof createClient>,
+  activity: Activity,
+  suppliedActivityIds: unknown,
+) {
+  const activityIds = [...new Set([
+    activity.activity_id,
+    ...(Array.isArray(suppliedActivityIds) ? suppliedActivityIds : []),
+  ].map(cleanText).filter((value) => /^[0-9a-f-]{36}$/i.test(value)))].slice(0, 50)
+  const changedAt = new Date().toISOString()
+  const { data, error } = await supabase.from('activities').update({
+    model_selected_url: null,
+    updated_at: changedAt,
+  }).in('activity_id', activityIds)
+    .eq('archive', false)
+    .select('activity_id,model_selected_url')
+  if (error) throw new Error(error.message)
+  if (!data?.length) throw new Error('No matching activity images could be updated.')
+  return data
+}
+
 async function archiveActivity(supabase: ReturnType<typeof createClient>, activity: Activity, userId: string) {
   const archivedAt = new Date().toISOString()
   const { data, error } = await supabase.from('activities').update({
@@ -595,13 +739,15 @@ Deno.serve(async (request) => {
   const user = await authenticatedAdmin(request, supabase)
   if (!user) return jsonResponse({ error: 'Only Tiny Outings administrators can use desktop image review.' }, 403)
   const body = await request.json().catch(() => ({})) as {
-    action?: 'search' | 'select' | 'publish' | 'ignore' | 'archive'
+    action?: 'search' | 'select' | 'select_category_illustration' | 'use_next_hierarchy_image' | 'publish' | 'ignore' | 'archive'
     activity_id?: string
+    activity_ids?: string[]
     candidate_request_id?: string
     query?: string
     request_variant?: string
     candidate_index?: number
-    selection_kind?: 'search_candidate' | typeof categoryIllustrationSelectionKind
+    selection_kind?: 'search_candidate' | 'hierarchy_source' | typeof categoryIllustrationSelectionKind
+    source_field?: StoredSourceField
     candidate_set_searched_at?: string
     automated_review_id?: string
     ignored?: boolean
@@ -620,24 +766,62 @@ Deno.serve(async (request) => {
       )
       return jsonResponse({ status: 'searched', ...result })
     }
+    if (body.action === 'select_category_illustration') {
+      if (!user.id) return jsonResponse({ error: 'An administrator user session is required to select an image.' }, 403)
+      const automatedReviewId = cleanText(body.automated_review_id)
+      const automatedReview = automatedReviewId
+        ? await findPendingAutomatedReview(supabase, automatedReviewId, activity.activity_id)
+        : null
+      const result = await storeCategoryIllustration(supabase, user.id, activity)
+      const completedAutomatedReview = automatedReview
+        ? await completeAutomatedReview(supabase, automatedReview, null, null, user.id)
+        : null
+      return jsonResponse({ status: 'selected', ...result, automatedReview: completedAutomatedReview })
+    }
     if (body.action === 'select') {
       if (!user.id) return jsonResponse({ error: 'An administrator user session is required to select an image.' }, 403)
-      const selectedCategoryIllustration = body.selection_kind === categoryIllustrationSelectionKind
-      if (!selectedCategoryIllustration && (!Number.isInteger(body.candidate_index) || Number(body.candidate_index) < 0)) {
+      if (body.selection_kind === categoryIllustrationSelectionKind) {
+        const automatedReviewId = cleanText(body.automated_review_id)
+        const automatedReview = automatedReviewId
+          ? await findPendingAutomatedReview(supabase, automatedReviewId, activity.activity_id)
+          : null
+        const result = await storeCategoryIllustration(supabase, user.id, activity)
+        const completedAutomatedReview = automatedReview
+          ? await completeAutomatedReview(supabase, automatedReview, null, null, user.id)
+          : null
+        return jsonResponse({ status: 'selected', ...result, automatedReview: completedAutomatedReview })
+      }
+      const selectedStoredSource = body.selection_kind === 'hierarchy_source'
+      if (selectedStoredSource && !isStoredSourceField(body.source_field)) {
+        return jsonResponse({ error: 'A valid source_field is required.' }, 400)
+      }
+      if (!selectedStoredSource && (!Number.isInteger(body.candidate_index) || Number(body.candidate_index) < 0)) {
         return jsonResponse({ error: 'candidate_index is required.' }, 400)
       }
       const automatedReviewId = cleanText(body.automated_review_id)
       const automatedReview = automatedReviewId
         ? await findPendingAutomatedReview(supabase, automatedReviewId, activity.activity_id)
         : null
-      const selectedCandidateIndex = selectedCategoryIllustration ? null : Number(body.candidate_index)
-      const result = selectedCategoryIllustration
-        ? await storeCategoryIllustration(supabase, user.id, activity, Boolean(automatedReview))
-        : await storeReviewedImage(supabase, user.id, activity, selectedCandidateIndex as number, cleanText(body.candidate_set_searched_at))
+      const selectedCandidateIndex = selectedStoredSource ? null : Number(body.candidate_index)
+      const result = selectedStoredSource
+        ? await storeExistingSource(supabase, user.id, activity, body.source_field as StoredSourceField)
+        : await storeSearchCandidate(supabase, user.id, activity, selectedCandidateIndex as number, cleanText(body.candidate_set_searched_at))
       const completedAutomatedReview = automatedReview
         ? await completeAutomatedReview(supabase, automatedReview, selectedCandidateIndex, result.reviewedImageUrl, user.id)
         : null
       return jsonResponse({ status: 'selected', ...result, automatedReview: completedAutomatedReview })
+    }
+    if (body.action === 'use_next_hierarchy_image') {
+      if (!user.id) return jsonResponse({ error: 'An administrator user session is required to change the image hierarchy.' }, 403)
+      const automatedReviewId = cleanText(body.automated_review_id)
+      const automatedReview = automatedReviewId
+        ? await findPendingAutomatedReview(supabase, automatedReviewId, activity.activity_id)
+        : null
+      const result = await useNextHierarchyImage(supabase, activity, body.activity_ids)
+      const completedAutomatedReview = automatedReview
+        ? await completeAutomatedReview(supabase, automatedReview, null, null, user.id)
+        : null
+      return jsonResponse({ status: 'next_hierarchy_image', activity: result, automatedReview: completedAutomatedReview })
     }
     if (body.action === 'publish') {
       if (!user.id) return jsonResponse({ error: 'An administrator user session is required to publish a listing.' }, 403)

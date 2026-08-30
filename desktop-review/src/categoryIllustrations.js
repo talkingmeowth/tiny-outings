@@ -11,7 +11,7 @@ export function categoryIllustrationFilename(activity) {
   const category = String(activity?.category || '').toLowerCase();
   if (category.includes('park')) return CATEGORY_ILLUSTRATIONS.park;
   if (category.includes('book')) return CATEGORY_ILLUSTRATIONS.bookshop;
-  if (category.includes('cafe') || category.includes('café')) return CATEGORY_ILLUSTRATIONS.cafe;
+  if (category.includes('caf')) return CATEGORY_ILLUSTRATIONS.cafe;
   return CATEGORY_ILLUSTRATIONS.default;
 }
 

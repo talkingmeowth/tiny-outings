@@ -91,7 +91,7 @@ async function fetchActivities() {
   const fields = [
     'activity_id', 'activity_name', 'address', 'postcode', 'borough', 'category', 'description',
     'website', 'organiser_website', 'source_url', 'updated_at', 'created_at',
-    'admin_cover_image_url', 'reviewed_image_url', 'model_selected_url', 'audit_image_url', 'audit_image_source_url', 'user_image_url',
+    'admin_cover_image_url', 'reviewed_image_url', 'use_category_image', 'user_image_url', 'model_selected_url', 'audit_image_url', 'audit_image_source_url',
     'scraped_image_url', 'image_source_url', 'organiser_website_downloaded_image',
     'website_downloaded_image', 'wikimedia_image_url', 'website_image_url',
     'listing_image_url', 'image_url', 'audit_image_reviewed_at', 'audit_image_status',
@@ -136,7 +136,7 @@ function auditQueue(activities) {
     const representative = members[0];
     const sourceUrl = representative.shared_card_image_url || null;
     const sourceField = representative.shared_card_image_source || null;
-    if (!sourceUrl || !sourceField || sourceField === 'admin_cover_image_url') continue;
+    if (!sourceUrl || !sourceField || ['admin_cover_image_url', 'category_placeholder'].includes(sourceField)) continue;
     if (members.every((member) => currentAuditComplete(member, sourceUrl, sourceField))) continue;
     queue.push({
       ...representative,

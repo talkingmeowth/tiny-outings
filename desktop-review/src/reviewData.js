@@ -1,15 +1,15 @@
 import { activityImageGroupKey } from '../../src/activityDuplicates.js';
 import { allowsWikimediaImages, isWikimediaUrl } from '../../src/wikimediaImagePolicy.js';
+import { categoryIllustrationCandidate } from './categoryIllustrations.js';
 
 // Keep this order aligned with src/activityImages.js so the desktop reviewer
 // always shows the same card image and source as the main application.
-const activityImageFields = [
+export const activityImageFields = [
   'admin_cover_image_url',
   'reviewed_image_url',
-  'model_selected_url',
   'user_image_url',
-  'audit_image_url',
   'user_uploaded_image_url',
+  'model_selected_url',
   'organiser_website_downloaded_image',
   'website_downloaded_image',
   'wikimedia_image_url',
@@ -26,16 +26,17 @@ function isUsablePhotoUrl(url) {
 }
 
 function isAllowedActivityPhoto(activity, field, url) {
-  if (field === 'audit_image_url' && activity?.audit_image_status !== 'replaced') return false;
   if (allowsWikimediaImages(activity)) return true;
   if (field === 'wikimedia_image_url' || isWikimediaUrl(url)) return false;
-  if (field === 'audit_image_url') return !isWikimediaUrl(activity?.audit_image_source_url);
   return true;
 }
 
 function candidateImage(activity) {
   for (let priority = 0; priority < activityImageFields.length; priority += 1) {
     const field = activityImageFields[priority];
+    if (field === 'reviewed_image_url' && activity?.use_category_image) {
+      return { field: 'category_placeholder', priority, url: categoryIllustrationCandidate(activity).image_url };
+    }
     const url = securePhotoUrl(activity?.[field]);
     if (isUsablePhotoUrl(url) && isAllowedActivityPhoto(activity, field, url)) return { field, priority, url };
   }
@@ -69,27 +70,47 @@ function shareListingImages(activities) {
 }
 
 export const QUEUES = [
-  { id: 'missing_published', label: 'Missing — Published', description: 'Live listings with no usable card image.' },
-  { id: 'unsuitable_audit', label: 'Unsuitable — Audit', description: 'Listings the image audit marked for replacement.' },
-  { id: 'automated_review', label: 'Automated review', description: 'Model-selected images waiting for you to approve or correct them.' },
-  { id: 'all_published', label: 'All — Published', description: 'Every live listing, with or without an image.' },
-  { id: 'all_draft', label: 'All — Draft', description: 'Every unpublished listing.' },
-  { id: 'ignored', label: 'Ignored', description: 'Listings removed from active image review.' },
+  { id: 'all_activities', label: 'All activities', description: 'Every non-archived published and draft listing.' },
+  { id: 'model_selected', label: 'Model selected', description: 'Listings currently displaying an automatically selected model image.' },
+  { id: 'all_published', label: 'All published', description: 'Every live listing, with or without an image.' },
+  { id: 'all_draft', label: 'All draft', description: 'Every unpublished listing, with or without an image.' },
+  { id: 'missing_images', label: 'Missing images', description: 'Published and draft listings with no usable image in the hierarchy.' },
 ];
 
 export const IMAGE_SOURCE_LABELS = {
   admin_cover_image_url: 'Admin cover',
   reviewed_image_url: 'Manual desktop review',
-  model_selected_url: 'Model selected',
   user_image_url: 'Admin image URL',
-  audit_image_url: 'Audit replacement',
   user_uploaded_image_url: 'User upload',
+  model_selected_url: 'Model selected',
   organiser_website_downloaded_image: 'Organiser website download',
   website_downloaded_image: 'Website download',
   wikimedia_image_url: 'Wikimedia',
   website_image_url: 'Website image',
   listing_image_url: 'Listing image',
+  category_placeholder: 'Illustrated category image',
+  audit_image_url: 'Legacy audit replacement',
+  scraped_image_url: 'Legacy scraped image',
 };
+
+export const STORED_CANDIDATE_FIELDS = [
+  ...activityImageFields,
+  'audit_image_url',
+  'scraped_image_url',
+];
+
+const storedSourceSelectionPrefix = 'stored_source:';
+
+export function storedSourceSelectionKey(field) {
+  return `${storedSourceSelectionPrefix}${field}`;
+}
+
+export function storedSourceFieldForSelection(value) {
+  const selection = clean(value);
+  if (!selection.startsWith(storedSourceSelectionPrefix)) return '';
+  const field = selection.slice(storedSourceSelectionPrefix.length);
+  return STORED_CANDIDATE_FIELDS.includes(field) ? field : '';
+}
 
 export function clean(value) {
   return String(value || '').replace(/\s+/g, ' ').trim();
@@ -169,14 +190,52 @@ export function currentImage(activity) {
   if (field === 'reviewed_image_url') sourceUrl = activity.reviewed_image_source_url || activity.reviewed_image_original_url || url;
   if (field === 'model_selected_url') sourceUrl = activity.automated_image_review?.candidate?.source_page_url || activity.automated_image_review?.candidate?.image_url || url;
   if (field === 'audit_image_url') sourceUrl = activity.audit_image_source_url || url;
+  if (field === 'scraped_image_url') sourceUrl = activity.image_source_url || url;
+  if (field === 'category_placeholder') sourceUrl = url;
   if (['organiser_website_downloaded_image', 'website_downloaded_image', 'website_image_url', 'listing_image_url'].includes(field)) {
     sourceUrl = activity.image_source_url || activity.organiser_website || activity.website || activity.source_url || url;
   }
   return { url, field, label: IMAGE_SOURCE_LABELS[field] || 'No image', sourceUrl, sourceDomain: domain(sourceUrl) };
 }
 
+function storedCandidateSourceUrl(activity, field, imageUrl) {
+  if (field === 'reviewed_image_url') return activity.reviewed_image_source_url || activity.reviewed_image_original_url || imageUrl;
+  if (field === 'audit_image_url') return activity.audit_image_source_url || imageUrl;
+  if (field === 'scraped_image_url') return activity.image_source_url || imageUrl;
+  if (field === 'organiser_website_downloaded_image') return activity.organiser_website || activity.website || imageUrl;
+  if (['website_downloaded_image', 'website_image_url', 'listing_image_url'].includes(field)) {
+    return activity.image_source_url || activity.website || activity.source_url || imageUrl;
+  }
+  return imageUrl;
+}
+
+export function storedImageCandidates(activity) {
+  return STORED_CANDIDATE_FIELDS.flatMap((field) => {
+    const imageUrl = securePhotoUrl(activity?.[field]);
+    if (!isUsablePhotoUrl(imageUrl) || !isAllowedActivityPhoto(activity, field, imageUrl)) return [];
+    const label = IMAGE_SOURCE_LABELS[field] || field;
+    const sourcePageUrl = storedCandidateSourceUrl(activity, field, imageUrl);
+    return [{
+      image_url: imageUrl,
+      thumbnail_url: imageUrl,
+      source_page_url: sourcePageUrl,
+      source_domain: domain(sourcePageUrl) || domain(imageUrl),
+      title: label,
+      width: null,
+      height: null,
+      relevance_reason: field,
+      selection_kind: 'hierarchy_source',
+      source_field: field,
+      source_label: label,
+      is_stored_source: true,
+    }];
+  });
+}
+
 export function prepareActivities(activities) {
-  return shareListingImages((activities || []).filter((activity) => !activity.archive));
+  return shareListingImages((activities || []).filter((activity) => (
+    !activity.archive && ['published', 'draft'].includes(activity.public_listing_status)
+  )));
 }
 
 export function isUnsuitable(activity) {
@@ -198,15 +257,11 @@ export function activitiesForQueue(activities, queueId) {
 }
 
 export function preparedActivitiesForQueue(prepared, queueId) {
-  if (queueId === 'ignored') return prepared.filter(isImageReviewIgnored);
-  const reviewable = prepared.filter((activity) => !isImageReviewIgnored(activity));
-  if (queueId === 'automated_review') return reviewable.filter(hasPendingAutomatedReview);
-  if (queueId === 'missing_published') {
-    return reviewable.filter((activity) => activity.public_listing_status === 'published' && !currentImage(activity).url);
-  }
-  if (queueId === 'unsuitable_audit') return reviewable.filter(isUnsuitable);
-  if (queueId === 'all_draft') return reviewable.filter((activity) => activity.public_listing_status === 'draft');
-  return reviewable.filter((activity) => activity.public_listing_status === 'published');
+  if (queueId === 'all_activities') return prepared;
+  if (queueId === 'model_selected') return prepared.filter((activity) => currentImage(activity).field === 'model_selected_url');
+  if (queueId === 'missing_images') return prepared.filter((activity) => !currentImage(activity).url);
+  if (queueId === 'all_draft') return prepared.filter((activity) => activity.public_listing_status === 'draft');
+  return prepared.filter((activity) => activity.public_listing_status === 'published');
 }
 
 export function queueCounts(activities) {

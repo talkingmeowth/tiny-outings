@@ -536,9 +536,8 @@ async function storeSelectedCandidate(
 const cardImageFields = [
   'admin_cover_image_url',
   'reviewed_image_url',
-  'model_selected_url',
   'user_image_url',
-  'audit_image_url',
+  'model_selected_url',
   'organiser_website_downloaded_image',
   'website_downloaded_image',
   'wikimedia_image_url',
@@ -560,10 +559,8 @@ function validCardImageUrl(value: string) {
 }
 
 function cardImageAllowed(activity: Record<string, unknown>, field: typeof cardImageFields[number], url: string) {
-  if (field === 'audit_image_url' && text(activity.audit_image_status as string | null | undefined) !== 'replaced') return false
   if (allowsWikimediaImages(activity as Pick<Activity, 'category'>)) return true
   if (field === 'wikimedia_image_url' || isWikimediaSource(url)) return false
-  if (field === 'audit_image_url') return !isWikimediaSource(activity.audit_image_source_url as string | undefined)
   return true
 }
 
@@ -595,12 +592,15 @@ async function storeCardImageAudit(
     return { activity_id: audit.activity_id, status: 'audit-failed', reason: 'The three card-image audit criteria are required.' }
   }
   const { data, error } = await supabase.from('activities')
-    .select('activity_id,category,admin_cover_image_url,reviewed_image_url,model_selected_url,user_image_url,audit_image_url,audit_image_source_url,audit_image_status,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,updated_at,created_at')
+    .select('activity_id,category,admin_cover_image_url,reviewed_image_url,use_category_image,user_image_url,model_selected_url,audit_image_url,audit_image_source_url,audit_image_status,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,updated_at,created_at')
     .eq('archive', false)
     .in('activity_id', activityIds)
   if (error || !data?.length) return { activity_id: audit.activity_id, status: 'audit-failed', reason: error?.message || 'Activity group was not found.' }
   if (data.some((activity) => usableImageUrl(activity.admin_cover_image_url))) {
     return { activity_id: audit.activity_id, status: 'skipped-admin-image' }
+  }
+  if (data.some((activity) => activity.use_category_image === true)) {
+    return { activity_id: audit.activity_id, status: 'skipped-category-image' }
   }
   const current = selectedGroupImage(data as Record<string, unknown>[])
   if (!current || current.field !== audit.selected_image_source_field || current.url !== audit.selected_image_url) {
@@ -667,7 +667,7 @@ async function storeCardImageReplacement(
     return { activity_id: replacement.activity_id, status: 'replacement-failed', reason: 'The replacement is below the card-image resolution threshold.' }
   }
   const { data, error } = await supabase.from('activities')
-    .select('activity_id,category,admin_cover_image_url,reviewed_image_url,model_selected_url,audit_image_url,audit_image_source_url,audit_image_status,audit_image_original_url,audit_image_original_source_field,user_image_url,scraped_image_url,image_source_url,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,image_url,updated_at,created_at')
+    .select('activity_id,category,admin_cover_image_url,reviewed_image_url,use_category_image,user_image_url,model_selected_url,audit_image_url,audit_image_source_url,audit_image_status,audit_image_original_url,audit_image_original_source_field,scraped_image_url,image_source_url,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,image_url,updated_at,created_at')
     .eq('archive', false)
     .in('activity_id', activityIds)
   if (error || !data?.length) return { activity_id: replacement.activity_id, status: 'replacement-failed', reason: error?.message || 'Activity group was not found.' }

@@ -3,13 +3,12 @@ import { allowsWikimediaImages, isWikimediaUrl } from './wikimediaImagePolicy.js
 
 // Keep this order aligned with the admin and community image controls. The
 // first usable image is the cover shown everywhere a listing appears.
-const activityImageFields = [
+export const activityImageFields = [
   'admin_cover_image_url',
   'reviewed_image_url',
-  'model_selected_url',
   'user_image_url',
-  'audit_image_url',
   'user_uploaded_image_url',
+  'model_selected_url',
   'organiser_website_downloaded_image',
   'website_downloaded_image',
   'wikimedia_image_url',
@@ -30,20 +29,38 @@ function isUsablePhotoUrl(url) {
 }
 
 function isAllowedActivityPhoto(activity, field, url) {
-  if (field === 'audit_image_url' && activity?.audit_image_status !== 'replaced') return false;
   if (allowsWikimediaImages(activity)) return true;
   if (field === 'wikimedia_image_url' || isWikimediaUrl(url)) return false;
-  if (field === 'audit_image_url') return !isWikimediaUrl(activity?.audit_image_source_url);
   return true;
 }
 
-function candidateImage(activity) {
+export function activityFallbackImage(activity) {
+  const category = String(activity?.category || '').toLowerCase();
+  return category.includes('park')
+    ? '/images/park-placeholder.svg'
+    : category.includes('book')
+      ? '/images/bookshop-placeholder.svg'
+      : category.includes('caf')
+        ? '/images/family-cafe-placeholder.svg'
+        : '/images/family-outing-placeholder.svg';
+}
+
+function imageCandidates(activity) {
+  const candidates = [];
   for (let priority = 0; priority < activityImageFields.length; priority += 1) {
     const field = activityImageFields[priority];
+    if (field === 'reviewed_image_url' && activity?.use_category_image) {
+      candidates.push({ field: 'category_placeholder', priority, url: activityFallbackImage(activity) });
+      continue;
+    }
     const url = securePhotoUrl(activity?.[field]);
-    if (isUsablePhotoUrl(url) && isAllowedActivityPhoto(activity, field, url)) return { field, priority, url };
+    if (isUsablePhotoUrl(url) && isAllowedActivityPhoto(activity, field, url)) candidates.push({ field, priority, url });
   }
-  return null;
+  return candidates;
+}
+
+function candidateImage(activity) {
+  return imageCandidates(activity)[0] || null;
 }
 
 function isPreferredImage(candidate, current) {
@@ -58,10 +75,7 @@ function isPreferredImage(candidate, current) {
 }
 
 export function activityImageUrls(activity) {
-  return activityImageFields
-    .map((field) => ({ field, url: securePhotoUrl(activity?.[field]) }))
-    .filter(({ field, url }) => isUsablePhotoUrl(url) && isAllowedActivityPhoto(activity, field, url))
-    .map(({ url }) => url);
+  return imageCandidates(activity).map(({ url }) => url);
 }
 
 export function hasActivityImage(activity) {

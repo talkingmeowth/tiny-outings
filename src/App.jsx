@@ -10,7 +10,7 @@ import 'leaflet/dist/leaflet.css';
 import { supabase } from './supabaseClient';
 import { googleSignInErrorMessage, signInWithNativeGoogle } from './googleAuth';
 import { comparisonTokens, dedupePublishedActivities, findLikelyDuplicate } from './activityDuplicates';
-import { activityImageUrls, hasActivityImage, securePhotoUrl, shareListingImages } from './activityImages';
+import { activityFallbackImage, activityImageUrls, hasActivityImage, securePhotoUrl, shareListingImages } from './activityImages';
 import { activityCoordinates, resolveActivityCoordinates } from './activityLocation';
 import { profileQrUrl, profileShareData } from './profileSharing';
 import { activityIdBatches } from './reviewQueue';
@@ -62,7 +62,7 @@ const activitySelectColumns = [
   'cost',
   'admin_cover_image_url',
   'reviewed_image_url',
-  'model_selected_url',
+  'use_category_image',
   'reviewed_image_source_url',
   'reviewed_image_original_url',
   'reviewed_image_selected_at',
@@ -72,6 +72,7 @@ const activitySelectColumns = [
   'audit_image_status',
   'scraped_image_url',
   'user_image_url',
+  'model_selected_url',
   'organiser_website_downloaded_image',
   'website_downloaded_image',
   'wikimedia_image_url',
@@ -423,6 +424,7 @@ function normalizeActivity(activity) {
     cost,
     admin_cover_image_url: activity.admin_cover_image_url || null,
     reviewed_image_url: activity.reviewed_image_url || null,
+    use_category_image: Boolean(activity.use_category_image),
     model_selected_url: activity.model_selected_url || null,
     reviewed_image_source_url: activity.reviewed_image_source_url || null,
     reviewed_image_original_url: activity.reviewed_image_original_url || null,
@@ -844,17 +846,6 @@ function googlePlaceIdUrl(activity) {
 function originalGooglePlacesUrl(activity) {
   return [activity.google_place_uri, activity.google_link]
     .find((url) => isGooglePlacesUrl(url) && !isCoordinateGoogleMapsUrl(url)) || null;
-}
-
-function activityFallbackImage(activity) {
-  const category = String(activity.category || '').toLowerCase();
-  return category.includes('park')
-    ? '/images/park-placeholder.svg'
-    : category.includes('book')
-      ? '/images/bookshop-placeholder.svg'
-      : category.includes('cafe')
-        ? '/images/family-cafe-placeholder.svg'
-        : '/images/family-outing-placeholder.svg';
 }
 
 function hasActivityCardImage(activity) {
