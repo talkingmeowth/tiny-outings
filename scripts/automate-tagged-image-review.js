@@ -228,7 +228,7 @@ async function applyPendingImages(maximumPasses = 3) {
       if (!rows.length) break;
       passProcessed += rows.length;
       applied += rows.filter((row) => ['auto-applied', 'already-applied'].includes(row.status)).length;
-      preserved += rows.filter((row) => ['preserved-existing-review', 'archived'].includes(row.status)).length;
+      preserved += rows.filter((row) => ['preserved-existing-review', 'preserved-existing-model-selection', 'archived'].includes(row.status)).length;
       failed += rows.filter((row) => row.status === 'failed').length;
       remaining = Number(payload.remaining_count) || 0;
       console.log(`Automatic image application pass ${pass}: ${passProcessed} processed, ${remaining} ready in this pass (${applied} applied, ${preserved} preserved, ${failed} failed attempts total).`);

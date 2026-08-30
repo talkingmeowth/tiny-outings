@@ -37,7 +37,7 @@ const activityColumns = [
   'activity_id', 'activity_name', 'address', 'postcode', 'borough', 'category', 'age_suitability',
   'description', 'card_summary', 'website', 'organiser_website', 'source_url', 'source_name', 'image_source_url',
   'google_place_uri', 'google_link', 'public_listing_status', 'archive', 'audit_image_status',
-  'admin_cover_image_url', 'reviewed_image_url', 'reviewed_image_source_url', 'reviewed_image_original_url',
+  'admin_cover_image_url', 'reviewed_image_url', 'model_selected_url', 'reviewed_image_source_url', 'reviewed_image_original_url',
   'reviewed_image_selected_at', 'reviewed_image_model', 'user_image_url', 'audit_image_url', 'audit_image_source_url',
   'organiser_website_downloaded_image', 'website_downloaded_image', 'wikimedia_image_url', 'website_image_url',
   'listing_image_url', 'codex_image_search_query', 'codex_image_searched_at',
@@ -549,9 +549,10 @@ function App() {
     if (isDemo) {
       setActivities((current) => current.map((activity) => activity.activity_id === selectedActivity.activity_id ? {
         ...activity,
-        reviewed_image_url: candidate.image_url,
-        reviewed_image_source_url: candidate.source_page_url || candidate.image_url,
-        reviewed_image_original_url: candidate.image_url,
+        reviewed_image_url: selectedCategoryIllustration ? null : candidate.image_url,
+        model_selected_url: pendingAutomatedReview || !selectedCategoryIllustration ? null : activity.model_selected_url,
+        reviewed_image_source_url: selectedCategoryIllustration ? null : candidate.source_page_url || candidate.image_url,
+        reviewed_image_original_url: selectedCategoryIllustration ? null : candidate.image_url,
         automated_image_review: null,
       } : activity));
       setSelectedCandidate(null);
@@ -576,18 +577,19 @@ function App() {
     } else {
       setActivities((current) => current.map((activity) => activity.activity_id === activityId ? {
         ...activity,
-        reviewed_image_url: response.data.reviewedImageUrl,
-        reviewed_image_source_url: response.data.sourceUrl,
-        reviewed_image_original_url: response.data.candidate?.image_url,
-        reviewed_image_selected_at: response.data.selectedAt,
-        reviewed_image_model: response.data.model,
+        reviewed_image_url: response.data.reviewedImageUrl || null,
+        model_selected_url: response.data.clearedModelSelection ? null : activity.model_selected_url,
+        reviewed_image_source_url: response.data.reviewedImageUrl ? response.data.sourceUrl : null,
+        reviewed_image_original_url: response.data.reviewedImageUrl ? response.data.candidate?.image_url : null,
+        reviewed_image_selected_at: response.data.reviewedImageUrl ? response.data.selectedAt : null,
+        reviewed_image_model: response.data.reviewedImageUrl ? response.data.model : null,
         automated_image_review: response.data.automatedReview ? null : activity.automated_image_review,
       } : activity));
       setSelectedCandidate(null);
       setNotice(selectedCategoryIllustration
         ? pendingAutomatedReview
-          ? 'Illustrated category image applied; the model proposal was logged as corrected.'
-          : 'Illustrated category image stored and applied to the listing.'
+          ? 'The reviewed and model images were cleared; the model proposal was logged as corrected and the normal image hierarchy now applies.'
+          : 'The reviewed image was cleared. The normal image hierarchy now applies, ending with category artwork only when no other image exists.'
         : pendingAutomatedReview
         ? acceptedModelChoice
           ? 'Automated choice approved, downloaded, and applied to the listing.'

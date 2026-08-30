@@ -10,6 +10,8 @@ const outputPath = join(root, 'data', 'activity_image_coverage.generated.json');
 const linkedDatabase = process.argv.includes('--linked-database');
 const imageFields = [
   'admin_cover_image_url',
+  'reviewed_image_url',
+  'model_selected_url',
   'user_image_url',
   'audit_image_url',
   'organiser_website_downloaded_image',

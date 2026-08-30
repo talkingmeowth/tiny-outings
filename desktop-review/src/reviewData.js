@@ -1,11 +1,12 @@
 import { activityImageGroupKey } from '../../src/activityDuplicates.js';
 import { allowsWikimediaImages, isWikimediaUrl } from '../../src/wikimediaImagePolicy.js';
 
-// The desktop reviewer owns this hierarchy. Keeping it here prevents the
-// standalone review tool from changing the mobile application's card logic.
+// Keep this order aligned with src/activityImages.js so the desktop reviewer
+// always shows the same card image and source as the main application.
 const activityImageFields = [
   'admin_cover_image_url',
   'reviewed_image_url',
+  'model_selected_url',
   'user_image_url',
   'audit_image_url',
   'user_uploaded_image_url',
@@ -78,7 +79,8 @@ export const QUEUES = [
 
 export const IMAGE_SOURCE_LABELS = {
   admin_cover_image_url: 'Admin cover',
-  reviewed_image_url: 'Desktop review',
+  reviewed_image_url: 'Manual desktop review',
+  model_selected_url: 'Model selected',
   user_image_url: 'Admin image URL',
   audit_image_url: 'Audit replacement',
   user_uploaded_image_url: 'User upload',
@@ -165,6 +167,7 @@ export function currentImage(activity) {
   const field = activity.shared_card_image_source || ownImage?.field || '';
   let sourceUrl = url;
   if (field === 'reviewed_image_url') sourceUrl = activity.reviewed_image_source_url || activity.reviewed_image_original_url || url;
+  if (field === 'model_selected_url') sourceUrl = activity.automated_image_review?.candidate?.source_page_url || activity.automated_image_review?.candidate?.image_url || url;
   if (field === 'audit_image_url') sourceUrl = activity.audit_image_source_url || url;
   if (['organiser_website_downloaded_image', 'website_downloaded_image', 'website_image_url', 'listing_image_url'].includes(field)) {
     sourceUrl = activity.image_source_url || activity.organiser_website || activity.website || activity.source_url || url;
@@ -177,7 +180,9 @@ export function prepareActivities(activities) {
 }
 
 export function isUnsuitable(activity) {
-  return ['needs_replacement', 'no_replacement'].includes(activity.audit_image_status) && !clean(activity.reviewed_image_url);
+  return ['needs_replacement', 'no_replacement'].includes(activity.audit_image_status)
+    && !clean(activity.reviewed_image_url)
+    && !clean(activity.model_selected_url);
 }
 
 export function isImageReviewIgnored(activity) {

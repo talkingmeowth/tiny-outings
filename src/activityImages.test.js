@@ -75,6 +75,7 @@ test('uses the requested card-image hierarchy exactly', () => {
     audit_image_status: 'replaced',
     admin_cover_image_url: 'https://images.example.test/admin.jpg',
     reviewed_image_url: 'https://images.example.test/reviewed.jpg',
+    model_selected_url: 'https://images.example.test/model.jpg',
     user_image_url: 'https://images.example.test/admin-url.jpg',
     audit_image_url: 'https://images.example.test/audited.jpg',
     user_uploaded_image_url: 'https://images.example.test/community.jpg',
@@ -88,6 +89,7 @@ test('uses the requested card-image hierarchy exactly', () => {
   assert.deepEqual(activityImageUrls(item), [
     'https://images.example.test/admin.jpg',
     'https://images.example.test/reviewed.jpg',
+    'https://images.example.test/model.jpg',
     'https://images.example.test/admin-url.jpg',
     'https://images.example.test/audited.jpg',
     'https://images.example.test/community.jpg',
@@ -116,6 +118,19 @@ test('uses a desktop-reviewed image below an admin cover and above other sources
   ]);
   assert.equal(shareListingImages([reviewed])[0].shared_card_image_source, 'reviewed_image_url');
   assert.equal(shareListingImages([{ ...reviewed, admin_cover_image_url: 'https://images.example.test/admin.jpg' }])[0].shared_card_image_source, 'admin_cover_image_url');
+});
+
+test('keeps model selections distinct and below manually reviewed images', () => {
+  const modelSelected = activity({
+    model_selected_url: 'https://images.example.test/model.jpg',
+    user_image_url: 'https://images.example.test/admin-url.jpg',
+  });
+  assert.deepEqual(activityImageUrls(modelSelected), [
+    'https://images.example.test/model.jpg',
+    'https://images.example.test/admin-url.jpg',
+  ]);
+  assert.equal(shareListingImages([modelSelected])[0].shared_card_image_source, 'model_selected_url');
+  assert.equal(shareListingImages([{ ...modelSelected, reviewed_image_url: 'https://images.example.test/manual.jpg' }])[0].shared_card_image_source, 'reviewed_image_url');
 });
 
 test('keeps an original hierarchy source visible when its audit needs replacement', () => {

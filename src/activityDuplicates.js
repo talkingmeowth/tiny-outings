@@ -107,6 +107,7 @@ function activityCompleteness(activity) {
     'google_place_id',
     'admin_cover_image_url',
     'reviewed_image_url',
+    'model_selected_url',
     'user_image_url',
     'user_uploaded_image_url',
     'scraped_image_url',

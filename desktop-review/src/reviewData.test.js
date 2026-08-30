@@ -95,11 +95,23 @@ test('archived listings do not appear in any image-review queue', () => {
 test('pending and auto-applied model proposals remain in automated review', () => {
   const activities = [
     listing({ activity_id: 'pending', automated_image_review: { status: 'pending', candidate_index: 1 } }),
-    listing({ activity_id: 'auto-applied', reviewed_image_url: 'https://reviewed.test/model.jpg', automated_image_review: { status: 'auto_applied', candidate_index: 2 } }),
+    listing({ activity_id: 'auto-applied', model_selected_url: 'https://reviewed.test/model.jpg', automated_image_review: { status: 'auto_applied', candidate_index: 2 } }),
     listing({ activity_id: 'approved', automated_image_review: { status: 'approved', candidate_index: 0 } }),
     listing({ activity_id: 'none' }),
   ];
   assert.deepEqual(activitiesForQueue(activities, 'automated_review').map((activity) => activity.activity_id), ['pending', 'auto-applied']);
+});
+
+test('model-selected images provide coverage while remaining distinct from manual review', () => {
+  const modelSelected = listing({
+    activity_id: 'model-selected',
+    audit_image_status: 'needs_replacement',
+    model_selected_url: 'https://storage.test/model.jpg',
+    automated_image_review: { status: 'auto_applied', candidate_index: 1 },
+  });
+  assert.equal(activitiesForQueue([modelSelected], 'missing_published').length, 0);
+  assert.equal(activitiesForQueue([modelSelected], 'unsuitable_audit').length, 0);
+  assert.deepEqual(activitiesForQueue([modelSelected], 'automated_review').map((activity) => activity.activity_id), ['model-selected']);
 });
 
 test('interleaves and deduplicates candidate preload targets across active queues', () => {
@@ -199,9 +211,28 @@ test('manual desktop review sits below admin cover and above user image', () => 
   assert.deepEqual(currentImage(reviewed), {
     url: 'https://storage.test/reviewed.jpg',
     field: 'reviewed_image_url',
-    label: 'Desktop review',
+    label: 'Manual desktop review',
     sourceUrl: 'https://venue.test/gallery',
     sourceDomain: 'venue.test',
   });
   assert.equal(currentImage({ ...reviewed, admin_cover_image_url: 'https://storage.test/admin.jpg' }).field, 'admin_cover_image_url');
+});
+
+test('shows model-selected images below manual review and with a distinct source label', () => {
+  const modelSelected = listing({
+    model_selected_url: 'https://storage.test/model.jpg',
+    user_image_url: 'https://storage.test/admin-url.jpg',
+    automated_image_review: {
+      status: 'auto_applied',
+      candidate: { source_page_url: 'https://venue.test/model-source' },
+    },
+  });
+  assert.deepEqual(currentImage(modelSelected), {
+    url: 'https://storage.test/model.jpg',
+    field: 'model_selected_url',
+    label: 'Model selected',
+    sourceUrl: 'https://venue.test/model-source',
+    sourceDomain: 'venue.test',
+  });
+  assert.equal(currentImage({ ...modelSelected, reviewed_image_url: 'https://storage.test/manual.jpg' }).field, 'reviewed_image_url');
 });

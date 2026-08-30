@@ -72,6 +72,7 @@ function isMissingPublished(activity: Record<string, unknown>) {
   return ![
     activity.admin_cover_image_url,
     activity.reviewed_image_url,
+    activity.model_selected_url,
     activity.user_image_url,
     activity.audit_image_status === 'replaced' ? activity.audit_image_url : null,
     activity.organiser_website_downloaded_image,
@@ -85,6 +86,7 @@ function isMissingPublished(activity: Record<string, unknown>) {
 function isUnsuitable(activity: Record<string, unknown>) {
   return ['needs_replacement', 'no_replacement'].includes(clean(activity.audit_image_status))
     && !hasImage(activity.reviewed_image_url)
+    && !hasImage(activity.model_selected_url)
 }
 
 function targetQueue(activity: Record<string, unknown>) {
@@ -211,7 +213,7 @@ async function trainingData(
   const activityById = new Map((activities || []).map((activity) => [activity.activity_id, activity]))
   return {
     rows: (reviews || []).map((review) => ({ ...review, activity: activityById.get(review.activity_id) || null }))
-      .filter((review) => review.activity),
+      .filter((review) => review.activity && review.candidate?.selection_kind !== 'category_illustration'),
     next_offset: (reviews || []).length === pageSize ? offset + pageSize : null,
   }
 }
@@ -223,12 +225,12 @@ async function targetData(
   scope: 'targeted' | 'all_unreviewed' | 'failed_applications',
 ) {
   let query = supabase.from('activities')
-    .select('activity_id,activity_name,address,postcode,borough,category,website,organiser_website,source_url,public_listing_status,archive,audit_image_status,image_review_ignored_at,admin_cover_image_url,reviewed_image_url,user_image_url,audit_image_url,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,serpapi_image_candidates,serpapi_image_search_query,serpapi_image_candidates_fetched_at,website_image_candidates,website_image_candidates_fetched_at')
+    .select('activity_id,activity_name,address,postcode,borough,category,website,organiser_website,source_url,public_listing_status,archive,audit_image_status,image_review_ignored_at,admin_cover_image_url,reviewed_image_url,model_selected_url,user_image_url,audit_image_url,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,serpapi_image_candidates,serpapi_image_search_query,serpapi_image_candidates_fetched_at,website_image_candidates,website_image_candidates_fetched_at')
     .eq('archive', false)
     .in('public_listing_status', ['draft', 'published'])
     .order('activity_id', { ascending: true })
     .range(offset, offset + pageSize - 1)
-  if (scope === 'targeted') query = query.is('image_review_ignored_at', null).is('reviewed_image_url', null)
+  if (scope === 'targeted') query = query.is('image_review_ignored_at', null).is('reviewed_image_url', null).is('model_selected_url', null)
   const { data, error } = await query
   if (error) throw new Error(error.message)
   const activityIds = (data || []).map((activity) => activity.activity_id)
@@ -416,43 +418,50 @@ async function applyProposal(
     return { activity_id: proposal.activity_id, status: selectedSameCandidate ? 'already-applied' : 'preserved-existing-review' }
   }
 
+  const currentModelImage = clean(activity.model_selected_url)
+  if (currentModelImage) {
+    await updateAutomatedReview(supabase, automatedReviewId, {
+      status: 'superseded',
+      reviewed_at: attemptedAt,
+      reviewed_candidate_index: null,
+      reviewed_image_url: currentModelImage,
+      apply_attempted_at: attemptedAt,
+      apply_failure_reason: null,
+    })
+    return { activity_id: proposal.activity_id, status: 'preserved-existing-model-selection' }
+  }
+
   const downloaded = await downloadCandidate(candidate)
   const selectedAt = new Date().toISOString()
-  const path = `reviewed/automated/${proposal.activity_id}/${automatedReviewId}.${extensionFor(downloaded.contentType)}`
+  const path = `model-selected/automated/${proposal.activity_id}/${automatedReviewId}.${extensionFor(downloaded.contentType)}`
   const upload = await supabase.storage.from('activity-images').upload(path, downloaded.bytes, {
     contentType: downloaded.contentType,
     cacheControl: '31536000',
     upsert: true,
   })
   if (upload.error) throw new Error(upload.error.message)
-  const reviewedImageUrl = supabase.storage.from('activity-images').getPublicUrl(path).data.publicUrl
-  const sourceUrl = clean(candidate.source_page_url) || clean(candidate.image_url)
-  const model = `${clean(proposal.model_name)} ${clean(proposal.model_version)} auto-applied`
+  const modelSelectedUrl = supabase.storage.from('activity-images').getPublicUrl(path).data.publicUrl
   const { data: updatedActivity, error: activityError } = await supabase.from('activities').update({
-    reviewed_image_url: reviewedImageUrl,
-    reviewed_image_source_url: sourceUrl,
-    reviewed_image_original_url: clean(candidate.image_url),
-    reviewed_image_selected_at: selectedAt,
-    reviewed_image_model: model,
-    reviewed_image_selected_by_user_id: null,
+    model_selected_url: modelSelectedUrl,
     updated_at: selectedAt,
   }).eq('activity_id', proposal.activity_id)
     .is('reviewed_image_url', null)
+    .is('model_selected_url', null)
     .select('activity_id')
     .maybeSingle()
   if (activityError) throw new Error(activityError.message)
-  if (!updatedActivity) throw new Error('A human image review was saved before the automatic update could be applied.')
+  if (!updatedActivity) throw new Error('A human or model image choice was saved before this automatic update could be applied.')
   await updateAutomatedReview(supabase, automatedReviewId, {
     status: 'auto_applied',
     auto_applied_at: selectedAt,
-    auto_applied_image_url: reviewedImageUrl,
+    auto_applied_image_url: modelSelectedUrl,
     apply_attempted_at: attemptedAt,
     apply_failure_reason: null,
   })
   return {
     activity_id: proposal.activity_id,
     status: 'auto-applied',
-    reviewed_image_url: reviewedImageUrl,
+    model_selected_url: modelSelectedUrl,
     width: downloaded.dimensions.width,
     height: downloaded.dimensions.height,
   }
@@ -472,7 +481,7 @@ async function applyPendingProposals(
   const activityIds = (proposals || []).map((proposal) => proposal.activity_id)
   const { data: activities, error: activityError } = activityIds.length
     ? await supabase.from('activities')
-      .select('activity_id,archive,image_review_ignored_at,admin_cover_image_url,user_image_url,reviewed_image_url,reviewed_image_original_url')
+      .select('activity_id,archive,image_review_ignored_at,admin_cover_image_url,user_image_url,reviewed_image_url,reviewed_image_original_url,model_selected_url')
       .in('activity_id', activityIds)
     : { data: [], error: null }
   if (activityError) throw new Error(activityError.message)
