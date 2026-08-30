@@ -93,6 +93,11 @@ export const IMAGE_SOURCE_LABELS = {
   scraped_image_url: 'Legacy scraped image',
 };
 
+export const DISPLAY_IMAGE_SOURCE_ORDER = [
+  ...activityImageFields,
+  'category_placeholder',
+];
+
 export const STORED_CANDIDATE_FIELDS = [
   ...activityImageFields,
   'audit_image_url',
@@ -196,6 +201,21 @@ export function currentImage(activity) {
     sourceUrl = activity.image_source_url || activity.organiser_website || activity.website || activity.source_url || url;
   }
   return { url, field, label: IMAGE_SOURCE_LABELS[field] || 'No image', sourceUrl, sourceDomain: domain(sourceUrl) };
+}
+
+export function displayedImageSource(activity) {
+  return currentImage(activity).field || 'category_placeholder';
+}
+
+export function imageSourceOptions(activities) {
+  const counts = new Map(DISPLAY_IMAGE_SOURCE_ORDER.map((field) => [field, 0]));
+  for (const activity of activities || []) {
+    const field = displayedImageSource(activity);
+    counts.set(field, (counts.get(field) || 0) + 1);
+  }
+  return DISPLAY_IMAGE_SOURCE_ORDER
+    .filter((field) => counts.get(field) > 0)
+    .map((field) => ({ field, label: IMAGE_SOURCE_LABELS[field] || field, count: counts.get(field) }));
 }
 
 function storedCandidateSourceUrl(activity, field, imageUrl) {

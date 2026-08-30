@@ -13,8 +13,10 @@ import {
   bestLocation,
   clean,
   currentImage,
+  displayedImageSource,
   domain,
   googlePlacesUrl,
+  imageSourceOptions,
   listingSearchText,
   openListingUrl,
   prepareActivities,
@@ -258,6 +260,7 @@ function App() {
   const [selectedId, setSelectedId] = useState(isDemo ? demoActivities[0].activity_id : '');
   const [filter, setFilter] = useState('');
   const deferredFilter = useDeferredValue(filter);
+  const [imageSourceFilter, setImageSourceFilter] = useState('all');
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [zoomedCandidate, setZoomedCandidate] = useState(null);
   const [candidateRequest, setCandidateRequest] = useState(null);
@@ -319,6 +322,7 @@ function App() {
 
   const preparedActivities = useMemo(() => prepareActivities(activities), [activities]);
   const counts = useMemo(() => queueCountsFromPrepared(preparedActivities), [preparedActivities]);
+  const sourceFilterOptions = useMemo(() => imageSourceOptions(preparedActivities), [preparedActivities]);
   const preloadStartIds = useMemo(() => ({ [activeQueue]: selectedId }), [activeQueue, selectedId]);
   const preloadTargets = useMemo(
     () => activitiesToPreload(preparedActivities, PRELOAD_QUEUE_IDS, PRELOAD_PER_QUEUE, preloadStartIds),
@@ -331,11 +335,14 @@ function App() {
   );
   preloadTargetsRef.current = preloadTargets;
   const queueActivities = useMemo(() => {
-    const queue = preparedActivitiesForQueue(preparedActivities, activeQueue);
+    let queue = preparedActivitiesForQueue(preparedActivities, activeQueue);
+    if (activeQueue === 'all_activities' && imageSourceFilter !== 'all') {
+      queue = queue.filter((activity) => displayedImageSource(activity) === imageSourceFilter);
+    }
     const needle = deferredFilter.toLowerCase().trim();
     if (!needle) return queue;
     return queue.filter((activity) => listingSearchText(activity).includes(needle));
-  }, [preparedActivities, activeQueue, deferredFilter]);
+  }, [preparedActivities, activeQueue, deferredFilter, imageSourceFilter]);
 
   useEffect(() => {
     if (!queueActivities.length) {
@@ -619,7 +626,7 @@ function App() {
     setBusy('');
   }
 
-  async function useNextHierarchyImage() {
+  async function doNotUseModelImage() {
     if (!selectedActivity || activeImage?.field !== 'model_selected_url') return;
     const activityId = selectedActivity.activity_id;
     const selectedGroupKey = activityImageGroupKey(selectedActivity);
@@ -633,7 +640,7 @@ function App() {
         ? { ...activity, model_selected_url: null, automated_image_review: null }
         : activity));
       setBusy('');
-      setNotice('The model image was removed. The next available hierarchy image is now displayed.');
+      setNotice('model_selected_url was cleared. The next available hierarchy image is now displayed.');
       return;
     }
     const response = await invokeFunctionWithRetry(() => supabase.functions.invoke('image-review-admin', {
@@ -645,7 +652,7 @@ function App() {
       },
     }));
     if (response.error || response.data?.error) {
-      setNotice(`Could not use the next hierarchy image: ${await edgeFunctionErrorMessage(response, 'Image hierarchy update failed.')}`);
+      setNotice(`Could not clear model_selected_url: ${await edgeFunctionErrorMessage(response, 'Image hierarchy update failed.')}`);
     } else {
       const updatedActivity = {
         ...selectedActivity,
@@ -660,8 +667,8 @@ function App() {
         : activity));
       setSelectedCandidate(null);
       setNotice(nextImage.url
-        ? `The model image was removed. ${nextImage.field} is now displayed.`
-        : 'The model image was removed. This listing now uses its normal category placeholder.');
+        ? `model_selected_url was cleared. ${nextImage.field} is now displayed.`
+        : 'model_selected_url was cleared. This listing now uses its normal category placeholder.');
     }
     setBusy('');
   }
@@ -812,6 +819,19 @@ function App() {
             <span>Search listings</span>
             <input value={filter} onChange={(event) => setFilter(event.target.value)} placeholder="Name, provider, area or category" />
           </label>
+          {activeQueue === 'all_activities' ? (
+            <label className="source-filter">
+              <span>Filter by displayed image source</span>
+              <select value={imageSourceFilter} onChange={(event) => setImageSourceFilter(event.target.value)}>
+                <option value="all">All image sources ({compactNumber(preparedActivities.length)})</option>
+                {sourceFilterOptions.map((option) => (
+                  <option value={option.field} key={option.field}>
+                    {option.field} — {option.label} ({compactNumber(option.count)})
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
           <div className="listing-list">
             {loading ? <p className="empty-state">Loading listings…</p> : null}
             {!loading && !queueActivities.length ? <p className="empty-state">No listings in this queue.</p> : null}
@@ -905,9 +925,12 @@ function App() {
                   {activeImage.sourceUrl ? <a href={activeImage.sourceUrl} target="_blank" rel="noreferrer">{activeImage.sourceDomain || activeImage.sourceUrl} ↗</a> : <span>No source URL stored</span>}
                 </div>
                 {activeQueue === 'model_selected' && activeImage.field === 'model_selected_url' ? (
-                  <button className="next-image-button" type="button" disabled={busy === 'next-image'} onClick={useNextHierarchyImage}>
-                    {busy === 'next-image' ? 'Updating…' : 'Show next image in hierarchy'}
-                  </button>
+                  <div className="reject-model-action">
+                    <button className="next-image-button" type="button" disabled={busy === 'next-image'} onClick={doNotUseModelImage}>
+                      {busy === 'next-image' ? 'Removing model image…' : 'Do not use model'}
+                    </button>
+                    <p>Clears model_selected_url and displays the next available image in the hierarchy.</p>
+                  </div>
                 ) : null}
               </section>
 

@@ -4,7 +4,9 @@ import {
   activitiesForQueue,
   activitiesToPreload,
   currentImage,
+  displayedImageSource,
   googlePlacesUrl,
+  imageSourceOptions,
   prepareActivities,
   preparedActivitiesForQueue,
   preloadReadinessByQueue,
@@ -246,6 +248,22 @@ test('shows an explicitly selected category illustration at the reviewed-image p
   assert.equal(image.label, 'Illustrated category image');
   assert.match(image.url, /images\/park-placeholder\.svg$/);
   assert.equal(currentImage({ ...categoryChoice, admin_cover_image_url: 'https://storage.test/admin.jpg' }).field, 'admin_cover_image_url');
+});
+
+test('builds ordered displayed-image source options and counts category placeholders', () => {
+  const activities = prepareActivities([
+    listing({ activity_id: 'reviewed', address: 'Leyton, London E10', reviewed_image_url: 'https://storage.test/manual.jpg' }),
+    listing({ activity_id: 'model', address: 'Hackney, London E8', model_selected_url: 'https://storage.test/model.jpg' }),
+    listing({ activity_id: 'missing', address: 'Camden, London NW1' }),
+    listing({ activity_id: 'category', address: 'Islington, London N1', use_category_image: true }),
+  ]);
+
+  assert.equal(displayedImageSource(activities[2]), 'category_placeholder');
+  assert.deepEqual(imageSourceOptions(activities), [
+    { field: 'reviewed_image_url', label: 'Manual desktop review', count: 1 },
+    { field: 'model_selected_url', label: 'Model selected', count: 1 },
+    { field: 'category_placeholder', label: 'Illustrated category image', count: 2 },
+  ]);
 });
 
 test('adds labelled candidates from populated hierarchy and legacy source fields', () => {
