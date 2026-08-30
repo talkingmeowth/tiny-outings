@@ -74,7 +74,7 @@ export const QUEUES = [
   { id: 'model_selected', label: 'Model selected', description: 'Listings currently displaying an automatically selected model image.' },
   { id: 'all_published', label: 'All published', description: 'Every live listing, with or without an image.' },
   { id: 'all_draft', label: 'All draft', description: 'Every unpublished listing, with or without an image.' },
-  { id: 'missing_images', label: 'Missing images', description: 'Published and draft listings with no usable image in the hierarchy.' },
+  { id: 'missing_images', label: 'Missing images', description: 'Listings with no activity photo. Category artwork remains displayed but counts as missing.' },
 ];
 
 export const IMAGE_SOURCE_LABELS = {
@@ -279,7 +279,10 @@ export function activitiesForQueue(activities, queueId) {
 export function preparedActivitiesForQueue(prepared, queueId) {
   if (queueId === 'all_activities') return prepared;
   if (queueId === 'model_selected') return prepared.filter((activity) => currentImage(activity).field === 'model_selected_url');
-  if (queueId === 'missing_images') return prepared.filter((activity) => !currentImage(activity).url);
+  if (queueId === 'missing_images') return prepared.filter((activity) => {
+    const image = currentImage(activity);
+    return !image.url || image.field === 'category_placeholder';
+  });
   if (queueId === 'all_draft') return prepared.filter((activity) => activity.public_listing_status === 'draft');
   return prepared.filter((activity) => activity.public_listing_status === 'published');
 }

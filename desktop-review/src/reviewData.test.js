@@ -250,6 +250,22 @@ test('shows an explicitly selected category illustration at the reviewed-image p
   assert.equal(currentImage({ ...categoryChoice, admin_cover_image_url: 'https://storage.test/admin.jpg' }).field, 'admin_cover_image_url');
 });
 
+test('keeps category artwork displayed while returning the listing to the missing queue', () => {
+  const categoryChoice = listing({
+    activity_id: 'category-choice',
+    category: 'Cafes & food',
+    use_category_image: true,
+    model_selected_url: 'https://storage.test/model.jpg',
+  });
+
+  assert.equal(currentImage(categoryChoice).field, 'category_placeholder');
+  assert.match(currentImage(categoryChoice).url, /images\/family-cafe-placeholder\.svg$/);
+  assert.deepEqual(
+    activitiesForQueue([categoryChoice], 'missing_images').map((activity) => activity.activity_id),
+    ['category-choice'],
+  );
+});
+
 test('builds ordered displayed-image source options and counts category placeholders', () => {
   const activities = prepareActivities([
     listing({ activity_id: 'reviewed', address: 'Leyton, London E10', reviewed_image_url: 'https://storage.test/manual.jpg' }),
