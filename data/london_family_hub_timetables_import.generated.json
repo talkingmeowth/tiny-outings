@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-30T18:13:44.158Z",
+  "generated_at": "2026-08-30T18:18:57.085Z",
   "sessions": 157,
   "centres_covered": [
     "CR41SD",
@@ -219,7 +219,8 @@
   "validation_failures": [],
   "policy": {
     "generic_cards_archived_only_after_replacement_exists": true,
-    "published_generic_cards_retained_until_replacement_published": true,
+    "replacements_inherit_generic_publication_status": true,
+    "verified_published_and_draft_generic_cards_are_replaced": true,
     "waltham_forest_uses_dedicated_live_event_importer": true,
     "excluded": "opening hours, generic advice, administrative support, appointment clinics and other non-activity services"
   }
