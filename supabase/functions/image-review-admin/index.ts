@@ -618,6 +618,13 @@ async function storeCategoryIllustration(
 }
 
 async function publishDraft(supabase: ReturnType<typeof createClient>, activity: Activity, userId: string) {
+  if (activity.public_listing_status === 'published' && !activity.archive) {
+    return {
+      activity_id: activity.activity_id,
+      public_listing_status: 'published',
+      archive: false,
+    }
+  }
   if (activity.public_listing_status !== 'draft') throw new Error('Only draft listings can be published from this queue.')
   const publishedAt = new Date().toISOString()
   const { data, error } = await supabase.from('activities').update({

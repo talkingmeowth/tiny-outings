@@ -685,9 +685,9 @@ function App() {
       setNotice('Demo listing published.');
       return;
     }
-    const response = await supabase.functions.invoke('image-review-admin', {
+    const response = await invokeFunctionWithRetry(() => supabase.functions.invoke('image-review-admin', {
       body: { action: 'publish', activity_id: selectedActivity.activity_id },
-    });
+    }));
     if (response.error || response.data?.error) {
       setNotice(`Could not publish this listing: ${await edgeFunctionErrorMessage(response, 'Publishing failed.')}`);
     } else {
