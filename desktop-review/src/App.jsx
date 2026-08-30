@@ -699,34 +699,6 @@ function App() {
     setBusy('');
   }
 
-  async function setIgnored(ignored) {
-    if (!selectedActivity) return;
-    const activityId = selectedActivity.activity_id;
-    setBusy('ignore');
-    setNotice('');
-    if (isDemo) {
-      const ignoredAt = ignored ? new Date().toISOString() : null;
-      setActivities((current) => current.map((activity) => activity.activity_id === activityId
-        ? { ...activity, image_review_ignored_at: ignoredAt, image_review_ignored_by_user_id: ignored ? 'demo' : null }
-        : activity));
-      setBusy('');
-      setNotice(ignored ? 'Listing moved to Ignored.' : 'Listing returned to the active review queues.');
-      return;
-    }
-    const response = await supabase.functions.invoke('image-review-admin', {
-      body: { action: 'ignore', activity_id: activityId, ignored },
-    });
-    if (response.error || response.data?.error) {
-      setNotice(`Could not change the review status: ${await edgeFunctionErrorMessage(response, 'Image review status update failed.')}`);
-    } else {
-      setActivities((current) => current.map((activity) => activity.activity_id === activityId
-        ? { ...activity, ...response.data.activity }
-        : activity));
-      setNotice(ignored ? 'Listing moved to Ignored.' : 'Listing returned to the active review queues.');
-    }
-    setBusy('');
-  }
-
   async function archiveListing() {
     if (!selectedActivity || archiveConfirmId !== selectedActivity.activity_id) return;
     const activityId = selectedActivity.activity_id;
@@ -873,9 +845,11 @@ function App() {
                   {selectedActivity.public_listing_status === 'draft' ? (
                     <button className="publish-button" type="button" disabled={busy === 'publish'} onClick={publishDraft}>{busy === 'publish' ? 'Publishing…' : 'Publish listing'}</button>
                   ) : null}
-                  <button className={selectedActivity.image_review_ignored_at ? 'restore-button' : 'ignore-button'} type="button" disabled={busy === 'ignore'} onClick={() => setIgnored(!selectedActivity.image_review_ignored_at)}>
-                    {busy === 'ignore' ? 'Updating…' : selectedActivity.image_review_ignored_at ? 'Return to review' : 'Ignore'}
-                  </button>
+                  {activeImage.field === 'model_selected_url' ? (
+                    <button className="reject-model-button" type="button" disabled={busy === 'next-image'} onClick={doNotUseModelImage}>
+                      {busy === 'next-image' ? 'Removing model image…' : 'Do not use model'}
+                    </button>
+                  ) : null}
                   {archiveConfirmId === selectedActivity.activity_id ? (
                     <span className="archive-confirm-actions">
                       <button className="archive-cancel-button" type="button" disabled={busy === 'archive'} onClick={() => setArchiveConfirmId('')}>Cancel</button>
@@ -924,14 +898,6 @@ function App() {
                   <span>Field: <strong>{activeImage.field || 'Category placeholder'}</strong></span>
                   {activeImage.sourceUrl ? <a href={activeImage.sourceUrl} target="_blank" rel="noreferrer">{activeImage.sourceDomain || activeImage.sourceUrl} ↗</a> : <span>No source URL stored</span>}
                 </div>
-                {activeQueue === 'model_selected' && activeImage.field === 'model_selected_url' ? (
-                  <div className="reject-model-action">
-                    <button className="next-image-button" type="button" disabled={busy === 'next-image'} onClick={doNotUseModelImage}>
-                      {busy === 'next-image' ? 'Removing model image…' : 'Do not use model'}
-                    </button>
-                    <p>Clears model_selected_url and displays the next available image in the hierarchy.</p>
-                  </div>
-                ) : null}
               </section>
 
               <section className="search-panel">
