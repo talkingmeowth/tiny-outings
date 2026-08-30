@@ -45,7 +45,7 @@ const jobs = [
   { name: 'happity', script: 'import-happity-schedules.js', output: 'supabase/seed/activities_happity_schedules.generated.sql' },
   { name: 'archive-excluded-happity-listings', script: 'archive-happity-excluded-listings.js', output: 'supabase/seed/activity_happity_exclusion_archives.generated.sql' },
   { name: 'better-start-for-life', script: 'import-waltham-forest-best-start.js', output: 'supabase/seed/activities_waltham_forest_best_start_live.generated.sql', google: true },
-  { name: 'london-family-hubs', script: 'import-london-family-hubs.js', output: 'supabase/seed/activities_london_family_hubs.generated.sql', google: true },
+  { name: 'london-family-hubs', script: 'import-london-family-hubs.js', output: 'supabase/seed/activities_london_family_hub_timetables.generated.sql' },
   { name: 'eventbrite', script: 'import-eventbrite-baby-london.js', output: 'supabase/seed/activities_eventbrite_london_baby_20260711.generated.sql', google: true },
   { name: 'fever', script: 'import-fever-london-family.js', output: 'supabase/seed/activities_fever_london_family_20260711.generated.sql' },
   { name: 'fever-availability', script: 'enrich-fever-availability.js', output: 'supabase/seed/fever_availability_updates.generated.sql' },

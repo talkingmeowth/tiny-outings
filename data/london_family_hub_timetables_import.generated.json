@@ -1,0 +1,226 @@
+{
+  "generated_at": "2026-08-30T18:13:44.158Z",
+  "sessions": 157,
+  "centres_covered": [
+    "CR41SD",
+    "CR43BH",
+    "EC1R4SR",
+    "IG117NB",
+    "NW11HQ",
+    "NW13TJ",
+    "NW18DQ",
+    "NW19SU",
+    "NW62JL",
+    "RM109QS",
+    "RM65NJ",
+    "SE115BZ",
+    "SE279UD",
+    "SW22JE",
+    "SW48EG",
+    "SW99TG",
+    "TW135AF",
+    "TW34JG",
+    "TW80BJ"
+  ],
+  "sessions_by_centre": {
+    "CR41SD": 11,
+    "CR43BH": 12,
+    "EC1R4SR": 6,
+    "IG117NB": 2,
+    "NW11HQ": 7,
+    "NW13TJ": 8,
+    "NW18DQ": 11,
+    "NW19SU": 7,
+    "NW62JL": 9,
+    "RM109QS": 1,
+    "RM65NJ": 1,
+    "SE115BZ": 15,
+    "SE279UD": 10,
+    "SW22JE": 15,
+    "SW48EG": 4,
+    "SW99TG": 9,
+    "TW135AF": 12,
+    "TW34JG": 8,
+    "TW80BJ": 9
+  },
+  "dynamic_sources": [
+    {
+      "provider": "Hounslow",
+      "url": "https://fsd.hounslow.gov.uk/SynergyWeb/Family_Hubs/Family_Hub_Central.aspx",
+      "postcode": "TW34JG",
+      "status": "ready",
+      "sessions": 8
+    },
+    {
+      "provider": "Hounslow",
+      "url": "https://fsd.hounslow.gov.uk/SynergyWeb/Family_Hubs/FamilyHubEast.aspx",
+      "postcode": "TW80BJ",
+      "status": "ready",
+      "sessions": 9
+    },
+    {
+      "provider": "Hounslow",
+      "url": "https://fsd.hounslow.gov.uk/SynergyWeb/Family_Hubs/FamilyHubWest.aspx",
+      "postcode": "TW135AF",
+      "status": "ready",
+      "sessions": 12
+    },
+    {
+      "provider": "Hammersmith and Fulham",
+      "url": "https://www.lbhf.gov.uk/children-and-young-people/family-hub/find-family-hub-or-childrens-centre/family-hub-old-oak-community-centre",
+      "postcode": "W120AP",
+      "status": "empty",
+      "sessions": 0
+    },
+    {
+      "provider": "Hammersmith and Fulham",
+      "url": "https://www.lbhf.gov.uk/children-and-young-people/family-hub/find-family-hub-or-childrens-centre/family-hub-stephen-wiltshire-centre",
+      "postcode": "SW66JR",
+      "status": "empty",
+      "sessions": 0
+    },
+    {
+      "provider": "Hammersmith and Fulham",
+      "url": "https://www.lbhf.gov.uk/children-and-young-people/family-hub/find-family-hub-or-childrens-centre/family-hub-tudor-rose-community-centre",
+      "postcode": "SW65PG",
+      "status": "empty",
+      "sessions": 0
+    }
+  ],
+  "current_source_gaps": [
+    {
+      "borough": "Brent",
+      "legacy_postcodes": [
+        "HA04PW",
+        "NW98JD",
+        "NW109SD",
+        "HA98RJ",
+        "NW103HL",
+        "HA99YP"
+      ],
+      "source": "https://www.brent.gov.uk/familywellbeingcentres",
+      "reason": "The official hub page did not yet publish an Autumn 2026 activity timetable; the latest indexed centre schedules had ended."
+    },
+    {
+      "borough": "Croydon",
+      "legacy_postcodes": [
+        "SE256XX",
+        "CR28HD"
+      ],
+      "source": "https://www.croydon.gov.uk/children-young-people-and-families/family-hubs",
+      "reason": "The published transition timetable ends on 4 September 2026 and does not reliably map every session to the two legacy centre records."
+    },
+    {
+      "borough": "Greenwich",
+      "legacy_postcodes": [
+        "SE186BD",
+        "SE137QZ",
+        "SE39QX",
+        "SE288EZ"
+      ],
+      "source": "https://www.better.org.uk/children-centre/london/greenwich",
+      "reason": "Official centre pages list activity types but do not publish the required day and start/end times."
+    },
+    {
+      "borough": "Hackney",
+      "legacy_postcodes": [
+        "E83RP",
+        "E50EG",
+        "N167SH",
+        "N42NP"
+      ],
+      "source": "https://education.hackney.gov.uk/content/hackney-children-and-family-hubs",
+      "reason": "The official April-to-July timetable has ended and the hub calendars do not yet contain the new term activities."
+    },
+    {
+      "borough": "Hammersmith and Fulham",
+      "legacy_postcodes": [
+        "W120AP",
+        "SW66JR",
+        "SW65PG"
+      ],
+      "source": "https://www.lbhf.gov.uk/children-and-young-people/family-hub",
+      "reason": "The three official centre timetable URLs currently return replacement or not-found pages during the council website migration."
+    },
+    {
+      "borough": "Haringey",
+      "legacy_postcodes": [
+        "N103QJ",
+        "N156NU"
+      ],
+      "source": "https://haringey.gov.uk/children-young-people-families/best-start-family-hubs/healthy-babies",
+      "reason": "The current official venue feeds contain no upcoming bookable child activity at these two legacy centres."
+    },
+    {
+      "borough": "Islington",
+      "legacy_postcodes": [
+        "N12SX",
+        "N77EN",
+        "N10DX"
+      ],
+      "source": "https://www.islington.gov.uk/children-and-families/bright-start-islington-start-for-life-and-family-hubs",
+      "reason": "The production timetable download could not be independently machine-verified; a separately indexed test table was not accepted as live data."
+    },
+    {
+      "borough": "Lewisham",
+      "legacy_postcodes": [
+        "SE63HB",
+        "SE85NH",
+        "SE83PZ",
+        "SE64JF",
+        "SE41JJ"
+      ],
+      "source": "https://lewishamfamilyhubs.org.uk/p/whats-on/activities-and-timetables",
+      "reason": "The official page says Autumn activities start on 1 September but asks users to check back for the new timetables."
+    },
+    {
+      "borough": "Newham",
+      "legacy_postcodes": [
+        "E62RT",
+        "E125PB",
+        "E153JT"
+      ],
+      "source": "https://www.newham.gov.uk/homepage/285/supporting-children-and-young-people",
+      "reason": "The latest official detailed hub timetable found covered April to June 2026 and is no longer current."
+    },
+    {
+      "borough": "Southwark",
+      "legacy_postcodes": [
+        "SE50RN",
+        "SE156DT",
+        "SE218QS",
+        "SE153PD",
+        "SE163PN"
+      ],
+      "source": "https://localoffer.southwark.gov.uk/",
+      "reason": "No current borough-wide timetable with named child activities, venue, day and start/end time was published for all five legacy centres."
+    },
+    {
+      "borough": "Tower Hamlets",
+      "legacy_postcodes": [
+        "E148AP",
+        "E146AW",
+        "E15QT",
+        "E143BX",
+        "E12EN",
+        "E33LL",
+        "E20SN",
+        "E34GY",
+        "E29DL",
+        "E10AF",
+        "E35DS",
+        "E32RU",
+        "E12JP"
+      ],
+      "source": "https://www.thfamilyhubs.co.uk/",
+      "reason": "The official site still advertises the Summer Term 2026 timetable and has not published a current Autumn timetable."
+    }
+  ],
+  "validation_failures": [],
+  "policy": {
+    "generic_cards_archived_only_after_replacement_exists": true,
+    "published_generic_cards_retained_until_replacement_published": true,
+    "waltham_forest_uses_dedicated_live_event_importer": true,
+    "excluded": "opening hours, generic advice, administrative support, appointment clinics and other non-activity services"
+  }
+}
