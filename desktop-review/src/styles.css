@@ -29,7 +29,7 @@ a { color: #17604e; }
 .preload-pill.searching, .preload-pill.loading { border-color: #d19b52; color: #ffd8a4; }
 .preload-pill.failed { border-color: #d77c68; color: #ffd3ca; }
 
-.queue-bar { background: #fff; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; padding: 14px 28px; border-bottom: 1px solid #ddd8cd; box-shadow: 0 4px 12px rgb(30 57 49 / .04); }
+.queue-bar { background: #fff; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; padding: 14px 28px; border-bottom: 1px solid #ddd8cd; box-shadow: 0 4px 12px rgb(30 57 49 / .04); }
 .queue-tab { min-width: 0; border: 1px solid #dedbd2; background: #faf9f5; border-radius: 12px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; text-align: left; transition: .15s ease; }
 .queue-tab:hover { border-color: #a9bdb6; background: #f4f8f6; }
 .queue-tab span { font-size: 13px; font-weight: 750; }
@@ -80,6 +80,7 @@ a { color: #17604e; }
 .status-badge, .audit-badge, .automated-badge, .ignored-badge, .source-chip, .request-status { border-radius: 100px; padding: 5px 8px; font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: .07em; }
 .status-badge.published { background: #daf0e7; color: #1d654f; }
 .status-badge.draft { background: #f2e5ce; color: #8a5a16; }
+.status-badge.archived { background: #e8e5e0; color: #625d56; }
 .audit-badge { background: #f9ded7; color: #9b3e2c; }
 .automated-badge { background: #e6ddf5; color: #62458e; }
 .ignored-badge { background: #e3e1dc; color: #605e58; }
@@ -180,7 +181,7 @@ a { color: #17604e; }
 .waiting-icon { width: 54px; height: 54px; display: grid; place-items: center; border-radius: 50%; background: #dcebe6; color: #286653; font-size: 30px; }
 .no-selection { grid-column: 2 / -1; background: #f4f1ea; }
 
-.primary-button, .secondary-button, .publish-button, .text-button, .places-button, .archive-button, .archive-cancel-button, .archive-confirm-button, .reject-model-button { border-radius: 8px; padding: 9px 12px; font-size: 10px; font-weight: 850; cursor: pointer; white-space: nowrap; }
+.primary-button, .secondary-button, .publish-button, .text-button, .places-button, .archive-button, .unarchive-button, .archive-cancel-button, .archive-confirm-button, .reject-model-button { border-radius: 8px; padding: 9px 12px; font-size: 10px; font-weight: 850; cursor: pointer; white-space: nowrap; }
 .primary-button { border: 1px solid #145744; background: #17634f; color: #fff; box-shadow: 0 2px 4px rgb(15 69 53 / .14); }
 .primary-button:hover { background: #0f503e; }
 .secondary-button { border: 1px solid #809c93; background: transparent; color: inherit; }
@@ -189,6 +190,8 @@ a { color: #17604e; }
 .publish-button { border: 1px solid #bf7e23; background: #d68b2c; color: #fff; }
 .archive-button { border: 1px solid #983b31; background: #fff; color: #8d3027; }
 .archive-button:hover { background: #fbe8e5; }
+.unarchive-button { border: 1px solid #2f725f; background: #e8f3ef; color: #205b4b; }
+.unarchive-button:hover { background: #d7ebe4; }
 .archive-confirm-actions { display: inline-flex; align-items: center; gap: 6px; }
 .archive-cancel-button { border: 1px solid #9a9d99; background: #fff; color: #535b58; }
 .archive-confirm-button { border: 1px solid #74271f; background: #94382e; color: #fff; }
@@ -199,7 +202,7 @@ a { color: #17604e; }
 .places-button:hover { background: #dfeafa; }
 .text-button { border: 0; background: transparent; color: #3c655a; }
 .topbar .text-button { color: #cfe0db; }
-.primary-button:disabled, .secondary-button:disabled, .publish-button:disabled, .text-button:disabled, .archive-button:disabled, .archive-cancel-button:disabled, .archive-confirm-button:disabled, .reject-model-button:disabled { opacity: .42; cursor: default; }
+.primary-button:disabled, .secondary-button:disabled, .publish-button:disabled, .text-button:disabled, .archive-button:disabled, .unarchive-button:disabled, .archive-cancel-button:disabled, .archive-confirm-button:disabled, .reject-model-button:disabled { opacity: .42; cursor: default; }
 .link-button { display: inline-flex; text-decoration: none; align-items: center; }
 
 .auth-shell, .loading-screen { min-height: 100vh; display: grid; place-items: center; padding: 30px; background: radial-gradient(circle at 15% 15%, #e1f0e9, transparent 36%), #f2efe7; }

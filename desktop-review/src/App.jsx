@@ -42,7 +42,7 @@ const PRELOAD_CONCURRENCY = 6;
 const activityColumns = [
   'activity_id', 'activity_name', 'address', 'postcode', 'borough', 'category', 'age_suitability',
   'description', 'card_summary', 'website', 'organiser_website', 'source_url', 'source_name', 'image_source_url',
-  'google_place_uri', 'google_link', 'public_listing_status', 'archive', 'audit_image_status', 'audit_image_original_url', 'audit_image_original_source_field',
+  'google_place_uri', 'google_link', 'public_listing_status', 'archive', 'archive_reason', 'archived_at', 'archive_previous_listing_status', 'audit_image_status', 'audit_image_original_url', 'audit_image_original_source_field',
   'admin_cover_image_url', 'reviewed_image_url', 'use_category_image', 'reviewed_image_source_url', 'reviewed_image_original_url',
   'reviewed_image_selected_at', 'reviewed_image_model', 'user_image_url', 'audit_image_url', 'audit_image_source_url',
   'scraped_image_url', 'model_selected_url', 'model_selected_confidence', 'organiser_website_downloaded_image', 'website_downloaded_image', 'wikimedia_image_url', 'website_image_url',
@@ -91,6 +91,11 @@ const demoActivities = [
     category: 'Music & movement', age_suitability: '0–4 years', public_listing_status: 'draft', archive: false,
     organiser_website: 'https://minimozart.com', codex_image_candidates: [],
   },
+  {
+    activity_id: 'demo-archived', activity_name: 'Archived family activity', address: 'London', borough: 'London',
+    category: 'Family activities', public_listing_status: 'archived', archive: true,
+    archive_previous_listing_status: 'draft', archive_reason: 'Archived from desktop image review', archived_at: new Date().toISOString(),
+  },
 ];
 
 function formatDate(value) {
@@ -101,6 +106,15 @@ function formatDate(value) {
 
 function compactNumber(value) {
   return new Intl.NumberFormat('en-GB').format(Number(value || 0));
+}
+
+function isArchivedListing(activity) {
+  return Boolean(activity?.archive || activity?.public_listing_status === 'archived');
+}
+
+function listingStatusLabel(activity) {
+  if (isArchivedListing(activity)) return 'Archived';
+  return activity?.public_listing_status === 'draft' ? 'Draft' : 'Published';
 }
 
 async function loadAllActivities() {
@@ -121,7 +135,6 @@ async function loadAllActivities() {
 
   const activitiesPromise = loadPages((from) => supabase.from('activities')
     .select(activityColumns)
-    .eq('archive', false)
     .order('activity_name', { ascending: true })
     .order('activity_id', { ascending: true })
     .range(from, from + pageSize - 1));
@@ -323,7 +336,8 @@ function App() {
 
   const preparedActivities = useMemo(() => prepareActivities(activities), [activities]);
   const counts = useMemo(() => queueCountsFromPrepared(preparedActivities), [preparedActivities]);
-  const sourceFilterOptions = useMemo(() => imageSourceOptions(preparedActivities), [preparedActivities]);
+  const activeActivities = useMemo(() => preparedActivitiesForQueue(preparedActivities, 'all_activities'), [preparedActivities]);
+  const sourceFilterOptions = useMemo(() => imageSourceOptions(activeActivities), [activeActivities]);
   const preloadStartIds = useMemo(() => ({ [activeQueue]: selectedId }), [activeQueue, selectedId]);
   const preloadTargets = useMemo(
     () => activitiesToPreload(preparedActivities, PRELOAD_QUEUE_IDS, PRELOAD_PER_QUEUE, preloadStartIds),
@@ -366,9 +380,10 @@ function App() {
   const storedCandidates = selectedActivity ? storedImageCandidates(selectedActivity) : [];
   const illustratedCandidate = selectedActivity ? categoryIllustrationCandidate(selectedActivity) : null;
   const activeImage = selectedActivity ? currentImage(selectedActivity) : null;
+  const isSelectedArchived = isArchivedListing(selectedActivity);
 
   const requestCandidates = useCallback((activity, variant = 'activity_location', requestedQuery = '', background = false) => {
-    if (!activity || !session?.user) return Promise.resolve(false);
+    if (!activity || isArchivedListing(activity) || !session?.user) return Promise.resolve(false);
     const activityId = activity.activity_id;
     const existingSearch = candidateSearchesRef.current.get(activityId);
     if (existingSearch) return existingSearch;
@@ -515,6 +530,7 @@ function App() {
 
   useEffect(() => {
     if (isDemo || !selectedActivity || !supabase) return undefined;
+    if (isArchivedListing(selectedActivity)) return undefined;
     const activityId = selectedActivity.activity_id;
     if (selectedActivity.candidate_set_loaded) {
       if (!candidates.length && !selectedActivity.image_review_ignored_at) requestCandidates(selectedActivity, 'activity_location', queries?.activity_location);
@@ -553,6 +569,10 @@ function App() {
 
   async function saveSelected() {
     if (!selectedActivity || selectedCandidate == null) return;
+    if (isArchivedListing(selectedActivity)) {
+      setNotice('Unarchive this listing before changing its image.');
+      return;
+    }
     const activityId = selectedActivity.activity_id;
     const pendingAutomatedReview = activeQueue === 'model_selected' ? automatedReview : null;
     const selectedCategoryIllustration = selectedCandidate === CATEGORY_ILLUSTRATION_SELECTION_KIND;
@@ -709,10 +729,18 @@ function App() {
     setBusy('archive');
     setNotice('');
     if (isDemo) {
-      setActivities((current) => current.filter((activity) => activity.activity_id !== activityId));
+      const archivedAt = new Date().toISOString();
+      setActivities((current) => current.map((activity) => activity.activity_id === activityId ? {
+        ...activity,
+        archive_previous_listing_status: ['draft', 'published'].includes(activity.public_listing_status) ? activity.public_listing_status : 'draft',
+        public_listing_status: 'archived',
+        archive: true,
+        archive_reason: 'Archived from desktop image review',
+        archived_at: archivedAt,
+      } : activity));
       setArchiveConfirmId('');
       setBusy('');
-      setNotice('Demo listing archived and removed from the review queues.');
+      setNotice('Demo listing moved to the Archive queue.');
       return;
     }
     const response = await supabase.functions.invoke('image-review-admin', {
@@ -721,9 +749,47 @@ function App() {
     if (response.error || response.data?.error) {
       setNotice(`Could not archive this listing: ${await edgeFunctionErrorMessage(response, 'Archiving failed.')}`);
     } else {
-      setActivities((current) => current.filter((activity) => activity.activity_id !== activityId));
+      setActivities((current) => current.map((activity) => activity.activity_id === activityId
+        ? { ...activity, ...response.data.activity }
+        : activity));
       setArchiveConfirmId('');
-      setNotice('Listing archived and removed from every image-review queue.');
+      setNotice('Listing moved to the Archive queue.');
+    }
+    setBusy('');
+  }
+
+  async function unarchiveListing() {
+    if (!selectedActivity || !isArchivedListing(selectedActivity)) return;
+    const activityId = selectedActivity.activity_id;
+    setBusy('unarchive');
+    setNotice('');
+    if (isDemo) {
+      const restoredStatus = ['draft', 'published'].includes(selectedActivity.archive_previous_listing_status)
+        ? selectedActivity.archive_previous_listing_status
+        : 'draft';
+      setActivities((current) => current.map((activity) => activity.activity_id === activityId ? {
+        ...activity,
+        public_listing_status: restoredStatus,
+        archive: false,
+        archive_reason: null,
+        archived_at: null,
+        archive_previous_listing_status: null,
+      } : activity));
+      setBusy('');
+      setNotice(`Demo listing restored as ${restoredStatus}.`);
+      return;
+    }
+    const response = await invokeFunctionWithRetry(() => supabase.functions.invoke('image-review-admin', {
+      body: { action: 'unarchive', activity_id: activityId },
+    }));
+    if (response.error || response.data?.error) {
+      setNotice(`Could not restore this listing: ${await edgeFunctionErrorMessage(response, 'Unarchive failed.')}`);
+    } else {
+      const restoredStatus = response.data.activity?.restored_to_status || response.data.activity?.public_listing_status || 'draft';
+      setActivities((current) => current.map((activity) => activity.activity_id === activityId
+        ? { ...activity, ...response.data.activity, public_listing_status: restoredStatus, archive: false, archive_previous_listing_status: null }
+        : activity));
+      setNotice(`Listing restored as ${restoredStatus}.`);
     }
     setBusy('');
   }
@@ -738,7 +804,9 @@ function App() {
   if (!isAdmin) return <SignIn message={`${session.user.email || 'This account'} is not an approved administrator.`} />;
 
   const selectedQueue = QUEUES.find((queue) => queue.id === activeQueue);
-  const requestStatus = candidateRequest?.status || (candidates.length ? 'completed' : selectedActivity?.candidate_set_loaded ? 'not_requested' : 'loading');
+  const requestStatus = isSelectedArchived
+    ? 'archived'
+    : candidateRequest?.status || (candidates.length ? 'completed' : selectedActivity?.candidate_set_loaded ? 'not_requested' : 'loading');
   const selectedIsCategoryIllustration = selectedCandidate === CATEGORY_ILLUSTRATION_SELECTION_KIND;
   const selectedStoredSourceField = storedSourceFieldForSelection(selectedCandidate);
   const candidateSource = candidates.length
@@ -799,7 +867,7 @@ function App() {
             <label className="source-filter">
               <span>Filter by displayed image source</span>
               <select value={imageSourceFilter} onChange={(event) => setImageSourceFilter(event.target.value)}>
-                <option value="all">All image sources ({compactNumber(preparedActivities.length)})</option>
+                <option value="all">All image sources ({compactNumber(activeActivities.length)})</option>
                 {sourceFilterOptions.map((option) => (
                   <option value={option.field} key={option.field}>
                     {option.field} — {option.label} ({compactNumber(option.count)})
@@ -835,7 +903,7 @@ function App() {
               <div className="detail-heading">
                 <div>
                   <div className="status-line">
-                    <span className={`status-badge ${selectedActivity.public_listing_status}`}>{selectedActivity.public_listing_status === 'draft' ? 'Draft' : 'Published'}</span>
+                    <span className={`status-badge ${isSelectedArchived ? 'archived' : selectedActivity.public_listing_status}`}>{listingStatusLabel(selectedActivity)}</span>
                     {selectedActivity.audit_image_status ? <span className="audit-badge">Audit: {selectedActivity.audit_image_status.replaceAll('_', ' ')}</span> : null}
                     {automatedReview ? <span className="automated-badge">Model pick {Math.round(Number(automatedReview.confidence) * 100)}%</span> : null}
                     {selectedActivity.image_review_ignored_at ? <span className="ignored-badge">Ignored</span> : null}
@@ -846,15 +914,19 @@ function App() {
                 <div className="detail-actions">
                   {openListingUrl(selectedActivity) ? <a className="secondary-button link-button" href={openListingUrl(selectedActivity)} target="_blank" rel="noreferrer">Open listing ↗</a> : null}
                   <a className="places-button link-button" href={googlePlacesUrl(selectedActivity)} target="_blank" rel="noreferrer">Google Places ↗</a>
-                  {selectedActivity.public_listing_status === 'draft' ? (
+                  {!isSelectedArchived && selectedActivity.public_listing_status === 'draft' ? (
                     <button className="publish-button" type="button" disabled={busy === 'publish'} onClick={publishDraft}>{busy === 'publish' ? 'Publishing…' : 'Publish listing'}</button>
                   ) : null}
-                  {activeImage.field === 'model_selected_url' ? (
+                  {!isSelectedArchived && activeImage.field === 'model_selected_url' ? (
                     <button className="reject-model-button" type="button" disabled={busy === 'next-image'} onClick={doNotUseModelImage}>
                       {busy === 'next-image' ? 'Removing model image…' : 'Do not use model'}
                     </button>
                   ) : null}
-                  {archiveConfirmId === selectedActivity.activity_id ? (
+                  {isSelectedArchived ? (
+                    <button className="unarchive-button" type="button" disabled={Boolean(busy)} onClick={unarchiveListing}>
+                      {busy === 'unarchive' ? 'Restoring…' : 'Unarchive listing'}
+                    </button>
+                  ) : archiveConfirmId === selectedActivity.activity_id ? (
                     <span className="archive-confirm-actions">
                       <button className="archive-cancel-button" type="button" disabled={busy === 'archive'} onClick={() => setArchiveConfirmId('')}>Cancel</button>
                       <button className="archive-confirm-button" type="button" disabled={busy === 'archive'} onClick={archiveListing}>{busy === 'archive' ? 'Archiving…' : 'Confirm archive'}</button>
@@ -871,6 +943,9 @@ function App() {
                 <div className="wide"><dt>Full address</dt><dd>{selectedActivity.address || 'Not recorded'}</dd></div>
                 <div><dt>Age range</dt><dd>{selectedActivity.age_suitability || 'Not recorded'}</dd></div>
                 <div><dt>Listing ID</dt><dd className="mono">{selectedActivity.activity_id}</dd></div>
+                {isSelectedArchived ? <div className="wide"><dt>Archive reason</dt><dd>{selectedActivity.archive_reason || 'Not recorded'}</dd></div> : null}
+                {isSelectedArchived ? <div><dt>Archived</dt><dd>{formatDate(selectedActivity.archived_at)}</dd></div> : null}
+                {isSelectedArchived ? <div><dt>Restore target</dt><dd>{['draft', 'published'].includes(selectedActivity.archive_previous_listing_status) ? selectedActivity.archive_previous_listing_status : 'draft'}</dd></div> : null}
               </dl>
 
               {automatedReview ? (
@@ -906,12 +981,12 @@ function App() {
 
               <section className="search-panel">
                 <div className="section-title"><div><p className="eyebrow">Candidate discovery</p><h2>Search Google Images</h2></div><span className={`request-status ${requestStatus}`}>{requestStatus.replaceAll('_', ' ')}</span></div>
-                <p>SerpAPI returns the first 20 Google Images results in their original order. Candidates are shown without quality, logo, resolution, Wikimedia, or relevance filtering.</p>
-                <div className="query-row"><input value={customQuery} onChange={(event) => setCustomQuery(event.target.value)} maxLength={240} /><button className="primary-button" type="button" disabled={busy === 'request' || !customQuery.trim()} onClick={() => requestCandidates(selectedActivity, 'custom', customQuery)}>{busy === 'request' ? 'Searching…' : 'Load top 20'}</button></div>
+                <p>{isSelectedArchived ? 'Unarchive this listing before searching for or changing images.' : 'SerpAPI returns the first 20 Google Images results in their original order. Candidates are shown without quality, logo, resolution, Wikimedia, or relevance filtering.'}</p>
+                <div className="query-row"><input value={customQuery} disabled={isSelectedArchived} onChange={(event) => setCustomQuery(event.target.value)} maxLength={240} /><button className="primary-button" type="button" disabled={isSelectedArchived || busy === 'request' || !customQuery.trim()} onClick={() => requestCandidates(selectedActivity, 'custom', customQuery)}>{busy === 'request' ? 'Searching…' : 'Load top 20'}</button></div>
                 <div className="query-options">
-                  <button type="button" onClick={() => { setCustomQuery(queries.activity_location); requestCandidates(selectedActivity, 'activity_location', queries.activity_location); }}>Activity + location</button>
-                  <button type="button" onClick={() => { setCustomQuery(queries.provider_location); requestCandidates(selectedActivity, 'provider_location', queries.provider_location); }}>Provider + location</button>
-                  <button type="button" onClick={() => { setCustomQuery(queries.activity_only); requestCandidates(selectedActivity, 'activity_only', queries.activity_only); }}>Activity only</button>
+                  <button type="button" disabled={isSelectedArchived} onClick={() => { setCustomQuery(queries.activity_location); requestCandidates(selectedActivity, 'activity_location', queries.activity_location); }}>Activity + location</button>
+                  <button type="button" disabled={isSelectedArchived} onClick={() => { setCustomQuery(queries.provider_location); requestCandidates(selectedActivity, 'provider_location', queries.provider_location); }}>Provider + location</button>
+                  <button type="button" disabled={isSelectedArchived} onClick={() => { setCustomQuery(queries.activity_only); requestCandidates(selectedActivity, 'activity_only', queries.activity_only); }}>Activity only</button>
                 </div>
                 <div className="request-meta">
                   <span>Requested: {formatDate(candidateRequest?.requested_at)}</span>
@@ -925,7 +1000,7 @@ function App() {
             <section className="candidate-column">
               <div className="candidate-header">
                 <div><p className="eyebrow">Stored sources + category illustration + Google Images</p><h2>Candidate gallery <span>{storedCandidates.length + candidates.length + (illustratedCandidate ? 1 : 0)}</span></h2></div>
-                <div className="candidate-actions"><button className="text-button" type="button" disabled={selectedCandidate == null} onClick={() => setSelectedCandidate(null)}>Clear selection</button><button className="primary-button" type="button" disabled={selectedCandidate == null || busy === 'save'} onClick={saveSelected}>{busy === 'save' ? 'Downloading…' : selectedIsCategoryIllustration ? 'Use category image' : selectedStoredSourceField ? `Use ${selectedStoredSourceField}` : automatedReview ? automatedReview.candidate_index === selectedCandidate ? automatedReview.status === 'auto_applied' ? 'Confirm model choice' : 'Approve model choice' : 'Save correction' : 'Use selected image'}</button></div>
+                <div className="candidate-actions"><button className="text-button" type="button" disabled={selectedCandidate == null} onClick={() => setSelectedCandidate(null)}>Clear selection</button><button className="primary-button" type="button" disabled={isSelectedArchived || selectedCandidate == null || busy === 'save'} onClick={saveSelected}>{isSelectedArchived ? 'Unarchive to edit' : busy === 'save' ? 'Downloading…' : selectedIsCategoryIllustration ? 'Use category image' : selectedStoredSourceField ? `Use ${selectedStoredSourceField}` : automatedReview ? automatedReview.candidate_index === selectedCandidate ? automatedReview.status === 'auto_applied' ? 'Confirm model choice' : 'Approve model choice' : 'Save correction' : 'Use selected image'}</button></div>
               </div>
               {illustratedCandidate ? (
                 <>

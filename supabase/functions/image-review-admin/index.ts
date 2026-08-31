@@ -41,6 +41,9 @@ type Activity = {
   category: string | null
   public_listing_status: string
   archive?: boolean
+  archive_reason?: string | null
+  archived_at?: string | null
+  archive_previous_listing_status?: string | null
   codex_image_candidates?: unknown
   codex_image_search_query?: string | null
   codex_image_searched_at?: string | null
@@ -232,13 +235,17 @@ async function authenticatedAdmin(request: Request, supabase: ReturnType<typeof 
   return user
 }
 
-async function findActivity(supabase: ReturnType<typeof createClient>, activityId: string) {
-  const { data, error } = await supabase
+async function findActivity(
+  supabase: ReturnType<typeof createClient>,
+  activityId: string,
+  includeArchived = false,
+) {
+  let query = supabase
     .from('activities')
-    .select('activity_id,activity_name,address,postcode,borough,category,public_listing_status,archive,website,organiser_website,source_url,image_source_url,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,serpapi_image_candidates,serpapi_image_search_query,serpapi_image_candidates_fetched_at,serpapi_image_search_attempted_at,serpapi_image_search_status,serpapi_image_search_failure_reason,serpapi_image_raw_result_count,serpapi_image_search_metadata,image_review_ignored_at,image_review_ignored_by_user_id,admin_cover_image_url,reviewed_image_url,use_category_image,reviewed_image_source_url,reviewed_image_original_url,reviewed_image_selected_at,reviewed_image_model,user_image_url,model_selected_url,model_selected_confidence,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,audit_image_url,audit_image_source_url,audit_image_status,audit_image_original_url,audit_image_original_source_field,scraped_image_url')
+    .select('activity_id,activity_name,address,postcode,borough,category,public_listing_status,archive,archive_reason,archived_at,archive_previous_listing_status,website,organiser_website,source_url,image_source_url,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,serpapi_image_candidates,serpapi_image_search_query,serpapi_image_candidates_fetched_at,serpapi_image_search_attempted_at,serpapi_image_search_status,serpapi_image_search_failure_reason,serpapi_image_raw_result_count,serpapi_image_search_metadata,image_review_ignored_at,image_review_ignored_by_user_id,admin_cover_image_url,reviewed_image_url,use_category_image,reviewed_image_source_url,reviewed_image_original_url,reviewed_image_selected_at,reviewed_image_model,user_image_url,model_selected_url,model_selected_confidence,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,audit_image_url,audit_image_source_url,audit_image_status,audit_image_original_url,audit_image_original_source_field,scraped_image_url')
     .eq('activity_id', activityId)
-    .eq('archive', false)
-    .maybeSingle()
+  if (!includeArchived) query = query.eq('archive', false)
+  const { data, error } = await query.maybeSingle()
   if (error) throw new Error(error.message)
   if (!data) throw new Error('Listing not found.')
   return data as Activity
@@ -874,14 +881,18 @@ async function useNextHierarchyImage(
 
 async function archiveActivity(supabase: ReturnType<typeof createClient>, activity: Activity, userId: string) {
   const archivedAt = new Date().toISOString()
+  const previousStatus = ['draft', 'published'].includes(activity.public_listing_status)
+    ? activity.public_listing_status
+    : cleanText(activity.archive_previous_listing_status) || 'draft'
   const { data, error } = await supabase.from('activities').update({
     archive: true,
     public_listing_status: 'archived',
+    archive_previous_listing_status: previousStatus,
     archive_reason: 'Archived from desktop image review',
     archived_at: archivedAt,
     updated_at: archivedAt,
   }).eq('activity_id', activity.activity_id)
-    .select('activity_id,public_listing_status,archive,archive_reason,archived_at')
+    .select('activity_id,public_listing_status,archive,archive_reason,archived_at,archive_previous_listing_status')
     .single()
   if (error) throw new Error(error.message)
   await supabase.from('activity_review_queue').update({
@@ -892,6 +903,17 @@ async function archiveActivity(supabase: ReturnType<typeof createClient>, activi
   return data
 }
 
+async function unarchiveActivity(supabase: ReturnType<typeof createClient>, activity: Activity) {
+  if (!activity.archive && activity.public_listing_status !== 'archived') {
+    throw new Error('Only archived listings can be restored from this queue.')
+  }
+  const { data, error } = await supabase.rpc('unarchive_activity_from_image_review', {
+    p_activity_id: activity.activity_id,
+  }).single()
+  if (error) throw new Error(error.message)
+  return data
+}
+
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   if (request.method !== 'POST') return jsonResponse({ error: 'Use POST.' }, 405)
@@ -899,7 +921,7 @@ Deno.serve(async (request) => {
   const user = await authenticatedAdmin(request, supabase)
   if (!user) return jsonResponse({ error: 'Only Tiny Outings administrators can use desktop image review.' }, 403)
   const body = await request.json().catch(() => ({})) as {
-    action?: 'search' | 'select' | 'select_category_illustration' | 'use_next_hierarchy_image' | 'publish' | 'ignore' | 'archive'
+    action?: 'search' | 'select' | 'select_category_illustration' | 'use_next_hierarchy_image' | 'publish' | 'ignore' | 'archive' | 'unarchive'
     activity_id?: string
     activity_ids?: string[]
     candidate_request_id?: string
@@ -914,7 +936,7 @@ Deno.serve(async (request) => {
   }
   if (!body.activity_id || !body.action) return jsonResponse({ error: 'action and activity_id are required.' }, 400)
   try {
-    const activity = await findActivity(supabase, body.activity_id)
+    const activity = await findActivity(supabase, body.activity_id, body.action === 'unarchive')
     if (body.action === 'search') {
       const result = await searchUnfilteredSerpApiCandidates(
         supabase,
@@ -997,6 +1019,11 @@ Deno.serve(async (request) => {
       if (!user.id) return jsonResponse({ error: 'An administrator user session is required to archive a listing.' }, 403)
       const result = await archiveActivity(supabase, activity, user.id)
       return jsonResponse({ status: 'archived', activity: result })
+    }
+    if (body.action === 'unarchive') {
+      if (!user.id) return jsonResponse({ error: 'An administrator user session is required to restore a listing.' }, 403)
+      const result = await unarchiveActivity(supabase, activity)
+      return jsonResponse({ status: 'unarchived', activity: result })
     }
     return jsonResponse({ error: 'Unsupported action.' }, 400)
   } catch (error) {

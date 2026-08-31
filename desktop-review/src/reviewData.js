@@ -81,6 +81,7 @@ export const QUEUES = [
   { id: 'all_published', label: 'All published', description: 'Every live listing, with or without an image.' },
   { id: 'all_draft', label: 'All draft', description: 'Every unpublished listing, with or without an image.' },
   { id: 'missing_images', label: 'Missing images', description: 'Listings with no activity photo. Category artwork remains displayed but counts as missing.' },
+  { id: 'archive', label: 'Archive', description: 'Archived listings. Restore one to return it to its previous status; older archives return as drafts.' },
 ];
 
 export const IMAGE_SOURCE_LABELS = {
@@ -258,9 +259,18 @@ export function storedImageCandidates(activity) {
 }
 
 export function prepareActivities(activities) {
-  return shareListingImages((activities || []).filter((activity) => (
-    !activity.archive && ['published', 'draft'].includes(activity.public_listing_status)
-  )));
+  const eligible = (activities || []).filter((activity) => (
+    activity.archive
+    || activity.public_listing_status === 'archived'
+    || ['published', 'draft'].includes(activity.public_listing_status)
+  ));
+  const active = eligible.filter((activity) => !activity.archive && activity.public_listing_status !== 'archived');
+  const archived = eligible.filter((activity) => activity.archive || activity.public_listing_status === 'archived');
+  const preparedById = new Map([
+    ...shareListingImages(active),
+    ...shareListingImages(archived),
+  ].map((activity) => [activity.activity_id, activity]));
+  return eligible.map((activity) => preparedById.get(activity.activity_id) || activity);
 }
 
 export function isUnsuitable(activity) {
@@ -282,14 +292,17 @@ export function activitiesForQueue(activities, queueId) {
 }
 
 export function preparedActivitiesForQueue(prepared, queueId) {
-  if (queueId === 'all_activities') return prepared;
-  if (queueId === 'model_selected') return prepared.filter((activity) => currentImage(activity).field === 'model_selected_url');
-  if (queueId === 'missing_images') return prepared.filter((activity) => {
+  const archived = prepared.filter((activity) => activity.archive || activity.public_listing_status === 'archived');
+  if (queueId === 'archive') return archived;
+  const active = prepared.filter((activity) => !activity.archive && ['published', 'draft'].includes(activity.public_listing_status));
+  if (queueId === 'all_activities') return active;
+  if (queueId === 'model_selected') return active.filter((activity) => currentImage(activity).field === 'model_selected_url');
+  if (queueId === 'missing_images') return active.filter((activity) => {
     const image = currentImage(activity);
     return !image.url || image.field === 'category_placeholder';
   });
-  if (queueId === 'all_draft') return prepared.filter((activity) => activity.public_listing_status === 'draft');
-  return prepared.filter((activity) => activity.public_listing_status === 'published');
+  if (queueId === 'all_draft') return active.filter((activity) => activity.public_listing_status === 'draft');
+  return active.filter((activity) => activity.public_listing_status === 'published');
 }
 
 export function queueCounts(activities) {

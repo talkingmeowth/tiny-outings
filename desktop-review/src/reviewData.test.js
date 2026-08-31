@@ -32,7 +32,7 @@ function listing(overrides = {}) {
   };
 }
 
-test('builds the five requested queue counts', () => {
+test('builds the six requested queue counts', () => {
   const activities = [
     listing({ activity_id: 'missing', address: 'Leyton, London E10' }),
     listing({ activity_id: 'audited', address: 'Hackney, London E8', audit_image_status: 'needs_replacement', website_image_url: 'https://bad.test/photo.jpg' }),
@@ -47,6 +47,7 @@ test('builds the five requested queue counts', () => {
     all_published: 5,
     all_draft: 1,
     missing_images: 3,
+    archive: 0,
   });
 });
 
@@ -79,7 +80,7 @@ test('ignored listings remain visible in the all and status queues', () => {
   assert.deepEqual(activitiesForQueue([ignored], 'missing_images').map((activity) => activity.activity_id), ['ignored']);
 });
 
-test('archived listings do not appear in any image-review queue', () => {
+test('archived listings appear only in the archive queue', () => {
   const archived = listing({ activity_id: 'archived', archive: true, public_listing_status: 'archived' });
   assert.deepEqual(queueCounts([archived]), {
     all_activities: 0,
@@ -87,10 +88,18 @@ test('archived listings do not appear in any image-review queue', () => {
     all_published: 0,
     all_draft: 0,
     missing_images: 0,
+    archive: 1,
   });
   for (const queueId of ['all_activities', 'model_selected', 'all_published', 'all_draft', 'missing_images']) {
     assert.equal(activitiesForQueue([archived], queueId).length, 0);
   }
+  assert.deepEqual(activitiesForQueue([archived], 'archive').map((activity) => activity.activity_id), ['archived']);
+});
+
+test('an archive flag keeps a legacy archived listing out of active queues even when its old status remains published', () => {
+  const archived = listing({ activity_id: 'legacy-archive', archive: true, public_listing_status: 'published' });
+  assert.equal(activitiesForQueue([archived], 'all_published').length, 0);
+  assert.deepEqual(activitiesForQueue([archived], 'archive').map((activity) => activity.activity_id), ['legacy-archive']);
 });
 
 test('model-selected queue contains activities whose displayed image is the model image', () => {
