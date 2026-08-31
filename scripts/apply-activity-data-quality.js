@@ -87,6 +87,47 @@ from links
 where activity.activity_id = links.activity_id
   and (coalesce(links.website_is_google, false) or coalesce(links.organiser_is_google, false));
 
+-- A council can be the authoritative host without every council page being a
+-- useful activity destination. Remove only broad government home/directory
+-- links; specific event, venue and timetable pages remain untouched.
+update public.activities
+set
+  website = case when public.is_generic_government_activity_url(website) then null else website end,
+  organiser_website = case when public.is_generic_government_activity_url(organiser_website) then null else organiser_website end,
+  updated_at = now()
+where public.is_generic_government_activity_url(website)
+   or public.is_generic_government_activity_url(organiser_website);
+
+-- Family-hub cards describe scheduled sessions, not general-purpose venues.
+-- Keep only records with a named, exact occurrence date and both clock times.
+update public.activities
+set
+  archive_previous_listing_status = case
+    when public_listing_status in ('published', 'draft') then public_listing_status
+    else archive_previous_listing_status
+  end,
+  public_listing_status = 'archived',
+  archive = true,
+  archive_reason = 'Scheduled family activity removed: no verified exact occurrence date and start/end time.',
+  archived_at = coalesce(archived_at, now()),
+  updated_at = now()
+where coalesce(archive, false) = false
+  and public_listing_status in ('published', 'draft')
+  and source_name in (
+    'GOV.UK Family Hubs and Start for Life',
+    'Hackney Children''s Centres',
+    'London family hub official timetables',
+    'London Borough of Waltham Forest events',
+    'Waltham Forest Best Start in Life events',
+    'Woodberry Down Children and Family Hub'
+  )
+  and (
+    source_name = 'GOV.UK Family Hubs and Start for Life'
+    or start_time is null
+    or end_time is null
+    or (activity_date is null and coalesce(cardinality(available_dates), 0) = 0)
+  );
+
 -- Do not invent opening hours. A missing or incomplete schedule is displayed
 -- as "Any time" by the app when both values are null.
 update public.activities
@@ -122,6 +163,6 @@ mkdirSync(dirname(outputAudit), { recursive: true });
 writeFileSync(outputSql, sql);
 writeFileSync(outputAudit, JSON.stringify({
   generated_at: new Date().toISOString(),
-  rules: ['trim whitespace and control characters', 'restore data_source from source_name', 'remove duplicate organiser website links', 'record unknown times as anytime', 'supply an age-suitability fallback'],
+  rules: ['trim whitespace and control characters', 'restore data_source from source_name', 'remove duplicate organiser website links', 'remove generic government destination links', 'archive incomplete scheduled family-hub cards', 'record unknown times as anytime', 'supply an age-suitability fallback'],
 }, null, 2) + '\n');
 console.log('Generated shared activity data-quality SQL.');

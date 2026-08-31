@@ -38,6 +38,61 @@ function normaliseName(value) {
     .trim();
 }
 
+const genericGovernmentPathEndings = [
+  '/best-start-family-hubs',
+  '/brightstart',
+  '/community-parks-leisure',
+  '/events',
+  '/families-young-people-and-children',
+  '/family-hubs',
+  '/familywellbeingcentres',
+  '/find-your-local-park',
+  '/libraries',
+  '/our-historical-parks',
+  '/our-other-parks',
+  '/other-green-spaces',
+  '/parks',
+  '/parks-and-open-spaces',
+  '/supporting-children-and-young-people',
+  '/your-local-parks',
+];
+
+const genericGovernmentSubdomains = new Set([
+  'education',
+  'families',
+  'fsd',
+  'libraries',
+  'localoffer',
+]);
+
+// Government-hosted links are welcome when they identify the activity: an
+// event page, named venue page, or dated timetable/PDF. Broad council landing
+// pages and the central GOV.UK directory are not useful activity destinations.
+export function isGenericGovernmentActivityUrl(value) {
+  try {
+    const url = new URL(String(value || '').trim());
+    if (!['http:', 'https:'].includes(url.protocol)) return false;
+    const host = url.hostname.toLowerCase().replace(/^www\./, '');
+    if (!(host === 'gov.uk' || host.endsWith('.gov.uk'))) return false;
+    if (host === 'gov.uk') return true;
+
+    const pathname = decodeURIComponent(url.pathname)
+      .toLowerCase()
+      .replace(/\/+$/, '') || '/';
+    if (pathname === '/government/publications/list-of-family-hub-sites') return true;
+    if (genericGovernmentPathEndings.some((ending) => pathname === ending || pathname.endsWith(ending))) return true;
+
+    if (pathname === '/' || pathname === '/home' || pathname === '/homepage' || pathname === '/index' || pathname === '/index.aspx') {
+      const labels = host.split('.');
+      const subdomain = labels.length > 3 ? labels[0] : null;
+      return labels.length <= 3 || genericGovernmentSubdomains.has(subdomain);
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 // Google and Maps links are useful in the dedicated Google Places fields, but
 // they are never an activity's own website. Keeping this check central stops
 // importers from turning a failed Maps fallback into a misleading Website button.
@@ -53,6 +108,7 @@ export function officialWebsiteUrl(value) {
       || host.endsWith('.google.co.uk')
       || host === 'maps.app.goo.gl'
     ) return null;
+    if (isGenericGovernmentActivityUrl(url)) return null;
     return url.toString();
   } catch {
     return null;

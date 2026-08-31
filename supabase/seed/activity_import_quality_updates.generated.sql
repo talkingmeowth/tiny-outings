@@ -49,3 +49,100 @@ where nullif(trim(website), '') is not null
   and nullif(trim(organiser_website), '') is not null
   and regexp_replace(regexp_replace(regexp_replace(lower(trim(website)), '^https?://(www\.)?', ''), '[?#].*$', ''), '/+$', '')
       = regexp_replace(regexp_replace(regexp_replace(lower(trim(organiser_website)), '^https?://(www\.)?', ''), '[?#].*$', ''), '/+$', '');
+
+-- Maps URLs are navigation references, not provider websites. This safety net
+-- covers legacy and future importer output after every manual update run.
+with links as (
+  select
+    activity_id,
+    website,
+    organiser_website,
+    website ~* '^https?://((www\.)?(google\.(com|co\.uk))|maps\.google\.com|maps\.app\.goo\.gl)(/|$)' as website_is_google,
+    organiser_website ~* '^https?://((www\.)?(google\.(com|co\.uk))|maps\.google\.com|maps\.app\.goo\.gl)(/|$)' as organiser_is_google
+  from public.activities
+)
+update public.activities as activity
+set
+  website = case
+    when links.website_is_google and coalesce(links.organiser_is_google, false) = false then links.organiser_website
+    when links.website_is_google then null
+    else activity.website
+  end,
+  organiser_website = case
+    when links.organiser_is_google or links.website_is_google then null
+    else activity.organiser_website
+  end,
+  updated_at = now()
+from links
+where activity.activity_id = links.activity_id
+  and (coalesce(links.website_is_google, false) or coalesce(links.organiser_is_google, false));
+
+-- A council can be the authoritative host without every council page being a
+-- useful activity destination. Remove only broad government home/directory
+-- links; specific event, venue and timetable pages remain untouched.
+update public.activities
+set
+  website = case when public.is_generic_government_activity_url(website) then null else website end,
+  organiser_website = case when public.is_generic_government_activity_url(organiser_website) then null else organiser_website end,
+  updated_at = now()
+where public.is_generic_government_activity_url(website)
+   or public.is_generic_government_activity_url(organiser_website);
+
+-- Family-hub cards describe scheduled sessions, not general-purpose venues.
+-- Keep only records with a named, exact occurrence date and both clock times.
+update public.activities
+set
+  archive_previous_listing_status = case
+    when public_listing_status in ('published', 'draft') then public_listing_status
+    else archive_previous_listing_status
+  end,
+  public_listing_status = 'archived',
+  archive = true,
+  archive_reason = 'Scheduled family activity removed: no verified exact occurrence date and start/end time.',
+  archived_at = coalesce(archived_at, now()),
+  updated_at = now()
+where coalesce(archive, false) = false
+  and public_listing_status in ('published', 'draft')
+  and source_name in (
+    'GOV.UK Family Hubs and Start for Life',
+    'Hackney Children''s Centres',
+    'London family hub official timetables',
+    'London Borough of Waltham Forest events',
+    'Waltham Forest Best Start in Life events',
+    'Woodberry Down Children and Family Hub'
+  )
+  and (
+    source_name = 'GOV.UK Family Hubs and Start for Life'
+    or start_time is null
+    or end_time is null
+    or (activity_date is null and coalesce(cardinality(available_dates), 0) = 0)
+  );
+
+-- Do not invent opening hours. A missing or incomplete schedule is displayed
+-- as "Any time" by the app when both values are null.
+update public.activities
+set
+  start_time = null,
+  end_time = null,
+  availability_type = 'unknown',
+  availability_notes = coalesce(nullif(availability_notes, ''), 'Times not published; check the provider before travelling.'),
+  updated_at = now()
+where coalesce(archive, false) = false
+  and (
+    (start_time is null and end_time is not null)
+    or (start_time is not null and end_time is null)
+    or (availability_type = 'unknown' and start_time in ('09:00'::time, '09:00:00'::time) and end_time in ('17:00'::time, '17:00:00'::time))
+  );
+
+-- Every listing must communicate an age recommendation. Importers should set
+-- a precise value where supplied; this is a safe family-directory fallback.
+update public.activities
+set
+  age_suitability = case
+    when lower(coalesce(category, '')) ~ '(baby sensory|baby swim|baby yoga|baby massage)' then 'Babies from birth to 18 months'
+    when lower(coalesce(category, '')) ~ '(parks|cafe|food|museum|bookshop)' then 'Babies, toddlers and their grown-ups'
+    else 'Babies, toddlers and their grown-ups'
+  end,
+  updated_at = now()
+where coalesce(archive, false) = false
+  and nullif(trim(age_suitability), '') is null;

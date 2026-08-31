@@ -2,6 +2,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isGenericGovernmentActivityUrl } from './lib/activity-import-policy.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const outputSql = join(root, 'supabase', 'seed', 'activity_provider_link_updates.generated.sql');
@@ -59,6 +60,7 @@ function isSpecificListing(value) {
   const url = normalizeUrl(value);
   if (!url) return false;
   if (blockedDomains.test(host(url) || '')) return false;
+  if (isGenericGovernmentActivityUrl(url)) return false;
   const valueLower = url.toLowerCase();
   if (valueLower.includes('happity.co.uk')) return /\/schedules\//i.test(valueLower);
   if (valueLower.includes('feverup.com')) return /\/m\/\d+/i.test(valueLower);
@@ -69,6 +71,7 @@ function isSpecificListing(value) {
 function isOfficialCandidate(value, sourceUrl) {
   const url = normalizeUrl(value);
   if (!url || blockedDomains.test(host(url) || '')) return false;
+  if (isGenericGovernmentActivityUrl(url)) return false;
   if (isProviderLink(url)) return false;
   return host(url) !== host(sourceUrl);
 }

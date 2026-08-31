@@ -1,3 +1,5 @@
+import { isGenericGovernmentActivityUrl } from './activity-import-policy.js';
+
 const weekdayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 const excludedSessionName = /(?:advice|appointment|assessment|antenatal checks?|benefit|bcg|citizen(?:'s|s)? advice|clinic|community midwi|development checks?|dwp|employment|family information|family navigator|family store|health checks?|health review|health visitor|housing|job club|maternal mood|midwi|parent\s*-?\s*infant psychotherapy|perinatal mental health|registration|support hubs? \(fish\)|vaccination|welfare benefits?|youth outreach)/i;
@@ -129,6 +131,42 @@ export function weekdayFromHeading(value) {
   return weekdayNames.find((day) => day.toLowerCase() === normalized.toLowerCase()) || null;
 }
 
+function validIsoDate(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(value || ''))) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+export function datesForWeeklySession(startDate, endDate, weekday, excludedDates = []) {
+  if (!validIsoDate(startDate) || !validIsoDate(endDate) || !weekdayNames.includes(weekday) || endDate < startDate) return [];
+  const excluded = new Set(excludedDates.filter(validIsoDate));
+  const targetDay = (weekdayNames.indexOf(weekday) + 1) % 7;
+  const date = new Date(`${startDate}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + ((targetDay - date.getUTCDay() + 7) % 7));
+  const dates = [];
+  while (date.toISOString().slice(0, 10) <= endDate && dates.length < 366) {
+    const value = date.toISOString().slice(0, 10);
+    if (!excluded.has(value)) dates.push(value);
+    date.setUTCDate(date.getUTCDate() + 7);
+  }
+  return dates;
+}
+
+export function materialiseFamilyHubSessionDates(session) {
+  const exactDates = [...new Set((session.available_dates || []).filter(Boolean))].sort();
+  return {
+    ...session,
+    available_dates: exactDates.length
+      ? exactDates
+      : datesForWeeklySession(
+        session.availability_start_date,
+        session.availability_end_date,
+        session.day,
+        session.excluded_dates,
+      ),
+  };
+}
+
 export function validateFamilyHubSession(session) {
   const errors = [];
   if (!cleanText(session.activity_name)) errors.push('missing activity name');
@@ -137,6 +175,13 @@ export function validateFamilyHubSession(session) {
   if (!/^\d{2}:\d{2}$/.test(session.start_time || '')) errors.push('missing or invalid start time');
   if (!/^\d{2}:\d{2}$/.test(session.end_time || '')) errors.push('missing or invalid end time');
   if (!/^https:\/\//i.test(session.source_page_url || '')) errors.push('source is not an HTTPS official page');
+  if (isGenericGovernmentActivityUrl(session.source_page_url)) errors.push('source is a generic government page, not a specific activity or timetable');
   if (session.start_time && session.end_time && session.end_time <= session.start_time) errors.push('end time is not after start time');
+  const dates = [...new Set(session.available_dates || [])];
+  if (!dates.length) errors.push('missing exact occurrence dates');
+  if (dates.some((date) => !validIsoDate(date))) errors.push('invalid occurrence date');
+  if (weekdayNames.includes(session.day) && dates.some((date) => (
+    validIsoDate(date) && weekdayNames[(new Date(`${date}T00:00:00Z`).getUTCDay() + 6) % 7] !== session.day
+  ))) errors.push('occurrence date does not match weekday');
   return errors;
 }

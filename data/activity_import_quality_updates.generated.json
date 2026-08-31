@@ -1,8 +1,12 @@
 {
-  "generated_at": "2026-08-16T19:30:07.133Z",
+  "generated_at": "2026-08-31T16:26:02.732Z",
   "rules": [
     "trim whitespace and control characters",
     "restore data_source from source_name",
-    "remove duplicate organiser website links"
+    "remove duplicate organiser website links",
+    "remove generic government destination links",
+    "archive incomplete scheduled family-hub cards",
+    "record unknown times as anytime",
+    "supply an age-suitability fallback"
   ]
 }

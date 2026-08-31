@@ -1,18 +1,15 @@
 {
-  "generated_at": "2026-08-30T18:18:57.085Z",
-  "sessions": 157,
+  "generated_at": "2026-08-31T16:33:49.972Z",
+  "sessions": 152,
   "centres_covered": [
     "CR41SD",
     "CR43BH",
     "EC1R4SR",
-    "IG117NB",
     "NW11HQ",
     "NW13TJ",
     "NW18DQ",
     "NW19SU",
     "NW62JL",
-    "RM109QS",
-    "RM65NJ",
     "SE115BZ",
     "SE279UD",
     "SW22JE",
@@ -26,16 +23,13 @@
     "CR41SD": 11,
     "CR43BH": 12,
     "EC1R4SR": 6,
-    "IG117NB": 2,
     "NW11HQ": 7,
     "NW13TJ": 8,
     "NW18DQ": 11,
     "NW19SU": 7,
     "NW62JL": 9,
-    "RM109QS": 1,
-    "RM65NJ": 1,
     "SE115BZ": 15,
-    "SE279UD": 10,
+    "SE279UD": 9,
     "SW22JE": 15,
     "SW48EG": 4,
     "SW99TG": 9,
@@ -216,9 +210,133 @@
       "reason": "The official site still advertises the Summer Term 2026 timetable and has not published a current Autumn timetable."
     }
   ],
-  "validation_failures": [],
+  "validation_failures": [
+    {
+      "session": {
+        "hub_postcode": "IG117NB",
+        "venue_postcode": "IG117NB",
+        "venue_address": "",
+        "activity_name": "Stay and Play",
+        "day": "Thursday",
+        "start_time": "09:30",
+        "end_time": "10:25",
+        "age_suitability": "Parents and children aged 0 to 5 years",
+        "category": "Stay & play",
+        "description": "A free family stay-and-play session for children aged 0 to 5. No booking is required.",
+        "booking_required": false,
+        "source_page_url": "https://www.lbbd.gov.uk/events/stay-and-play-0-5-years-old-valence-library",
+        "availability_start_date": null,
+        "availability_end_date": null,
+        "available_dates": [],
+        "excluded_dates": [],
+        "schedule_notes": "Weekly session published by Barking and Dagenham Council; no booking required."
+      },
+      "errors": [
+        "missing exact occurrence dates"
+      ]
+    },
+    {
+      "session": {
+        "hub_postcode": "IG117NB",
+        "venue_postcode": "IG117NB",
+        "venue_address": "",
+        "activity_name": "Stay and Play",
+        "day": "Thursday",
+        "start_time": "10:40",
+        "end_time": "11:35",
+        "age_suitability": "Parents and children aged 0 to 5 years",
+        "category": "Stay & play",
+        "description": "A free family stay-and-play session for children aged 0 to 5. No booking is required.",
+        "booking_required": false,
+        "source_page_url": "https://www.lbbd.gov.uk/events/stay-and-play-0-5-years-old-valence-library",
+        "availability_start_date": null,
+        "availability_end_date": null,
+        "available_dates": [],
+        "excluded_dates": [],
+        "schedule_notes": "Weekly session published by Barking and Dagenham Council; no booking required."
+      },
+      "errors": [
+        "missing exact occurrence dates"
+      ]
+    },
+    {
+      "session": {
+        "hub_postcode": "RM109QS",
+        "venue_postcode": "RM109QS",
+        "venue_address": "",
+        "activity_name": "Stay and Play",
+        "day": "Tuesday",
+        "start_time": "10:00",
+        "end_time": "11:30",
+        "age_suitability": "Parents and children aged 0 to 5 years",
+        "category": "Stay & play",
+        "description": "A free family stay-and-play session for children aged 0 to 5. No booking is required.",
+        "booking_required": false,
+        "source_page_url": "https://www.lbbd.gov.uk/events/stay-and-play-0-5-years-old-valence-library",
+        "availability_start_date": null,
+        "availability_end_date": null,
+        "available_dates": [],
+        "excluded_dates": [],
+        "schedule_notes": "Weekly session published by Barking and Dagenham Council; no booking required."
+      },
+      "errors": [
+        "missing exact occurrence dates"
+      ]
+    },
+    {
+      "session": {
+        "hub_postcode": "RM65NJ",
+        "venue_postcode": "RM65NJ",
+        "venue_address": "",
+        "activity_name": "Stay and Play",
+        "day": "Thursday",
+        "start_time": "10:00",
+        "end_time": "11:30",
+        "age_suitability": "Parents and children aged 0 to 5 years",
+        "category": "Stay & play",
+        "description": "A free family stay-and-play session for children aged 0 to 5. No booking is required.",
+        "booking_required": false,
+        "source_page_url": "https://www.lbbd.gov.uk/events/stay-and-play-0-5-years-old-valence-library",
+        "availability_start_date": null,
+        "availability_end_date": null,
+        "available_dates": [],
+        "excluded_dates": [],
+        "schedule_notes": "Weekly session published by Barking and Dagenham Council; no booking required."
+      },
+      "errors": [
+        "missing exact occurrence dates"
+      ]
+    },
+    {
+      "session": {
+        "hub_postcode": "SE279UD",
+        "venue_postcode": "SE279UD",
+        "venue_address": "",
+        "activity_name": "Starting Solids Workshop",
+        "day": "Thursday",
+        "start_time": "13:00",
+        "end_time": "15:00",
+        "age_suitability": "Parents and carers of babies",
+        "category": "Feeding & postnatal support",
+        "description": "Starting Solids Workshop at the family hub.",
+        "booking_required": true,
+        "source_page_url": "https://www.lambeth.gov.uk/sites/default/files/2026-08/Norwood_Better_Start_Autumn_26.pdf",
+        "availability_start_date": "2026-09-01",
+        "availability_end_date": "2026-12-18",
+        "available_dates": [
+          "2026-12-09"
+        ],
+        "excluded_dates": [],
+        "schedule_notes": "Official family hub timetable. Check the source page for cancellations or booking changes."
+      },
+      "errors": [
+        "occurrence date does not match weekday"
+      ]
+    }
+  ],
   "policy": {
-    "generic_cards_archived_only_after_replacement_exists": true,
+    "generic_cards_without_a_verified_exact_schedule_are_archived": true,
+    "exact_dates_are_materialised_from_bounded_official_timetables": true,
     "replacements_inherit_generic_publication_status": true,
     "verified_published_and_draft_generic_cards_are_replaced": true,
     "waltham_forest_uses_dedicated_live_event_importer": true,

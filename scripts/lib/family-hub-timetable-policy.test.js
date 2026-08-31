@@ -4,6 +4,8 @@ import {
   ageForFamilyHubSession,
   categoryForFamilyHubSession,
   isFamilyActivitySession,
+  datesForWeeklySession,
+  materialiseFamilyHubSessionDates,
   parseTimeRange,
   parseTimeRanges,
   validateFamilyHubSession,
@@ -47,6 +49,29 @@ test('rejects incomplete timetable rows before SQL generation', () => {
     start_time: '10:00',
     end_time: '11:30',
     source_page_url: 'https://example.gov.uk/timetable',
+    available_dates: ['2026-09-07', '2026-09-14'],
   }), []);
   assert.ok(validateFamilyHubSession({ activity_name: 'Generic hub' }).length >= 4);
+  assert.ok(validateFamilyHubSession({
+    activity_name: 'Stay and Play',
+    hub_postcode: 'N1 2SX',
+    day: 'Monday',
+    start_time: '10:00',
+    end_time: '11:30',
+    source_page_url: 'https://www.gov.uk/government/publications/list-of-family-hub-sites',
+    available_dates: ['2026-09-07'],
+  }).includes('source is a generic government page, not a specific activity or timetable'));
+});
+
+test('materialises bounded weekly schedules into exact occurrence dates', () => {
+  assert.deepEqual(datesForWeeklySession('2026-09-01', '2026-09-30', 'Monday', ['2026-09-14']), [
+    '2026-09-07',
+    '2026-09-21',
+    '2026-09-28',
+  ]);
+  assert.deepEqual(materialiseFamilyHubSessionDates({
+    day: 'Wednesday',
+    availability_start_date: '2026-09-02',
+    availability_end_date: '2026-09-18',
+  }).available_dates, ['2026-09-02', '2026-09-09', '2026-09-16']);
 });
