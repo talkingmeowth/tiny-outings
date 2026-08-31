@@ -207,6 +207,18 @@ async function main() {
   console.log(`Website selector trained from ${model.trainingReviewCount} matched manual image choices.`);
   const queue = retryFailed ? loadFailedQueueFromLinkedDatabase(model) : await loadReviewQueue();
   if (!queue.length) {
+    mkdirSync(dirname(outputPath), { recursive: true });
+    writeFileSync(outputPath, `${JSON.stringify({
+      generated_at: new Date().toISOString(),
+      model: model.name,
+      model_version: model.version,
+      workflow_version: workflowVersion,
+      training_review_count: model.trainingReviewCount,
+      queued: 0,
+      summary: {},
+      results: [],
+      attempts: 0,
+    }, null, 2)}\n`);
     console.log(retryFailed ? 'No failed website selections are pending fallback.' : 'No unreviewed populated website candidate sets are pending.');
     return;
   }

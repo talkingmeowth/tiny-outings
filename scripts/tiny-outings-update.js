@@ -96,6 +96,14 @@ const postApplyJobs = [
     optional: 'images',
   },
   {
+    name: 'select-stored-website-images',
+    // The tagged model can be retrained and rerun against the stored website
+    // candidate collection without downloading the source pages again.
+    script: 'select-website-image-candidates.js',
+    output: 'data/website_image_candidate_selection.generated.json',
+    optional: 'images',
+  },
+  {
     name: 'serpapi-image-enrichment',
     script: 'refresh-cafe-serpapi-images.js',
     // Automatic paid searches are limited to records created during this run.
@@ -112,6 +120,23 @@ const postApplyJobs = [
     script: 'codex-image-review.js',
     args: ['--activity-ids-file', 'data/activity_serpapi_image_refresh.generated.json'],
     output: 'data/codex_image_shortlist.generated.json',
+    optional: 'images',
+  },
+  {
+    name: 'select-stored-serpapi-images',
+    // Selection uses the complete cached result set. It never calls SerpAPI.
+    script: 'select-serpapi-image-candidates.js',
+    args: ['--tagged-ranker', '--linked-database', '--activity-ids-file', 'data/activity_serpapi_image_refresh.generated.json'],
+    output: 'data/serpapi_image_candidate_selection.generated.json',
+    optional: 'images',
+  },
+  {
+    name: 'apply-repeatable-model-image-review',
+    // Re-evaluate every still-unreviewed published/draft listing from stored
+    // SerpAPI and website candidates only. No paid search flag is supplied.
+    script: 'automate-tagged-image-review.js',
+    args: ['--scope', 'all-unreviewed', '--apply'],
+    output: 'data/automated_image_review_report.generated.json',
     optional: 'images',
   },
   {
@@ -287,7 +312,7 @@ writeFileSync(auditPath, JSON.stringify({
   manual_review: 'new importer and user-submitted listings are queued as drafts for administrator review',
   archive_protection: 'database trigger preserves archive=true and archived status',
   downloaded_website_images: 'official website candidates are stored only after Codex vision rejects logos and low-quality images',
-  image_candidate_review: 'SerpAPI candidates are queued for gpt-5.6-sol Codex vision; decisions are logged against the exact candidate-fetch timestamp',
+  image_candidate_review: 'Each activity gets at most one claimed SerpAPI request; every returned image record and call metadata are cached, and all selectors rerun from stored candidates without another paid call',
   jobs: results,
 }, null, 2) + '\n');
 

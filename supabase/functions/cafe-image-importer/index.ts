@@ -12,12 +12,11 @@ const adminEmails = new Set([
   'benfielden@gmail.com',
 ])
 const maxBatchSize = 20
-const maxStoredCandidates = 20
 const maxImageBytes = 8 * 1024 * 1024
 const acceptedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif'])
 const blockedImageTerms = /(favicon|icon|logo|wordmark|brand|badge|avatar|social[-_ ]?(?:icon|link|media)|facebook|fbcdn|scontent|cdninstagram|instagram|twitter|twimg|tiktok|linkedin|pinterest|youtube|tracking|pixel|spinner|placeholder|cookie|consent|newsletter|payment|checkout|app-store|google-play)/i
 
-type SearchImage = {
+type SearchImage = Record<string, unknown> & {
   original?: string
   thumbnail?: string
   title?: string
@@ -30,8 +29,8 @@ type SearchImage = {
   thumbnail_height?: number
 }
 
-type StoredCandidate = {
-  original: string
+type StoredCandidate = Record<string, unknown> & {
+  original: string | null
   thumbnail: string | null
   title: string | null
   source: string | null
@@ -152,18 +151,32 @@ async function authorised(request: Request, supabase: ReturnType<typeof createCl
   return !error && Boolean(data.user?.email && adminEmails.has(data.user.email.toLowerCase()))
 }
 
-function usableImageUrl(value: string | undefined) {
-  if (!value || blockedImageTerms.test(value)) return false
+function usableImageUrl(value: unknown) {
+  const candidate = String(value || '').trim()
+  if (!candidate || blockedImageTerms.test(candidate)) return false
   try {
-    const url = new URL(value)
+    const url = new URL(candidate)
     return url.protocol === 'http:' || url.protocol === 'https:'
   } catch {
     return false
   }
 }
 
-function text(value: string | null | undefined) {
+function text(value: unknown) {
   return String(value || '').replace(/\s+/g, ' ').trim()
+}
+
+function redactSerpApiSecrets(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(redactSerpApiSecrets)
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([key, nested]) => [
+      key,
+      /api[_-]?key/i.test(key) ? '[redacted]' : redactSerpApiSecrets(nested),
+    ]))
+  }
+  return typeof value === 'string'
+    ? value.replace(/([?&]api_key=)[^&]+/gi, '$1[redacted]')
+    : value
 }
 
 function readUint32(bytes: Uint8Array, offset: number) {
@@ -318,19 +331,17 @@ function searchQuery(activity: Activity, ward: string) {
   return `${quoted(activity.activity_name)} ${quoted(ward)} ${location} ${category} activity venue`
 }
 
-function storedCandidate(activity: Activity, image: SearchImage, fallbackPosition: number): StoredCandidate | null {
-  if (!usableImageUrl(image.original)) return null
-  if (isDisallowedWikimediaCandidate(activity, image)) return null
-  if (blockedImageTerms.test(`${image.original || ''} ${image.thumbnail || ''} ${image.title || ''} ${image.source || ''}`)) return null
-  const width = Number(image.original_width) || 0
-  const height = Number(image.original_height) || 0
-  if ((width && width < 400) || (height && height < 300) || (width && height && width * height < 180000)) return null
+function storedCandidate(image: SearchImage, fallbackPosition: number): StoredCandidate {
+  // Keep the complete result object exactly once. Quality, resolution, source,
+  // logo, duplicate, and Wikimedia rules belong to the reusable local selector,
+  // never to paid discovery storage.
   return {
-    original: image.original!,
-    thumbnail: usableImageUrl(image.thumbnail) ? image.thumbnail! : null,
+    ...image,
+    original: text(image.original) || null,
+    thumbnail: text(image.thumbnail) || null,
     title: text(image.title) || null,
     source: text(image.source) || null,
-    link: usableImageUrl(image.link) ? image.link! : null,
+    link: text(image.link) || null,
     position: Number.isFinite(Number(image.position)) ? Number(image.position) : fallbackPosition,
     original_width: Number.isFinite(Number(image.original_width)) ? Number(image.original_width) : null,
     original_height: Number.isFinite(Number(image.original_height)) ? Number(image.original_height) : null,
@@ -341,9 +352,8 @@ async function discoverCandidates(activity: Activity) {
   const apiKey = Deno.env.get('SERPAPI_API_KEY')
   if (!apiKey) throw new Error('SERPAPI_API_KEY is not configured.')
 
-  // One request is the entire paid allowance for a listing. We save all usable
-  // results, then the local selector can be improved and rerun without calling
-  // SerpAPI again.
+  // One request is the entire paid allowance for a listing. Save every returned
+  // image record and all call-level metadata so every later review is local.
   const ward = await londonWard(activity)
   const query = searchQuery(activity, ward)
   const url = new URL('https://serpapi.com/search.json')
@@ -355,19 +365,14 @@ async function discoverCandidates(activity: Activity) {
   const response = await fetch(url, { signal: AbortSignal.timeout(20000) })
   if (response.status === 429) throw new SerpApiRateLimitError('SerpAPI rate limit reached.')
   if (!response.ok) throw new Error(`SerpAPI returned ${response.status}.`)
-  const body = await response.json()
+  const body = await response.json() as Record<string, unknown>
   const rawCandidates = Array.isArray(body.images_results) ? body.images_results : []
-  const seen = new Set<string>()
-  const candidates = rawCandidates
-    .map((image: SearchImage, index: number) => storedCandidate(activity, image, index + 1))
-    .filter((image: StoredCandidate | null): image is StoredCandidate => Boolean(image))
-    .filter((image) => {
-      if (seen.has(image.original)) return false
-      seen.add(image.original)
-      return true
-    })
-    .slice(0, maxStoredCandidates)
-  return { query, ward, rawCandidateCount: rawCandidates.length, candidates }
+  const candidates = rawCandidates.map((image: SearchImage, index: number) => storedCandidate(
+    redactSerpApiSecrets(image) as SearchImage,
+    index + 1,
+  ))
+  const { images_results: _imagesResults, ...metadata } = body
+  return { query, ward, rawCandidateCount: rawCandidates.length, candidates, metadata: redactSerpApiSecrets(metadata) }
 }
 
 function extensionFor(contentType: string, imageUrl: string) {
@@ -470,11 +475,15 @@ async function storeSelectedCandidate(
   if (!candidate || !usableImageUrl(candidate.original)) {
     return { activity_id: selection.activity_id, status: 'selection-failed', reason: 'The selected candidate is no longer available.' }
   }
+  const originalUrl = text(candidate.original)
   if (isDisallowedWikimediaCandidate(activity, candidate)) {
     return { activity_id: selection.activity_id, status: 'selection-failed', reason: 'Wikimedia images are not allowed for this activity category.' }
   }
 
-  for (const imageUrl of [candidate.original, candidate.thumbnail].filter(usableImageUrl)) {
+  const candidateUrls = [candidate.original, candidate.thumbnail]
+    .map((value) => text(value))
+    .filter((value) => usableImageUrl(value))
+  for (const imageUrl of candidateUrls) {
     try {
       const response = await fetch(imageUrl, {
         redirect: 'follow',
@@ -499,7 +508,7 @@ async function storeSelectedCandidate(
       const publicUrl = supabase.storage.from('activity-images').getPublicUrl(path).data.publicUrl
       const { error: updateError } = await supabase.from('activities').update({
         scraped_image_url: publicUrl,
-        image_source_url: candidate.original,
+        image_source_url: originalUrl,
         serpapi_image_selected_at: now,
         serpapi_image_selection_reason: selection.selection_reason,
         serpapi_image_selection_confidence: selection.selection_confidence,
@@ -507,7 +516,7 @@ async function storeSelectedCandidate(
         updated_at: now,
       }).eq('activity_id', selection.activity_id)
       if (updateError) return { activity_id: selection.activity_id, status: 'selection-failed', reason: updateError.message }
-      const reviewError = await recordVisionReview(supabase, activity, selection, now, 'selected', candidate.original)
+      const reviewError = await recordVisionReview(supabase, activity, selection, now, 'selected', originalUrl)
       return reviewError
         ? { activity_id: selection.activity_id, status: 'selection-failed', reason: `Image saved but the vision audit log failed: ${reviewError}` }
         : { activity_id: selection.activity_id, status: 'selected' }
@@ -523,7 +532,7 @@ async function storeSelectedCandidate(
     updated_at: now,
   }).eq('activity_id', selection.activity_id)
   if (updateError) return { activity_id: selection.activity_id, status: 'selection-failed', reason: updateError.message }
-  const reviewError = await recordVisionReview(supabase, activity, selection, now, 'selection_download_failed', candidate.original)
+  const reviewError = await recordVisionReview(supabase, activity, selection, now, 'selection_download_failed', originalUrl)
   return {
     activity_id: selection.activity_id,
     status: 'selection-download-failed',
@@ -537,10 +546,11 @@ const cardImageFields = [
   'admin_cover_image_url',
   'reviewed_image_url',
   'user_image_url',
+  'audit_image_url',
   'scraped_image_url',
-  'model_selected_url',
   'organiser_website_downloaded_image',
   'website_downloaded_image',
+  'model_selected_url',
   'wikimedia_image_url',
   'website_image_url',
   'listing_image_url',
@@ -559,17 +569,17 @@ function validCardImageUrl(value: string) {
   }
 }
 
-function scrapedImageRejectedByAudit(activity: Record<string, unknown>, url: string) {
-  if (!['needs_replacement', 'no_replacement', 'replaced'].includes(text(activity.audit_image_status as string | null | undefined))) return false
-  if (text(activity.audit_image_original_source_field as string | null | undefined) !== 'scraped_image_url') return false
-  const auditedUrl = secureImageUrl(activity.audit_image_original_url)
-  return Boolean(auditedUrl && auditedUrl === secureImageUrl(url))
-}
-
 function cardImageAllowed(activity: Record<string, unknown>, field: typeof cardImageFields[number], url: string) {
-  if (field === 'scraped_image_url' && scrapedImageRejectedByAudit(activity, url)) return false
+  if (field === 'audit_image_url' && text(activity.audit_image_status as string | null | undefined) !== 'replaced') return false
+  if (field === 'scraped_image_url' && (
+    text(activity.audit_image_status as string | null | undefined) !== 'pass'
+    || text(activity.audit_image_original_source_field as string | null | undefined) !== 'scraped_image_url'
+    || secureImageUrl(activity.audit_image_original_url) !== secureImageUrl(url)
+  )) return false
+  if (field === 'model_selected_url' && Number(activity.model_selected_confidence) < 0.7) return false
   if (allowsWikimediaImages(activity as Pick<Activity, 'category'>)) return true
   if (field === 'wikimedia_image_url' || isWikimediaSource(url)) return false
+  if (field === 'audit_image_url' && isWikimediaSource(activity.audit_image_source_url)) return false
   if (field === 'scraped_image_url' && isWikimediaSource(activity.image_source_url)) return false
   return true
 }
@@ -602,7 +612,7 @@ async function storeCardImageAudit(
     return { activity_id: audit.activity_id, status: 'audit-failed', reason: 'The three card-image audit criteria are required.' }
   }
   const { data, error } = await supabase.from('activities')
-    .select('activity_id,category,admin_cover_image_url,reviewed_image_url,use_category_image,user_image_url,scraped_image_url,image_source_url,model_selected_url,audit_image_url,audit_image_source_url,audit_image_status,audit_image_original_url,audit_image_original_source_field,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,updated_at,created_at')
+    .select('activity_id,category,admin_cover_image_url,reviewed_image_url,use_category_image,user_image_url,scraped_image_url,image_source_url,model_selected_url,model_selected_confidence,audit_image_url,audit_image_source_url,audit_image_status,audit_image_original_url,audit_image_original_source_field,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,updated_at,created_at')
     .eq('archive', false)
     .in('activity_id', activityIds)
   if (error || !data?.length) return { activity_id: audit.activity_id, status: 'audit-failed', reason: error?.message || 'Activity group was not found.' }
@@ -896,27 +906,24 @@ Deno.serve(async (request) => {
   const scope = body.scope === 'cafes' ? 'cafes' : 'all'
   const retryEmptyCandidates = body.retry_empty_candidates === true
   const refreshExistingCandidates = body.refresh_existing_candidates === true
-  if (refreshExistingCandidates && !activityIds.length) {
-    return jsonResponse({ error: 'Refreshing an existing candidate set requires explicit activity_ids.' }, 400)
+  if (retryEmptyCandidates || refreshExistingCandidates) {
+    return jsonResponse({
+      error: 'Paid SerpAPI repeats are disabled. Reuse serpapi_image_candidates, including a stored empty result set.',
+    }, 400)
   }
+  if (!Deno.env.get('SERPAPI_API_KEY')) return jsonResponse({ error: 'SERPAPI_API_KEY is not configured.' }, 500)
   const createdAfter = body.created_after && Number.isFinite(Date.parse(body.created_after))
     ? new Date(body.created_after).toISOString()
     : null
 
   let query = supabase
     .from('activities')
-    .select('activity_id,activity_name,address,postcode,borough,category,description,website,organiser_website')
+    .select('activity_id,activity_name,address,postcode,borough,category,description,website,organiser_website,serpapi_image_search_attempted_at')
     .in('public_listing_status', ['draft', 'published'])
     .eq('archive', false)
     .order('activity_id', { ascending: true })
     .limit(batchSize)
-  // Paid retries are opt-in and tightly limited to listings whose stored
-  // candidate set is empty. Normal importer calls retain the one-search cap.
-  if (!refreshExistingCandidates) {
-    query = retryEmptyCandidates
-      ? query.filter('serpapi_image_candidates', 'eq', '[]')
-      : query.is('serpapi_image_candidates_fetched_at', null)
-  }
+  query = query.is('serpapi_image_search_attempted_at', null)
   if (scope === 'cafes') query = query.or('category.ilike.%cafe%,category.ilike.%food%')
   if (createdAfter) query = query.gte('created_at', createdAfter)
   if (activityIds.length) query = query.in('activity_id', activityIds)
@@ -925,8 +932,20 @@ Deno.serve(async (request) => {
   const { data: activities, error } = await query
   if (error) return jsonResponse({ error: error.message }, 500)
 
-  const discoveryConcurrency = retryEmptyCandidates ? 5 : 3
-  const results = await mapWithConcurrency(activities || [], discoveryConcurrency, async (activity: Activity) => {
+  const results = await mapWithConcurrency(activities || [], 3, async (activity: Activity) => {
+    const attemptedAt = new Date().toISOString()
+    const { data: claimed, error: claimError } = await supabase.from('activities').update({
+      serpapi_image_search_attempted_at: attemptedAt,
+      serpapi_image_search_status: 'in_progress',
+      serpapi_image_search_failure_reason: null,
+      updated_at: attemptedAt,
+    })
+      .eq('activity_id', activity.activity_id)
+      .is('serpapi_image_search_attempted_at', null)
+      .select('activity_id')
+      .maybeSingle()
+    if (claimError) return { activity_id: activity.activity_id, status: 'claim-failed', reason: claimError.message }
+    if (!claimed) return { activity_id: activity.activity_id, status: 'already-attempted' }
     try {
       const discovery = await discoverCandidates(activity)
       const now = new Date().toISOString()
@@ -935,6 +954,10 @@ Deno.serve(async (request) => {
         serpapi_image_search_query: discovery.query,
         serpapi_image_search_ward: discovery.ward,
         serpapi_image_candidates_fetched_at: now,
+        serpapi_image_search_status: discovery.candidates.length ? 'completed' : 'no_results',
+        serpapi_image_search_failure_reason: null,
+        serpapi_image_raw_result_count: discovery.rawCandidateCount,
+        serpapi_image_search_metadata: discovery.metadata,
         serpapi_image_selected_at: null,
         serpapi_image_selection_reason: null,
         serpapi_image_selection_confidence: null,
@@ -958,10 +981,17 @@ Deno.serve(async (request) => {
           raw_candidates: discovery.rawCandidateCount,
         }
     } catch (error) {
-      if (error instanceof SerpApiRateLimitError) {
-        return { activity_id: activity.activity_id, status: 'rate-limited', reason: error.message }
+      const reason = error instanceof Error ? error.message : 'Image search failed.'
+      await supabase.from('activities').update({
+        serpapi_image_search_status: 'failed',
+        serpapi_image_search_failure_reason: reason,
+        updated_at: new Date().toISOString(),
+      }).eq('activity_id', activity.activity_id)
+      return {
+        activity_id: activity.activity_id,
+        status: error instanceof SerpApiRateLimitError ? 'rate-limited' : 'failed',
+        reason,
       }
-      return { activity_id: activity.activity_id, status: 'failed', reason: error instanceof Error ? error.message : 'Image search failed.' }
     }
   })
 
@@ -972,8 +1002,7 @@ Deno.serve(async (request) => {
     no_candidates: results.filter((result) => result.status === 'no-candidates').length,
     rate_limited: results.filter((result) => result.status === 'rate-limited').length,
     scope,
-    retry_empty_candidates: retryEmptyCandidates,
-    refresh_existing_candidates: refreshExistingCandidates,
+    paid_repeat_policy: 'one-attempt-per-activity; reuse stored candidates and metadata',
     created_after: createdAfter,
     next_cursor: activityIds.length ? null : activities?.length === batchSize ? last?.activity_id || null : null,
     results,

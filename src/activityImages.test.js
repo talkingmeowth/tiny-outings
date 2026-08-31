@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { shareListingImages } from './activityImages.js';
-import { activityImageUrls } from './activityImages.js';
+import { activityImageFields, activityImageUrls, shareListingImages } from './activityImages.js';
 
 function activity(overrides = {}) {
   return {
@@ -10,6 +9,7 @@ function activity(overrides = {}) {
     address: '1 Pool Road, London E10 1AA',
     start_time: '10:00',
     end_time: '10:30',
+    model_selected_confidence: 0.8,
     ...overrides,
   };
 }
@@ -63,8 +63,11 @@ test('only allows Wikimedia images for parks, museums, and family activities', (
   assert.deepEqual(activityImageUrls(cafe), ['https://cafe.example/interior.jpg']);
 });
 
-test('uses a scraped image when that exact image has not failed the audit', () => {
+test('uses a scraped image only when that exact image passed the audit', () => {
   assert.deepEqual(activityImageUrls(activity({
+    audit_image_status: 'pass',
+    audit_image_original_source_field: 'scraped_image_url',
+    audit_image_original_url: 'http://storage.example/activity-images/selected.jpg',
     scraped_image_url: 'https://storage.example/activity-images/selected.jpg',
   })), ['https://storage.example/activity-images/selected.jpg']);
 });
@@ -83,16 +86,30 @@ test('skips an exact scraped image rejected or superseded by the audit', () => {
   }
 });
 
-test('does not suppress a scraped image when the audit rejected a different source', () => {
+test('does not promote an unaudited scraped image when the audit covered a different source', () => {
   assert.deepEqual(activityImageUrls(activity({
     audit_image_status: 'needs_replacement',
     audit_image_original_source_field: 'website_image_url',
     audit_image_original_url: 'https://images.example.test/rejected-website.jpg',
     scraped_image_url: 'https://storage.example/activity-images/new-scraped.jpg',
-  })), ['https://storage.example/activity-images/new-scraped.jpg']);
+  })), []);
 });
 
 test('uses the requested card-image hierarchy exactly', () => {
+  assert.deepEqual(activityImageFields, [
+    'admin_cover_image_url',
+    'reviewed_image_url',
+    'user_image_url',
+    'audit_image_url',
+    'scraped_image_url',
+    'organiser_website_downloaded_image',
+    'website_downloaded_image',
+    'model_selected_url',
+    'user_uploaded_image_url',
+    'wikimedia_image_url',
+    'website_image_url',
+    'listing_image_url',
+  ]);
   const item = activity({
     category: 'Family activities',
     audit_image_status: 'replaced',
@@ -113,11 +130,11 @@ test('uses the requested card-image hierarchy exactly', () => {
     'https://images.example.test/admin.jpg',
     'https://images.example.test/reviewed.jpg',
     'https://images.example.test/admin-url.jpg',
-    'https://images.example.test/community.jpg',
-    'https://images.example.test/scraped.jpg',
-    'https://images.example.test/model.jpg',
+    'https://images.example.test/audited.jpg',
     'https://images.example.test/organiser.jpg',
     'https://images.example.test/website-download.jpg',
+    'https://images.example.test/model.jpg',
+    'https://images.example.test/community.jpg',
     'https://images.example.test/wikimedia.jpg',
     'https://images.example.test/website.jpg',
     'https://images.example.test/listing.jpg',
@@ -137,6 +154,7 @@ test('uses a desktop-reviewed image below an admin cover and above other sources
   assert.deepEqual(activityImageUrls(reviewed), [
     'https://images.example.test/reviewed.jpg',
     'https://images.example.test/admin-url.jpg',
+    'https://images.example.test/audited.jpg',
   ]);
   assert.equal(shareListingImages([reviewed])[0].shared_card_image_source, 'reviewed_image_url');
   assert.equal(shareListingImages([{ ...reviewed, admin_cover_image_url: 'https://images.example.test/admin.jpg' }])[0].shared_card_image_source, 'admin_cover_image_url');
@@ -165,15 +183,24 @@ test('keeps an original hierarchy source visible when its audit needs replacemen
   assert.equal(shareListingImages([rejected])[0].shared_card_image_source, 'website_image_url');
 });
 
-test('keeps audit replacements outside the automatic hierarchy', () => {
+test('uses a validated audit replacement ahead of lower automatic sources', () => {
   const replacement = activity({
     audit_image_status: 'replaced',
     audit_image_url: 'https://images.example.test/audit-replacement.jpg',
     audit_image_source_url: 'https://images.example.test/audit-replacement.jpg',
     website_image_url: 'https://images.example.test/lower-priority.jpg',
   });
-  assert.deepEqual(activityImageUrls(replacement), ['https://images.example.test/lower-priority.jpg']);
-  assert.equal(shareListingImages([replacement])[0].shared_card_image_source, 'website_image_url');
+  assert.deepEqual(activityImageUrls(replacement), [
+    'https://images.example.test/audit-replacement.jpg',
+    'https://images.example.test/lower-priority.jpg',
+  ]);
+  assert.equal(shareListingImages([replacement])[0].shared_card_image_source, 'audit_image_url');
+});
+
+test('requires at least 70 percent confidence for model-selected images', () => {
+  const modelUrl = 'https://images.example.test/model.jpg';
+  assert.deepEqual(activityImageUrls(activity({ model_selected_url: modelUrl, model_selected_confidence: 0.69 })), []);
+  assert.deepEqual(activityImageUrls(activity({ model_selected_url: modelUrl, model_selected_confidence: 0.7 })), [modelUrl]);
 });
 
 test('uses an explicitly selected category illustration at the reviewed-image priority', () => {
@@ -209,6 +236,9 @@ test('does not use scraped Wikimedia content outside the permitted categories', 
   const source = 'https://commons.wikimedia.org/wiki/File:Venue.jpg';
   const cafe = activity({
     category: 'Cafes & food',
+    audit_image_status: 'pass',
+    audit_image_original_source_field: 'scraped_image_url',
+    audit_image_original_url: scrapedImage,
     scraped_image_url: scrapedImage,
     image_source_url: source,
     website_image_url: 'https://cafe.example/interior.jpg',

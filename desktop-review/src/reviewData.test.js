@@ -27,6 +27,7 @@ function listing(overrides = {}) {
     category: 'Baby & toddler classes',
     public_listing_status: 'published',
     archive: false,
+    model_selected_confidence: 0.8,
     ...overrides,
   };
 }
@@ -228,7 +229,7 @@ test('shows model-selected images below manual and user images with a distinct s
   assert.deepEqual(currentImage(modelSelected), {
     url: 'https://storage.test/model.jpg',
     field: 'model_selected_url',
-    label: 'Model selected',
+    label: 'Model selected (70%+ confidence)',
     sourceUrl: 'https://venue.test/model-source',
     sourceDomain: 'venue.test',
   });
@@ -269,7 +270,7 @@ test('keeps category artwork displayed while returning the listing to the missin
 test('builds ordered displayed-image source options and counts category placeholders', () => {
   const activities = prepareActivities([
     listing({ activity_id: 'reviewed', address: 'Leyton, London E10', reviewed_image_url: 'https://storage.test/manual.jpg' }),
-    listing({ activity_id: 'scraped', address: 'Stratford, London E15', scraped_image_url: 'https://storage.test/scraped.jpg' }),
+    listing({ activity_id: 'scraped', address: 'Stratford, London E15', audit_image_status: 'pass', audit_image_original_source_field: 'scraped_image_url', audit_image_original_url: 'https://storage.test/scraped.jpg', scraped_image_url: 'https://storage.test/scraped.jpg' }),
     listing({ activity_id: 'model', address: 'Hackney, London E8', model_selected_url: 'https://storage.test/model.jpg' }),
     listing({ activity_id: 'missing', address: 'Camden, London NW1' }),
     listing({ activity_id: 'category', address: 'Islington, London N1', use_category_image: true }),
@@ -279,15 +280,17 @@ test('builds ordered displayed-image source options and counts category placehol
   assert.deepEqual(imageSourceOptions(activities), [
     { field: 'reviewed_image_url', label: 'Manual desktop review', count: 1 },
     { field: 'scraped_image_url', label: 'Scraped image (audit-safe)', count: 1 },
-    { field: 'model_selected_url', label: 'Model selected', count: 1 },
+    { field: 'model_selected_url', label: 'Model selected (70%+ confidence)', count: 1 },
     { field: 'category_placeholder', label: 'Illustrated category image', count: 2 },
   ]);
 });
 
-test('adds audit-safe scraped images to the hierarchy and manual candidates', () => {
+test('adds validated hierarchy sources and audited replacements as manual candidates', () => {
   const candidates = storedImageCandidates(listing({
     user_image_url: 'https://storage.test/user.jpg',
     model_selected_url: 'https://storage.test/model.jpg',
+    model_selected_confidence: 0.8,
+    audit_image_status: 'replaced',
     audit_image_url: 'https://storage.test/audit.jpg',
     audit_image_source_url: 'https://auditor.test/replacement',
     scraped_image_url: 'https://storage.test/scraped.jpg',
@@ -295,13 +298,23 @@ test('adds audit-safe scraped images to the hierarchy and manual candidates', ()
   }));
   assert.deepEqual(candidates.map((candidate) => candidate.source_field), [
     'user_image_url',
-    'scraped_image_url',
-    'model_selected_url',
     'audit_image_url',
+    'model_selected_url',
   ]);
   assert.equal(candidates[0].source_label, 'Admin image URL');
-  assert.equal(candidates[1].source_page_url, 'https://venue.test/gallery');
-  assert.equal(candidates[3].source_page_url, 'https://auditor.test/replacement');
+  assert.equal(candidates[1].source_page_url, 'https://auditor.test/replacement');
+});
+
+test('offers a scraped source after that exact URL passes the audit', () => {
+  const candidates = storedImageCandidates(listing({
+    audit_image_status: 'pass',
+    audit_image_original_source_field: 'scraped_image_url',
+    audit_image_original_url: 'https://storage.test/scraped.jpg',
+    scraped_image_url: 'https://storage.test/scraped.jpg',
+    image_source_url: 'https://venue.test/gallery',
+  }));
+  assert.deepEqual(candidates.map((candidate) => candidate.source_field), ['scraped_image_url']);
+  assert.equal(candidates[0].source_page_url, 'https://venue.test/gallery');
 });
 
 test('does not offer a scraped source when that exact image failed the audit', () => {

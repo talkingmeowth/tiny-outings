@@ -75,6 +75,7 @@ const activitySelectColumns = [
   'scraped_image_url',
   'user_image_url',
   'model_selected_url',
+  'model_selected_confidence',
   'organiser_website_downloaded_image',
   'website_downloaded_image',
   'wikimedia_image_url',
@@ -428,6 +429,9 @@ function normalizeActivity(activity) {
     reviewed_image_url: activity.reviewed_image_url || null,
     use_category_image: Boolean(activity.use_category_image),
     model_selected_url: activity.model_selected_url || null,
+    model_selected_confidence: Number.isFinite(Number(activity.model_selected_confidence))
+      ? Number(activity.model_selected_confidence)
+      : null,
     reviewed_image_source_url: activity.reviewed_image_source_url || null,
     reviewed_image_original_url: activity.reviewed_image_original_url || null,
     reviewed_image_selected_at: activity.reviewed_image_selected_at || null,

@@ -86,41 +86,45 @@ function allowsWikimediaImages(activity: Record<string, unknown>) {
   return ['parks and outdoor play', 'museums and culture', 'family activities'].includes(category)
 }
 
-function hasUsableScrapedImage(activity: Record<string, unknown>) {
-  const imageUrl = secureImageUrl(activity.scraped_image_url)
+function qualityApprovedImage(activity: Record<string, unknown>, field: string) {
+  const imageUrl = secureImageUrl(activity[field])
   if (!imageUrl) return false
-  const status = clean(activity.audit_image_status)
-  const auditedUrl = secureImageUrl(activity.audit_image_original_url)
-  if (['needs_replacement', 'no_replacement', 'replaced'].includes(status)
-    && clean(activity.audit_image_original_source_field) === 'scraped_image_url'
-    && auditedUrl && auditedUrl === imageUrl) return false
-  if (!allowsWikimediaImages(activity)
-    && [imageUrl, activity.image_source_url].some(isWikimediaSource)) return false
+  if (field === 'audit_image_url' && clean(activity.audit_image_status) !== 'replaced') return false
+  if (field === 'scraped_image_url') {
+    if (clean(activity.audit_image_status) !== 'pass') return false
+    if (clean(activity.audit_image_original_source_field) !== 'scraped_image_url') return false
+    if (secureImageUrl(activity.audit_image_original_url) !== imageUrl) return false
+  }
+  if (field === 'model_selected_url' && Number(activity.model_selected_confidence) < 0.7) return false
+  if (allowsWikimediaImages(activity)) return true
+  if (field === 'wikimedia_image_url' || isWikimediaSource(imageUrl)) return false
+  if (field === 'scraped_image_url' && isWikimediaSource(activity.image_source_url)) return false
+  if (field === 'audit_image_url' && isWikimediaSource(activity.audit_image_source_url)) return false
   return true
 }
 
 function isMissingPublished(activity: Record<string, unknown>) {
   if (activity.public_listing_status !== 'published') return false
   return ![
-    activity.admin_cover_image_url,
-    activity.reviewed_image_url,
-    activity.use_category_image ? 'category_placeholder' : null,
-    activity.user_image_url,
-    activity.user_uploaded_image_url,
-    hasUsableScrapedImage(activity) ? activity.scraped_image_url : null,
-    activity.model_selected_url,
-    activity.organiser_website_downloaded_image,
-    activity.website_downloaded_image,
-    activity.wikimedia_image_url,
-    activity.website_image_url,
-    activity.listing_image_url,
-  ].some(hasImage)
+    'admin_cover_image_url',
+    'reviewed_image_url',
+    'user_image_url',
+    'audit_image_url',
+    'scraped_image_url',
+    'organiser_website_downloaded_image',
+    'website_downloaded_image',
+    'model_selected_url',
+    'user_uploaded_image_url',
+    'wikimedia_image_url',
+    'website_image_url',
+    'listing_image_url',
+  ].some((field) => qualityApprovedImage(activity, field))
 }
 
 function isUnsuitable(activity: Record<string, unknown>) {
   return ['needs_replacement', 'no_replacement'].includes(clean(activity.audit_image_status))
     && !hasImage(activity.reviewed_image_url)
-    && !hasImage(activity.model_selected_url)
+    && !qualityApprovedImage(activity, 'model_selected_url')
 }
 
 function targetQueue(activity: Record<string, unknown>) {
@@ -259,7 +263,7 @@ async function targetData(
   scope: 'targeted' | 'all_unreviewed' | 'failed_applications',
 ) {
   let query = supabase.from('activities')
-    .select('activity_id,activity_name,address,postcode,borough,category,website,organiser_website,source_url,image_source_url,public_listing_status,archive,audit_image_status,audit_image_original_url,audit_image_original_source_field,image_review_ignored_at,admin_cover_image_url,reviewed_image_url,use_category_image,scraped_image_url,model_selected_url,user_image_url,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,serpapi_image_candidates,serpapi_image_search_query,serpapi_image_candidates_fetched_at,website_image_candidates,website_image_candidates_fetched_at')
+    .select('activity_id,activity_name,address,postcode,borough,category,website,organiser_website,source_url,image_source_url,public_listing_status,archive,audit_image_status,audit_image_url,audit_image_source_url,audit_image_original_url,audit_image_original_source_field,image_review_ignored_at,admin_cover_image_url,reviewed_image_url,use_category_image,scraped_image_url,model_selected_url,model_selected_confidence,user_image_url,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,serpapi_image_candidates,serpapi_image_search_query,serpapi_image_candidates_fetched_at,website_image_candidates,website_image_candidates_fetched_at')
     .eq('archive', false)
     .in('public_listing_status', ['draft', 'published'])
     .order('activity_id', { ascending: true })
@@ -416,6 +420,15 @@ async function applyProposal(
     })
     return { activity_id: proposal.activity_id, status: 'archived' }
   }
+  if (Number(proposal.confidence) < 0.7) {
+    await updateAutomatedReview(supabase, automatedReviewId, {
+      status: 'rejected',
+      reviewed_at: attemptedAt,
+      apply_attempted_at: attemptedAt,
+      apply_failure_reason: 'Model confidence was below the 70% frontend quality threshold.',
+    })
+    return { activity_id: proposal.activity_id, status: 'below-quality-threshold' }
+  }
 
   const protectedImage = clean(activity.admin_cover_image_url)
     || clean(activity.user_image_url)
@@ -477,6 +490,8 @@ async function applyProposal(
   const modelSelectedUrl = supabase.storage.from('activity-images').getPublicUrl(path).data.publicUrl
   const { data: updatedActivity, error: activityError } = await supabase.from('activities').update({
     model_selected_url: modelSelectedUrl,
+    model_selected_confidence: Number(proposal.confidence),
+    model_selected_at: selectedAt,
     updated_at: selectedAt,
   }).eq('activity_id', proposal.activity_id)
     .is('reviewed_image_url', null)
@@ -507,7 +522,7 @@ async function applyPendingProposals(
   batchSize: number,
 ) {
   const { data: proposals, error } = await supabase.from('activity_image_automated_reviews')
-    .select('automated_review_id,activity_id,status,candidate_index,candidate,model_name,model_version')
+    .select('automated_review_id,activity_id,status,candidate_index,candidate,confidence,model_name,model_version')
     .eq('status', 'pending')
     .is('apply_failure_reason', null)
     .order('created_at', { ascending: true })

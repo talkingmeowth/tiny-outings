@@ -19,8 +19,27 @@ const modelId = process.env.TINY_OUTINGS_SERPAPI_IMAGE_MODEL || 'Xenova/clip-vit
 const reselect = process.argv.includes('--reselect');
 const taggedRanker = process.argv.includes('--tagged-ranker');
 const linkedDatabase = process.argv.includes('--linked-database');
+const activityIdsFileIndex = process.argv.indexOf('--activity-ids-file');
+const activityIdsFile = activityIdsFileIndex >= 0 ? process.argv[activityIdsFileIndex + 1] : null;
 const limitIndex = process.argv.indexOf('--limit');
-const limit = limitIndex >= 0 ? Math.max(1, Number(process.argv[limitIndex + 1]) || 1) : 20;
+const limit = limitIndex >= 0
+  ? Math.max(1, Number(process.argv[limitIndex + 1]) || 1)
+  : activityIdsFile ? Number.POSITIVE_INFINITY : 20;
+
+function requestedActivityIds() {
+  if (!activityIdsFile) return null;
+  const payload = JSON.parse(readFileSync(resolve(root, activityIdsFile), 'utf8'));
+  const values = Array.isArray(payload)
+    ? payload
+    : Array.isArray(payload.activity_ids)
+      ? payload.activity_ids
+      : Array.isArray(payload.results)
+        ? payload.results
+          .filter((row) => ['candidates-stored', 'no-candidates'].includes(row?.status))
+          .map((row) => row.activity_id)
+        : [];
+  return new Set(values.filter((value) => typeof value === 'string' && value.trim()));
+}
 
 function readDotEnv(path) {
   try {
@@ -162,8 +181,9 @@ function writeAudit(rows, total, saved, selectedModel = modelId) {
 
 async function main() {
   const activities = linkedDatabase ? fetchActivitiesFromLinkedDatabase() : await fetchActivities();
+  const requestedIds = requestedActivityIds();
   const eligible = activities.filter((activity) => {
-    const candidates = Array.isArray(activity.serpapi_image_candidates) ? activity.serpapi_image_candidates : [];
+    if (requestedIds && !requestedIds.has(activity.activity_id)) return false;
     if (reselect) return true;
     return !activity.serpapi_image_selected_at;
   });

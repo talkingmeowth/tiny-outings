@@ -45,7 +45,7 @@ const activityColumns = [
   'google_place_uri', 'google_link', 'public_listing_status', 'archive', 'audit_image_status', 'audit_image_original_url', 'audit_image_original_source_field',
   'admin_cover_image_url', 'reviewed_image_url', 'use_category_image', 'reviewed_image_source_url', 'reviewed_image_original_url',
   'reviewed_image_selected_at', 'reviewed_image_model', 'user_image_url', 'audit_image_url', 'audit_image_source_url',
-  'scraped_image_url', 'model_selected_url', 'organiser_website_downloaded_image', 'website_downloaded_image', 'wikimedia_image_url', 'website_image_url',
+  'scraped_image_url', 'model_selected_url', 'model_selected_confidence', 'organiser_website_downloaded_image', 'website_downloaded_image', 'wikimedia_image_url', 'website_image_url',
   'listing_image_url', 'codex_image_search_query', 'codex_image_searched_at',
   'codex_image_search_model', 'image_review_ignored_at', 'image_review_ignored_by_user_id', 'created_at', 'updated_at',
 ].join(',');
@@ -69,6 +69,7 @@ const demoActivities = [
     category: 'Baby & toddler classes', age_suitability: '0–13 months', public_listing_status: 'published', archive: false,
     organiser_website: 'https://babysensory.com/leyton', source_url: 'https://example.org/baby-sensory-leyton',
     model_selected_url: 'https://picsum.photos/seed/tiny-outings-model/1200/800',
+    model_selected_confidence: 0.83,
     codex_image_candidates: demoCandidates, codex_image_search_query: 'Baby Sensory Leyton',
     codex_image_searched_at: new Date().toISOString(), codex_image_search_model: 'SerpAPI Google Images — top 20 unfiltered',
     automated_image_review: {
@@ -574,6 +575,7 @@ function App() {
         reviewed_image_url: selectedCategoryIllustration ? null : candidate.image_url,
         use_category_image: selectedCategoryIllustration,
         model_selected_url: selectedCategoryIllustration ? activity.model_selected_url : null,
+        model_selected_confidence: selectedCategoryIllustration ? activity.model_selected_confidence : null,
         reviewed_image_source_url: selectedCategoryIllustration ? null : candidate.source_page_url || candidate.image_url,
         reviewed_image_original_url: selectedCategoryIllustration ? null : candidate.image_url,
         automated_image_review: null,
@@ -604,6 +606,7 @@ function App() {
         reviewed_image_url: response.data.reviewedImageUrl || null,
         use_category_image: response.data.useCategoryImage === true,
         model_selected_url: response.data.clearedModelSelection ? null : activity.model_selected_url,
+        model_selected_confidence: response.data.clearedModelSelection ? null : activity.model_selected_confidence,
         reviewed_image_source_url: response.data.reviewedImageUrl ? response.data.sourceUrl : null,
         reviewed_image_original_url: response.data.reviewedImageUrl ? response.data.candidate?.image_url : null,
         reviewed_image_selected_at: response.data.reviewedImageUrl ? response.data.selectedAt : null,
@@ -637,7 +640,7 @@ function App() {
     setNotice('');
     if (isDemo) {
       setActivities((current) => current.map((activity) => activityIds.includes(activity.activity_id)
-        ? { ...activity, model_selected_url: null, automated_image_review: null }
+        ? { ...activity, model_selected_url: null, model_selected_confidence: null, automated_image_review: null }
         : activity));
       setBusy('');
       setNotice('model_selected_url was cleared. The next available hierarchy image is now displayed.');
@@ -657,13 +660,14 @@ function App() {
       const updatedActivity = {
         ...selectedActivity,
         model_selected_url: null,
+        model_selected_confidence: null,
         automated_image_review: null,
         shared_card_image_url: null,
         shared_card_image_source: null,
       };
       const nextImage = currentImage(updatedActivity);
       setActivities((current) => current.map((activity) => activityIds.includes(activity.activity_id)
-        ? { ...activity, model_selected_url: null, automated_image_review: null }
+        ? { ...activity, model_selected_url: null, model_selected_confidence: null, automated_image_review: null }
         : activity));
       setSelectedCandidate(null);
       setNotice(nextImage.url

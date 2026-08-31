@@ -100,8 +100,8 @@ const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || localEnv.VITE_SUPA
 const jobSecret = process.env.TINY_OUTINGS_IMAGE_JOB_SECRET || localEnv.TINY_OUTINGS_IMAGE_JOB_SECRET;
 
 async function invoke(cursor, activityIds = []) {
-  // Do not retry automatically. A timeout after SerpAPI receives a request is
-  // ambiguous, and a retry could spend a second paid search for one listing.
+  // The Edge Function atomically claims each activity before the paid request.
+  // This client never retries an ambiguous request.
   const response = await fetch(`${supabaseUrl}/functions/v1/cafe-image-importer`, {
     method: 'POST',
     headers: {
@@ -116,8 +116,6 @@ async function invoke(cursor, activityIds = []) {
       scope,
       activity_ids: activityIds,
       ...(createdAfter ? { created_after: createdAfter } : {}),
-      ...(retryEmptyCandidates ? { retry_empty_candidates: true } : {}),
-      ...(refreshExistingCandidates ? { refresh_existing_candidates: true } : {}),
     }),
     signal: AbortSignal.timeout(150000),
   });
@@ -133,16 +131,16 @@ async function main() {
   if (deprecatedRefreshRequested) {
     console.log('Ignoring legacy refresh flags. Existing candidate sets are never re-searched; use select-serpapi-image-candidates.js --reselect to improve a saved choice locally.');
   }
+  if (retryEmptyCandidates || refreshExistingCandidates) {
+    throw new Error('Paid repeat flags are disabled. Empty and populated SerpAPI result sets must be reused from activities.serpapi_image_candidates.');
+  }
   if (createdAfter && !Number.isFinite(Date.parse(createdAfter))) {
     throw new Error('--created-after must be a valid timestamp.');
-  }
-  if (refreshExistingCandidates && !activityIdsFile) {
-    throw new Error('--refresh-existing-candidates requires --activity-ids-file.');
   }
 
   const batches = [];
   const requestedIds = explicitActivityIds();
-  // The Edge Function selects only records without a saved candidate set.
+  // The Edge Function selects only records without a durable search attempt.
   // Persisting the cursor prevents a later run from re-scanning completed IDs.
   let cursor = requestedIds.length ? null : previousCursor();
   let stoppedForRateLimit = false;
@@ -192,11 +190,7 @@ async function main() {
   const audit = {
     generated_at: new Date().toISOString(),
     scope,
-    paid_search_policy: refreshExistingCandidates
-      ? 'one explicit targeted refresh for each supplied activity ID'
-      : retryEmptyCandidates
-      ? 'one opt-in retry for each empty candidate set encountered during this pass'
-      : 'one successful candidate discovery per activity',
+    paid_search_policy: 'one attempted SerpAPI request per activity; all image records and call metadata are cached for local reuse',
     retry_empty_candidates: retryEmptyCandidates,
     refresh_existing_candidates: refreshExistingCandidates,
     batches: batches.length,

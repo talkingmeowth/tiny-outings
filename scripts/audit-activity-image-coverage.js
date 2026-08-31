@@ -12,10 +12,11 @@ const imageFields = [
   'admin_cover_image_url',
   'reviewed_image_url',
   'user_image_url',
+  'audit_image_url',
   'scraped_image_url',
-  'model_selected_url',
   'organiser_website_downloaded_image',
   'website_downloaded_image',
+  'model_selected_url',
   'wikimedia_image_url',
   'website_image_url',
   'listing_image_url',
@@ -41,7 +42,7 @@ const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || localEnv.VITE_SUPA
 async function fetchActivities() {
   if (!supabaseUrl || !supabaseAnonKey) throw new Error('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY.');
   const rows = [];
-  const select = ['activity_id', 'category', 'image_source_url', 'audit_image_status', 'audit_image_original_url', 'audit_image_original_source_field', 'serpapi_image_candidates', 'serpapi_image_candidates_fetched_at', 'serpapi_image_selected_at', ...imageFields].join(',');
+  const select = ['activity_id', 'category', 'image_source_url', 'audit_image_source_url', 'audit_image_status', 'audit_image_original_url', 'audit_image_original_source_field', 'model_selected_confidence', 'serpapi_image_candidates', 'serpapi_image_candidates_fetched_at', 'serpapi_image_selected_at', ...imageFields].join(',');
   for (let offset = 0; ; offset += 1000) {
     const url = new URL(`${supabaseUrl}/rest/v1/activities`);
     url.searchParams.set('select', select);
@@ -59,7 +60,7 @@ async function fetchActivities() {
 }
 
 function fetchActivitiesFromLinkedDatabase() {
-  const select = ['activity_id', 'category', 'image_source_url', 'audit_image_status', 'audit_image_original_url', 'audit_image_original_source_field', 'serpapi_image_candidates', 'serpapi_image_candidates_fetched_at', 'serpapi_image_selected_at', ...imageFields].join(',');
+  const select = ['activity_id', 'category', 'image_source_url', 'audit_image_source_url', 'audit_image_status', 'audit_image_original_url', 'audit_image_original_source_field', 'model_selected_confidence', 'serpapi_image_candidates', 'serpapi_image_candidates_fetched_at', 'serpapi_image_selected_at', ...imageFields].join(',');
   const statement = `select ${select} from public.activities where coalesce(archive, false) = false and public_listing_status in ('draft', 'published');`;
   const escaped = statement.replaceAll('"', '\\"');
   const command = `npx${process.platform === 'win32' ? '.cmd' : ''} supabase db query --linked --output-format json "${escaped}"`;
@@ -86,12 +87,17 @@ function present(value) {
 function presentForActivity(activity, field) {
   const imageUrl = activity[field];
   if (!present(imageUrl)) return false;
-  if (field === 'scraped_image_url'
-    && ['needs_replacement', 'no_replacement', 'replaced'].includes(String(activity.audit_image_status || '').trim())
-    && String(activity.audit_image_original_source_field || '').trim() === field
-    && String(activity.audit_image_original_url || '').trim().replace(/^http:\/\//i, 'https://') === String(imageUrl).trim().replace(/^http:\/\//i, 'https://')) return false;
+  const normalizedUrl = String(imageUrl).trim().replace(/^http:\/\//i, 'https://');
+  if (field === 'audit_image_url' && String(activity.audit_image_status || '').trim() !== 'replaced') return false;
+  if (field === 'scraped_image_url' && (
+    String(activity.audit_image_status || '').trim() !== 'pass'
+    || String(activity.audit_image_original_source_field || '').trim() !== field
+    || String(activity.audit_image_original_url || '').trim().replace(/^http:\/\//i, 'https://') !== normalizedUrl
+  )) return false;
+  if (field === 'model_selected_url' && Number(activity.model_selected_confidence) < 0.7) return false;
   if (allowsWikimediaImages(activity)) return true;
   if (field === 'wikimedia_image_url' || isWikimediaUrl(imageUrl)) return false;
+  if (field === 'audit_image_url' && isWikimediaUrl(activity.audit_image_source_url)) return false;
   return field !== 'scraped_image_url' || !isWikimediaUrl(activity.image_source_url);
 }
 

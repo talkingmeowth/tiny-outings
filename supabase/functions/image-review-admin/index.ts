@@ -20,15 +20,15 @@ const storedSourceFields = [
   'admin_cover_image_url',
   'reviewed_image_url',
   'user_image_url',
-  'user_uploaded_image_url',
+  'audit_image_url',
   'scraped_image_url',
-  'model_selected_url',
   'organiser_website_downloaded_image',
   'website_downloaded_image',
+  'model_selected_url',
+  'user_uploaded_image_url',
   'wikimedia_image_url',
   'website_image_url',
   'listing_image_url',
-  'audit_image_url',
 ] as const
 type StoredSourceField = typeof storedSourceFields[number]
 
@@ -45,6 +45,14 @@ type Activity = {
   codex_image_search_query?: string | null
   codex_image_searched_at?: string | null
   codex_image_search_model?: string | null
+  serpapi_image_candidates?: unknown
+  serpapi_image_search_query?: string | null
+  serpapi_image_candidates_fetched_at?: string | null
+  serpapi_image_search_attempted_at?: string | null
+  serpapi_image_search_status?: string | null
+  serpapi_image_search_failure_reason?: string | null
+  serpapi_image_raw_result_count?: number | null
+  serpapi_image_search_metadata?: unknown
   image_review_ignored_at?: string | null
   image_review_ignored_by_user_id?: string | null
   reviewed_image_url?: string | null
@@ -54,6 +62,7 @@ type Activity = {
   reviewed_image_model?: string | null
   use_category_image?: boolean
   model_selected_url?: string | null
+  model_selected_confidence?: number | null
   admin_cover_image_url?: string | null
   user_image_url?: string | null
   user_uploaded_image_url?: string | null
@@ -98,12 +107,31 @@ function cleanText(value: unknown) {
   return String(value || '').replace(/\s+/g, ' ').trim()
 }
 
+function redactSerpApiSecrets(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(redactSerpApiSecrets)
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([key, nested]) => [
+      key,
+      /api[_-]?key/i.test(key) ? '[redacted]' : redactSerpApiSecrets(nested),
+    ]))
+  }
+  return typeof value === 'string'
+    ? value.replace(/([?&]api_key=)[^&]+/gi, '$1[redacted]')
+    : value
+}
+
 function secureImageUrl(value: unknown) {
   return cleanText(value).replace(/^http:\/\//i, 'https://')
 }
 
-function isScrapedImageRejectedByAudit(activity: Activity, imageUrl: string) {
-  if (!['needs_replacement', 'no_replacement', 'replaced'].includes(cleanText(activity.audit_image_status))) return false
+function isQualityApprovedStoredSource(activity: Activity, field: StoredSourceField, imageUrl: string) {
+  if (field === 'audit_image_url') {
+    return cleanText(activity.audit_image_status) === 'replaced'
+      && secureImageUrl(activity.audit_image_url) === secureImageUrl(imageUrl)
+  }
+  if (field === 'model_selected_url') return Number(activity.model_selected_confidence) >= 0.7
+  if (field !== 'scraped_image_url') return true
+  if (cleanText(activity.audit_image_status) !== 'pass') return false
   if (cleanText(activity.audit_image_original_source_field) !== 'scraped_image_url') return false
   const auditedUrl = secureImageUrl(activity.audit_image_original_url)
   return Boolean(auditedUrl && auditedUrl === secureImageUrl(imageUrl))
@@ -207,7 +235,7 @@ async function authenticatedAdmin(request: Request, supabase: ReturnType<typeof 
 async function findActivity(supabase: ReturnType<typeof createClient>, activityId: string) {
   const { data, error } = await supabase
     .from('activities')
-    .select('activity_id,activity_name,address,postcode,borough,category,public_listing_status,archive,website,organiser_website,source_url,image_source_url,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,image_review_ignored_at,image_review_ignored_by_user_id,admin_cover_image_url,reviewed_image_url,use_category_image,reviewed_image_source_url,reviewed_image_original_url,reviewed_image_selected_at,reviewed_image_model,user_image_url,model_selected_url,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,audit_image_url,audit_image_source_url,audit_image_status,audit_image_original_url,audit_image_original_source_field,scraped_image_url')
+    .select('activity_id,activity_name,address,postcode,borough,category,public_listing_status,archive,website,organiser_website,source_url,image_source_url,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,serpapi_image_candidates,serpapi_image_search_query,serpapi_image_candidates_fetched_at,serpapi_image_search_attempted_at,serpapi_image_search_status,serpapi_image_search_failure_reason,serpapi_image_raw_result_count,serpapi_image_search_metadata,image_review_ignored_at,image_review_ignored_by_user_id,admin_cover_image_url,reviewed_image_url,use_category_image,reviewed_image_source_url,reviewed_image_original_url,reviewed_image_selected_at,reviewed_image_model,user_image_url,model_selected_url,model_selected_confidence,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,audit_image_url,audit_image_source_url,audit_image_status,audit_image_original_url,audit_image_original_source_field,scraped_image_url')
     .eq('activity_id', activityId)
     .eq('archive', false)
     .maybeSingle()
@@ -249,8 +277,8 @@ async function storedSourceCandidate(
     imageUrl = cleanText(data?.photo_url)
   }
   if (!validHttpUrl(imageUrl)) throw new Error(`${field} no longer contains a usable image URL.`)
-  if (field === 'scraped_image_url' && isScrapedImageRejectedByAudit(activity, imageUrl)) {
-    throw new Error('This scraped image was rejected by the card-image audit.')
+  if (!isQualityApprovedStoredSource(activity, field, imageUrl)) {
+    throw new Error(`${field} has not passed the quality gate required by the card-image hierarchy.`)
   }
   const sourcePageUrl = storedSourcePageUrl(activity, field, imageUrl)
   if (!allowsWikimediaImages(activity) && [imageUrl, sourcePageUrl].some(isWikimediaSource)) {
@@ -270,6 +298,45 @@ async function storedSourceCandidate(
   }
 }
 
+function desktopCandidateFromStored(image: Record<string, unknown>, index: number): Candidate {
+  const imageUrl = cleanText(image.original || image.image_url)
+  const sourcePageUrl = cleanText(image.link || image.source_page_url) || null
+  return {
+    image_url: imageUrl,
+    thumbnail_url: cleanText(image.thumbnail || image.thumbnail_url) || null,
+    source_page_url: sourcePageUrl,
+    source_domain: domain(sourcePageUrl) || cleanText(image.source_domain || image.source),
+    title: cleanText(image.title) || null,
+    width: Number.isFinite(Number(image.original_width ?? image.width)) ? Number(image.original_width ?? image.width) : null,
+    height: Number.isFinite(Number(image.original_height ?? image.height)) ? Number(image.original_height ?? image.height) : null,
+    relevance_reason: cleanText(image.relevance_reason) || `Google Images result ${Number(image.position) || index + 1}`,
+  }
+}
+
+function desktopCandidatesFromStored(value: unknown) {
+  if (!Array.isArray(value)) return []
+  return value.slice(0, 20)
+    .filter((image): image is Record<string, unknown> => Boolean(image && typeof image === 'object'))
+    .map(desktopCandidateFromStored)
+    .filter((candidate) => validHttpUrl(candidate.image_url))
+}
+
+function canonicalCandidatesFromDesktop(value: unknown) {
+  if (!Array.isArray(value)) return []
+  return value
+    .filter((image): image is Record<string, unknown> => Boolean(image && typeof image === 'object'))
+    .map((image, index) => ({
+      ...image,
+      original: cleanText(image.original || image.image_url) || null,
+      thumbnail: cleanText(image.thumbnail || image.thumbnail_url) || null,
+      link: cleanText(image.link || image.source_page_url) || null,
+      source: cleanText(image.source || image.source_domain) || null,
+      position: Number(image.position) || index + 1,
+      original_width: Number.isFinite(Number(image.original_width ?? image.width)) ? Number(image.original_width ?? image.width) : null,
+      original_height: Number.isFinite(Number(image.original_height ?? image.height)) ? Number(image.original_height ?? image.height) : null,
+    }))
+}
+
 async function searchUnfilteredSerpApiCandidates(
   supabase: ReturnType<typeof createClient>,
   activity: Activity,
@@ -278,9 +345,6 @@ async function searchUnfilteredSerpApiCandidates(
   requestVariant: string,
   requestedByUserId: string | null,
 ) {
-  const apiKey = Deno.env.get('SERPAPI_API_KEY')
-  if (!apiKey) throw new Error('SERPAPI_API_KEY is not configured.')
-
   let query = cleanText(suppliedQuery)
   if (!query) query = `${cleanText(activity.activity_name)} ${cleanText(activity.address || activity.postcode || activity.borough || 'London')}`.trim()
   const validRequestVariants = new Set(['activity_location', 'provider_location', 'activity_only', 'custom'])
@@ -323,8 +387,76 @@ async function searchUnfilteredSerpApiCandidates(
     requestRow = insertedRequest
   }
   const activeRequestId = cleanText(requestRow?.candidate_request_id || candidateRequestId)
+  let claimedPaidSearch = false
+
+  const completeFromStored = async (cachedActivity: Activity) => {
+    const canonicalWasStored = Array.isArray(cachedActivity.serpapi_image_candidates)
+    const storedSet = canonicalWasStored ? cachedActivity.serpapi_image_candidates : cachedActivity.codex_image_candidates
+    const candidates = desktopCandidatesFromStored(storedSet)
+    const canonicalCandidates = canonicalWasStored
+      ? cachedActivity.serpapi_image_candidates as Array<Record<string, unknown>>
+      : canonicalCandidatesFromDesktop(cachedActivity.codex_image_candidates)
+    const completedAt = cleanText(cachedActivity.serpapi_image_candidates_fetched_at || cachedActivity.codex_image_searched_at) || new Date().toISOString()
+    const attemptedAt = cleanText(cachedActivity.serpapi_image_search_attempted_at) || completedAt
+    const cachedQuery = cleanText(cachedActivity.serpapi_image_search_query || cachedActivity.codex_image_search_query) || query
+    const sourceLabel = 'Stored SerpAPI candidates - reused without a paid call'
+    const status = cleanText(cachedActivity.serpapi_image_search_status)
+      || (canonicalCandidates.length ? 'legacy_completed' : 'no_results')
+    const activityUpdate = supabase.from('activities').update({
+      codex_image_candidates: candidates,
+      codex_image_search_query: cachedQuery,
+      codex_image_searched_at: completedAt,
+      codex_image_search_model: sourceLabel,
+      ...(!canonicalWasStored ? { serpapi_image_candidates: canonicalCandidates } : {}),
+      serpapi_image_search_query: cachedQuery,
+      serpapi_image_candidates_fetched_at: completedAt,
+      serpapi_image_search_attempted_at: attemptedAt,
+      serpapi_image_search_status: status,
+      serpapi_image_raw_result_count: Number.isFinite(Number(cachedActivity.serpapi_image_raw_result_count))
+        ? Number(cachedActivity.serpapi_image_raw_result_count)
+        : canonicalCandidates.length,
+      updated_at: new Date().toISOString(),
+    }).eq('activity_id', cachedActivity.activity_id)
+    const requestUpdate = activeRequestId
+      ? supabase.from('codex_image_candidate_requests').update({
+        status: 'completed', completed_at: completedAt, codex_model: sourceLabel,
+        candidate_count: candidates.length, failure_reason: null,
+      }).eq('candidate_request_id', activeRequestId)
+      : Promise.resolve({ error: null })
+    const [{ error: activityError }, { error: requestError }] = await Promise.all([activityUpdate, requestUpdate])
+    if (activityError) throw new Error(activityError.message)
+    if (requestError) throw new Error(requestError.message)
+    return {
+      candidates, query: cachedQuery, searchedAt: completedAt, source: sourceLabel, reused: true,
+      request: {
+        ...requestRow, candidate_request_id: activeRequestId, requested_query: cachedQuery,
+        status: 'completed', completed_at: completedAt, codex_model: sourceLabel,
+        candidate_count: candidates.length, failure_reason: null,
+      },
+    }
+  }
 
   try {
+    if (activity.serpapi_image_search_attempted_at
+      || activity.serpapi_image_candidates_fetched_at
+      || activity.codex_image_searched_at) return await completeFromStored(activity)
+
+    const apiKey = Deno.env.get('SERPAPI_API_KEY')
+    if (!apiKey) throw new Error('SERPAPI_API_KEY is not configured.')
+    const attemptedAt = new Date().toISOString()
+    const { data: claim, error: claimError } = await supabase.from('activities').update({
+      serpapi_image_search_attempted_at: attemptedAt,
+      serpapi_image_search_status: 'in_progress',
+      serpapi_image_search_failure_reason: null,
+      updated_at: attemptedAt,
+    }).eq('activity_id', activity.activity_id)
+      .is('serpapi_image_search_attempted_at', null)
+      .select('activity_id')
+      .maybeSingle()
+    if (claimError) throw new Error(claimError.message)
+    if (!claim) return await completeFromStored(await findActivity(supabase, activity.activity_id))
+    claimedPaidSearch = true
+
     const searchUrl = new URL('https://serpapi.com/search.json')
     searchUrl.searchParams.set('engine', 'google_images')
     searchUrl.searchParams.set('q', query)
@@ -332,38 +464,30 @@ async function searchUnfilteredSerpApiCandidates(
     searchUrl.searchParams.set('api_key', apiKey)
     const response = await fetch(searchUrl, { signal: AbortSignal.timeout(25000) })
     if (!response.ok) throw new Error(`SerpAPI returned ${response.status}.`)
-    const body = await response.json() as { images_results?: Array<Record<string, unknown>> }
-    const rawResults = Array.isArray(body.images_results) ? body.images_results.slice(0, 20) : []
-    const candidates = rawResults.map((image, index) => ({
-      image_url: cleanText(image.original),
-      thumbnail_url: cleanText(image.thumbnail) || null,
-      source_page_url: cleanText(image.link) || null,
-      source_domain: domain(image.link) || cleanText(image.source),
-      title: cleanText(image.title) || null,
-      width: Number.isFinite(Number(image.original_width)) ? Number(image.original_width) : null,
-      height: Number.isFinite(Number(image.original_height)) ? Number(image.original_height) : null,
-      relevance_reason: `Google Images result ${Number(image.position) || index + 1}`,
-    }))
-    const legacyCandidates = rawResults.map((image, index) => ({
-      original: cleanText(image.original),
-      thumbnail: cleanText(image.thumbnail) || null,
-      title: cleanText(image.title) || null,
-      source: cleanText(image.source) || null,
-      link: cleanText(image.link) || null,
+    const body = await response.json() as Record<string, unknown>
+    const rawResults = Array.isArray(body.images_results)
+      ? body.images_results.filter((image): image is Record<string, unknown> => Boolean(image && typeof image === 'object'))
+      : []
+    const storedCandidates = rawResults.map((image, index) => ({
+      ...redactSerpApiSecrets(image) as Record<string, unknown>,
       position: Number(image.position) || index + 1,
-      original_width: Number.isFinite(Number(image.original_width)) ? Number(image.original_width) : null,
-      original_height: Number.isFinite(Number(image.original_height)) ? Number(image.original_height) : null,
     }))
+    const candidates = desktopCandidatesFromStored(storedCandidates)
+    const { images_results: _imagesResults, ...searchMetadata } = body
     const completedAt = new Date().toISOString()
-    const sourceLabel = 'SerpAPI Google Images — top 20 unfiltered'
+    const sourceLabel = 'SerpAPI Google Images - first 20 displayed; complete response cached'
     const activityUpdate = supabase.from('activities').update({
       codex_image_candidates: candidates,
       codex_image_search_query: query,
       codex_image_searched_at: completedAt,
       codex_image_search_model: sourceLabel,
-      serpapi_image_candidates: legacyCandidates,
+      serpapi_image_candidates: storedCandidates,
       serpapi_image_search_query: query,
       serpapi_image_candidates_fetched_at: completedAt,
+      serpapi_image_search_status: storedCandidates.length ? 'completed' : 'no_results',
+      serpapi_image_search_failure_reason: null,
+      serpapi_image_raw_result_count: storedCandidates.length,
+      serpapi_image_search_metadata: redactSerpApiSecrets(searchMetadata),
       serpapi_image_checked_at: completedAt,
       updated_at: completedAt,
     }).eq('activity_id', activity.activity_id)
@@ -384,6 +508,7 @@ async function searchUnfilteredSerpApiCandidates(
       query,
       searchedAt: completedAt,
       source: sourceLabel,
+      reused: false,
       request: {
         ...requestRow,
         candidate_request_id: activeRequestId,
@@ -396,6 +521,13 @@ async function searchUnfilteredSerpApiCandidates(
       },
     }
   } catch (error) {
+    if (claimedPaidSearch) {
+      await supabase.from('activities').update({
+        serpapi_image_search_status: 'failed',
+        serpapi_image_search_failure_reason: error instanceof Error ? error.message : 'SerpAPI image search failed.',
+        updated_at: new Date().toISOString(),
+      }).eq('activity_id', activity.activity_id)
+    }
     if (activeRequestId) {
       await supabase.from('codex_image_candidate_requests').update({
         status: 'failed',
@@ -539,6 +671,8 @@ async function storeReviewedCandidate(
     reviewed_image_selected_by_user_id: userId,
     use_category_image: false,
     model_selected_url: null,
+    model_selected_confidence: null,
+    model_selected_at: null,
     updated_at: selectedAt,
   }).eq('activity_id', activity.activity_id)
   const reviewLog = supabase.from('activity_image_manual_reviews').insert({
@@ -727,6 +861,8 @@ async function useNextHierarchyImage(
   const changedAt = new Date().toISOString()
   const { data, error } = await supabase.from('activities').update({
     model_selected_url: null,
+    model_selected_confidence: null,
+    model_selected_at: null,
     updated_at: changedAt,
   }).in('activity_id', activityIds)
     .eq('archive', false)
