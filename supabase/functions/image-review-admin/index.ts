@@ -21,6 +21,7 @@ const storedSourceFields = [
   'reviewed_image_url',
   'user_image_url',
   'user_uploaded_image_url',
+  'scraped_image_url',
   'model_selected_url',
   'organiser_website_downloaded_image',
   'website_downloaded_image',
@@ -28,7 +29,6 @@ const storedSourceFields = [
   'website_image_url',
   'listing_image_url',
   'audit_image_url',
-  'scraped_image_url',
 ] as const
 type StoredSourceField = typeof storedSourceFields[number]
 
@@ -64,6 +64,9 @@ type Activity = {
   listing_image_url?: string | null
   audit_image_url?: string | null
   audit_image_source_url?: string | null
+  audit_image_status?: string | null
+  audit_image_original_url?: string | null
+  audit_image_original_source_field?: string | null
   scraped_image_url?: string | null
   image_source_url?: string | null
   website?: string | null
@@ -93,6 +96,17 @@ function jsonResponse(body: unknown, status = 200) {
 
 function cleanText(value: unknown) {
   return String(value || '').replace(/\s+/g, ' ').trim()
+}
+
+function secureImageUrl(value: unknown) {
+  return cleanText(value).replace(/^http:\/\//i, 'https://')
+}
+
+function isScrapedImageRejectedByAudit(activity: Activity, imageUrl: string) {
+  if (!['needs_replacement', 'no_replacement', 'replaced'].includes(cleanText(activity.audit_image_status))) return false
+  if (cleanText(activity.audit_image_original_source_field) !== 'scraped_image_url') return false
+  const auditedUrl = secureImageUrl(activity.audit_image_original_url)
+  return Boolean(auditedUrl && auditedUrl === secureImageUrl(imageUrl))
 }
 
 function validHttpUrl(value: unknown) {
@@ -193,7 +207,7 @@ async function authenticatedAdmin(request: Request, supabase: ReturnType<typeof 
 async function findActivity(supabase: ReturnType<typeof createClient>, activityId: string) {
   const { data, error } = await supabase
     .from('activities')
-    .select('activity_id,activity_name,address,postcode,borough,category,public_listing_status,archive,website,organiser_website,source_url,image_source_url,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,image_review_ignored_at,image_review_ignored_by_user_id,admin_cover_image_url,reviewed_image_url,use_category_image,reviewed_image_source_url,reviewed_image_original_url,reviewed_image_selected_at,reviewed_image_model,user_image_url,model_selected_url,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,audit_image_url,audit_image_source_url,scraped_image_url')
+    .select('activity_id,activity_name,address,postcode,borough,category,public_listing_status,archive,website,organiser_website,source_url,image_source_url,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,image_review_ignored_at,image_review_ignored_by_user_id,admin_cover_image_url,reviewed_image_url,use_category_image,reviewed_image_source_url,reviewed_image_original_url,reviewed_image_selected_at,reviewed_image_model,user_image_url,model_selected_url,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,audit_image_url,audit_image_source_url,audit_image_status,audit_image_original_url,audit_image_original_source_field,scraped_image_url')
     .eq('activity_id', activityId)
     .eq('archive', false)
     .maybeSingle()
@@ -235,6 +249,9 @@ async function storedSourceCandidate(
     imageUrl = cleanText(data?.photo_url)
   }
   if (!validHttpUrl(imageUrl)) throw new Error(`${field} no longer contains a usable image URL.`)
+  if (field === 'scraped_image_url' && isScrapedImageRejectedByAudit(activity, imageUrl)) {
+    throw new Error('This scraped image was rejected by the card-image audit.')
+  }
   const sourcePageUrl = storedSourcePageUrl(activity, field, imageUrl)
   if (!allowsWikimediaImages(activity) && [imageUrl, sourcePageUrl].some(isWikimediaSource)) {
     throw new Error('Wikimedia images are not allowed for this activity category.')

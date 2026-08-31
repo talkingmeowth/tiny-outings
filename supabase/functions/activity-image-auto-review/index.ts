@@ -67,6 +67,38 @@ function hasImage(value: unknown) {
   return Boolean(clean(value))
 }
 
+function secureImageUrl(value: unknown) {
+  return clean(value).replace(/^http:\/\//i, 'https://')
+}
+
+function isWikimediaSource(value: unknown) {
+  try {
+    const host = new URL(clean(value)).hostname.toLowerCase().replace(/^www\./, '')
+    return host === 'wikimedia.org' || host.endsWith('.wikimedia.org')
+      || host === 'wikipedia.org' || host.endsWith('.wikipedia.org')
+  } catch {
+    return false
+  }
+}
+
+function allowsWikimediaImages(activity: Record<string, unknown>) {
+  const category = clean(activity.category).toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, ' ').trim()
+  return ['parks and outdoor play', 'museums and culture', 'family activities'].includes(category)
+}
+
+function hasUsableScrapedImage(activity: Record<string, unknown>) {
+  const imageUrl = secureImageUrl(activity.scraped_image_url)
+  if (!imageUrl) return false
+  const status = clean(activity.audit_image_status)
+  const auditedUrl = secureImageUrl(activity.audit_image_original_url)
+  if (['needs_replacement', 'no_replacement', 'replaced'].includes(status)
+    && clean(activity.audit_image_original_source_field) === 'scraped_image_url'
+    && auditedUrl && auditedUrl === imageUrl) return false
+  if (!allowsWikimediaImages(activity)
+    && [imageUrl, activity.image_source_url].some(isWikimediaSource)) return false
+  return true
+}
+
 function isMissingPublished(activity: Record<string, unknown>) {
   if (activity.public_listing_status !== 'published') return false
   return ![
@@ -75,6 +107,7 @@ function isMissingPublished(activity: Record<string, unknown>) {
     activity.use_category_image ? 'category_placeholder' : null,
     activity.user_image_url,
     activity.user_uploaded_image_url,
+    hasUsableScrapedImage(activity) ? activity.scraped_image_url : null,
     activity.model_selected_url,
     activity.organiser_website_downloaded_image,
     activity.website_downloaded_image,
@@ -226,7 +259,7 @@ async function targetData(
   scope: 'targeted' | 'all_unreviewed' | 'failed_applications',
 ) {
   let query = supabase.from('activities')
-    .select('activity_id,activity_name,address,postcode,borough,category,website,organiser_website,source_url,public_listing_status,archive,audit_image_status,image_review_ignored_at,admin_cover_image_url,reviewed_image_url,use_category_image,model_selected_url,user_image_url,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,serpapi_image_candidates,serpapi_image_search_query,serpapi_image_candidates_fetched_at,website_image_candidates,website_image_candidates_fetched_at')
+    .select('activity_id,activity_name,address,postcode,borough,category,website,organiser_website,source_url,image_source_url,public_listing_status,archive,audit_image_status,audit_image_original_url,audit_image_original_source_field,image_review_ignored_at,admin_cover_image_url,reviewed_image_url,use_category_image,scraped_image_url,model_selected_url,user_image_url,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,serpapi_image_candidates,serpapi_image_search_query,serpapi_image_candidates_fetched_at,website_image_candidates,website_image_candidates_fetched_at')
     .eq('archive', false)
     .in('public_listing_status', ['draft', 'published'])
     .order('activity_id', { ascending: true })

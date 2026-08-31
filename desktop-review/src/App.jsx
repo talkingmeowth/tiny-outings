@@ -42,7 +42,7 @@ const PRELOAD_CONCURRENCY = 6;
 const activityColumns = [
   'activity_id', 'activity_name', 'address', 'postcode', 'borough', 'category', 'age_suitability',
   'description', 'card_summary', 'website', 'organiser_website', 'source_url', 'source_name', 'image_source_url',
-  'google_place_uri', 'google_link', 'public_listing_status', 'archive', 'audit_image_status',
+  'google_place_uri', 'google_link', 'public_listing_status', 'archive', 'audit_image_status', 'audit_image_original_url', 'audit_image_original_source_field',
   'admin_cover_image_url', 'reviewed_image_url', 'use_category_image', 'reviewed_image_source_url', 'reviewed_image_original_url',
   'reviewed_image_selected_at', 'reviewed_image_model', 'user_image_url', 'audit_image_url', 'audit_image_source_url',
   'scraped_image_url', 'model_selected_url', 'organiser_website_downloaded_image', 'website_downloaded_image', 'wikimedia_image_url', 'website_image_url',

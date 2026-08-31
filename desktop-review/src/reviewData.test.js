@@ -269,20 +269,22 @@ test('keeps category artwork displayed while returning the listing to the missin
 test('builds ordered displayed-image source options and counts category placeholders', () => {
   const activities = prepareActivities([
     listing({ activity_id: 'reviewed', address: 'Leyton, London E10', reviewed_image_url: 'https://storage.test/manual.jpg' }),
+    listing({ activity_id: 'scraped', address: 'Stratford, London E15', scraped_image_url: 'https://storage.test/scraped.jpg' }),
     listing({ activity_id: 'model', address: 'Hackney, London E8', model_selected_url: 'https://storage.test/model.jpg' }),
     listing({ activity_id: 'missing', address: 'Camden, London NW1' }),
     listing({ activity_id: 'category', address: 'Islington, London N1', use_category_image: true }),
   ]);
 
-  assert.equal(displayedImageSource(activities[2]), 'category_placeholder');
+  assert.equal(displayedImageSource(activities[3]), 'category_placeholder');
   assert.deepEqual(imageSourceOptions(activities), [
     { field: 'reviewed_image_url', label: 'Manual desktop review', count: 1 },
+    { field: 'scraped_image_url', label: 'Scraped image (audit-safe)', count: 1 },
     { field: 'model_selected_url', label: 'Model selected', count: 1 },
     { field: 'category_placeholder', label: 'Illustrated category image', count: 2 },
   ]);
 });
 
-test('adds hierarchy and audit candidates but excludes the legacy scraped image', () => {
+test('adds audit-safe scraped images to the hierarchy and manual candidates', () => {
   const candidates = storedImageCandidates(listing({
     user_image_url: 'https://storage.test/user.jpg',
     model_selected_url: 'https://storage.test/model.jpg',
@@ -293,18 +295,30 @@ test('adds hierarchy and audit candidates but excludes the legacy scraped image'
   }));
   assert.deepEqual(candidates.map((candidate) => candidate.source_field), [
     'user_image_url',
+    'scraped_image_url',
     'model_selected_url',
     'audit_image_url',
   ]);
   assert.equal(candidates[0].source_label, 'Admin image URL');
-  assert.equal(candidates[2].source_page_url, 'https://auditor.test/replacement');
-  assert.equal(candidates.some((candidate) => candidate.image_url === 'https://storage.test/scraped.jpg'), false);
+  assert.equal(candidates[1].source_page_url, 'https://venue.test/gallery');
+  assert.equal(candidates[3].source_page_url, 'https://auditor.test/replacement');
+});
+
+test('does not offer a scraped source when that exact image failed the audit', () => {
+  const candidates = storedImageCandidates(listing({
+    audit_image_status: 'needs_replacement',
+    audit_image_original_source_field: 'scraped_image_url',
+    audit_image_original_url: 'https://storage.test/rejected.jpg',
+    scraped_image_url: 'https://storage.test/rejected.jpg',
+    model_selected_url: 'https://storage.test/model.jpg',
+  }));
+  assert.deepEqual(candidates.map((candidate) => candidate.source_field), ['model_selected_url']);
 });
 
 test('round-trips stored-source candidate selection keys safely', () => {
   const selection = storedSourceSelectionKey('website_image_url');
   assert.equal(storedSourceFieldForSelection(selection), 'website_image_url');
-  assert.equal(storedSourceFieldForSelection('stored_source:scraped_image_url'), '');
+  assert.equal(storedSourceFieldForSelection('stored_source:scraped_image_url'), 'scraped_image_url');
   assert.equal(storedSourceFieldForSelection('stored_source:not_a_field'), '');
   assert.equal(storedSourceFieldForSelection(3), '');
 });

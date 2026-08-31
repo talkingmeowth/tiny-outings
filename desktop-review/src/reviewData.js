@@ -1,4 +1,5 @@
 import { activityImageGroupKey } from '../../src/activityDuplicates.js';
+import { isScrapedImageRejectedByAudit } from '../../src/activityImages.js';
 import { allowsWikimediaImages, isWikimediaUrl } from '../../src/wikimediaImagePolicy.js';
 import { categoryIllustrationCandidate } from './categoryIllustrations.js';
 
@@ -9,6 +10,7 @@ export const activityImageFields = [
   'reviewed_image_url',
   'user_image_url',
   'user_uploaded_image_url',
+  'scraped_image_url',
   'model_selected_url',
   'organiser_website_downloaded_image',
   'website_downloaded_image',
@@ -28,6 +30,7 @@ function isUsablePhotoUrl(url) {
 function isAllowedActivityPhoto(activity, field, url) {
   if (allowsWikimediaImages(activity)) return true;
   if (field === 'wikimedia_image_url' || isWikimediaUrl(url)) return false;
+  if (field === 'scraped_image_url' && isWikimediaUrl(activity?.image_source_url)) return false;
   return true;
 }
 
@@ -38,6 +41,7 @@ function candidateImage(activity) {
       return { field: 'category_placeholder', priority, url: categoryIllustrationCandidate(activity).image_url };
     }
     const url = securePhotoUrl(activity?.[field]);
+    if (field === 'scraped_image_url' && isScrapedImageRejectedByAudit(activity, url)) continue;
     if (isUsablePhotoUrl(url) && isAllowedActivityPhoto(activity, field, url)) return { field, priority, url };
   }
   return null;
@@ -82,6 +86,7 @@ export const IMAGE_SOURCE_LABELS = {
   reviewed_image_url: 'Manual desktop review',
   user_image_url: 'Admin image URL',
   user_uploaded_image_url: 'User upload',
+  scraped_image_url: 'Scraped image (audit-safe)',
   model_selected_url: 'Model selected',
   organiser_website_downloaded_image: 'Organiser website download',
   website_downloaded_image: 'Website download',
@@ -191,6 +196,7 @@ export function currentImage(activity) {
   const field = activity.shared_card_image_source || ownImage?.field || '';
   let sourceUrl = url;
   if (field === 'reviewed_image_url') sourceUrl = activity.reviewed_image_source_url || activity.reviewed_image_original_url || url;
+  if (field === 'scraped_image_url') sourceUrl = activity.image_source_url || url;
   if (field === 'model_selected_url') sourceUrl = activity.automated_image_review?.candidate?.source_page_url || activity.automated_image_review?.candidate?.image_url || url;
   if (field === 'audit_image_url') sourceUrl = activity.audit_image_source_url || url;
   if (field === 'category_placeholder') sourceUrl = url;
@@ -218,6 +224,7 @@ export function imageSourceOptions(activities) {
 function storedCandidateSourceUrl(activity, field, imageUrl) {
   if (field === 'reviewed_image_url') return activity.reviewed_image_source_url || activity.reviewed_image_original_url || imageUrl;
   if (field === 'audit_image_url') return activity.audit_image_source_url || imageUrl;
+  if (field === 'scraped_image_url') return activity.image_source_url || imageUrl;
   if (field === 'organiser_website_downloaded_image') return activity.organiser_website || activity.website || imageUrl;
   if (['website_downloaded_image', 'website_image_url', 'listing_image_url'].includes(field)) {
     return activity.image_source_url || activity.website || activity.source_url || imageUrl;
@@ -228,6 +235,7 @@ function storedCandidateSourceUrl(activity, field, imageUrl) {
 export function storedImageCandidates(activity) {
   return STORED_CANDIDATE_FIELDS.flatMap((field) => {
     const imageUrl = securePhotoUrl(activity?.[field]);
+    if (field === 'scraped_image_url' && isScrapedImageRejectedByAudit(activity, imageUrl)) return [];
     if (!isUsablePhotoUrl(imageUrl) || !isAllowedActivityPhoto(activity, field, imageUrl)) return [];
     const label = IMAGE_SOURCE_LABELS[field] || field;
     const sourcePageUrl = storedCandidateSourceUrl(activity, field, imageUrl);

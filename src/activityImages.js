@@ -8,6 +8,7 @@ export const activityImageFields = [
   'reviewed_image_url',
   'user_image_url',
   'user_uploaded_image_url',
+  'scraped_image_url',
   'model_selected_url',
   'organiser_website_downloaded_image',
   'website_downloaded_image',
@@ -31,7 +32,17 @@ function isUsablePhotoUrl(url) {
 function isAllowedActivityPhoto(activity, field, url) {
   if (allowsWikimediaImages(activity)) return true;
   if (field === 'wikimedia_image_url' || isWikimediaUrl(url)) return false;
+  if (field === 'scraped_image_url' && isWikimediaUrl(activity?.image_source_url)) return false;
   return true;
+}
+
+const rejectedAuditStatuses = new Set(['needs_replacement', 'no_replacement', 'replaced']);
+
+export function isScrapedImageRejectedByAudit(activity, url = activity?.scraped_image_url) {
+  if (!rejectedAuditStatuses.has(String(activity?.audit_image_status || '').trim())) return false;
+  if (String(activity?.audit_image_original_source_field || '').trim() !== 'scraped_image_url') return false;
+  const auditedUrl = securePhotoUrl(activity?.audit_image_original_url);
+  return Boolean(auditedUrl && auditedUrl === securePhotoUrl(url));
 }
 
 export function activityFallbackImage(activity) {
@@ -54,6 +65,7 @@ function imageCandidates(activity) {
       continue;
     }
     const url = securePhotoUrl(activity?.[field]);
+    if (field === 'scraped_image_url' && isScrapedImageRejectedByAudit(activity, url)) continue;
     if (isUsablePhotoUrl(url) && isAllowedActivityPhoto(activity, field, url)) candidates.push({ field, priority, url });
   }
   return candidates;

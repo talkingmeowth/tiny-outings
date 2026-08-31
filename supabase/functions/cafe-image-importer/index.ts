@@ -537,6 +537,7 @@ const cardImageFields = [
   'admin_cover_image_url',
   'reviewed_image_url',
   'user_image_url',
+  'scraped_image_url',
   'model_selected_url',
   'organiser_website_downloaded_image',
   'website_downloaded_image',
@@ -558,9 +559,18 @@ function validCardImageUrl(value: string) {
   }
 }
 
+function scrapedImageRejectedByAudit(activity: Record<string, unknown>, url: string) {
+  if (!['needs_replacement', 'no_replacement', 'replaced'].includes(text(activity.audit_image_status as string | null | undefined))) return false
+  if (text(activity.audit_image_original_source_field as string | null | undefined) !== 'scraped_image_url') return false
+  const auditedUrl = secureImageUrl(activity.audit_image_original_url)
+  return Boolean(auditedUrl && auditedUrl === secureImageUrl(url))
+}
+
 function cardImageAllowed(activity: Record<string, unknown>, field: typeof cardImageFields[number], url: string) {
+  if (field === 'scraped_image_url' && scrapedImageRejectedByAudit(activity, url)) return false
   if (allowsWikimediaImages(activity as Pick<Activity, 'category'>)) return true
   if (field === 'wikimedia_image_url' || isWikimediaSource(url)) return false
+  if (field === 'scraped_image_url' && isWikimediaSource(activity.image_source_url)) return false
   return true
 }
 
@@ -592,7 +602,7 @@ async function storeCardImageAudit(
     return { activity_id: audit.activity_id, status: 'audit-failed', reason: 'The three card-image audit criteria are required.' }
   }
   const { data, error } = await supabase.from('activities')
-    .select('activity_id,category,admin_cover_image_url,reviewed_image_url,use_category_image,user_image_url,model_selected_url,audit_image_url,audit_image_source_url,audit_image_status,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,updated_at,created_at')
+    .select('activity_id,category,admin_cover_image_url,reviewed_image_url,use_category_image,user_image_url,scraped_image_url,image_source_url,model_selected_url,audit_image_url,audit_image_source_url,audit_image_status,audit_image_original_url,audit_image_original_source_field,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,updated_at,created_at')
     .eq('archive', false)
     .in('activity_id', activityIds)
   if (error || !data?.length) return { activity_id: audit.activity_id, status: 'audit-failed', reason: error?.message || 'Activity group was not found.' }
