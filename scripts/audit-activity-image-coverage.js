@@ -3,7 +3,6 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { allowsWikimediaImages, isWikimediaUrl } from '../src/wikimediaImagePolicy.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const outputPath = join(root, 'data', 'activity_image_coverage.generated.json');
@@ -12,14 +11,7 @@ const imageFields = [
   'admin_cover_image_url',
   'reviewed_image_url',
   'user_image_url',
-  'audit_image_url',
-  'scraped_image_url',
-  'organiser_website_downloaded_image',
-  'website_downloaded_image',
   'model_selected_url',
-  'wikimedia_image_url',
-  'website_image_url',
-  'listing_image_url',
 ];
 
 function readDotEnv(name) {
@@ -87,18 +79,8 @@ function present(value) {
 function presentForActivity(activity, field) {
   const imageUrl = activity[field];
   if (!present(imageUrl)) return false;
-  const normalizedUrl = String(imageUrl).trim().replace(/^http:\/\//i, 'https://');
-  if (field === 'audit_image_url' && String(activity.audit_image_status || '').trim() !== 'replaced') return false;
-  if (field === 'scraped_image_url' && (
-    String(activity.audit_image_status || '').trim() !== 'pass'
-    || String(activity.audit_image_original_source_field || '').trim() !== field
-    || String(activity.audit_image_original_url || '').trim().replace(/^http:\/\//i, 'https://') !== normalizedUrl
-  )) return false;
   if (field === 'model_selected_url' && Number(activity.model_selected_confidence) < 0.7) return false;
-  if (allowsWikimediaImages(activity)) return true;
-  if (field === 'wikimedia_image_url' || isWikimediaUrl(imageUrl)) return false;
-  if (field === 'audit_image_url' && isWikimediaUrl(activity.audit_image_source_url)) return false;
-  return field !== 'scraped_image_url' || !isWikimediaUrl(activity.image_source_url);
+  return true;
 }
 
 async function main() {

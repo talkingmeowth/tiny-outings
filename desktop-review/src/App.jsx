@@ -41,6 +41,7 @@ const PRELOAD_QUEUE_IDS = ['all_activities', 'model_selected', 'all_published', 
 const PRELOAD_PER_QUEUE = 20;
 const PRELOAD_CONCURRENCY = 6;
 const QUICK_REVIEW_BATCH_SIZE = 80;
+const AUTOMATED_MODEL_SELECTION_KIND = 'automated_model_selection';
 
 const activityColumns = [
   'activity_id', 'activity_name', 'address', 'postcode', 'borough', 'category', 'age_suitability',
@@ -48,7 +49,7 @@ const activityColumns = [
   'google_place_uri', 'google_link', 'public_listing_status', 'archive', 'archive_reason', 'archived_at', 'archive_previous_listing_status', 'audit_image_status', 'audit_image_original_url', 'audit_image_original_source_field',
   'admin_cover_image_url', 'reviewed_image_url', 'use_category_image', 'reviewed_image_source_url', 'reviewed_image_original_url',
   'reviewed_image_selected_at', 'reviewed_image_model', 'user_image_url', 'audit_image_url', 'audit_image_source_url',
-  'scraped_image_url', 'model_selected_url', 'model_selected_confidence', 'organiser_website_downloaded_image', 'website_downloaded_image', 'wikimedia_image_url', 'website_image_url',
+  'scraped_image_url', 'model_selected_url', 'model_selected_confidence', 'model_selected_original_url', 'model_selected_source_url', 'model_selected_source_field', 'model_selected_reason', 'model_selected_model', 'model_selected_model_version', 'organiser_website_downloaded_image', 'website_downloaded_image', 'wikimedia_image_url', 'website_image_url',
   'listing_image_url', 'codex_image_search_query', 'codex_image_searched_at',
   'codex_image_search_model', 'image_review_ignored_at', 'image_review_ignored_by_user_id', 'created_at', 'updated_at',
 ].join(',');
@@ -539,6 +540,19 @@ function App() {
   const queries = useMemo(() => selectedActivity ? searchQueries(selectedActivity) : null, [selectedActivity]);
   const candidates = Array.isArray(selectedActivity?.codex_image_candidates) ? selectedActivity.codex_image_candidates.slice(0, 20) : [];
   const storedCandidates = selectedActivity ? storedImageCandidates(selectedActivity) : [];
+  const automatedCandidate = automatedReview?.candidate || null;
+  const automatedStoredSource = automatedCandidate?.source_field
+    ? storedCandidates.find((candidate) => candidate.source_field === automatedCandidate.source_field
+      && candidate.image_url === automatedCandidate.image_url)
+    : null;
+  const automatedSearchIndex = automatedCandidate
+    ? candidates.findIndex((candidate) => candidate.image_url === automatedCandidate.image_url
+      || candidate.original === automatedCandidate.image_url)
+    : -1;
+  const automatedSelectionValue = automatedStoredSource
+    ? storedSourceSelectionKey(automatedStoredSource.source_field)
+    : automatedSearchIndex >= 0 ? automatedSearchIndex : automatedCandidate ? AUTOMATED_MODEL_SELECTION_KIND : null;
+  const standaloneAutomatedCandidate = automatedSelectionValue === AUTOMATED_MODEL_SELECTION_KIND ? automatedCandidate : null;
   const illustratedCandidate = selectedActivity ? categoryIllustrationCandidate(selectedActivity) : null;
   const activeImage = selectedActivity ? currentImage(selectedActivity) : null;
   const isSelectedArchived = isArchivedListing(selectedActivity);
@@ -682,12 +696,11 @@ function App() {
   }, [isAdmin, loading, preloadTargetSignature, requestCandidates]);
 
   useEffect(() => {
-    const proposedIndex = Number(selectedActivity?.automated_image_review?.candidate_index);
-    setSelectedCandidate(activeQueue === 'model_selected' && Number.isInteger(proposedIndex) ? proposedIndex : null);
+    setSelectedCandidate(activeQueue === 'model_selected' ? automatedSelectionValue : null);
     setZoomedCandidate(null);
     setCandidateRequest(null);
     setCustomQuery(queries?.activity_location || '');
-  }, [activeQueue, selectedActivity?.activity_id, selectedActivity?.automated_image_review?.automated_review_id, selectedActivity?.automated_image_review?.candidate_index, queries?.activity_location]);
+  }, [activeQueue, automatedSelectionValue, selectedActivity?.activity_id, selectedActivity?.automated_image_review?.automated_review_id, queries?.activity_location]);
 
   useEffect(() => {
     if (isDemo || !selectedActivity || !supabase) return undefined;
@@ -737,17 +750,21 @@ function App() {
     const activityId = selectedActivity.activity_id;
     const pendingAutomatedReview = activeQueue === 'model_selected' ? automatedReview : null;
     const selectedCategoryIllustration = selectedCandidate === CATEGORY_ILLUSTRATION_SELECTION_KIND;
+    const selectedAutomatedModel = selectedCandidate === AUTOMATED_MODEL_SELECTION_KIND;
     const selectedSourceField = storedSourceFieldForSelection(selectedCandidate);
     const selectedStoredSource = Boolean(selectedSourceField);
-    const selectedCandidateIndex = selectedCategoryIllustration || selectedStoredSource ? null : Number(selectedCandidate);
+    const selectedCandidateIndex = selectedCategoryIllustration || selectedStoredSource || selectedAutomatedModel ? null : Number(selectedCandidate);
     const candidate = selectedCategoryIllustration
       ? illustratedCandidate
+      : selectedAutomatedModel
+        ? standaloneAutomatedCandidate
       : selectedStoredSource
         ? storedCandidates.find((item) => item.source_field === selectedSourceField)
         : candidates[selectedCandidateIndex];
-    if (!candidate || (!selectedCategoryIllustration && !selectedStoredSource && !Number.isInteger(selectedCandidateIndex))) return;
-    const acceptedModelChoice = !selectedCategoryIllustration && !selectedStoredSource
-      && pendingAutomatedReview?.candidate_index === selectedCandidateIndex;
+    if (!candidate || (!selectedCategoryIllustration && !selectedStoredSource && !selectedAutomatedModel && !Number.isInteger(selectedCandidateIndex))) return;
+    const acceptedModelChoice = selectedAutomatedModel
+      || (!selectedCategoryIllustration && pendingAutomatedReview?.candidate?.image_url === candidate.image_url)
+      || (!selectedCategoryIllustration && !selectedStoredSource && pendingAutomatedReview?.candidate_index === selectedCandidateIndex);
     setBusy('save');
     setNotice('');
     if (isDemo) {
@@ -768,11 +785,11 @@ function App() {
     }
     const response = await invokeFunctionWithRetry(() => supabase.functions.invoke('image-review-admin', {
       body: {
-        action: selectedCategoryIllustration ? 'select_category_illustration' : 'select',
+        action: selectedCategoryIllustration ? 'select_category_illustration' : selectedAutomatedModel ? 'approve_model' : 'select',
         activity_id: selectedActivity.activity_id,
         selection_kind: selectedStoredSource ? 'hierarchy_source' : 'search_candidate',
         ...(selectedStoredSource ? { source_field: selectedSourceField } : {}),
-        ...(!selectedCategoryIllustration && !selectedStoredSource ? {
+        ...(!selectedCategoryIllustration && !selectedStoredSource && !selectedAutomatedModel ? {
           candidate_index: selectedCandidateIndex,
           candidate_set_searched_at: selectedActivity.codex_image_searched_at,
         } : {}),
@@ -788,6 +805,12 @@ function App() {
         use_category_image: response.data.useCategoryImage === true,
         model_selected_url: response.data.clearedModelSelection ? null : activity.model_selected_url,
         model_selected_confidence: response.data.clearedModelSelection ? null : activity.model_selected_confidence,
+        model_selected_original_url: response.data.clearedModelSelection ? null : activity.model_selected_original_url,
+        model_selected_source_url: response.data.clearedModelSelection ? null : activity.model_selected_source_url,
+        model_selected_source_field: response.data.clearedModelSelection ? null : activity.model_selected_source_field,
+        model_selected_reason: response.data.clearedModelSelection ? null : activity.model_selected_reason,
+        model_selected_model: response.data.clearedModelSelection ? null : activity.model_selected_model,
+        model_selected_model_version: response.data.clearedModelSelection ? null : activity.model_selected_model_version,
         reviewed_image_source_url: response.data.reviewedImageUrl ? response.data.sourceUrl : null,
         reviewed_image_original_url: response.data.reviewedImageUrl ? response.data.candidate?.image_url : null,
         reviewed_image_selected_at: response.data.reviewedImageUrl ? response.data.selectedAt : null,
@@ -821,10 +844,10 @@ function App() {
     setNotice('');
     if (isDemo) {
       setActivities((current) => current.map((activity) => activityIds.includes(activity.activity_id)
-        ? { ...activity, model_selected_url: null, model_selected_confidence: null, automated_image_review: null }
+        ? { ...activity, model_selected_url: null, model_selected_confidence: null, model_selected_original_url: null, model_selected_source_url: null, model_selected_source_field: null, model_selected_reason: null, model_selected_model: null, model_selected_model_version: null, automated_image_review: null }
         : activity));
       setBusy('');
-      setNotice('model_selected_url was cleared. The next available hierarchy image is now displayed.');
+      setNotice('The model choice was cleared. This listing now uses its category artwork.');
       return;
     }
     const response = await invokeFunctionWithRetry(() => supabase.functions.invoke('image-review-admin', {
@@ -842,13 +865,19 @@ function App() {
         ...selectedActivity,
         model_selected_url: null,
         model_selected_confidence: null,
+        model_selected_original_url: null,
+        model_selected_source_url: null,
+        model_selected_source_field: null,
+        model_selected_reason: null,
+        model_selected_model: null,
+        model_selected_model_version: null,
         automated_image_review: null,
         shared_card_image_url: null,
         shared_card_image_source: null,
       };
       const nextImage = currentImage(updatedActivity);
       setActivities((current) => current.map((activity) => activityIds.includes(activity.activity_id)
-        ? { ...activity, model_selected_url: null, model_selected_confidence: null, automated_image_review: null }
+        ? { ...activity, model_selected_url: null, model_selected_confidence: null, model_selected_original_url: null, model_selected_source_url: null, model_selected_source_field: null, model_selected_reason: null, model_selected_model: null, model_selected_model_version: null, automated_image_review: null }
         : activity));
       setSelectedCandidate(null);
       setNotice(nextImage.url
@@ -1142,7 +1171,7 @@ function App() {
               {automatedReview ? (
                 <section className="automated-review-panel">
                   <div className="section-title">
-                    <div><p className="eyebrow">Automated recommendation</p><h2>Candidate {Number(automatedReview.candidate_index) + 1}</h2></div>
+                    <div><p className="eyebrow">Automated recommendation</p><h2>{automatedReview.candidate?.source_field || automatedReview.candidate?.candidate_source || `Candidate ${Number(automatedReview.candidate_index) + 1}`}</h2></div>
                     <span className="confidence-chip">{Math.round(Number(automatedReview.confidence) * 100)}% confidence</span>
                   </div>
                   <p>{automatedReview.reason}</p>
@@ -1190,7 +1219,7 @@ function App() {
 
             <section className="candidate-column">
               <div className="candidate-header">
-                <div><p className="eyebrow">Stored sources + category illustration + Google Images</p><h2>Candidate gallery <span>{storedCandidates.length + candidates.length + (illustratedCandidate ? 1 : 0)}</span></h2></div>
+                <div><p className="eyebrow">Stored sources + category illustration + Google Images</p><h2>Candidate gallery <span>{storedCandidates.length + candidates.length + (illustratedCandidate ? 1 : 0) + (standaloneAutomatedCandidate ? 1 : 0)}</span></h2></div>
                 <div className="candidate-actions"><button className="text-button" type="button" disabled={selectedCandidate == null} onClick={() => setSelectedCandidate(null)}>Clear selection</button><button className="primary-button" type="button" disabled={isSelectedArchived || selectedCandidate == null || busy === 'save'} onClick={saveSelected}>{isSelectedArchived ? 'Unarchive to edit' : busy === 'save' ? 'Downloading…' : selectedIsCategoryIllustration ? 'Use category image' : selectedStoredSourceField ? `Use ${selectedStoredSourceField}` : automatedReview ? automatedReview.candidate_index === selectedCandidate ? automatedReview.status === 'auto_applied' ? 'Confirm model choice' : 'Approve model choice' : 'Save correction' : 'Use selected image'}</button></div>
               </div>
               {illustratedCandidate ? (
@@ -1198,14 +1227,15 @@ function App() {
                   <p className="gallery-section-label">Existing listing sources</p>
                   <div className="candidate-grid source-candidate-grid">
                     <CandidateCard key={CATEGORY_ILLUSTRATION_SELECTION_KIND} candidate={illustratedCandidate} index={-1} selectionKey={CATEGORY_ILLUSTRATION_SELECTION_KIND} selected={selectedIsCategoryIllustration} recommended={false} onSelect={selectCandidate} onZoom={(imageCandidate) => setZoomedCandidate({ candidate: imageCandidate, index: -1 })} />
+                    {standaloneAutomatedCandidate ? <CandidateCard key={AUTOMATED_MODEL_SELECTION_KIND} candidate={standaloneAutomatedCandidate} index={Number(automatedReview?.candidate_index) || 0} selectionKey={AUTOMATED_MODEL_SELECTION_KIND} selected={selectedCandidate === AUTOMATED_MODEL_SELECTION_KIND} recommended onSelect={selectCandidate} onZoom={(imageCandidate) => setZoomedCandidate({ candidate: imageCandidate, index: Number(automatedReview?.candidate_index) || 0 })} /> : null}
                     {storedCandidates.map((candidate, index) => {
                       const selectionKey = storedSourceSelectionKey(candidate.source_field);
-                      return <CandidateCard key={selectionKey} candidate={candidate} index={index} selectionKey={selectionKey} selected={selectedCandidate === selectionKey} recommended={false} onSelect={selectCandidate} onZoom={(imageCandidate) => setZoomedCandidate({ candidate: imageCandidate, index })} />;
+                      return <CandidateCard key={selectionKey} candidate={candidate} index={index} selectionKey={selectionKey} selected={selectedCandidate === selectionKey} recommended={automatedReview?.candidate?.image_url === candidate.image_url} onSelect={selectCandidate} onZoom={(imageCandidate) => setZoomedCandidate({ candidate: imageCandidate, index })} />;
                     })}
                   </div>
                   <p className="gallery-section-label google-results">SerpAPI Google Images — top {candidates.length || 20}</p>
                   <div className="candidate-grid">
-                    {candidates.map((candidate, index) => <CandidateCard key={`${candidate.image_url}-${index}`} candidate={candidate} index={index} selected={selectedCandidate === index} recommended={automatedReview?.candidate_index === index} onSelect={selectCandidate} onZoom={(imageCandidate, candidateIndex) => setZoomedCandidate({ candidate: imageCandidate, index: candidateIndex })} />)}
+                    {candidates.map((candidate, index) => <CandidateCard key={`${candidate.image_url}-${index}`} candidate={candidate} index={index} selected={selectedCandidate === index} recommended={automatedReview?.candidate?.image_url === (candidate.image_url || candidate.original) || automatedReview?.candidate_index === index} onSelect={selectCandidate} onZoom={(imageCandidate, candidateIndex) => setZoomedCandidate({ candidate: imageCandidate, index: candidateIndex })} />)}
                   </div>
                 </>
               ) : (

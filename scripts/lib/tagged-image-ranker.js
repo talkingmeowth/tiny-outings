@@ -8,8 +8,30 @@ const socialDomains = /(instagram|facebook|pinterest|tiktok)\./i;
 const directoryDomains = /(tripadvisor|wheree|yelp|foursquare|restaurantguru|wanderlog|corner\.inc)/i;
 const authorityDomains = /(\.gov\.uk$|\.org\.uk$|visitlondon|goparks\.london|wikipedia|wikimedia|geograph)/i;
 
-export const TAGGED_IMAGE_MODEL_NAME = 'Tiny Outings tagged-choice ranker';
-export const TAGGED_IMAGE_MODEL_VERSION = 'tagged-ranker-v1';
+export const TAGGED_IMAGE_MODEL_NAME = 'Tiny Outings learned cross-source image ranker';
+export const TAGGED_IMAGE_MODEL_VERSION = 'cross-source-ranker-v2';
+
+export const AUTOMATIC_IMAGE_SOURCE_FIELDS = [
+  'audit_image_url',
+  'scraped_image_url',
+  'organiser_website_downloaded_image',
+  'website_downloaded_image',
+  'wikimedia_image_url',
+  'website_image_url',
+  'listing_image_url',
+];
+
+const sourceFeatureNames = [
+  'source_google_images',
+  'source_website_candidate',
+  'source_audit_replacement',
+  'source_scraped_audit_pass',
+  'source_organiser_download',
+  'source_website_download',
+  'source_wikimedia',
+  'source_website_url',
+  'source_listing_url',
+];
 
 export const FEATURE_NAMES = [
   'bias',
@@ -33,8 +55,15 @@ export const FEATURE_NAMES = [
   'authority_source',
   'domain_preference',
   'category_domain_preference',
+  'source_kind_preference',
+  'importer_source_preference',
+  'category_source_preference',
+  'visual_approved',
+  'visual_rejected',
+  'audit_approved',
   'image_url_quality',
   'descriptive_title',
+  ...sourceFeatureNames,
 ];
 
 function clean(value) {
@@ -89,7 +118,83 @@ function isWikimedia(candidate) {
     .some((value) => /(wikimedia|wikipedia)/i.test(clean(value)));
 }
 
-export function normalizeStoredCandidate(value, index = 0) {
+function secureUrl(value) {
+  return clean(value).replace(/^http:\/\//i, 'https://');
+}
+
+function sourceKindForField(field) {
+  return ({
+    audit_image_url: 'audit_replacement',
+    scraped_image_url: 'scraped_audit_pass',
+    organiser_website_downloaded_image: 'organiser_website_download',
+    website_downloaded_image: 'website_download',
+    wikimedia_image_url: 'wikimedia',
+    website_image_url: 'website_image_url',
+    listing_image_url: 'listing_image_url',
+  })[field] || 'stored_source';
+}
+
+function sourcePageForField(activity, field, imageUrl) {
+  if (field === 'audit_image_url') return clean(activity?.audit_image_source_url) || imageUrl;
+  if (field === 'scraped_image_url') return clean(activity?.image_source_url) || imageUrl;
+  if (field === 'organiser_website_downloaded_image') return clean(activity?.organiser_website || activity?.website) || imageUrl;
+  if (field === 'website_downloaded_image') return clean(activity?.website || activity?.source_url) || imageUrl;
+  if (field === 'wikimedia_image_url') return imageUrl;
+  return clean(activity?.image_source_url || activity?.website || activity?.source_url) || imageUrl;
+}
+
+function exactAuditApproval(activity, field, imageUrl) {
+  if (field === 'audit_image_url') return clean(activity?.audit_image_status) === 'replaced';
+  return field === 'scraped_image_url'
+    && clean(activity?.audit_image_status) === 'pass'
+    && clean(activity?.audit_image_original_source_field) === field
+    && secureUrl(activity?.audit_image_original_url) === secureUrl(imageUrl);
+}
+
+function exactAuditRejection(activity, field, imageUrl) {
+  return ['needs_replacement', 'no_replacement'].includes(clean(activity?.audit_image_status))
+    && clean(activity?.audit_image_original_source_field) === field
+    && secureUrl(activity?.audit_image_original_url) === secureUrl(imageUrl);
+}
+
+function storedFieldIsEligible(activity, field, imageUrl) {
+  if (!validHttpUrl(imageUrl)) return false;
+  if (field === 'audit_image_url' && !exactAuditApproval(activity, field, imageUrl)) return false;
+  if (field === 'scraped_image_url' && !exactAuditApproval(activity, field, imageUrl)) return false;
+  if (field === 'wikimedia_image_url' && !allowsWikimedia(activity)) return false;
+  if (!allowsWikimedia(activity) && isWikimedia({ image_url: imageUrl, source_page_url: sourcePageForField(activity, field, imageUrl) })) return false;
+  return !exactAuditRejection(activity, field, imageUrl);
+}
+
+function storedFieldVisualEvidence(activity, field, imageUrl) {
+  if (exactAuditApproval(activity, field, imageUrl)) {
+    return { visual_status: 'approved', visual_reason: `The exact ${field} image passed the image audit.`, audit_approved: true };
+  }
+  if (['organiser_website_downloaded_image', 'website_downloaded_image'].includes(field)
+    && clean(activity?.website_image_vision_status) === 'selected') {
+    return { visual_status: 'approved', visual_reason: clean(activity?.website_image_vision_reason) || 'Selected by the website-image vision review.' };
+  }
+  if (exactAuditRejection(activity, field, imageUrl)) {
+    return { visual_status: 'rejected', visual_reason: 'The exact image was rejected by the image audit.' };
+  }
+  return { visual_status: 'unreviewed', visual_reason: null };
+}
+
+function arrayCandidateVisualEvidence(activity, candidateSource, index) {
+  if (candidateSource === 'google_images'
+    && clean(activity?.serpapi_image_vision_status) === 'selected'
+    && Number(activity?.serpapi_image_vision_candidate_index) === index) {
+    return { visual_status: 'approved', visual_reason: clean(activity?.serpapi_image_vision_reason) || 'Selected by the Google Images vision review.' };
+  }
+  if (candidateSource === 'official_website_candidate'
+    && clean(activity?.website_image_vision_status) === 'selected'
+    && Number(activity?.website_image_vision_candidate_index) === index) {
+    return { visual_status: 'approved', visual_reason: clean(activity?.website_image_vision_reason) || 'Selected by the website-image vision review.' };
+  }
+  return { visual_status: 'unreviewed', visual_reason: null };
+}
+
+export function normalizeStoredCandidate(value, index = 0, defaults = {}) {
   if (!value || typeof value !== 'object') return null;
   const imageUrl = clean(value.image_url || value.original);
   if (!validHttpUrl(imageUrl)) return null;
@@ -106,7 +211,16 @@ export function normalizeStoredCandidate(value, index = 0) {
     width: Number.isFinite(width) && width > 0 ? width : null,
     height: Number.isFinite(height) && height > 0 ? height : null,
     relevance_reason: clean(value.relevance_reason) || `Google Images result ${Number(value.position) || index + 1}`,
-    candidate_set_index: index,
+    candidate_set_index: value.candidate_set_index != null && Number.isInteger(Number(value.candidate_set_index)) ? Number(value.candidate_set_index) : index,
+    source_position: (value.source_position ?? value.position) != null && Number.isInteger(Number(value.source_position ?? value.position))
+      ? Number(value.source_position ?? value.position) : null,
+    candidate_source: clean(value.candidate_source || value.source_kind || defaults.candidateSource) || 'google_images',
+    source_field: clean(value.source_field || defaults.sourceField) || null,
+    visual_status: clean(value.visual_status || defaults.visualStatus) || 'unreviewed',
+    visual_reason: clean(value.visual_reason || defaults.visualReason) || null,
+    visual_confidence: Number.isFinite(Number(value.visual_confidence ?? defaults.visualConfidence))
+      ? Number(value.visual_confidence ?? defaults.visualConfidence) : null,
+    audit_approved: value.audit_approved === true || defaults.auditApproved === true,
   };
 }
 
@@ -115,12 +229,99 @@ export function storedCandidateSet(activity, maximumCandidates = 20) {
   const legacyCandidates = Array.isArray(activity?.serpapi_image_candidates) ? activity.serpapi_image_candidates : [];
   const websiteCandidates = Array.isArray(activity?.website_image_candidates) ? activity.website_image_candidates : [];
   const source = codexCandidates.length ? codexCandidates : legacyCandidates.length ? legacyCandidates : websiteCandidates;
-  return source.slice(0, maximumCandidates).map(normalizeStoredCandidate).filter(Boolean);
+  const candidateSource = source === websiteCandidates ? 'official_website_candidate' : 'google_images';
+  return source.slice(0, maximumCandidates)
+    .map((candidate, index) => {
+      const visual = arrayCandidateVisualEvidence(activity, candidateSource, index);
+      return normalizeStoredCandidate(candidate, index, {
+        candidateSource,
+        visualStatus: visual.visual_status,
+        visualReason: visual.visual_reason,
+      });
+    })
+    .filter(Boolean);
+}
+
+function storedFieldCandidate(activity, field) {
+  const imageUrl = secureUrl(activity?.[field]);
+  if (!storedFieldIsEligible(activity, field, imageUrl)) return null;
+  const sourcePageUrl = sourcePageForField(activity, field, imageUrl);
+  const visual = storedFieldVisualEvidence(activity, field, imageUrl);
+  return normalizeStoredCandidate({
+    image_url: imageUrl,
+    thumbnail_url: imageUrl,
+    source_page_url: sourcePageUrl,
+    source_domain: candidateDomain(sourcePageUrl) || candidateDomain(imageUrl),
+    title: field.replaceAll('_', ' '),
+    relevance_reason: `Existing listing image from ${field}.`,
+    candidate_source: sourceKindForField(field),
+    source_field: field,
+    source_position: null,
+    ...visual,
+  }, 0, {
+    candidateSource: sourceKindForField(field),
+    sourceField: field,
+    visualStatus: visual.visual_status,
+    visualReason: visual.visual_reason,
+    auditApproved: visual.audit_approved,
+  });
+}
+
+function mergeCandidate(existing, candidate) {
+  const preferred = candidate.source_field && !existing.source_field ? candidate : existing;
+  const other = preferred === existing ? candidate : existing;
+  const approved = [preferred, other].find((row) => row.visual_status === 'approved');
+  return {
+    ...other,
+    ...preferred,
+    width: preferred.width || other.width || null,
+    height: preferred.height || other.height || null,
+    thumbnail_url: preferred.thumbnail_url || other.thumbnail_url || null,
+    source_page_url: preferred.source_page_url || other.source_page_url || null,
+    source_domain: preferred.source_domain || other.source_domain || null,
+    visual_status: approved ? 'approved' : (preferred.visual_status === 'rejected' && other.visual_status === 'rejected' ? 'rejected' : 'unreviewed'),
+    visual_reason: approved?.visual_reason || preferred.visual_reason || other.visual_reason || null,
+    visual_confidence: approved?.visual_confidence || preferred.visual_confidence || other.visual_confidence || null,
+    audit_approved: preferred.audit_approved || other.audit_approved || false,
+  };
+}
+
+export function crossSourceCandidateSet(activity, maximumCandidates = 100) {
+  const direct = AUTOMATIC_IMAGE_SOURCE_FIELDS.map((field) => storedFieldCandidate(activity, field)).filter(Boolean);
+  const googleSource = Array.isArray(activity?.codex_image_candidates) && activity.codex_image_candidates.length
+    ? activity.codex_image_candidates
+    : Array.isArray(activity?.serpapi_image_candidates) ? activity.serpapi_image_candidates : [];
+  const google = googleSource.map((candidate, index) => {
+    const visual = arrayCandidateVisualEvidence(activity, 'google_images', index);
+    return normalizeStoredCandidate(candidate, index, {
+      candidateSource: 'google_images',
+      visualStatus: visual.visual_status,
+      visualReason: visual.visual_reason,
+    });
+  }).filter(Boolean);
+  const website = (Array.isArray(activity?.website_image_candidates) ? activity.website_image_candidates : [])
+    .map((candidate, index) => {
+      const visual = arrayCandidateVisualEvidence(activity, 'official_website_candidate', index);
+      return normalizeStoredCandidate(candidate, index, {
+        candidateSource: 'official_website_candidate',
+        visualStatus: visual.visual_status,
+        visualReason: visual.visual_reason,
+      });
+    }).filter(Boolean);
+  const deduplicated = new Map();
+  for (const candidate of [...direct, ...google, ...website]) {
+    const key = secureUrl(candidate.image_url);
+    if (!key) continue;
+    deduplicated.set(key, deduplicated.has(key) ? mergeCandidate(deduplicated.get(key), candidate) : candidate);
+  }
+  return [...deduplicated.values()].slice(0, maximumCandidates)
+    .map((candidate, index) => ({ ...candidate, candidate_set_index: index }));
 }
 
 function candidateEligible(activity, candidate) {
   const combined = [candidate.image_url, candidate.thumbnail_url, candidate.source_page_url, candidate.title].filter(Boolean).join(' ');
   if (blockedAssetTerms.test(combined)) return false;
+  if (candidate.visual_status === 'rejected') return false;
   if (!allowsWikimedia(activity) && isWikimedia(candidate)) return false;
   if (candidate.width && candidate.height) {
     if (Math.min(candidate.width, candidate.height) < 300) return false;
@@ -154,6 +355,21 @@ function officialDomains(activity) {
     .map(rootDomain).filter(Boolean));
 }
 
+function sourceFeatureObject(sourceKind) {
+  const featureBySource = {
+    google_images: 'source_google_images',
+    official_website_candidate: 'source_website_candidate',
+    audit_replacement: 'source_audit_replacement',
+    scraped_audit_pass: 'source_scraped_audit_pass',
+    organiser_website_download: 'source_organiser_download',
+    website_download: 'source_website_download',
+    wikimedia: 'source_wikimedia',
+    website_image_url: 'source_website_url',
+    listing_image_url: 'source_listing_url',
+  };
+  return Object.fromEntries(sourceFeatureNames.map((name) => [name, featureBySource[sourceKind] === name ? 1 : 0]));
+}
+
 function featureObject(activity, candidate, index, stats) {
   const width = Number(candidate.width) || 0;
   const height = Number(candidate.height) || 0;
@@ -163,16 +379,20 @@ function featureObject(activity, candidate, index, stats) {
   const imageUrl = clean(candidate.image_url);
   const sourceDomain = rootDomain(candidate.source_page_url || candidate.source_domain || imageUrl);
   const category = normalizedCategory(activity?.category);
+  const importer = clean(activity?.source_name).toLowerCase() || 'unknown';
+  const sourceKind = clean(candidate.candidate_source) || 'google_images';
+  const sourcePosition = candidate.source_position != null && Number.isInteger(Number(candidate.source_position))
+    ? Number(candidate.source_position) : null;
   const nameTokens = tokens(activity?.activity_name);
   const locationTokens = tokens([activity?.address, activity?.borough, activity?.postcode].filter(Boolean).join(' '));
   const titleTokens = tokens(title);
   const official = officialDomains(activity);
   return {
     bias: 1,
-    inverse_position: 1 / (index + 1),
-    top_1: index === 0 ? 1 : 0,
-    top_3: index < 3 ? 1 : 0,
-    top_6: index < 6 ? 1 : 0,
+    inverse_position: sourcePosition == null ? 0 : 1 / (sourcePosition + 1),
+    top_1: sourcePosition === 0 ? 1 : 0,
+    top_3: sourcePosition != null && sourcePosition < 3 ? 1 : 0,
+    top_6: sourcePosition != null && sourcePosition < 6 ? 1 : 0,
     dimensions_known: pixels ? 1 : 0,
     log_pixels: pixels ? clamp((Math.log(pixels) - Math.log(180000)) / 5, 0, 1) : 0,
     minimum_side: width && height ? clamp(Math.min(width, height) / 1600, 0, 1) : 0,
@@ -189,8 +409,15 @@ function featureObject(activity, candidate, index, stats) {
     authority_source: authorityDomains.test(sourceDomain) ? 1 : 0,
     domain_preference: domainStat(stats.domain, sourceDomain),
     category_domain_preference: domainStat(stats.categoryDomain, `${category}|${sourceDomain}`),
+    source_kind_preference: domainStat(stats.sourceKind, sourceKind),
+    importer_source_preference: domainStat(stats.importerSource, `${importer}|${sourceKind}`),
+    category_source_preference: domainStat(stats.categorySource, `${category}|${sourceKind}`),
+    visual_approved: candidate.visual_status === 'approved' ? 1 : 0,
+    visual_rejected: candidate.visual_status === 'rejected' ? 1 : 0,
+    audit_approved: candidate.audit_approved ? 1 : 0,
     image_url_quality: weakImageTerms.test(imageUrl) ? -1 : 1,
     descriptive_title: clamp(titleTokens.size / 9, 0, 1),
+    ...sourceFeatureObject(sourceKind),
   };
 }
 
@@ -217,7 +444,7 @@ export function taggedChoiceGroups(rows) {
   const groups = [];
   for (const row of rows || []) {
     const activity = row.activity || row;
-    const candidates = storedCandidateSet(activity);
+    const candidates = crossSourceCandidateSet(activity);
     const selectedUrl = clean(row.original_image_url || row.selected_image_url || row.reviewed_image_original_url);
     const selectedIndex = candidates.findIndex((candidate) => candidate.image_url === selectedUrl);
     if (candidates.length < 2 || selectedIndex < 0) continue;
@@ -235,11 +462,22 @@ function preferenceStats(groups) {
   }
   const domain = createStats();
   const categoryDomain = createStats();
+  const sourceKind = createStats();
+  const importerSource = createStats();
+  const categorySource = createStats();
   for (const group of groups) {
     const category = normalizedCategory(group.activity.category);
+    const importer = clean(group.activity.source_name).toLowerCase() || 'unknown';
     group.candidates.forEach((candidate, index) => {
       const host = rootDomain(candidate.source_page_url || candidate.source_domain || candidate.image_url);
-      for (const [map, key] of [[domain, host], [categoryDomain, `${category}|${host}`]]) {
+      const candidateSource = clean(candidate.candidate_source) || 'google_images';
+      for (const [map, key] of [
+        [domain, host],
+        [categoryDomain, `${category}|${host}`],
+        [sourceKind, candidateSource],
+        [importerSource, `${importer}|${candidateSource}`],
+        [categorySource, `${category}|${candidateSource}`],
+      ]) {
         if (!key) continue;
         const current = map.get(key) || { exposed: 0, selected: 0 };
         current.exposed += 1;
@@ -250,7 +488,17 @@ function preferenceStats(groups) {
       }
     });
   }
-  return { domain, categoryDomain };
+  return { domain, categoryDomain, sourceKind, importerSource, categorySource };
+}
+
+function trainingFingerprint(groups) {
+  let hash = 2166136261;
+  const values = groups.map((group) => `${group.reviewId}|${group.candidates[group.selectedIndex]?.image_url || ''}`).sort();
+  for (const value of values.join('\n')) {
+    hash ^= value.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(16).padStart(8, '0');
 }
 
 function trainWeights(groups, stats, epochs = 260) {
@@ -320,7 +568,7 @@ export function trainTaggedImageRanker(rows) {
   const weights = trainWeights(groups, stats);
   return {
     name: TAGGED_IMAGE_MODEL_NAME,
-    version: TAGGED_IMAGE_MODEL_VERSION,
+    version: `${TAGGED_IMAGE_MODEL_VERSION}-${trainingFingerprint(groups)}`,
     trainingReviewCount: groups.length,
     weights,
     stats,
@@ -335,6 +583,8 @@ export function trainTaggedImageRanker(rows) {
 
 function recommendationReason(activity, choice, model) {
   const evidence = [];
+  if (choice.candidate.visual_status === 'approved') evidence.push('visual assessment passed');
+  if (choice.candidate.audit_approved) evidence.push('exact image audit passed');
   if (choice.features.official_source) evidence.push('official listing source');
   if (choice.features.title_name_overlap >= 0.4) evidence.push('strong name match');
   if (choice.features.title_location_overlap >= 0.4) evidence.push('location match');
@@ -342,28 +592,52 @@ function recommendationReason(activity, choice, model) {
   if (choice.features.park_scene_terms) evidence.push('clear outdoor/play context');
   if (choice.features.log_pixels >= 0.55) evidence.push('high reported resolution');
   if (choice.features.card_aspect >= 0.8) evidence.push('useful card framing');
+  if (choice.candidate.candidate_source) evidence.push(`best learned ${choice.candidate.candidate_source.replaceAll('_', ' ')} source`);
   if (!evidence.length) evidence.push(`result-position and source patterns from ${model.trainingReviewCount} manual choices`);
-  return `Learned from ${model.trainingReviewCount} manual selections; ${evidence.slice(0, 3).join(', ')}.`;
+  const visualReason = clean(choice.candidate.visual_reason);
+  return `Learned from ${model.trainingReviewCount} manual selections; ${evidence.slice(0, 4).join(', ')}.${visualReason ? ` Visual review: ${visualReason}` : ''}`;
 }
 
-export function rankStoredCandidates(activity, model, { maximumCandidates = 20 } = {}) {
-  const candidates = storedCandidateSet(activity, maximumCandidates);
-  if (!candidates.length) return null;
+function visualAssessmentFor(visualAssessments, imageUrl) {
+  if (!visualAssessments) return null;
+  if (visualAssessments instanceof Map) return visualAssessments.get(secureUrl(imageUrl)) || null;
+  return visualAssessments[secureUrl(imageUrl)] || null;
+}
+
+function candidatesWithVisualAssessments(candidates, visualAssessments) {
+  return candidates.map((candidate) => {
+    const assessment = visualAssessmentFor(visualAssessments, candidate.image_url);
+    return assessment ? { ...candidate, ...assessment } : candidate;
+  });
+}
+
+function recommendationFromCandidates(activity, model, candidates, {
+  requireVisualApproval = false,
+  visualAssessments = null,
+} = {}) {
+  const assessedCandidates = candidatesWithVisualAssessments(candidates, visualAssessments);
+  if (!assessedCandidates.length) return null;
   const excludedImageUrls = new Set((activity.automated_failed_image_urls || []).map(clean));
-  const ranking = ranked({ activity, candidates }, model.weights, model.stats)
-    .filter((row) => !excludedImageUrls.has(clean(row.candidate.image_url)));
+  const ranking = ranked({ activity, candidates: assessedCandidates }, model.weights, model.stats)
+    .filter((row) => !excludedImageUrls.has(clean(row.candidate.image_url)))
+    .filter((row) => !requireVisualApproval || row.candidate.visual_status === 'approved');
   if (!ranking.length) return null;
   const choice = ranking[0];
   const runnerUp = ranking[1];
   const gap = runnerUp ? choice.score - runnerUp.score : 2;
   const validationAccuracy = Number(model.metrics.top_1_accuracy) || 0.5;
-  const confidence = clamp(0.34 + (0.36 * sigmoid(gap)) + (0.26 * validationAccuracy), 0.5, 0.97);
+  const learnedConfidence = clamp(0.34 + (0.36 * sigmoid(gap)) + (0.26 * validationAccuracy), 0.5, 0.97);
+  const visualConfidence = choice.candidate.visual_confidence == null ? null : Number(choice.candidate.visual_confidence);
+  const hasVisualConfidence = visualConfidence != null && Number.isFinite(visualConfidence);
+  const confidence = hasVisualConfidence
+    ? clamp((learnedConfidence * 0.45) + (visualConfidence * 0.55), 0.5, 0.97)
+    : requireVisualApproval ? Math.min(learnedConfidence, 0.69) : learnedConfidence;
   const significantFeatures = Object.fromEntries(Object.entries(choice.features)
     .filter(([, value]) => Math.abs(Number(value)) >= 0.4));
   return {
     candidateIndex: Number.isInteger(choice.candidate.candidate_set_index) ? choice.candidate.candidate_set_index : choice.index,
     candidate: choice.candidate,
-    normalizedCandidates: candidates,
+    normalizedCandidates: assessedCandidates,
     confidence: Number(confidence.toFixed(4)),
     reason: `${excludedImageUrls.size ? `Excluded ${excludedImageUrls.size} candidate${excludedImageUrls.size === 1 ? '' : 's'} that failed download validation. ` : ''}${recommendationReason(activity, choice, model)}`,
     featureSnapshot: {
@@ -371,7 +645,38 @@ export function rankStoredCandidates(activity, model, { maximumCandidates = 20 }
       runner_up_score: runnerUp ? Number(runnerUp.score.toFixed(5)) : null,
       score_gap: Number(gap.toFixed(5)),
       eligible_candidate_count: ranking.length,
+      selected_source: choice.candidate.candidate_source || null,
+      selected_source_field: choice.candidate.source_field || null,
+      visual_status: choice.candidate.visual_status || 'unreviewed',
+      visual_confidence: hasVisualConfidence ? visualConfidence : null,
       significant_features: significantFeatures,
     },
   };
+}
+
+export function rankStoredCandidates(activity, model, { maximumCandidates = 20 } = {}) {
+  const candidates = storedCandidateSet(activity, maximumCandidates);
+  return recommendationFromCandidates(activity, model, candidates);
+}
+
+export function crossSourceCandidateRanking(activity, model, { maximumCandidates = 100 } = {}) {
+  const candidates = crossSourceCandidateSet(activity, maximumCandidates);
+  const excludedImageUrls = new Set((activity.automated_failed_image_urls || []).map(clean));
+  return ranked({ activity, candidates }, model.weights, model.stats)
+    .filter((row) => !excludedImageUrls.has(clean(row.candidate.image_url)))
+    .map((row) => ({
+      candidate: row.candidate,
+      candidateIndex: row.candidate.candidate_set_index,
+      score: Number(row.score.toFixed(5)),
+      features: row.features,
+    }));
+}
+
+export function rankCrossSourceCandidates(activity, model, {
+  maximumCandidates = 100,
+  requireVisualApproval = true,
+  visualAssessments = null,
+} = {}) {
+  const candidates = crossSourceCandidateSet(activity, maximumCandidates);
+  return recommendationFromCandidates(activity, model, candidates, { requireVisualApproval, visualAssessments });
 }

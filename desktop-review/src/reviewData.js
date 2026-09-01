@@ -3,21 +3,14 @@ import { isQualityApprovedImageField } from '../../src/activityImages.js';
 import { allowsWikimediaImages, isWikimediaUrl } from '../../src/wikimediaImagePolicy.js';
 import { categoryIllustrationCandidate } from './categoryIllustrations.js';
 
-// Keep this order aligned with src/activityImages.js so the desktop reviewer
-// always shows the same card image and source as the main application.
+// Display only explicit human choices and the learned cross-source winner.
+// The remaining fields are still shown below as candidates for manual review.
 export const activityImageFields = [
   'admin_cover_image_url',
   'reviewed_image_url',
   'user_image_url',
-  'audit_image_url',
-  'scraped_image_url',
-  'organiser_website_downloaded_image',
-  'website_downloaded_image',
-  'model_selected_url',
   'user_uploaded_image_url',
-  'wikimedia_image_url',
-  'website_image_url',
-  'listing_image_url',
+  'model_selected_url',
 ];
 
 function securePhotoUrl(url) {
@@ -115,7 +108,18 @@ export const DISPLAY_IMAGE_SOURCE_ORDER = [
 ];
 
 export const STORED_CANDIDATE_FIELDS = [
-  ...activityImageFields,
+  'admin_cover_image_url',
+  'reviewed_image_url',
+  'user_image_url',
+  'user_uploaded_image_url',
+  'audit_image_url',
+  'scraped_image_url',
+  'organiser_website_downloaded_image',
+  'website_downloaded_image',
+  'model_selected_url',
+  'wikimedia_image_url',
+  'website_image_url',
+  'listing_image_url',
 ];
 
 const storedSourceSelectionPrefix = 'stored_source:';
@@ -208,7 +212,11 @@ export function currentImage(activity) {
   let sourceUrl = url;
   if (field === 'reviewed_image_url') sourceUrl = activity.reviewed_image_source_url || activity.reviewed_image_original_url || url;
   if (field === 'scraped_image_url') sourceUrl = activity.image_source_url || url;
-  if (field === 'model_selected_url') sourceUrl = activity.automated_image_review?.candidate?.source_page_url || activity.automated_image_review?.candidate?.image_url || url;
+  if (field === 'model_selected_url') sourceUrl = activity.model_selected_source_url
+    || activity.automated_image_review?.candidate?.source_page_url
+    || activity.model_selected_original_url
+    || activity.automated_image_review?.candidate?.image_url
+    || url;
   if (field === 'audit_image_url') sourceUrl = activity.audit_image_source_url || url;
   if (field === 'category_placeholder') sourceUrl = url;
   if (['organiser_website_downloaded_image', 'website_downloaded_image', 'website_image_url', 'listing_image_url'].includes(field)) {

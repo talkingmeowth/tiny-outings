@@ -35,6 +35,6 @@ test('the importer pipeline reruns every selector from stored candidates', () =>
     'select-stored-serpapi-images',
     'apply-repeatable-model-image-review',
   ]) assert.match(pipeline, new RegExp(`name: '${job}'`));
-  assert.match(pipeline, /'--scope', 'all-unreviewed', '--apply'/);
+  assert.match(pipeline, /'--scope', 'all-unreviewed', '--visual-assessment', '--apply'/);
   assert.doesNotMatch(pipeline, /'--search-missing'/);
 });

@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  crossSourceCandidateSet,
+  rankCrossSourceCandidates,
   rankStoredCandidates,
   storedCandidateSet,
   taggedChoiceGroups,
@@ -126,4 +128,62 @@ test('uses the next learned choice after a candidate fails download validation',
   }, model);
   assert.notEqual(result.candidateIndex, 0);
   assert.match(result.reason, /Excluded 1 candidate/);
+});
+
+test('combines automatic fields, Google Images and official website candidates without fixed source priority', () => {
+  const pool = crossSourceCandidateSet({
+    activity_name: 'Little Explorers',
+    category: 'Family activities',
+    audit_image_status: 'replaced',
+    audit_image_url: 'https://storage.test/audit.jpg',
+    audit_image_source_url: 'https://provider.test/audit-source',
+    serpapi_image_candidates: [{ original: 'https://search.test/result.jpg', link: 'https://directory.test/little-explorers' }],
+    website_image_candidates: [{ original: 'https://provider.test/session.jpg', link: 'https://provider.test/little-explorers' }],
+  });
+  assert.deepEqual(new Set(pool.map((candidate) => candidate.candidate_source)), new Set([
+    'audit_replacement',
+    'google_images',
+    'official_website_candidate',
+  ]));
+  assert.equal(pool.find((candidate) => candidate.source_field === 'audit_image_url').visual_status, 'approved');
+});
+
+test('requires visual approval and can choose an official-site source over the first Google result', () => {
+  const model = trainTaggedImageRanker(Array.from({ length: 30 }, (_, index) => review(index)));
+  const googleUrl = 'https://search.test/logo.jpg';
+  const websiteUrl = 'https://official-new-place.test/interior.jpg';
+  const target = {
+    activity_id: 'cross-source-target',
+    activity_name: 'new-place',
+    address: 'Hackney, London',
+    category: 'Cafes & food',
+    source_name: 'Test importer',
+    website: 'https://official-new-place.test',
+    serpapi_image_candidates: [{ original: googleUrl, link: 'https://directory.test/new-place', title: 'new-place logo', original_width: 1600, original_height: 900 }],
+    website_image_candidates: [{ original: websiteUrl, link: 'https://official-new-place.test/gallery', title: 'new-place interior seating', original_width: 1600, original_height: 1000 }],
+  };
+  const recommendation = rankCrossSourceCandidates(target, model, {
+    visualAssessments: new Map([
+      [googleUrl, { visual_status: 'rejected', visual_reason: 'Logo', visual_confidence: 0.1 }],
+      [websiteUrl, { visual_status: 'approved', visual_reason: 'Clear cafe interior', visual_confidence: 0.91 }],
+    ]),
+  });
+  assert.equal(recommendation.candidate.image_url, websiteUrl);
+  assert.equal(recommendation.candidate.candidate_source, 'official_website_candidate');
+  assert.ok(recommendation.confidence >= 0.7);
+  assert.match(recommendation.reason, /visual assessment passed/i);
+});
+
+test('returns no automatic image when no cross-source candidate passes visual review', () => {
+  const model = trainTaggedImageRanker(Array.from({ length: 30 }, (_, index) => review(index)));
+  const imageUrl = 'https://search.test/uncertain.jpg';
+  const recommendation = rankCrossSourceCandidates({
+    activity_id: 'category-fallback-target',
+    activity_name: 'Uncertain activity',
+    category: 'Family activities',
+    serpapi_image_candidates: [{ original: imageUrl, title: 'Uncertain activity', original_width: 1200, original_height: 800 }],
+  }, model, {
+    visualAssessments: new Map([[imageUrl, { visual_status: 'rejected', visual_reason: 'Unrelated image' }]]),
+  });
+  assert.equal(recommendation, null);
 });

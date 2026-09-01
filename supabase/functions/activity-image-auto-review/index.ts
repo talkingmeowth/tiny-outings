@@ -17,6 +17,11 @@ type Candidate = {
   width?: number | null
   height?: number | null
   relevance_reason?: string | null
+  candidate_source?: string | null
+  source_field?: string | null
+  visual_status?: string | null
+  visual_reason?: string | null
+  visual_confidence?: number | null
 }
 
 type Proposal = {
@@ -108,15 +113,8 @@ function isMissingActivity(activity: Record<string, unknown>) {
     'admin_cover_image_url',
     'reviewed_image_url',
     'user_image_url',
-    'audit_image_url',
-    'scraped_image_url',
-    'organiser_website_downloaded_image',
-    'website_downloaded_image',
     'model_selected_url',
     'user_uploaded_image_url',
-    'wikimedia_image_url',
-    'website_image_url',
-    'listing_image_url',
   ].some((field) => qualityApprovedImage(activity, field))
 }
 
@@ -247,7 +245,7 @@ async function trainingData(
   const activityIds = [...new Set((reviews || []).map((review) => review.activity_id))]
   const { data: activities, error: activityError } = activityIds.length
     ? await supabase.from('activities')
-      .select('activity_id,activity_name,address,postcode,borough,category,website,organiser_website,source_url,codex_image_candidates,serpapi_image_candidates')
+      .select('activity_id,activity_name,address,postcode,borough,category,source_name,website,organiser_website,source_url,image_source_url,audit_image_status,audit_image_url,audit_image_source_url,audit_image_original_url,audit_image_original_source_field,scraped_image_url,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,codex_image_candidates,serpapi_image_candidates,serpapi_image_vision_status,serpapi_image_vision_candidate_index,serpapi_image_vision_reason,website_image_candidates,website_image_vision_status,website_image_vision_candidate_index,website_image_vision_reason')
       .in('activity_id', activityIds)
     : { data: [], error: null }
   if (activityError) throw new Error(activityError.message)
@@ -268,7 +266,7 @@ async function targetData(
   missingOnly: boolean,
 ) {
   let query = supabase.from('activities')
-    .select('activity_id,activity_name,address,postcode,borough,category,website,organiser_website,source_url,source_name,image_source_url,public_listing_status,archive,audit_image_status,audit_image_url,audit_image_source_url,audit_image_original_url,audit_image_original_source_field,image_review_ignored_at,admin_cover_image_url,reviewed_image_url,use_category_image,scraped_image_url,model_selected_url,model_selected_confidence,user_image_url,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,serpapi_image_candidates,serpapi_image_search_query,serpapi_image_candidates_fetched_at,website_image_candidates,website_image_candidates_fetched_at')
+    .select('activity_id,activity_name,address,postcode,borough,category,website,organiser_website,source_url,source_name,image_source_url,public_listing_status,archive,audit_image_status,audit_image_url,audit_image_source_url,audit_image_original_url,audit_image_original_source_field,image_review_ignored_at,admin_cover_image_url,reviewed_image_url,use_category_image,scraped_image_url,model_selected_url,model_selected_confidence,model_selected_original_url,model_selected_source_field,model_selected_model_version,user_image_url,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,serpapi_image_candidates,serpapi_image_search_query,serpapi_image_candidates_fetched_at,serpapi_image_vision_status,serpapi_image_vision_candidate_index,serpapi_image_vision_reason,website_image_candidates,website_image_candidates_fetched_at,website_image_vision_status,website_image_vision_candidate_index,website_image_vision_reason')
     .eq('archive', false)
     .in('public_listing_status', ['draft', 'published'])
     .order('activity_id', { ascending: true })
@@ -351,7 +349,7 @@ async function storeProposals(
   for (const proposal of proposals) {
     if (!clean(proposal.activity_id) || !['missing_published', 'unsuitable_audit', 'both', 'all_published', 'all_draft'].includes(proposal.source_queue)) throw new Error('A proposal has invalid activity or queue data.')
     if (proposal.terminal_rejection !== true
-      && (!Number.isInteger(proposal.candidate_index) || Number(proposal.candidate_index) < 0 || Number(proposal.candidate_index) > 19)) throw new Error('A proposal has an invalid candidate index.')
+      && (!Number.isInteger(proposal.candidate_index) || Number(proposal.candidate_index) < 0 || Number(proposal.candidate_index) > 99)) throw new Error('A proposal has an invalid candidate index.')
     if (proposal.terminal_rejection !== true && !validCandidate(proposal.candidate)) throw new Error('A proposal has an invalid candidate.')
     if (!(Number(proposal.confidence) >= 0 && Number(proposal.confidence) <= 1)) throw new Error('A proposal has invalid confidence.')
     if (!clean(proposal.reason) || !clean(proposal.model_name) || !clean(proposal.model_version) || Number(proposal.training_review_count) < 1) throw new Error('A proposal is missing model audit data.')
@@ -361,21 +359,8 @@ async function storeProposals(
   const { error: supersedeError } = await supabase.from('activity_image_automated_reviews').update({
     status: 'superseded',
     reviewed_at: supersededAt,
-  }).in('activity_id', activityIds).eq('status', 'pending')
+  }).in('activity_id', activityIds).in('status', ['pending', 'auto_applied'])
   if (supersedeError) throw new Error(supersedeError.message)
-
-  const candidateUpdates = proposals.filter((proposal) => Array.isArray(proposal.normalized_candidates) && proposal.normalized_candidates.length)
-    .map((proposal) => async () => {
-      const searchedAt = proposal.candidate_set_searched_at || supersededAt
-      const { error } = await supabase.from('activities').update({
-        codex_image_candidates: proposal.normalized_candidates!.slice(0, 20),
-        codex_image_search_query: undefined,
-        codex_image_searched_at: searchedAt,
-        codex_image_search_model: 'Stored image candidates normalized for tagged-choice review',
-      }).eq('activity_id', proposal.activity_id)
-      if (error) throw new Error(error.message)
-    })
-  await runWithConcurrency(candidateUpdates)
 
   const rows = proposals.map((proposal) => ({
     activity_id: proposal.activity_id,
@@ -474,7 +459,10 @@ async function applyProposal(
 
   const currentModelImage = clean(activity.model_selected_url)
   const currentModelConfidence = Number(activity.model_selected_confidence)
-  if (currentModelImage && Number.isFinite(currentModelConfidence) && currentModelConfidence >= 0.7) {
+  const currentModelVersion = clean(activity.model_selected_model_version)
+  const proposalModelVersion = clean(proposal.model_version)
+  if (currentModelImage && Number.isFinite(currentModelConfidence) && currentModelConfidence >= 0.7
+    && currentModelVersion === proposalModelVersion) {
     await updateAutomatedReview(supabase, automatedReviewId, {
       status: 'superseded',
       reviewed_at: attemptedAt,
@@ -486,8 +474,42 @@ async function applyProposal(
     return { activity_id: proposal.activity_id, status: 'preserved-existing-model-selection' }
   }
 
-  const downloaded = await downloadCandidate(candidate)
   const selectedAt = new Date().toISOString()
+  const selectedSourceField = clean(candidate.source_field || candidate.candidate_source) || 'unknown'
+  const selectedSourceUrl = clean(candidate.source_page_url) || clean(candidate.image_url)
+  const modelMetadata = {
+    model_selected_confidence: Number(proposal.confidence),
+    model_selected_at: selectedAt,
+    model_selected_original_url: clean(candidate.image_url),
+    model_selected_source_url: selectedSourceUrl,
+    model_selected_source_field: selectedSourceField,
+    model_selected_reason: clean(proposal.reason),
+    model_selected_model: clean(proposal.model_name),
+    model_selected_model_version: proposalModelVersion,
+    updated_at: selectedAt,
+  }
+
+  if (currentModelImage && clean(activity.model_selected_original_url) === clean(candidate.image_url)) {
+    const { data: refreshedActivity, error: refreshError } = await supabase.from('activities').update(modelMetadata)
+      .eq('activity_id', proposal.activity_id)
+      .eq('model_selected_url', currentModelImage)
+      .is('reviewed_image_url', null)
+      .eq('use_category_image', false)
+      .select('activity_id')
+      .maybeSingle()
+    if (refreshError) throw new Error(refreshError.message)
+    if (!refreshedActivity) throw new Error('A human image choice was saved before the automatic model metadata could be refreshed.')
+    await updateAutomatedReview(supabase, automatedReviewId, {
+      status: 'auto_applied',
+      auto_applied_at: selectedAt,
+      auto_applied_image_url: currentModelImage,
+      apply_attempted_at: attemptedAt,
+      apply_failure_reason: null,
+    })
+    return { activity_id: proposal.activity_id, status: 'already-applied', model_selected_url: currentModelImage }
+  }
+
+  const downloaded = await downloadCandidate(candidate)
   const path = `model-selected/automated/${proposal.activity_id}/${automatedReviewId}.${extensionFor(downloaded.contentType)}`
   const upload = await supabase.storage.from('activity-images').upload(path, downloaded.bytes, {
     contentType: downloaded.contentType,
@@ -498,15 +520,12 @@ async function applyProposal(
   const modelSelectedUrl = supabase.storage.from('activity-images').getPublicUrl(path).data.publicUrl
   let activityUpdate = supabase.from('activities').update({
     model_selected_url: modelSelectedUrl,
-    model_selected_confidence: Number(proposal.confidence),
-    model_selected_at: selectedAt,
-    updated_at: selectedAt,
+    ...modelMetadata,
   }).eq('activity_id', proposal.activity_id)
     .is('reviewed_image_url', null)
     .eq('use_category_image', false)
   activityUpdate = currentModelImage
     ? activityUpdate.eq('model_selected_url', currentModelImage)
-      .or('model_selected_confidence.is.null,model_selected_confidence.lt.0.7')
     : activityUpdate.is('model_selected_url', null)
   const { data: updatedActivity, error: activityError } = await activityUpdate
     .select('activity_id')
@@ -532,18 +551,21 @@ async function applyProposal(
 async function applyPendingProposals(
   supabase: ReturnType<typeof createClient>,
   batchSize: number,
+  modelVersion = '',
 ) {
-  const { data: proposals, error } = await supabase.from('activity_image_automated_reviews')
+  let proposalQuery = supabase.from('activity_image_automated_reviews')
     .select('automated_review_id,activity_id,status,candidate_index,candidate,confidence,model_name,model_version')
     .eq('status', 'pending')
     .is('apply_failure_reason', null)
     .order('created_at', { ascending: true })
     .limit(batchSize)
+  if (clean(modelVersion)) proposalQuery = proposalQuery.eq('model_version', clean(modelVersion))
+  const { data: proposals, error } = await proposalQuery
   if (error) throw new Error(error.message)
   const activityIds = (proposals || []).map((proposal) => proposal.activity_id)
   const { data: activities, error: activityError } = activityIds.length
     ? await supabase.from('activities')
-      .select('activity_id,archive,image_review_ignored_at,admin_cover_image_url,user_image_url,reviewed_image_url,use_category_image,reviewed_image_original_url,model_selected_url,model_selected_confidence')
+      .select('activity_id,archive,image_review_ignored_at,admin_cover_image_url,user_image_url,reviewed_image_url,use_category_image,reviewed_image_original_url,model_selected_url,model_selected_confidence,model_selected_original_url,model_selected_model_version')
       .in('activity_id', activityIds)
     : { data: [], error: null }
   if (activityError) throw new Error(activityError.message)
@@ -572,19 +594,23 @@ async function applyPendingProposals(
     }
   })
   const rows = await runWithConcurrency(tasks, 4)
-  const { count, error: countError } = await supabase.from('activity_image_automated_reviews')
+  let countQuery = supabase.from('activity_image_automated_reviews')
     .select('automated_review_id', { count: 'exact', head: true })
     .eq('status', 'pending')
     .is('apply_failure_reason', null)
+  if (clean(modelVersion)) countQuery = countQuery.eq('model_version', clean(modelVersion))
+  const { count, error: countError } = await countQuery
   if (countError) throw new Error(countError.message)
   return { rows, remaining_count: count || 0 }
 }
 
-async function resetApplyFailures(supabase: ReturnType<typeof createClient>) {
-  const { data, error } = await supabase.from('activity_image_automated_reviews').update({
+async function resetApplyFailures(supabase: ReturnType<typeof createClient>, modelVersion = '') {
+  let resetQuery = supabase.from('activity_image_automated_reviews').update({
     apply_failure_reason: null,
   }).eq('status', 'pending')
     .not('apply_failure_reason', 'is', null)
+  if (clean(modelVersion)) resetQuery = resetQuery.eq('model_version', clean(modelVersion))
+  const { data, error } = await resetQuery
     .select('automated_review_id')
   if (error) throw new Error(error.message)
   return data?.length || 0
@@ -606,6 +632,7 @@ Deno.serve(async (request) => {
     missing_only?: boolean
     proposals?: Proposal[]
     batch_size?: number
+    model_version?: string
   }
   try {
     if (body.action === 'training_data') {
@@ -635,11 +662,11 @@ Deno.serve(async (request) => {
     }
     if (body.action === 'apply_pending') {
       const batchSize = Math.min(20, Math.max(1, Number(body.batch_size) || 10))
-      const result = await applyPendingProposals(supabase, batchSize)
+      const result = await applyPendingProposals(supabase, batchSize, clean(body.model_version))
       return jsonResponse({ processed_count: result.rows.length, ...result })
     }
     if (body.action === 'reset_apply_failures') {
-      return jsonResponse({ reset_count: await resetApplyFailures(supabase) })
+      return jsonResponse({ reset_count: await resetApplyFailures(supabase, clean(body.model_version)) })
     }
     return jsonResponse({ error: 'Unsupported action.' }, 400)
   } catch (error) {

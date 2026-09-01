@@ -1,21 +1,15 @@
 import { activityImageGroupKey } from './activityDuplicates.js';
 import { allowsWikimediaImages, isWikimediaUrl } from './wikimediaImagePolicy.js';
 
-// Keep this order aligned with the admin and community image controls. The
-// first usable image is the cover shown everywhere a listing appears.
+// Only explicit human choices and the learned cross-source winner are display
+// fields. All scraper, website, audit and listing fields remain candidate data;
+// they never win merely because they happen to sit earlier in a fixed list.
 export const activityImageFields = [
   'admin_cover_image_url',
   'reviewed_image_url',
   'user_image_url',
-  'audit_image_url',
-  'scraped_image_url',
-  'organiser_website_downloaded_image',
-  'website_downloaded_image',
-  'model_selected_url',
   'user_uploaded_image_url',
-  'wikimedia_image_url',
-  'website_image_url',
-  'listing_image_url',
+  'model_selected_url',
 ];
 
 export const minimumModelImageConfidence = 0.7;

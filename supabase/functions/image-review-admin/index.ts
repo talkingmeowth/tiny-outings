@@ -66,6 +66,12 @@ type Activity = {
   use_category_image?: boolean
   model_selected_url?: string | null
   model_selected_confidence?: number | null
+  model_selected_original_url?: string | null
+  model_selected_source_url?: string | null
+  model_selected_source_field?: string | null
+  model_selected_reason?: string | null
+  model_selected_model?: string | null
+  model_selected_model_version?: string | null
   admin_cover_image_url?: string | null
   user_image_url?: string | null
   user_uploaded_image_url?: string | null
@@ -97,6 +103,7 @@ type Candidate = {
   relevance_reason: string | null
   selection_kind?: typeof categoryIllustrationSelectionKind | 'hierarchy_source'
   source_field?: StoredSourceField
+  candidate_source?: string | null
 }
 
 function jsonResponse(body: unknown, status = 200) {
@@ -242,7 +249,7 @@ async function findActivity(
 ) {
   let query = supabase
     .from('activities')
-    .select('activity_id,activity_name,address,postcode,borough,category,public_listing_status,archive,archive_reason,archived_at,archive_previous_listing_status,website,organiser_website,source_url,image_source_url,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,serpapi_image_candidates,serpapi_image_search_query,serpapi_image_candidates_fetched_at,serpapi_image_search_attempted_at,serpapi_image_search_status,serpapi_image_search_failure_reason,serpapi_image_raw_result_count,serpapi_image_search_metadata,image_review_ignored_at,image_review_ignored_by_user_id,admin_cover_image_url,reviewed_image_url,use_category_image,reviewed_image_source_url,reviewed_image_original_url,reviewed_image_selected_at,reviewed_image_model,user_image_url,model_selected_url,model_selected_confidence,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,audit_image_url,audit_image_source_url,audit_image_status,audit_image_original_url,audit_image_original_source_field,scraped_image_url')
+    .select('activity_id,activity_name,address,postcode,borough,category,public_listing_status,archive,archive_reason,archived_at,archive_previous_listing_status,website,organiser_website,source_url,image_source_url,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,serpapi_image_candidates,serpapi_image_search_query,serpapi_image_candidates_fetched_at,serpapi_image_search_attempted_at,serpapi_image_search_status,serpapi_image_search_failure_reason,serpapi_image_raw_result_count,serpapi_image_search_metadata,image_review_ignored_at,image_review_ignored_by_user_id,admin_cover_image_url,reviewed_image_url,use_category_image,reviewed_image_source_url,reviewed_image_original_url,reviewed_image_selected_at,reviewed_image_model,user_image_url,model_selected_url,model_selected_confidence,model_selected_original_url,model_selected_source_url,model_selected_source_field,model_selected_reason,model_selected_model,model_selected_model_version,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,audit_image_url,audit_image_source_url,audit_image_status,audit_image_original_url,audit_image_original_source_field,scraped_image_url')
     .eq('activity_id', activityId)
   if (!includeArchived) query = query.eq('archive', false)
   const { data, error } = await query.maybeSingle()
@@ -680,6 +687,12 @@ async function storeReviewedCandidate(
     model_selected_url: null,
     model_selected_confidence: null,
     model_selected_at: null,
+    model_selected_original_url: null,
+    model_selected_source_url: null,
+    model_selected_source_field: null,
+    model_selected_reason: null,
+    model_selected_model: null,
+    model_selected_model_version: null,
     updated_at: selectedAt,
   }).eq('activity_id', activity.activity_id)
   const reviewLog = supabase.from('activity_image_manual_reviews').insert({
@@ -823,7 +836,7 @@ async function findPendingAutomatedReview(
   activityId: string,
 ) {
   const { data, error } = await supabase.from('activity_image_automated_reviews')
-    .select('automated_review_id,activity_id,status,candidate_index')
+    .select('automated_review_id,activity_id,status,candidate_index,candidate,model_name,model_version')
     .eq('automated_review_id', automatedReviewId)
     .eq('activity_id', activityId)
     .in('status', ['pending', 'auto_applied'])
@@ -856,6 +869,82 @@ async function completeAutomatedReview(
   return data
 }
 
+async function promoteModelSelection(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+  activity: Activity,
+  automatedReview: {
+    automated_review_id: string
+    candidate_index: number | null
+    candidate?: Candidate
+    model_name?: string | null
+    model_version?: string | null
+  },
+) {
+  const reviewedImageUrl = cleanText(activity.model_selected_url)
+  if (!validHttpUrl(reviewedImageUrl) || Number(activity.model_selected_confidence) < 0.7) {
+    throw new Error('The model-selected image is no longer approved for this listing.')
+  }
+  const candidate = automatedReview.candidate || {
+    image_url: cleanText(activity.model_selected_original_url) || reviewedImageUrl,
+    source_page_url: cleanText(activity.model_selected_source_url) || reviewedImageUrl,
+    source_field: cleanText(activity.model_selected_source_field) || 'model_selected_url',
+  }
+  const selectedAt = new Date().toISOString()
+  const sourceUrl = cleanText(candidate.source_page_url) || cleanText(activity.model_selected_source_url) || reviewedImageUrl
+  const originalUrl = cleanText(candidate.image_url) || cleanText(activity.model_selected_original_url) || reviewedImageUrl
+  const model = `Desktop approval of ${cleanText(automatedReview.model_name) || cleanText(activity.model_selected_model) || 'learned image selector'}`
+  const activityUpdate = supabase.from('activities').update({
+    reviewed_image_url: reviewedImageUrl,
+    reviewed_image_source_url: sourceUrl,
+    reviewed_image_original_url: originalUrl,
+    reviewed_image_selected_at: selectedAt,
+    reviewed_image_model: model,
+    reviewed_image_selected_by_user_id: userId,
+    use_category_image: false,
+    model_selected_url: null,
+    model_selected_confidence: null,
+    model_selected_at: null,
+    model_selected_original_url: null,
+    model_selected_source_url: null,
+    model_selected_source_field: null,
+    model_selected_reason: null,
+    model_selected_model: null,
+    model_selected_model_version: null,
+    updated_at: selectedAt,
+  }).eq('activity_id', activity.activity_id)
+  const reviewLog = supabase.from('activity_image_manual_reviews').insert({
+    activity_id: activity.activity_id,
+    reviewed_image_url: reviewedImageUrl,
+    original_image_url: originalUrl,
+    source_page_url: sourceUrl,
+    search_query: `Approved learned cross-source selection: ${cleanText(activity.model_selected_source_field) || 'unknown source'}`,
+    candidate,
+    model,
+    selected_by_user_id: userId,
+  })
+  const [{ error: updateError }, { error: logError }] = await Promise.all([activityUpdate, reviewLog])
+  if (updateError) throw new Error(updateError.message)
+  if (logError) throw new Error(`Image approved, but the manual review log failed: ${logError.message}`)
+  const completedAutomatedReview = await completeAutomatedReview(
+    supabase,
+    automatedReview,
+    automatedReview.candidate_index,
+    reviewedImageUrl,
+    userId,
+  )
+  return {
+    reviewedImageUrl,
+    sourceUrl,
+    selectedAt,
+    model,
+    candidate,
+    clearedModelSelection: true,
+    useCategoryImage: false,
+    automatedReview: completedAutomatedReview,
+  }
+}
+
 async function useNextHierarchyImage(
   supabase: ReturnType<typeof createClient>,
   activity: Activity,
@@ -870,6 +959,12 @@ async function useNextHierarchyImage(
     model_selected_url: null,
     model_selected_confidence: null,
     model_selected_at: null,
+    model_selected_original_url: null,
+    model_selected_source_url: null,
+    model_selected_source_field: null,
+    model_selected_reason: null,
+    model_selected_model: null,
+    model_selected_model_version: null,
     updated_at: changedAt,
   }).in('activity_id', activityIds)
     .eq('archive', false)
@@ -921,7 +1016,7 @@ Deno.serve(async (request) => {
   const user = await authenticatedAdmin(request, supabase)
   if (!user) return jsonResponse({ error: 'Only Tiny Outings administrators can use desktop image review.' }, 403)
   const body = await request.json().catch(() => ({})) as {
-    action?: 'search' | 'select' | 'select_category_illustration' | 'use_next_hierarchy_image' | 'publish' | 'ignore' | 'archive' | 'unarchive'
+    action?: 'search' | 'select' | 'approve_model' | 'select_category_illustration' | 'use_next_hierarchy_image' | 'publish' | 'ignore' | 'archive' | 'unarchive'
     activity_id?: string
     activity_ids?: string[]
     candidate_request_id?: string
@@ -992,6 +1087,13 @@ Deno.serve(async (request) => {
         ? await completeAutomatedReview(supabase, automatedReview, selectedCandidateIndex, result.reviewedImageUrl, user.id)
         : null
       return jsonResponse({ status: 'selected', ...result, automatedReview: completedAutomatedReview })
+    }
+    if (body.action === 'approve_model') {
+      if (!user.id) return jsonResponse({ error: 'An administrator user session is required to approve an image.' }, 403)
+      const automatedReviewId = cleanText(body.automated_review_id)
+      if (!automatedReviewId) return jsonResponse({ error: 'automated_review_id is required.' }, 400)
+      const automatedReview = await findPendingAutomatedReview(supabase, automatedReviewId, activity.activity_id)
+      return jsonResponse({ status: 'selected', ...await promoteModelSelection(supabase, user.id, activity, automatedReview) })
     }
     if (body.action === 'use_next_hierarchy_image') {
       if (!user.id) return jsonResponse({ error: 'An administrator user session is required to change the image hierarchy.' }, 403)

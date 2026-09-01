@@ -132,10 +132,11 @@ const postApplyJobs = [
   },
   {
     name: 'apply-repeatable-model-image-review',
-    // Re-evaluate every still-unreviewed published/draft listing from stored
-    // SerpAPI and website candidates only. No paid search flag is supplied.
+    // Let every stored automatic source compete. Manual-choice learning ranks
+    // the candidates and a local pixel-level vision gate rejects logos,
+    // low-quality and inaccurate finalists. No paid search flag is supplied.
     script: 'automate-tagged-image-review.js',
-    args: ['--scope', 'all-unreviewed', '--apply'],
+    args: ['--scope', 'all-unreviewed', '--visual-assessment', '--apply'],
     output: 'data/automated_image_review_report.generated.json',
     optional: 'images',
   },

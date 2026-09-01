@@ -51,6 +51,61 @@ test('logos are rejected even when the candidate comes from the official site', 
   assert.equal(assessment.outcome, 'remove');
 });
 
+test('an unrelated article on an official council domain is not identity evidence', () => {
+  const item = activity('Family activities', 'Baby Chat');
+  item.website = 'https://www.lambeth.gov.uk/baby-chat-timetable.pdf';
+  const labels = labelsForSerpApiImageAudit(item);
+  const assessment = assessSerpApiCandidate(item, {
+    original: 'https://www.lambeth.gov.uk/images/fostering-family.jpg',
+    link: 'https://www.lambeth.gov.uk/could-you-foster',
+    title: 'Could you be a foster parent?',
+    source: 'Lambeth Council',
+    original_width: 720,
+    original_height: 368,
+  }, visual(labels, [0.89, 0.03, 0.01, 0.03, 0.01]));
+
+  assert.equal(assessment.outcome, 'remove');
+  assert.equal(assessment.provenance.official, true);
+  assert.equal(assessment.provenance.officialIdentityEvidence, false);
+  assert.match(assessment.reason, /distinctive-title/i);
+});
+
+test('a generic timetable download is rejected when its metadata cannot identify the activity', () => {
+  const item = activity('Family activities', 'Toddler Messy Play');
+  item.website = 'https://www.lambeth.gov.uk/family-hub-timetable.pdf';
+  const labels = labelsForSerpApiImageAudit(item);
+  const assessment = assessSerpApiCandidate(item, {
+    original: 'https://images.example/downloaded/timetable-photo.jpg',
+    link: item.website,
+    title: 'website downloaded image',
+    source: 'lambeth.gov.uk',
+    original_width: 1200,
+    original_height: 800,
+  }, visual(labels, [0.08, 0.84, 0.01, 0.02, 0.01]));
+
+  assert.equal(assessment.outcome, 'remove');
+  assert.equal(assessment.provenance.official, true);
+  assert.equal(assessment.provenance.officialIdentityEvidence, false);
+});
+
+test('one generic name word on an official page cannot identify a different activity', () => {
+  const item = activity('Family activities', 'Baby Time');
+  item.website = 'https://www.lambeth.gov.uk/baby-time-timetable.pdf';
+  const labels = labelsForSerpApiImageAudit(item);
+  const assessment = assessSerpApiCandidate(item, {
+    original: 'https://www.lambeth.gov.uk/images/wriggle-and-rhyme.jpg',
+    link: 'https://www.lambeth.gov.uk/events/wriggle-rhyme-baby-rhyme-time',
+    title: 'Wriggle and Rhyme Baby Rhyme Time',
+    source: 'Lambeth Council',
+    original_width: 900,
+    original_height: 900,
+  }, visual(labels, [0.08, 0.88, 0.01, 0.01, 0.01]));
+
+  assert.equal(assessment.outcome, 'remove');
+  assert.equal(assessment.provenance.matchedTerms.length, 1);
+  assert.equal(assessment.provenance.officialIdentityEvidence, false);
+});
+
 test('bookshops prefer an exterior over an interior image', () => {
   const item = activity('Bookshops', 'Little Pages Bookshop');
   item.website = 'https://littlepages.example';

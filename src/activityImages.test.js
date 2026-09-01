@@ -33,10 +33,10 @@ test('uses one admin cover image across the same listing at different times', ()
 });
 
 test('does not share an image between similarly named activities at different venues', () => {
-  const first = activity({ website_image_url: 'https://images.example.test/first.jpg' });
+  const first = activity({ model_selected_url: 'https://images.example.test/first.jpg' });
   const second = activity({
     address: '2 Pool Road, London E8 1AA',
-    website_image_url: 'https://images.example.test/second.jpg',
+    model_selected_url: 'https://images.example.test/second.jpg',
   });
 
   const [sharedFirst, sharedSecond] = shareListingImages([first, second]);
@@ -49,10 +49,10 @@ test('ignores image_url because it is outside the image selection hierarchy', ()
   assert.deepEqual(activityImageUrls(item), []);
 });
 
-test('only allows Wikimedia images for parks, museums, and family activities', () => {
+test('does not display Wikimedia or other automatic sources until the learned selector approves one', () => {
   const wikimedia = 'https://upload.wikimedia.org/wikipedia/commons/a/ab/venue.jpg';
   for (const category of ['Parks & outdoor play', 'Museums & culture', 'Family activities']) {
-    assert.deepEqual(activityImageUrls(activity({ category, wikimedia_image_url: wikimedia })), [wikimedia]);
+    assert.deepEqual(activityImageUrls(activity({ category, wikimedia_image_url: wikimedia })), []);
   }
 
   const cafe = activity({
@@ -60,16 +60,16 @@ test('only allows Wikimedia images for parks, museums, and family activities', (
     wikimedia_image_url: wikimedia,
     website_image_url: 'https://cafe.example/interior.jpg',
   });
-  assert.deepEqual(activityImageUrls(cafe), ['https://cafe.example/interior.jpg']);
+  assert.deepEqual(activityImageUrls(cafe), []);
 });
 
-test('uses a scraped image only when that exact image passed the audit', () => {
+test('keeps an audit-passed scraped image as candidate data rather than displaying it directly', () => {
   assert.deepEqual(activityImageUrls(activity({
     audit_image_status: 'pass',
     audit_image_original_source_field: 'scraped_image_url',
     audit_image_original_url: 'http://storage.example/activity-images/selected.jpg',
     scraped_image_url: 'https://storage.example/activity-images/selected.jpg',
-  })), ['https://storage.example/activity-images/selected.jpg']);
+  })), []);
 });
 
 test('skips an exact scraped image rejected or superseded by the audit', () => {
@@ -95,20 +95,13 @@ test('does not promote an unaudited scraped image when the audit covered a diffe
   })), []);
 });
 
-test('uses the requested card-image hierarchy exactly', () => {
+test('uses human choices and the learned winner instead of a fixed automatic-source hierarchy', () => {
   assert.deepEqual(activityImageFields, [
     'admin_cover_image_url',
     'reviewed_image_url',
     'user_image_url',
-    'audit_image_url',
-    'scraped_image_url',
-    'organiser_website_downloaded_image',
-    'website_downloaded_image',
-    'model_selected_url',
     'user_uploaded_image_url',
-    'wikimedia_image_url',
-    'website_image_url',
-    'listing_image_url',
+    'model_selected_url',
   ]);
   const item = activity({
     category: 'Family activities',
@@ -130,14 +123,8 @@ test('uses the requested card-image hierarchy exactly', () => {
     'https://images.example.test/admin.jpg',
     'https://images.example.test/reviewed.jpg',
     'https://images.example.test/admin-url.jpg',
-    'https://images.example.test/audited.jpg',
-    'https://images.example.test/organiser.jpg',
-    'https://images.example.test/website-download.jpg',
-    'https://images.example.test/model.jpg',
     'https://images.example.test/community.jpg',
-    'https://images.example.test/wikimedia.jpg',
-    'https://images.example.test/website.jpg',
-    'https://images.example.test/listing.jpg',
+    'https://images.example.test/model.jpg',
   ]);
 
   const [shared] = shareListingImages([item]);
@@ -154,7 +141,6 @@ test('uses a desktop-reviewed image below an admin cover and above other sources
   assert.deepEqual(activityImageUrls(reviewed), [
     'https://images.example.test/reviewed.jpg',
     'https://images.example.test/admin-url.jpg',
-    'https://images.example.test/audited.jpg',
   ]);
   assert.equal(shareListingImages([reviewed])[0].shared_card_image_source, 'reviewed_image_url');
   assert.equal(shareListingImages([{ ...reviewed, admin_cover_image_url: 'https://images.example.test/admin.jpg' }])[0].shared_card_image_source, 'admin_cover_image_url');
@@ -173,28 +159,25 @@ test('keeps model selections below manual and user images', () => {
   assert.equal(shareListingImages([{ ...modelSelected, reviewed_image_url: 'https://images.example.test/manual.jpg' }])[0].shared_card_image_source, 'reviewed_image_url');
 });
 
-test('keeps an original hierarchy source visible when its audit needs replacement', () => {
+test('does not let an unselected original source bypass the learned selector', () => {
   const rejected = activity({
     audit_image_status: 'needs_replacement',
     audit_image_url: 'https://images.example.test/invalid-audit-copy.jpg',
     website_image_url: 'https://images.example.test/restored-original.jpg',
   });
-  assert.deepEqual(activityImageUrls(rejected), ['https://images.example.test/restored-original.jpg']);
-  assert.equal(shareListingImages([rejected])[0].shared_card_image_source, 'website_image_url');
+  assert.deepEqual(activityImageUrls(rejected), []);
+  assert.equal(shareListingImages([rejected])[0].shared_card_image_source, undefined);
 });
 
-test('uses a validated audit replacement ahead of lower automatic sources', () => {
+test('keeps validated audit replacements in the candidate pool until a learned winner is stored', () => {
   const replacement = activity({
     audit_image_status: 'replaced',
     audit_image_url: 'https://images.example.test/audit-replacement.jpg',
     audit_image_source_url: 'https://images.example.test/audit-replacement.jpg',
     website_image_url: 'https://images.example.test/lower-priority.jpg',
   });
-  assert.deepEqual(activityImageUrls(replacement), [
-    'https://images.example.test/audit-replacement.jpg',
-    'https://images.example.test/lower-priority.jpg',
-  ]);
-  assert.equal(shareListingImages([replacement])[0].shared_card_image_source, 'audit_image_url');
+  assert.deepEqual(activityImageUrls(replacement), []);
+  assert.equal(shareListingImages([replacement])[0].shared_card_image_source, undefined);
 });
 
 test('requires at least 70 percent confidence for model-selected images', () => {
@@ -243,11 +226,8 @@ test('does not use scraped Wikimedia content outside the permitted categories', 
     image_source_url: source,
     website_image_url: 'https://cafe.example/interior.jpg',
   });
-  assert.deepEqual(activityImageUrls(cafe), ['https://cafe.example/interior.jpg']);
-  assert.deepEqual(activityImageUrls({ ...cafe, category: 'Family activities' }), [
-    scrapedImage,
-    'https://cafe.example/interior.jpg',
-  ]);
+  assert.deepEqual(activityImageUrls(cafe), []);
+  assert.deepEqual(activityImageUrls({ ...cafe, category: 'Family activities' }), []);
 });
 
 test('an admin-curated URL remains ahead of restored community sources', () => {

@@ -228,12 +228,19 @@ function candidateProvenance(activity, candidate) {
   const official = candidateHosts.some((candidateHost) => officialHosts.some((officialHost) => (
     candidateHost === officialHost || candidateHost.endsWith(`.${officialHost}`)
   )));
-  // Strong title evidence is accepted only when there are at least two
-  // distinctive terms. One-word names such as "Momentum" need an official host.
+  // An official domain is not identity evidence on its own. Council, venue and
+  // directory sites commonly host thousands of unrelated images. Require the
+  // candidate metadata to name this activity (or enough distinctive name
+  // terms) before pixels are allowed to decide whether it is representative.
   const titleEvidence = exactTitle && terms.length >= 2 && matchedTerms.length >= 2;
+  const officialIdentityEvidence = official && (
+    exactTitle
+    || (terms.length >= 2 && matchedTerms.length >= 2)
+  );
   return {
-    highConfidence: official || titleEvidence,
+    highConfidence: officialIdentityEvidence || titleEvidence,
     official,
+    officialIdentityEvidence,
     exactTitle,
     matchedTerms,
     terms,

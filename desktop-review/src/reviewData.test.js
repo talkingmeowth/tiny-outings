@@ -48,7 +48,7 @@ test('builds the six requested queue counts', () => {
     model_selected: 1,
     all_published: 5,
     all_draft: 1,
-    missing_images: 3,
+    missing_images: 4,
     archive: 0,
   });
 });
@@ -56,7 +56,7 @@ test('builds the six requested queue counts', () => {
 test('does not count a recurring sibling as missing when its shared listing has an image', () => {
   const activities = [
     listing({ activity_id: 'morning', start_time: '09:00' }),
-    listing({ activity_id: 'afternoon', start_time: '14:00', website_image_url: 'https://venue.test/activity.jpg' }),
+    listing({ activity_id: 'afternoon', start_time: '14:00', model_selected_url: 'https://venue.test/activity.jpg' }),
   ];
   assert.equal(activitiesForQueue(activities, 'missing_images').length, 0);
 });
@@ -276,7 +276,7 @@ test('shows an explicitly selected category illustration at the reviewed-image p
 });
 
 test('quick review always has a picture while clearly labelling category artwork', () => {
-  const photographed = listing({ website_image_url: 'https://venue.test/activity.jpg' });
+  const photographed = listing({ model_selected_url: 'https://venue.test/activity.jpg' });
   assert.deepEqual(quickReviewImage(photographed), {
     ...currentImage(photographed),
     isPlaceholder: false,
@@ -317,9 +317,8 @@ test('builds ordered displayed-image source options and counts category placehol
   assert.equal(displayedImageSource(activities[3]), 'category_placeholder');
   assert.deepEqual(imageSourceOptions(activities), [
     { field: 'reviewed_image_url', label: 'Manual desktop review', count: 1 },
-    { field: 'scraped_image_url', label: 'Scraped image (audit-safe)', count: 1 },
     { field: 'model_selected_url', label: 'Model selected (70%+ confidence)', count: 1 },
-    { field: 'category_placeholder', label: 'Illustrated category image', count: 2 },
+    { field: 'category_placeholder', label: 'Illustrated category image', count: 3 },
   ]);
 });
 
