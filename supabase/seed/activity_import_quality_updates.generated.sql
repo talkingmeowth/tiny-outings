@@ -27,7 +27,7 @@ update public.activities
 set data_source = case
   when source_name = 'Happity' then 'Happity'
   when source_name ilike 'Google Places%' then 'Google Places'
-  when source_name ilike 'Better Start%' then 'Better Start for Life'
+  when source_name ilike 'Better Start%' or source_name ilike 'Best Start%' then 'Better Start for Life'
   when source_name ilike 'Eventbrite%' then 'Eventbrite'
   when source_name ilike 'Fever%' then 'Fever'
   when source_name ilike 'Loopla%' then 'Loopla'
@@ -103,16 +103,9 @@ set
   updated_at = now()
 where coalesce(archive, false) = false
   and public_listing_status in ('published', 'draft')
-  and source_name in (
-    'GOV.UK Family Hubs and Start for Life',
-    'Hackney Children''s Centres',
-    'London family hub official timetables',
-    'London Borough of Waltham Forest events',
-    'Waltham Forest Best Start in Life events',
-    'Woodberry Down Children and Family Hub'
-  )
+  and public.is_better_start_scheduled_activity(source_name, data_source, activity_name)
   and (
-    source_name = 'GOV.UK Family Hubs and Start for Life'
+    public.is_generic_family_activity_name(activity_name)
     or start_time is null
     or end_time is null
     or (activity_date is null and coalesce(cardinality(available_dates), 0) = 0)

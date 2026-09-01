@@ -4,6 +4,7 @@ import {
   ageForFamilyHubSession,
   categoryForFamilyHubSession,
   isFamilyActivitySession,
+  isGenericFamilyActivityName,
   datesForWeeklySession,
   materialiseFamilyHubSessionDates,
   parseTimeRange,
@@ -32,6 +33,21 @@ test('keeps child and parent activities but excludes generic support appointment
   assert.equal(isFamilyActivitySession('Health visitor assessments', 'appointment only'), false);
   assert.equal(isFamilyActivitySession('Family Navigator surgery', 'advice and support'), false);
   assert.equal(isFamilyActivitySession('Parent - Infant Psychotherapy', 'appointment only'), false);
+});
+
+test('recognises venue-level generic family activity names', () => {
+  assert.equal(isGenericFamilyActivityName("Family activities at Storkway Children's Centre"), true);
+  assert.equal(isGenericFamilyActivityName('Family Hub Activities in Greenwich'), true);
+  assert.equal(isGenericFamilyActivityName('Stay and Play at Storkway Children\'s Centre'), false);
+  assert.ok(validateFamilyHubSession({
+    activity_name: "Family activities at Storkway Children's Centre",
+    hub_postcode: 'SE3 9QX',
+    day: 'Monday',
+    start_time: '10:00',
+    end_time: '11:30',
+    source_page_url: 'https://example.gov.uk/storkway/timetable',
+    available_dates: ['2026-09-07'],
+  }).includes('generic venue-level activity name'));
 });
 
 test('derives useful categories and ages', () => {

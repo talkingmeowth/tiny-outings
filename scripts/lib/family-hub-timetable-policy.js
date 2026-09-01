@@ -6,6 +6,8 @@ const excludedSessionName = /(?:advice|appointment|assessment|antenatal checks?|
 
 const activitySessionName = /(?:baby|babies|breastfeeding support|chatter|childminders? (?:group|session)|connect and babble|dance|explorers?|feeding support|forest school|fun for all|games afternoon|gardening club|get together|giggles|learn and play|little|massage|messy|music|musical|nurture|outdoor stay|play|rhyme|sensory|sing|small steps|starting solids|story|toddler|together|twinkle|wiggle|yoga)/i;
 
+const genericFamilyActivityName = /^\s*(?:family[ -]?(?:hub )?activit(?:y|ies)|activities|children.?s centre activities|childrens centre activities)(?:\s+(?:at|in)\s+.+)?\s*$/i;
+
 export const weekdays = Object.freeze([...weekdayNames]);
 
 export function cleanText(value) {
@@ -101,6 +103,10 @@ export function isFamilyActivitySession(name, details = '') {
   return activitySessionName.test(`${title} ${body}`);
 }
 
+export function isGenericFamilyActivityName(name) {
+  return genericFamilyActivityName.test(cleanText(name));
+}
+
 export function categoryForFamilyHubSession(name, details = '') {
   const text = `${cleanText(name)} ${cleanText(details)}`.toLowerCase();
   if (/baby massage|massage.*baby/.test(text)) return 'Baby massage';
@@ -117,8 +123,11 @@ export function categoryForFamilyHubSession(name, details = '') {
 
 export function ageForFamilyHubSession(name, details = '') {
   const text = cleanText(`${name} ${details}`);
-  const explicit = text.match(/(?:age|ages?)\s*:?\s*([^.;]+?)(?=(?:\s+(?:time|session|booking|notes?)\s*:)|$)/i)?.[1];
-  if (explicit) return cleanText(explicit);
+  const explicit = text.match(/ages?\s*:?\s*([^.;]+?)(?=(?:\s+(?:time|session|booking|notes?)\s*:)|$)/i)?.[1];
+  if (explicit) {
+    const value = cleanText(explicit);
+    return /^\d+\s*(?:to|-)\s*\d+$/i.test(value) ? `${value} years` : value;
+  }
   const range = text.match(/(?:newborn|birth|\d+\s*(?:weeks?|months?|years?))\s*(?:to|-)\s*(?:under\s*)?\d+\s*(?:weeks?|months?|years?)/i)?.[0];
   if (range) return cleanText(range);
   if (/under\s*1|0\s*(?:to|-)\s*12\s*months?|bab(?:y|ies)/i.test(text)) return 'Babies under 1';
@@ -170,6 +179,7 @@ export function materialiseFamilyHubSessionDates(session) {
 export function validateFamilyHubSession(session) {
   const errors = [];
   if (!cleanText(session.activity_name)) errors.push('missing activity name');
+  if (isGenericFamilyActivityName(session.activity_name)) errors.push('generic venue-level activity name');
   if (!normalisePostcode(session.hub_postcode)) errors.push('missing hub postcode');
   if (!weekdayNames.includes(session.day)) errors.push('missing or invalid weekday');
   if (!/^\d{2}:\d{2}$/.test(session.start_time || '')) errors.push('missing or invalid start time');

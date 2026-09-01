@@ -14,6 +14,7 @@ import {
   validateFamilyHubSession,
   weekdayFromHeading,
 } from './lib/family-hub-timetable-policy.js';
+import { loadGreenwichFamilyDirectorySessions } from './lib/greenwich-family-directory.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const outputSql = join(root, 'supabase', 'seed', 'activities_london_family_hub_timetables.generated.sql');
@@ -24,10 +25,10 @@ const genericReplacementReason = 'Replaced by named and timed activities from th
 const publishedGenericReplacementReason = `${genericReplacementReason} Previous listing status: published.`;
 const unverifiableGenericReason = 'Generic government directory card removed: no verified current named activity with exact dates and start/end times.';
 const scheduleGuardArchiveReason = 'Scheduled family activity removed: no verified exact occurrence date and start/end time.';
+const specificityGuardArchiveReason = 'Scheduled family activity removed: generic venue card or no verified exact occurrence date and start/end time.';
 const userAgent = 'Mozilla/5.0 (compatible; TinyOutings/1.0; +https://tiny-outings-cpjh.onrender.com)';
 
 const camdenSource = 'https://families.camden.gov.uk/full-stay-play-timetable/';
-const barkingSource = 'https://www.lbbd.gov.uk/events/stay-and-play-0-5-years-old-valence-library';
 const lambethSources = {
   stockwell: 'https://www.lambeth.gov.uk/sites/default/files/2026-08/Brixton%20Stockwell%20Children%27s%20Centre%20Autumn%2026.pdf',
   jubilee: 'https://www.lambeth.gov.uk/sites/default/files/2026-08/Brixton_Tulse_Hill_Better_Start%20-Autumn_26.pdf',
@@ -38,6 +39,13 @@ const lambethSources = {
 const mertonSources = {
   acacia: 'https://www.merton.gov.uk/sites/default/files/2026-08/Acacia%20September%20Timetable%20-%20September%2026.pdf',
   churchRoad: 'https://www.merton.gov.uk/sites/default/files/2026-08/Church%20Road%20September%20Timetable%20-%20September%2026.pdf',
+};
+const brentThreeTreesSource = 'https://www.brent.gov.uk/-/media/files/resident-documents/children-young-people-families-documents/family-wellbeing-centres/three-trees-family-wellbeing-centre-schedule.pdf?hash=A1A59AB18BB7D84FAE8FEE3ACDE1514E&rev=ef4070df3fe44d808998e7b549f7dab5';
+const croydonWoodlandsSource = 'https://www.croydon.gov.uk/sites/default/files/2026-07/woodlands-family-hub-timetable-summer-26_0.pdf';
+const lewishamSources = {
+  bellingham: 'https://lewishamfamilyhubs.org.uk/assets/519a225a/bellingham_timetable_with_back_page_autumn_26_2.pdf',
+  deptford: 'https://lewishamfamilyhubs.org.uk/assets/519a225a/deptford_timetable_with_back_page_autumn_26_010926pm.pdf',
+  ladywell: 'https://lewishamfamilyhubs.org.uk/assets/519a225a/3_ladywell_timetable_autumn_26_updated010926.pdf',
 };
 
 const hounslowPages = [
@@ -66,22 +74,22 @@ const hammersmithPages = [
 
 const currentSourceGaps = [
   {
+    borough: 'Barking and Dagenham',
+    legacy_postcodes: ['IG117NB', 'RM109QS', 'RM65NJ'],
+    source: 'https://www.lbbd.gov.uk/events/stay-and-play-0-5-years-old-valence-library',
+    reason: 'The current council page publishes weekly opening times but no exact session dates, so these legacy venue cards remain archived.',
+  },
+  {
     borough: 'Brent',
-    legacy_postcodes: ['HA04PW', 'NW98JD', 'NW109SD', 'HA98RJ', 'NW103HL', 'HA99YP'],
+    legacy_postcodes: ['HA04PW', 'NW98JD', 'NW109SD', 'HA98RJ', 'HA99YP'],
     source: 'https://www.brent.gov.uk/familywellbeingcentres',
-    reason: 'The official hub page did not yet publish an Autumn 2026 activity timetable; the latest indexed centre schedules had ended.',
+    reason: 'No current exact timetable was published for these five legacy centres; Three Trees is covered by its September-to-December timetable.',
   },
   {
     borough: 'Croydon',
-    legacy_postcodes: ['SE256XX', 'CR28HD'],
+    legacy_postcodes: ['SE256XX'],
     source: 'https://www.croydon.gov.uk/children-young-people-and-families/family-hubs',
-    reason: 'The published transition timetable ends on 4 September 2026 and does not reliably map every session to the two legacy centre records.',
-  },
-  {
-    borough: 'Greenwich',
-    legacy_postcodes: ['SE186BD', 'SE137QZ', 'SE39QX', 'SE288EZ'],
-    source: 'https://www.better.org.uk/children-centre/london/greenwich',
-    reason: 'Official centre pages list activity types but do not publish the required day and start/end times.',
+    reason: 'The current North and Central timetable does not publish an activity at the Samuel Coleridge Taylor legacy venue; Woodlands is covered through its exact published end date.',
   },
   {
     borough: 'Hackney',
@@ -109,9 +117,9 @@ const currentSourceGaps = [
   },
   {
     borough: 'Lewisham',
-    legacy_postcodes: ['SE63HB', 'SE85NH', 'SE83PZ', 'SE64JF', 'SE41JJ'],
+    legacy_postcodes: ['SE83PZ', 'SE64JF'],
     source: 'https://lewishamfamilyhubs.org.uk/p/whats-on/activities-and-timetables',
-    reason: 'The official page says Autumn activities start on 1 September but asks users to check back for the new timetables.',
+    reason: 'The current timetable page covers Bellingham, Deptford and Ladywell; no current exact timetable maps to the Evelyn or Kaleidoscope legacy cards.',
   },
   {
     borough: 'Newham',
@@ -151,6 +159,7 @@ function staticSession({
   excludeDates = [],
   notes = null,
   category = null,
+  cost = 'Free',
 }) {
   return {
     hub_postcode: normalisePostcode(postcode),
@@ -170,23 +179,8 @@ function staticSession({
     available_dates: dates,
     excluded_dates: excludeDates,
     schedule_notes: notes || 'Official family hub timetable. Check the source page for cancellations or booking changes.',
+    cost,
   };
-}
-
-function sessionsForBarking() {
-  const shared = {
-    name: 'Stay and Play',
-    age: 'Parents and children aged 0 to 5 years',
-    source: barkingSource,
-    description: 'A free family stay-and-play session for children aged 0 to 5. No booking is required.',
-    notes: 'Weekly session published by Barking and Dagenham Council; no booking required.',
-  };
-  return [
-    staticSession({ ...shared, postcode: 'IG11 7NB', day: 'Thursday', start: '09:30', end: '10:25' }),
-    staticSession({ ...shared, postcode: 'IG11 7NB', day: 'Thursday', start: '10:40', end: '11:35' }),
-    staticSession({ ...shared, postcode: 'RM10 9QS', day: 'Tuesday', start: '10:00', end: '11:30' }),
-    staticSession({ ...shared, postcode: 'RM6 5NJ', day: 'Thursday', start: '10:00', end: '11:30' }),
-  ];
 }
 
 function sessionsForCamden() {
@@ -322,7 +316,7 @@ function sessionsForLambeth() {
     staticSession({ ...term, postcode: 'SE27 9UD', name: 'Fussy Eating Workshop', day: 'Wednesday', start: '13:00', end: '15:00', age: 'Parents and carers of young children', source: lambethSources.bentonsLane, dates: ['2026-09-23', '2026-10-14'] }),
     staticSession({ ...term, postcode: 'SE27 9UD', name: 'Chattertime', day: 'Thursday', start: '09:30', end: '11:00', age: 'Parents and children under 5', source: lambethSources.bentonsLane }),
     staticSession({ ...term, postcode: 'SE27 9UD', name: 'Baby Explorers', day: 'Thursday', start: '13:00', end: '15:00', age: 'Babies aged 0 to 12 months', source: lambethSources.bentonsLane }),
-    staticSession({ ...term, postcode: 'SE27 9UD', name: 'Starting Solids Workshop', day: 'Thursday', start: '13:00', end: '15:00', age: 'Parents and carers of babies', source: lambethSources.bentonsLane, dates: ['2026-12-09'] }),
+    staticSession({ ...term, postcode: 'SE27 9UD', name: 'Starting Solids Workshop', day: 'Wednesday', start: '13:00', end: '15:00', age: 'Parents and carers of babies', source: lambethSources.bentonsLane, dates: ['2026-12-09'] }),
     staticSession({ ...term, postcode: 'SE27 9UD', name: 'Outdoor Stay and Play and Natural Thinkers', day: 'Friday', start: '09:30', end: '11:00', age: 'Children aged 12 months to 4 years', source: lambethSources.bentonsLane }),
   ];
 }
@@ -353,6 +347,81 @@ function sessionsForMerton() {
     staticSession({ ...term, postcode: 'CR4 3BH', name: 'Early Learning Together', day: 'Thursday', start: '10:00', end: '11:30', age: 'Babies aged 6 to 12 months', source: mertonSources.churchRoad, startDate: '2026-09-17' }),
     staticSession({ ...term, postcode: 'CR4 3BH', name: 'Early Learning Together', day: 'Thursday', start: '13:30', end: '15:00', age: 'Children aged 19 to 36 months', source: mertonSources.churchRoad, startDate: '2026-09-17' }),
     staticSession({ ...term, postcode: 'CR4 3BH', name: 'Best Start Triple P', day: 'Friday', start: '09:30', end: '11:30', age: 'Parents of children aged 3 to 4 years', source: mertonSources.churchRoad, startDate: '2026-09-25' }),
+  ];
+}
+
+function autumnHalfTermDates() {
+  return ['2026-10-26', '2026-10-27', '2026-10-28', '2026-10-29', '2026-10-30'];
+}
+
+function sessionsForBrent() {
+  const term = { postcode: 'NW10 3HL', source: brentThreeTreesSource, startDate: '2026-09-01', endDate: '2026-12-18' };
+  const halfTerm = autumnHalfTermDates();
+  return [
+    staticSession({ ...term, name: 'Art Club', day: 'Monday', start: '16:00', end: '17:15', age: 'Children aged 5 to 11 years', category: 'Arts & crafts', booking: true, excludeDates: halfTerm }),
+    staticSession({ ...term, name: 'Stay, Play and Learn', day: 'Tuesday', start: '09:45', end: '10:45', age: 'Children aged 1 year and over', booking: true, excludeDates: halfTerm }),
+    staticSession({ ...term, name: 'Mum and Baby Yoga', day: 'Wednesday', start: '10:00', end: '11:00', age: 'Babies aged 6 weeks to 1 year', category: 'Baby dance & movement', excludeDates: halfTerm }),
+    staticSession({ ...term, name: 'Messy Play', day: 'Wednesday', start: '11:30', end: '12:30', age: 'Children aged 18 months and over', category: 'Arts & crafts' }),
+    staticSession({ ...term, name: 'Introduction to Solids', day: 'Wednesday', start: '15:00', end: '16:30', age: 'Babies aged 6 months and over', category: 'Feeding & postnatal support', booking: true, dates: ['2026-09-09', '2026-10-14', '2026-11-11', '2026-12-09'] }),
+    staticSession({ ...term, name: 'Baby Time', day: 'Friday', start: '11:45', end: '13:15', age: 'Babies under 1', excludeDates: halfTerm, booking: true }),
+    staticSession({ ...term, name: 'Perinatal Workshop - Stress, Anxiety and Sleep', day: 'Friday', start: '13:15', end: '14:15', age: 'Parents and babies under 1', category: 'Feeding & postnatal support', booking: true, dates: ['2026-09-04'] }),
+    staticSession({ ...term, name: 'Perinatal Workshop - Mum and Baby Mindfulness', day: 'Friday', start: '13:15', end: '14:15', age: 'Parents and babies under 1', category: 'Feeding & postnatal support', booking: true, dates: ['2026-09-11'] }),
+    staticSession({ ...term, name: 'Perinatal Workshop - Low Mood', day: 'Friday', start: '13:15', end: '14:15', age: 'Parents and babies under 1', category: 'Feeding & postnatal support', booking: true, dates: ['2026-09-18'] }),
+    staticSession({ ...term, name: 'Perinatal Workshop - Adjusting to Motherhood', day: 'Friday', start: '13:15', end: '14:15', age: 'Parents and babies under 1', category: 'Feeding & postnatal support', booking: true, dates: ['2026-09-25'] }),
+  ];
+}
+
+function sessionsForCroydon() {
+  const common = { postcode: 'CR2 8HD', source: croydonWoodlandsSource, age: 'Children aged 0 to 9 years' };
+  return [
+    staticSession({ ...common, name: 'Stay and Play', day: 'Tuesday', start: '09:30', end: '11:00', dates: ['2026-09-01'] }),
+    staticSession({ ...common, name: 'Chatterbox', day: 'Tuesday', start: '13:00', end: '14:30', dates: ['2026-09-01'], age: 'Children needing speech, language and communication support' }),
+    staticSession({ ...common, name: 'Stay and Play', day: 'Thursday', start: '13:00', end: '14:30', dates: ['2026-09-03'] }),
+    staticSession({ ...common, name: 'Baby Fun for Under 1s', day: 'Friday', start: '09:30', end: '11:00', dates: ['2026-09-04'], age: 'Babies under 1' }),
+    staticSession({ ...common, name: 'Infant Feeding Support', day: 'Friday', start: '10:00', end: '11:30', dates: ['2026-09-04'], age: 'Parents and babies', category: 'Feeding & postnatal support' }),
+    staticSession({ ...common, name: 'Childminders Session', day: 'Friday', start: '10:00', end: '11:30', dates: ['2026-09-04'], age: 'Childminders and young children', booking: true }),
+  ];
+}
+
+function sessionsForLewisham() {
+  const halfTerm = autumnHalfTermDates();
+  const term = { startDate: '2026-09-01', endDate: '2026-12-18', excludeDates: halfTerm };
+  const bellingham = { ...term, postcode: 'SE6 3HB', source: lewishamSources.bellingham };
+  const deptford = { ...term, postcode: 'SE8 5NH', source: lewishamSources.deptford };
+  const ladywell = { ...term, postcode: 'SE4 1JJ', source: lewishamSources.ladywell };
+  return [
+    staticSession({ ...bellingham, name: 'Baby Stay and Play', day: 'Monday', start: '10:00', end: '11:30', age: 'Babies aged 0 to 18 months' }),
+    staticSession({ ...bellingham, name: 'Stay and Play', day: 'Monday', start: '13:15', end: '14:45', age: 'Children aged 0 to 5 years' }),
+    staticSession({ ...bellingham, name: 'Explorers Plus with Portage', day: 'Tuesday', start: '10:00', end: '11:30', age: 'Children from birth to 5 years' }),
+    staticSession({ ...bellingham, name: 'Breastfeeding Hub', day: 'Tuesday', start: '13:00', end: '15:00', age: 'Parents and babies', category: 'Feeding & postnatal support' }),
+    staticSession({ ...bellingham, name: 'Rhythm and Rhyme', day: 'Wednesday', start: '09:30', end: '10:30', age: 'Children aged 0 to 5 years' }),
+    staticSession({ ...bellingham, name: 'Togetherness - Understanding Your Baby Postnatal Group', day: 'Wednesday', start: '13:00', end: '15:00', age: 'Parents and babies aged 0 to 10 months', booking: true, startDate: '2026-09-16', endDate: '2026-12-09' }),
+    staticSession({ ...bellingham, name: 'Baby Messy Play', day: 'Friday', start: '10:00', end: '11:30', age: 'Babies aged 0 to 18 months', category: 'Arts & crafts' }),
+    staticSession({ ...bellingham, name: 'Dads and Male Carers Stay and Play', day: 'Saturday', start: '10:00', end: '12:00', age: 'Dads, male carers and their children', dates: ['2026-10-17', '2026-12-19'] }),
+
+    staticSession({ ...deptford, name: 'Stay and Play', day: 'Monday', start: '09:30', end: '11:00', age: 'Children aged 0 to 5 years' }),
+    staticSession({ ...deptford, name: 'Baby Stay and Play', day: 'Monday', start: '13:15', end: '14:45', age: 'Babies aged 0 to 18 months' }),
+    staticSession({ ...deptford, name: 'Maternal Journaling with the PAIRS Team', day: 'Tuesday', start: '10:00', end: '11:30', age: 'Mothers and children up to 3 years', category: 'Feeding & postnatal support', booking: true, startDate: '2026-09-01', endDate: '2026-10-06' }),
+    staticSession({ ...deptford, name: 'Maternal Journaling with the PAIRS Team', day: 'Tuesday', start: '10:00', end: '11:30', age: 'Mothers and children up to 3 years', category: 'Feeding & postnatal support', booking: true, startDate: '2026-11-03', endDate: '2026-12-08' }),
+    staticSession({ ...deptford, name: 'Stay and Play', day: 'Tuesday', start: '13:30', end: '15:00', age: 'Children aged 0 to 5 years' }),
+    staticSession({ ...deptford, name: 'Rhythm and Rhyme', day: 'Wednesday', start: '09:30', end: '10:30', age: 'Children aged 0 to 5 years' }),
+    staticSession({ ...deptford, name: 'Owl Babies', day: 'Wednesday', start: '11:30', end: '12:30', age: 'Babies aged 0 to 6 months', booking: true, startDate: '2026-09-23', endDate: '2026-10-21' }),
+    staticSession({ ...deptford, name: 'Baby Stay and Play', day: 'Wednesday', start: '13:30', end: '15:00', age: 'Babies aged 0 to 18 months' }),
+    staticSession({ ...deptford, name: 'Breastfeeding Hub', day: 'Thursday', start: '10:00', end: '12:00', age: 'Parents and babies', category: 'Feeding & postnatal support' }),
+    staticSession({ ...deptford, name: 'Togetherness - Understanding Your Baby Postnatal Group', day: 'Thursday', start: '13:00', end: '15:00', age: 'Parents and babies aged 0 to 10 months', booking: true, startDate: '2026-09-03', endDate: '2026-10-08' }),
+    staticSession({ ...deptford, name: 'Introducing Solids', day: 'Thursday', start: '13:00', end: '14:30', age: 'Parents and babies', category: 'Feeding & postnatal support', booking: true, dates: ['2026-10-22'] }),
+    staticSession({ ...deptford, name: 'Healthy Families - Right from the Start', day: 'Thursday', start: '13:00', end: '15:00', age: 'Parents and children aged 0 to 5 years', booking: true, startDate: '2026-10-15', endDate: '2026-12-03' }),
+    staticSession({ ...deptford, name: 'Fussy Eating Workshop', day: 'Thursday', start: '13:00', end: '14:30', age: 'Parents and young children', booking: true, dates: ['2026-12-10'] }),
+    staticSession({ ...deptford, name: 'Explorers Plus with Portage', day: 'Friday', start: '10:00', end: '11:30', age: 'Children from birth to 5 years' }),
+    staticSession({ ...deptford, name: 'Dads and Male Carers Stay and Play', day: 'Saturday', start: '10:00', end: '12:00', age: 'Dads, male carers and their children', dates: ['2026-09-19', '2026-11-21'] }),
+
+    staticSession({ ...ladywell, name: 'Togetherness - Understanding Your Child', day: 'Monday', start: '10:00', end: '12:00', age: 'Parents and children aged 1 to 3 years', booking: true, startDate: '2026-09-07', endDate: '2026-11-09' }),
+    staticSession({ ...ladywell, name: 'Baby Stay and Play', day: 'Tuesday', start: '10:00', end: '11:30', age: 'Babies aged 0 to 18 months', startDate: '2026-09-08' }),
+    staticSession({ ...ladywell, name: 'Stay and Play', day: 'Tuesday', start: '13:15', end: '14:45', age: 'Children aged 0 to 5 years', startDate: '2026-09-08' }),
+    staticSession({ ...ladywell, name: 'Baby Massage', day: 'Wednesday', start: '10:00', end: '11:30', age: 'Babies under 1', booking: true, startDate: '2026-09-09', endDate: '2026-10-07' }),
+    staticSession({ ...ladywell, name: 'Baby Messy Play', day: 'Thursday', start: '10:00', end: '11:30', age: 'Babies aged 0 to 18 months', category: 'Arts & crafts', startDate: '2026-09-10' }),
+    staticSession({ ...ladywell, name: 'Rhythm and Rhyme', day: 'Thursday', start: '13:30', end: '14:30', age: 'Children aged 0 to 5 years', startDate: '2026-09-10' }),
+    staticSession({ ...ladywell, name: 'Breastfeeding Hub', day: 'Friday', start: '10:00', end: '12:00', age: 'Parents and babies', category: 'Feeding & postnatal support' }),
   ];
 }
 
@@ -483,7 +552,8 @@ async function dynamicSessions() {
     ...hounslowPages.map((page) => ({ page, parser: parseHounslowPage, provider: 'Hounslow' })),
     ...hammersmithPages.map((page) => ({ page, parser: parseHammersmithPage, provider: 'Hammersmith and Fulham' })),
   ];
-  const results = await Promise.all(groups.map(async ({ page, parser, provider }) => {
+  const [results, greenwich] = await Promise.all([
+    Promise.all(groups.map(async ({ page, parser, provider }) => {
     try {
       const rows = parser(page, await fetchHtml(page.url));
       audit.push({ provider, url: page.url, postcode: normalisePostcode(page.postcode), status: rows.length ? 'ready' : 'empty', sessions: rows.length });
@@ -492,8 +562,19 @@ async function dynamicSessions() {
       audit.push({ provider, url: page.url, postcode: normalisePostcode(page.postcode), status: 'failed', sessions: 0, reason: error.message });
       return [];
     }
-  }));
-  return { rows: results.flat(), audit };
+    })),
+    loadGreenwichFamilyDirectorySessions(fetchHtml).catch((error) => ({ rows: [], audit: [], discovered: 0, error })),
+  ]);
+  audit.push({
+    provider: 'Royal Borough of Greenwich Community Directory',
+    url: 'https://greenwichcommunitydirectory.org.uk/sitemap.xml',
+    status: greenwich.rows.length ? 'ready' : greenwich.error ? 'failed' : 'empty',
+    sessions: greenwich.rows.length,
+    pages_discovered: greenwich.discovered,
+    pages_failed: greenwich.audit.filter((item) => item.status === 'failed').length,
+    reason: greenwich.error?.message || undefined,
+  });
+  return { rows: [...results.flat(), ...greenwich.rows], audit };
 }
 
 function sourceUrlFor(session) {
@@ -532,7 +613,7 @@ function sessionValues(session) {
     sqlArray([session.day]),
     sql(session.schedule_notes),
     sql(session.description),
-    sql('Free'),
+    sql(session.cost || 'Free'),
     session.booking_required ? 'true' : 'false',
     sql(sourceUrlFor(session)),
     sql(session.source_page_url),
@@ -622,7 +703,7 @@ legacy_hubs as (
   where source_name = ${sql(legacySourceName)}
     and (
       coalesce(archive, false) = false
-      or archive_reason in (${sql(genericReplacementReason)}, ${sql(publishedGenericReplacementReason)}, ${sql(scheduleGuardArchiveReason)})
+      or archive_reason in (${sql(genericReplacementReason)}, ${sql(publishedGenericReplacementReason)}, ${sql(scheduleGuardArchiveReason)}, ${sql(specificityGuardArchiveReason)})
     )
 )
 insert into public.activities (
@@ -714,9 +795,11 @@ where legacy.source_name = ${sql(legacySourceName)}
 
 async function main() {
   const fixed = [
-    ...sessionsForBarking(),
+    ...sessionsForBrent(),
     ...sessionsForCamden(),
+    ...sessionsForCroydon(),
     ...sessionsForLambeth(),
+    ...sessionsForLewisham(),
     ...sessionsForMerton(),
   ];
   const dynamic = await dynamicSessions();

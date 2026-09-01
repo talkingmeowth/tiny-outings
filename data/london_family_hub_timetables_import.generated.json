@@ -1,17 +1,26 @@
 {
-  "generated_at": "2026-08-31T16:33:49.972Z",
-  "sessions": 152,
+  "generated_at": "2026-09-01T14:32:14.436Z",
+  "sessions": 223,
   "centres_covered": [
+    "CR28HD",
     "CR41SD",
     "CR43BH",
     "EC1R4SR",
+    "NW103HL",
     "NW11HQ",
     "NW13TJ",
     "NW18DQ",
     "NW19SU",
     "NW62JL",
     "SE115BZ",
+    "SE137QZ",
+    "SE186BD",
     "SE279UD",
+    "SE288EZ",
+    "SE39QX",
+    "SE41JJ",
+    "SE63HB",
+    "SE85NH",
     "SW22JE",
     "SW48EG",
     "SW99TG",
@@ -20,16 +29,25 @@
     "TW80BJ"
   ],
   "sessions_by_centre": {
+    "CR28HD": 6,
     "CR41SD": 11,
     "CR43BH": 12,
     "EC1R4SR": 6,
+    "NW103HL": 10,
     "NW11HQ": 7,
     "NW13TJ": 8,
     "NW18DQ": 11,
     "NW19SU": 7,
     "NW62JL": 9,
     "SE115BZ": 15,
-    "SE279UD": 9,
+    "SE137QZ": 6,
+    "SE186BD": 7,
+    "SE279UD": 10,
+    "SE288EZ": 5,
+    "SE39QX": 7,
+    "SE41JJ": 7,
+    "SE63HB": 8,
+    "SE85NH": 14,
     "SW22JE": 15,
     "SW48EG": 4,
     "SW99TG": 9,
@@ -60,6 +78,14 @@
       "sessions": 12
     },
     {
+      "provider": "Royal Borough of Greenwich Community Directory",
+      "url": "https://greenwichcommunitydirectory.org.uk/sitemap.xml",
+      "status": "ready",
+      "sessions": 25,
+      "pages_discovered": 72,
+      "pages_failed": 5
+    },
+    {
       "provider": "Hammersmith and Fulham",
       "url": "https://www.lbhf.gov.uk/children-and-young-people/family-hub/find-family-hub-or-childrens-centre/family-hub-old-oak-community-centre",
       "postcode": "W120AP",
@@ -83,37 +109,34 @@
   ],
   "current_source_gaps": [
     {
+      "borough": "Barking and Dagenham",
+      "legacy_postcodes": [
+        "IG117NB",
+        "RM109QS",
+        "RM65NJ"
+      ],
+      "source": "https://www.lbbd.gov.uk/events/stay-and-play-0-5-years-old-valence-library",
+      "reason": "The current council page publishes weekly opening times but no exact session dates, so these legacy venue cards remain archived."
+    },
+    {
       "borough": "Brent",
       "legacy_postcodes": [
         "HA04PW",
         "NW98JD",
         "NW109SD",
         "HA98RJ",
-        "NW103HL",
         "HA99YP"
       ],
       "source": "https://www.brent.gov.uk/familywellbeingcentres",
-      "reason": "The official hub page did not yet publish an Autumn 2026 activity timetable; the latest indexed centre schedules had ended."
+      "reason": "No current exact timetable was published for these five legacy centres; Three Trees is covered by its September-to-December timetable."
     },
     {
       "borough": "Croydon",
       "legacy_postcodes": [
-        "SE256XX",
-        "CR28HD"
+        "SE256XX"
       ],
       "source": "https://www.croydon.gov.uk/children-young-people-and-families/family-hubs",
-      "reason": "The published transition timetable ends on 4 September 2026 and does not reliably map every session to the two legacy centre records."
-    },
-    {
-      "borough": "Greenwich",
-      "legacy_postcodes": [
-        "SE186BD",
-        "SE137QZ",
-        "SE39QX",
-        "SE288EZ"
-      ],
-      "source": "https://www.better.org.uk/children-centre/london/greenwich",
-      "reason": "Official centre pages list activity types but do not publish the required day and start/end times."
+      "reason": "The current North and Central timetable does not publish an activity at the Samuel Coleridge Taylor legacy venue; Woodlands is covered through its exact published end date."
     },
     {
       "borough": "Hackney",
@@ -158,14 +181,11 @@
     {
       "borough": "Lewisham",
       "legacy_postcodes": [
-        "SE63HB",
-        "SE85NH",
         "SE83PZ",
-        "SE64JF",
-        "SE41JJ"
+        "SE64JF"
       ],
       "source": "https://lewishamfamilyhubs.org.uk/p/whats-on/activities-and-timetables",
-      "reason": "The official page says Autumn activities start on 1 September but asks users to check back for the new timetables."
+      "reason": "The current timetable page covers Bellingham, Deptford and Ladywell; no current exact timetable maps to the Evelyn or Kaleidoscope legacy cards."
     },
     {
       "borough": "Newham",
@@ -210,130 +230,7 @@
       "reason": "The official site still advertises the Summer Term 2026 timetable and has not published a current Autumn timetable."
     }
   ],
-  "validation_failures": [
-    {
-      "session": {
-        "hub_postcode": "IG117NB",
-        "venue_postcode": "IG117NB",
-        "venue_address": "",
-        "activity_name": "Stay and Play",
-        "day": "Thursday",
-        "start_time": "09:30",
-        "end_time": "10:25",
-        "age_suitability": "Parents and children aged 0 to 5 years",
-        "category": "Stay & play",
-        "description": "A free family stay-and-play session for children aged 0 to 5. No booking is required.",
-        "booking_required": false,
-        "source_page_url": "https://www.lbbd.gov.uk/events/stay-and-play-0-5-years-old-valence-library",
-        "availability_start_date": null,
-        "availability_end_date": null,
-        "available_dates": [],
-        "excluded_dates": [],
-        "schedule_notes": "Weekly session published by Barking and Dagenham Council; no booking required."
-      },
-      "errors": [
-        "missing exact occurrence dates"
-      ]
-    },
-    {
-      "session": {
-        "hub_postcode": "IG117NB",
-        "venue_postcode": "IG117NB",
-        "venue_address": "",
-        "activity_name": "Stay and Play",
-        "day": "Thursday",
-        "start_time": "10:40",
-        "end_time": "11:35",
-        "age_suitability": "Parents and children aged 0 to 5 years",
-        "category": "Stay & play",
-        "description": "A free family stay-and-play session for children aged 0 to 5. No booking is required.",
-        "booking_required": false,
-        "source_page_url": "https://www.lbbd.gov.uk/events/stay-and-play-0-5-years-old-valence-library",
-        "availability_start_date": null,
-        "availability_end_date": null,
-        "available_dates": [],
-        "excluded_dates": [],
-        "schedule_notes": "Weekly session published by Barking and Dagenham Council; no booking required."
-      },
-      "errors": [
-        "missing exact occurrence dates"
-      ]
-    },
-    {
-      "session": {
-        "hub_postcode": "RM109QS",
-        "venue_postcode": "RM109QS",
-        "venue_address": "",
-        "activity_name": "Stay and Play",
-        "day": "Tuesday",
-        "start_time": "10:00",
-        "end_time": "11:30",
-        "age_suitability": "Parents and children aged 0 to 5 years",
-        "category": "Stay & play",
-        "description": "A free family stay-and-play session for children aged 0 to 5. No booking is required.",
-        "booking_required": false,
-        "source_page_url": "https://www.lbbd.gov.uk/events/stay-and-play-0-5-years-old-valence-library",
-        "availability_start_date": null,
-        "availability_end_date": null,
-        "available_dates": [],
-        "excluded_dates": [],
-        "schedule_notes": "Weekly session published by Barking and Dagenham Council; no booking required."
-      },
-      "errors": [
-        "missing exact occurrence dates"
-      ]
-    },
-    {
-      "session": {
-        "hub_postcode": "RM65NJ",
-        "venue_postcode": "RM65NJ",
-        "venue_address": "",
-        "activity_name": "Stay and Play",
-        "day": "Thursday",
-        "start_time": "10:00",
-        "end_time": "11:30",
-        "age_suitability": "Parents and children aged 0 to 5 years",
-        "category": "Stay & play",
-        "description": "A free family stay-and-play session for children aged 0 to 5. No booking is required.",
-        "booking_required": false,
-        "source_page_url": "https://www.lbbd.gov.uk/events/stay-and-play-0-5-years-old-valence-library",
-        "availability_start_date": null,
-        "availability_end_date": null,
-        "available_dates": [],
-        "excluded_dates": [],
-        "schedule_notes": "Weekly session published by Barking and Dagenham Council; no booking required."
-      },
-      "errors": [
-        "missing exact occurrence dates"
-      ]
-    },
-    {
-      "session": {
-        "hub_postcode": "SE279UD",
-        "venue_postcode": "SE279UD",
-        "venue_address": "",
-        "activity_name": "Starting Solids Workshop",
-        "day": "Thursday",
-        "start_time": "13:00",
-        "end_time": "15:00",
-        "age_suitability": "Parents and carers of babies",
-        "category": "Feeding & postnatal support",
-        "description": "Starting Solids Workshop at the family hub.",
-        "booking_required": true,
-        "source_page_url": "https://www.lambeth.gov.uk/sites/default/files/2026-08/Norwood_Better_Start_Autumn_26.pdf",
-        "availability_start_date": "2026-09-01",
-        "availability_end_date": "2026-12-18",
-        "available_dates": [
-          "2026-12-09"
-        ],
-        "excluded_dates": [],
-        "schedule_notes": "Official family hub timetable. Check the source page for cancellations or booking changes."
-      },
-      "errors": [
-        "occurrence date does not match weekday"
-      ]
-    }
-  ],
+  "validation_failures": [],
   "policy": {
     "generic_cards_without_a_verified_exact_schedule_are_archived": true,
     "exact_dates_are_materialised_from_bounded_official_timetables": true,

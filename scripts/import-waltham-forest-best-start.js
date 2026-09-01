@@ -3,6 +3,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { normaliseWalthamForestEventImageUrl } from './lib/activity-import-policy.js';
+import { isGenericFamilyActivityName } from './lib/family-hub-timetable-policy.js';
 import { googlePlacesJson } from './lib/google-places-client.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -236,7 +237,7 @@ function parseEvent(url, html, place, occurrences) {
     || /weekly|term[ -]?time/i.test(description);
   const explicitlyWeekly = /every\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)|weekly/i.test(`${status} ${frequency} ${description}`);
 
-  if (!activityName || !/best start in life/i.test(categories) || excludedNames.test(activityName)) return null;
+  if (!activityName || isGenericFamilyActivityName(activityName) || !/best start in life/i.test(categories) || excludedNames.test(activityName)) return null;
   if (!eventDate || !venue || !place?.location) return null;
 
   const discoveredOccurrences = occurrences.length ? occurrences : [eventDate];
@@ -373,6 +374,7 @@ async function main() {
       const name = pageTitle(html);
       const categories = labelledValue(html, 'Event category:');
       if (!/best start in life/i.test(categories)) return { url, name, status: 'skipped', reason: 'Not a Best Start in Life event' };
+      if (isGenericFamilyActivityName(name)) return { url, name, status: 'skipped', reason: 'Generic venue-level activity name' };
       if (excludedNames.test(name)) return { url, name, status: 'skipped', reason: 'Outside the family activity directory scope' };
       const venue = labelledValue(html, 'Event venue:') || labelledValue(html, 'Location:');
       if (!venue) return { url, name, status: 'skipped', reason: 'No venue supplied by council page' };
