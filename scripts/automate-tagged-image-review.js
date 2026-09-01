@@ -18,11 +18,16 @@ const scopeIndex = process.argv.indexOf('--scope');
 const requestedScope = scopeIndex >= 0 ? process.argv[scopeIndex + 1] : null;
 const scope = requestedScope === 'all-unreviewed'
   ? 'all_unreviewed'
-  : requestedScope === 'failed-applications' ? 'failed_applications' : 'targeted';
+  : requestedScope === 'all-active'
+    ? 'all_active'
+    : requestedScope === 'failed-applications' ? 'failed_applications' : 'targeted';
 const limitIndex = process.argv.indexOf('--limit');
 const limit = limitIndex >= 0 ? Math.max(1, Number(process.argv[limitIndex + 1]) || 1) : Number.POSITIVE_INFINITY;
 const concurrencyIndex = process.argv.indexOf('--search-concurrency');
 const searchConcurrency = concurrencyIndex >= 0 ? Math.min(8, Math.max(1, Number(process.argv[concurrencyIndex + 1]) || 4)) : 4;
+const sourceNameIndex = process.argv.indexOf('--source-name');
+const sourceName = sourceNameIndex >= 0 ? String(process.argv[sourceNameIndex + 1] || '').trim() : '';
+const missingOnly = process.argv.includes('--missing-only');
 
 function readDotEnv(path) {
   try {
@@ -85,7 +90,14 @@ async function loadPaged(action, pageSize) {
   const rows = [];
   let offset = 0;
   do {
-    const payload = await callFunction('activity-image-auto-review', { action, offset, page_size: pageSize, scope });
+    const payload = await callFunction('activity-image-auto-review', {
+      action,
+      offset,
+      page_size: pageSize,
+      scope,
+      ...(action === 'targets' && sourceName ? { source_name: sourceName } : {}),
+      ...(action === 'targets' && missingOnly ? { missing_only: true } : {}),
+    });
     rows.push(...(payload.rows || []));
     offset = payload.next_offset;
     console.log(`${action}: loaded ${rows.length}${offset == null ? '' : '+'} rows.`);
@@ -250,8 +262,10 @@ async function main() {
   const targets = await loadPaged('targets', 500);
   const targetLabel = scope === 'all_unreviewed'
     ? 'Never-reviewed published/draft'
+    : scope === 'all_active' ? 'All active published/draft'
     : scope === 'failed_applications' ? 'Failed automatic image applications' : 'Active missing/unsuitable';
-  console.log(`${targetLabel} targets: ${targets.length}.`);
+  const targetScopeLabel = [sourceName ? `source ${sourceName}` : '', missingOnly ? 'missing frontend images only' : ''].filter(Boolean).join('; ');
+  console.log(`${targetLabel} targets${targetScopeLabel ? ` (${targetScopeLabel})` : ''}: ${targets.length}.`);
   const candidateResult = await fillMissingCandidateSets(targets);
   const { proposals, skipped } = buildProposals(candidateResult.targets, model);
   console.log(`Proposals ready: ${proposals.length}; skipped: ${skipped.length}.`);
@@ -261,6 +275,8 @@ async function main() {
     generated_at: new Date().toISOString(),
     applied: apply,
     scope,
+    source_name: sourceName || null,
+    missing_only: missingOnly,
     searched_missing_candidates: searchMissing,
     model: {
       name: model.name,
