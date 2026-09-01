@@ -174,6 +174,37 @@ async function loadAllActivities() {
   }));
 }
 
+async function loadRequestedActivity(activityId) {
+  const [activityResponse, photoResponse, automatedReviewResponse] = await Promise.all([
+    supabase.from('activities')
+      .select(activityColumns)
+      .eq('activity_id', activityId)
+      .single(),
+    supabase.from('activity_photos')
+      .select('photo_url')
+      .eq('activity_id', activityId)
+      .eq('source_provider', 'user_upload')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase.from('activity_image_automated_reviews')
+      .select('automated_review_id,activity_id,status,source_queue,candidate_index,candidate,candidate_set_searched_at,confidence,reason,model_name,model_version,training_review_count,model_metrics,created_at,auto_applied_at,auto_applied_image_url,apply_failure_reason,apply_attempted_at')
+      .eq('activity_id', activityId)
+      .in('status', ['pending', 'auto_applied'])
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+  if (activityResponse.error) throw activityResponse.error;
+  if (automatedReviewResponse.error) throw automatedReviewResponse.error;
+  return {
+    ...activityResponse.data,
+    candidate_set_loaded: false,
+    user_uploaded_image_url: photoResponse.data?.photo_url || null,
+    automated_image_review: automatedReviewResponse.data || null,
+  };
+}
+
 function SignIn({ message }) {
   async function signIn() {
     await supabase.auth.signInWithOAuth({
@@ -425,6 +456,14 @@ function App() {
     setPreloadStatus({ status: 'idle', ready: 0, total: 0, apiCalls: 0, failed: 0 });
     setLoading(true);
     try {
+      if (initialActivityId) {
+        try {
+          setActivities([await loadRequestedActivity(initialActivityId)]);
+        } catch {
+          // The complete queue load below remains the fallback if the direct
+          // deep-link lookup fails or the listing changed queues.
+        }
+      }
       setActivities(await loadAllActivities());
       setNotice('');
     } catch (error) {
