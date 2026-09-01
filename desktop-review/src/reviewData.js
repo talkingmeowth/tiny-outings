@@ -84,6 +84,15 @@ export const QUEUES = [
   { id: 'archive', label: 'Archive', description: 'Archived listings. Restore one to return it to its previous status; older archives return as drafts.' },
 ];
 
+export function fullReviewUrl(baseUrl, activityId, queueId = 'all_activities') {
+  const url = new URL(baseUrl);
+  const validQueue = QUEUES.some((queue) => queue.id === queueId) ? queueId : 'all_activities';
+  url.searchParams.set('view', 'detail');
+  url.searchParams.set('activity', clean(activityId));
+  url.searchParams.set('queue', validQueue);
+  return url.toString();
+}
+
 export const IMAGE_SOURCE_LABELS = {
   admin_cover_image_url: 'Admin cover',
   reviewed_image_url: 'Manual desktop review',

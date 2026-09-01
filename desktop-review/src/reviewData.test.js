@@ -5,6 +5,7 @@ import {
   activitiesToPreload,
   currentImage,
   displayedImageSource,
+  fullReviewUrl,
   googlePlacesUrl,
   imageSourceOptions,
   prepareActivities,
@@ -210,6 +211,19 @@ test('builds a Google Maps search link for a listing without a stored place URL'
   const url = new URL(googlePlacesUrl(listing()));
   assert.equal(url.hostname, 'www.google.com');
   assert.equal(url.searchParams.get('query'), 'Baby Sensory Leyton Leyton, London E10 5AB');
+});
+
+test('builds a deep link that opens an activity in full review', () => {
+  const url = new URL(fullReviewUrl(
+    'https://tiny-outings.example/review/?demo=1',
+    'activity-123',
+    'missing_images',
+  ));
+  assert.equal(url.pathname, '/review/');
+  assert.equal(url.searchParams.get('demo'), '1');
+  assert.equal(url.searchParams.get('view'), 'detail');
+  assert.equal(url.searchParams.get('activity'), 'activity-123');
+  assert.equal(url.searchParams.get('queue'), 'missing_images');
 });
 
 test('manual desktop review sits below admin cover and above user image', () => {

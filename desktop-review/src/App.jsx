@@ -15,6 +15,7 @@ import {
   currentImage,
   displayedImageSource,
   domain,
+  fullReviewUrl,
   googlePlacesUrl,
   imageSourceOptions,
   listingSearchText,
@@ -52,7 +53,13 @@ const activityColumns = [
   'codex_image_search_model', 'image_review_ignored_at', 'image_review_ignored_by_user_id', 'created_at', 'updated_at',
 ].join(',');
 
-const isDemo = import.meta.env.DEV && new URLSearchParams(window.location.search).get('demo') === '1';
+const initialPageParams = new URLSearchParams(window.location.search);
+const isDemo = import.meta.env.DEV && initialPageParams.get('demo') === '1';
+const initialQueue = QUEUES.some((queue) => queue.id === initialPageParams.get('queue'))
+  ? initialPageParams.get('queue')
+  : 'all_activities';
+const initialViewMode = initialPageParams.get('view') === 'quick' ? 'quick' : 'detail';
+const initialActivityId = clean(initialPageParams.get('activity'));
 
 const demoCandidates = Array.from({ length: 16 }, (_, index) => ({
   image_url: `https://picsum.photos/seed/tiny-outings-${index + 1}/1200/800`,
@@ -364,9 +371,9 @@ function App() {
   const [authReady, setAuthReady] = useState(isDemo);
   const [activities, setActivities] = useState(isDemo ? demoActivities : []);
   const [loading, setLoading] = useState(!isDemo);
-  const [activeQueue, setActiveQueue] = useState('all_activities');
-  const [viewMode, setViewMode] = useState('detail');
-  const [selectedId, setSelectedId] = useState(isDemo ? demoActivities[0].activity_id : '');
+  const [activeQueue, setActiveQueue] = useState(initialQueue);
+  const [viewMode, setViewMode] = useState(initialViewMode);
+  const [selectedId, setSelectedId] = useState(initialActivityId || (isDemo ? demoActivities[0].activity_id : ''));
   const [filter, setFilter] = useState('');
   const deferredFilter = useDeferredValue(filter);
   const [imageSourceFilter, setImageSourceFilter] = useState('all');
@@ -474,6 +481,7 @@ function App() {
   }, [viewMode, quickVisibleCount, queueActivities.length]);
 
   useEffect(() => {
+    if (loading) return;
     if (!queueActivities.length) {
       setSelectedId('');
       return;
@@ -481,7 +489,7 @@ function App() {
     if (!queueActivities.some((activity) => activity.activity_id === selectedId)) {
       setSelectedId(queueActivities[0].activity_id);
     }
-  }, [queueActivities, selectedId]);
+  }, [loading, queueActivities, selectedId]);
 
   const selectedActivity = queueActivities.find((activity) => activity.activity_id === selectedId)
     || preparedActivities.find((activity) => activity.activity_id === selectedId)
@@ -913,8 +921,11 @@ function App() {
   }
 
   function openDetailedReview(activityId) {
-    setSelectedId(activityId);
-    setViewMode('detail');
+    window.open(
+      fullReviewUrl(window.location.href, activityId, activeQueue),
+      '_blank',
+      'noopener,noreferrer',
+    );
   }
 
   if (!hasSupabaseConfig && !isDemo) return <SignIn message="Supabase configuration is missing from this deployment." />;
