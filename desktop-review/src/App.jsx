@@ -23,6 +23,7 @@ import {
   preparedActivitiesForQueue,
   preloadReadinessByQueue,
   providerLabel,
+  quickReviewImage,
   queueCountsFromPrepared,
   searchQueries,
   storedImageCandidates,
@@ -38,6 +39,7 @@ const ADMIN_EMAILS = new Set([
 const PRELOAD_QUEUE_IDS = ['all_activities', 'model_selected', 'all_published', 'all_draft', 'missing_images'];
 const PRELOAD_PER_QUEUE = 20;
 const PRELOAD_CONCURRENCY = 6;
+const QUICK_REVIEW_BATCH_SIZE = 80;
 
 const activityColumns = [
   'activity_id', 'activity_name', 'address', 'postcode', 'borough', 'category', 'age_suitability',
@@ -265,12 +267,105 @@ function CandidateLightbox({ candidate, index, onClose }) {
   );
 }
 
+function QuickReviewCard({ activity, onOpenDetail }) {
+  const image = quickReviewImage(activity);
+  const provider = providerLabel(activity);
+  const status = listingStatusLabel(activity);
+  const statusClass = status.toLowerCase();
+  return (
+    <article className={`quick-review-card${image.isPlaceholder ? ' placeholder' : ''}`}>
+      <button className="quick-review-image" type="button" onClick={() => onOpenDetail(activity.activity_id)} aria-label={`Review ${activity.activity_name || 'untitled listing'}`}>
+        <img src={image.url} alt={activity.activity_name || 'Activity image'} loading="lazy" decoding="async" />
+        <span className={`quick-status-badge ${statusClass}`}>{status}</span>
+        <span className={`quick-source-badge${image.isPlaceholder ? ' placeholder' : ''}`}>{image.field}</span>
+      </button>
+      <div className="quick-review-copy">
+        <strong>{activity.activity_name || 'Untitled listing'}</strong>
+        {provider ? <span className="quick-provider">{provider}</span> : null}
+        <span>{bestLocation(activity)} · {activity.category || 'Uncategorised'}</span>
+        <small>{image.label}</small>
+      </div>
+      <div className="quick-review-actions">
+        <button type="button" onClick={() => onOpenDetail(activity.activity_id)}>Open full review</button>
+        {image.sourceUrl ? <a href={image.sourceUrl} target="_blank" rel="noreferrer">Open source ↗</a> : <span>Category artwork</span>}
+      </div>
+    </article>
+  );
+}
+
+function QuickReviewPage({
+  activeQueue,
+  allActivitiesCount,
+  activities,
+  filter,
+  imageSourceFilter,
+  loading,
+  loadMoreRef,
+  onFilterChange,
+  onImageSourceFilterChange,
+  onLoadMore,
+  onOpenDetail,
+  queue,
+  sourceFilterOptions,
+  totalActivities,
+}) {
+  return (
+    <main className="quick-review-page">
+      <header className="quick-review-toolbar">
+        <div>
+          <p className="eyebrow">Fast visual scan</p>
+          <h1>Quick picture review</h1>
+          <p>{queue?.label}: large card images with the displayed field shown on every listing.</p>
+        </div>
+        <div className="quick-review-filters">
+          <label>
+            <span>Search listings</span>
+            <input value={filter} onChange={onFilterChange} placeholder="Name, provider, area or category" />
+          </label>
+          {activeQueue === 'all_activities' ? (
+            <label>
+              <span>Displayed image source</span>
+              <select value={imageSourceFilter} onChange={onImageSourceFilterChange}>
+                <option value="all">All image sources ({compactNumber(allActivitiesCount)})</option>
+                {sourceFilterOptions.map((option) => (
+                  <option value={option.field} key={option.field}>
+                    {option.field} — {option.label} ({compactNumber(option.count)})
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+        </div>
+      </header>
+
+      <div className="quick-review-summary">
+        <strong>{compactNumber(activities.length)} shown</strong>
+        <span>of {compactNumber(totalActivities)} matching listings</span>
+        <span>Click any picture to open its full review.</span>
+      </div>
+
+      {loading ? <p className="quick-review-empty">Loading listings…</p> : null}
+      {!loading && !totalActivities ? <p className="quick-review-empty">No listings match this queue and filter.</p> : null}
+      <section className="quick-review-grid" aria-label="Listing pictures">
+        {activities.map((activity) => <QuickReviewCard activity={activity} key={activity.activity_id} onOpenDetail={onOpenDetail} />)}
+      </section>
+
+      {activities.length < totalActivities ? (
+        <div className="quick-review-load-more" ref={loadMoreRef}>
+          <button type="button" onClick={onLoadMore}>Show the next {Math.min(QUICK_REVIEW_BATCH_SIZE, totalActivities - activities.length)} pictures</button>
+        </div>
+      ) : null}
+    </main>
+  );
+}
+
 function App() {
   const [session, setSession] = useState(isDemo ? { user: { id: 'demo', email: 'tinyoutings-qa-admin@tinyoutings.test' } } : null);
   const [authReady, setAuthReady] = useState(isDemo);
   const [activities, setActivities] = useState(isDemo ? demoActivities : []);
   const [loading, setLoading] = useState(!isDemo);
   const [activeQueue, setActiveQueue] = useState('all_activities');
+  const [viewMode, setViewMode] = useState('detail');
   const [selectedId, setSelectedId] = useState(isDemo ? demoActivities[0].activity_id : '');
   const [filter, setFilter] = useState('');
   const deferredFilter = useDeferredValue(filter);
@@ -283,7 +378,9 @@ function App() {
   const [notice, setNotice] = useState('');
   const [archiveConfirmId, setArchiveConfirmId] = useState('');
   const [preloadStatus, setPreloadStatus] = useState({ status: 'idle', ready: 0, total: 0, apiCalls: 0, failed: 0 });
+  const [quickVisibleCount, setQuickVisibleCount] = useState(QUICK_REVIEW_BATCH_SIZE);
   const selectedIdRef = useRef(selectedId);
+  const quickLoadMoreRef = useRef(null);
   const candidateLoadsRef = useRef(new Set());
   const candidateSearchesRef = useRef(new Map());
   const candidateSearchSequenceRef = useRef(0);
@@ -358,6 +455,23 @@ function App() {
     if (!needle) return queue;
     return queue.filter((activity) => listingSearchText(activity).includes(needle));
   }, [preparedActivities, activeQueue, deferredFilter, imageSourceFilter]);
+  const quickReviewActivities = queueActivities.slice(0, quickVisibleCount);
+
+  useEffect(() => {
+    setQuickVisibleCount(QUICK_REVIEW_BATCH_SIZE);
+  }, [activeQueue, deferredFilter, imageSourceFilter]);
+
+  useEffect(() => {
+    if (viewMode !== 'quick' || quickVisibleCount >= queueActivities.length || !quickLoadMoreRef.current) return undefined;
+    if (typeof IntersectionObserver === 'undefined') return undefined;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        setQuickVisibleCount((current) => Math.min(current + QUICK_REVIEW_BATCH_SIZE, queueActivities.length));
+      }
+    }, { rootMargin: '500px 0px' });
+    observer.observe(quickLoadMoreRef.current);
+    return () => observer.disconnect();
+  }, [viewMode, quickVisibleCount, queueActivities.length]);
 
   useEffect(() => {
     if (!queueActivities.length) {
@@ -798,6 +912,11 @@ function App() {
     setSelectedCandidate((current) => current === index ? null : index);
   }
 
+  function openDetailedReview(activityId) {
+    setSelectedId(activityId);
+    setViewMode('detail');
+  }
+
   if (!hasSupabaseConfig && !isDemo) return <SignIn message="Supabase configuration is missing from this deployment." />;
   if (!authReady) return <main className="loading-screen">Checking your admin session…</main>;
   if (!session) return <SignIn />;
@@ -831,6 +950,10 @@ function App() {
         </div>
         <div className="topbar-actions">
           {isDemo ? <span className="demo-pill">Demo mode</span> : null}
+          <div className="view-switcher" aria-label="Review layout">
+            <button className={viewMode === 'detail' ? 'active' : ''} type="button" onClick={() => setViewMode('detail')}>Full review</button>
+            <button className={viewMode === 'quick' ? 'active' : ''} type="button" onClick={() => setViewMode('quick')}>Quick review</button>
+          </div>
           {preloadLabel ? <span className={`preload-pill ${preloadStatus.status}`}>{preloadLabel}</span> : null}
           <button className="secondary-button" type="button" onClick={refreshActivities} disabled={loading}>Refresh data</button>
           <span className="signed-in">{session.user.email}</span>
@@ -852,6 +975,24 @@ function App() {
 
       {notice ? <div className="notice-bar">{notice}<button type="button" onClick={() => setNotice('')} aria-label="Dismiss">×</button></div> : null}
 
+      {viewMode === 'quick' ? (
+        <QuickReviewPage
+          activeQueue={activeQueue}
+          allActivitiesCount={activeActivities.length}
+          activities={quickReviewActivities}
+          filter={filter}
+          imageSourceFilter={imageSourceFilter}
+          loading={loading}
+          loadMoreRef={quickLoadMoreRef}
+          onFilterChange={(event) => setFilter(event.target.value)}
+          onImageSourceFilterChange={(event) => setImageSourceFilter(event.target.value)}
+          onLoadMore={() => setQuickVisibleCount((current) => Math.min(current + QUICK_REVIEW_BATCH_SIZE, queueActivities.length))}
+          onOpenDetail={openDetailedReview}
+          queue={selectedQueue}
+          sourceFilterOptions={sourceFilterOptions}
+          totalActivities={queueActivities.length}
+        />
+      ) : (
       <main className="workspace">
         <aside className="listing-column">
           <div className="column-heading">
@@ -1029,6 +1170,7 @@ function App() {
           </>
         )}
       </main>
+      )}
       {zoomedCandidate ? <CandidateLightbox candidate={zoomedCandidate.candidate} index={zoomedCandidate.index} onClose={() => setZoomedCandidate(null)} /> : null}
     </div>
   );

@@ -10,6 +10,7 @@ import {
   prepareActivities,
   preparedActivitiesForQueue,
   preloadReadinessByQueue,
+  quickReviewImage,
   queueCounts,
   queueCountsFromPrepared,
   searchQueries,
@@ -258,6 +259,20 @@ test('shows an explicitly selected category illustration at the reviewed-image p
   assert.equal(image.label, 'Illustrated category image');
   assert.match(image.url, /images\/park-placeholder\.svg$/);
   assert.equal(currentImage({ ...categoryChoice, admin_cover_image_url: 'https://storage.test/admin.jpg' }).field, 'admin_cover_image_url');
+});
+
+test('quick review always has a picture while clearly labelling category artwork', () => {
+  const photographed = listing({ website_image_url: 'https://venue.test/activity.jpg' });
+  assert.deepEqual(quickReviewImage(photographed), {
+    ...currentImage(photographed),
+    isPlaceholder: false,
+  });
+
+  const missing = quickReviewImage(listing({ category: 'Cafes & food' }));
+  assert.equal(missing.field, 'category_placeholder');
+  assert.equal(missing.label, 'Illustrated category image');
+  assert.equal(missing.isPlaceholder, true);
+  assert.match(missing.url, /images\/family-cafe-placeholder\.svg$/);
 });
 
 test('keeps category artwork displayed while returning the listing to the missing queue', () => {

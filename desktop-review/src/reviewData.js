@@ -208,6 +208,20 @@ export function currentImage(activity) {
   return { url, field, label: IMAGE_SOURCE_LABELS[field] || 'No image', sourceUrl, sourceDomain: domain(sourceUrl) };
 }
 
+export function quickReviewImage(activity) {
+  const image = currentImage(activity);
+  if (image.url) return { ...image, isPlaceholder: image.field === 'category_placeholder' };
+  const illustration = categoryIllustrationCandidate(activity);
+  return {
+    url: illustration.image_url,
+    field: 'category_placeholder',
+    label: IMAGE_SOURCE_LABELS.category_placeholder,
+    sourceUrl: '',
+    sourceDomain: '',
+    isPlaceholder: true,
+  };
+}
+
 export function displayedImageSource(activity) {
   return currentImage(activity).field || 'category_placeholder';
 }
