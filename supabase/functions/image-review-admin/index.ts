@@ -19,18 +19,30 @@ const reviewAppBaseUrl = 'https://tiny-outings-cpjh.onrender.com/review/'
 const storedSourceFields = [
   'admin_cover_image_url',
   'reviewed_image_url',
+  'reviewed_image_original_url',
   'user_image_url',
   'audit_image_url',
+  'audit_image_original_url',
   'scraped_image_url',
   'organiser_website_downloaded_image',
   'website_downloaded_image',
   'model_selected_url',
+  'model_selected_original_url',
   'user_uploaded_image_url',
+  'google_photo_url',
   'wikimedia_image_url',
   'website_image_url',
   'listing_image_url',
+  'image_url',
 ] as const
 type StoredSourceField = typeof storedSourceFields[number]
+const candidateSourceFields = [
+  'codex_image_candidates',
+  'serpapi_image_candidates',
+  'website_image_candidates',
+  'user_uploaded_image_candidates',
+] as const
+type CandidateSourceField = typeof candidateSourceFields[number]
 
 type Activity = {
   activity_id: string
@@ -56,6 +68,8 @@ type Activity = {
   serpapi_image_search_failure_reason?: string | null
   serpapi_image_raw_result_count?: number | null
   serpapi_image_search_metadata?: unknown
+  website_image_candidates?: unknown
+  website_image_candidates_fetched_at?: string | null
   image_review_ignored_at?: string | null
   image_review_ignored_by_user_id?: string | null
   reviewed_image_url?: string | null
@@ -86,10 +100,18 @@ type Activity = {
   audit_image_original_url?: string | null
   audit_image_original_source_field?: string | null
   scraped_image_url?: string | null
+  image_url?: string | null
+  google_photo_url?: string | null
   image_source_url?: string | null
   website?: string | null
   organiser_website?: string | null
   source_url?: string | null
+  image_review_approved_at?: string | null
+  image_review_approved_by_user_id?: string | null
+  image_review_approved_url?: string | null
+  image_review_approved_original_url?: string | null
+  image_review_approved_source_field?: string | null
+  image_review_approved_source_url?: string | null
 }
 
 type Candidate = {
@@ -101,9 +123,10 @@ type Candidate = {
   width: number | null
   height: number | null
   relevance_reason: string | null
-  selection_kind?: typeof categoryIllustrationSelectionKind | 'hierarchy_source'
+  selection_kind?: typeof categoryIllustrationSelectionKind | 'hierarchy_source' | 'candidate_source' | 'current_image_approval'
   source_field?: StoredSourceField
   candidate_source?: string | null
+  source_label?: string | null
 }
 
 function jsonResponse(body: unknown, status = 200) {
@@ -128,23 +151,6 @@ function redactSerpApiSecrets(value: unknown): unknown {
   return typeof value === 'string'
     ? value.replace(/([?&]api_key=)[^&]+/gi, '$1[redacted]')
     : value
-}
-
-function secureImageUrl(value: unknown) {
-  return cleanText(value).replace(/^http:\/\//i, 'https://')
-}
-
-function isQualityApprovedStoredSource(activity: Activity, field: StoredSourceField, imageUrl: string) {
-  if (field === 'audit_image_url') {
-    return cleanText(activity.audit_image_status) === 'replaced'
-      && secureImageUrl(activity.audit_image_url) === secureImageUrl(imageUrl)
-  }
-  if (field === 'model_selected_url') return Number(activity.model_selected_confidence) >= 0.7
-  if (field !== 'scraped_image_url') return true
-  if (cleanText(activity.audit_image_status) !== 'pass') return false
-  if (cleanText(activity.audit_image_original_source_field) !== 'scraped_image_url') return false
-  const auditedUrl = secureImageUrl(activity.audit_image_original_url)
-  return Boolean(auditedUrl && auditedUrl === secureImageUrl(imageUrl))
 }
 
 function validHttpUrl(value: unknown) {
@@ -249,7 +255,7 @@ async function findActivity(
 ) {
   let query = supabase
     .from('activities')
-    .select('activity_id,activity_name,address,postcode,borough,category,public_listing_status,archive,archive_reason,archived_at,archive_previous_listing_status,website,organiser_website,source_url,image_source_url,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,serpapi_image_candidates,serpapi_image_search_query,serpapi_image_candidates_fetched_at,serpapi_image_search_attempted_at,serpapi_image_search_status,serpapi_image_search_failure_reason,serpapi_image_raw_result_count,serpapi_image_search_metadata,image_review_ignored_at,image_review_ignored_by_user_id,admin_cover_image_url,reviewed_image_url,use_category_image,reviewed_image_source_url,reviewed_image_original_url,reviewed_image_selected_at,reviewed_image_model,user_image_url,model_selected_url,model_selected_confidence,model_selected_original_url,model_selected_source_url,model_selected_source_field,model_selected_reason,model_selected_model,model_selected_model_version,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,audit_image_url,audit_image_source_url,audit_image_status,audit_image_original_url,audit_image_original_source_field,scraped_image_url')
+    .select('activity_id,activity_name,address,postcode,borough,category,public_listing_status,archive,archive_reason,archived_at,archive_previous_listing_status,website,organiser_website,source_url,image_source_url,image_url,google_photo_url,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,serpapi_image_candidates,serpapi_image_search_query,serpapi_image_candidates_fetched_at,serpapi_image_search_attempted_at,serpapi_image_search_status,serpapi_image_search_failure_reason,serpapi_image_raw_result_count,serpapi_image_search_metadata,website_image_candidates,website_image_candidates_fetched_at,image_review_ignored_at,image_review_ignored_by_user_id,image_review_approved_at,image_review_approved_by_user_id,image_review_approved_url,image_review_approved_original_url,image_review_approved_source_field,image_review_approved_source_url,admin_cover_image_url,reviewed_image_url,use_category_image,reviewed_image_source_url,reviewed_image_original_url,reviewed_image_selected_at,reviewed_image_model,user_image_url,model_selected_url,model_selected_confidence,model_selected_original_url,model_selected_source_url,model_selected_source_field,model_selected_reason,model_selected_model,model_selected_model_version,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,audit_image_url,audit_image_source_url,audit_image_status,audit_image_original_url,audit_image_original_source_field,scraped_image_url')
     .eq('activity_id', activityId)
   if (!includeArchived) query = query.eq('archive', false)
   const { data, error } = await query.maybeSingle()
@@ -262,10 +268,17 @@ function isStoredSourceField(value: unknown): value is StoredSourceField {
   return storedSourceFields.includes(cleanText(value) as StoredSourceField)
 }
 
+function isCandidateSourceField(value: unknown): value is CandidateSourceField {
+  return candidateSourceFields.includes(cleanText(value) as CandidateSourceField)
+}
+
 function storedSourcePageUrl(activity: Activity, field: StoredSourceField, imageUrl: string) {
   if (field === 'reviewed_image_url') return cleanText(activity.reviewed_image_source_url) || cleanText(activity.reviewed_image_original_url) || imageUrl
+  if (field === 'reviewed_image_original_url') return cleanText(activity.reviewed_image_source_url) || imageUrl
   if (field === 'audit_image_url') return cleanText(activity.audit_image_source_url) || imageUrl
-  if (field === 'scraped_image_url') return cleanText(activity.image_source_url) || imageUrl
+  if (field === 'audit_image_original_url') return cleanText(activity.audit_image_source_url) || cleanText(activity.image_source_url) || imageUrl
+  if (field === 'scraped_image_url' || field === 'google_photo_url' || field === 'image_url') return cleanText(activity.image_source_url) || imageUrl
+  if (field === 'model_selected_original_url') return cleanText(activity.model_selected_source_url) || imageUrl
   if (field === 'organiser_website_downloaded_image') return cleanText(activity.organiser_website) || cleanText(activity.website) || imageUrl
   if (['website_downloaded_image', 'website_image_url', 'listing_image_url'].includes(field)) {
     return cleanText(activity.image_source_url) || cleanText(activity.website) || cleanText(activity.source_url) || imageUrl
@@ -291,10 +304,8 @@ async function storedSourceCandidate(
     imageUrl = cleanText(data?.photo_url)
   }
   if (!validHttpUrl(imageUrl)) throw new Error(`${field} no longer contains a usable image URL.`)
-  if (!isQualityApprovedStoredSource(activity, field, imageUrl)) {
-    throw new Error(`${field} has not passed the quality gate required by the card-image hierarchy.`)
-  }
   const sourcePageUrl = storedSourcePageUrl(activity, field, imageUrl)
+  if (hasBlockedAssetTerms(imageUrl, sourcePageUrl, field)) throw new Error('The selected source appears to be a logo, icon, placeholder, or other utility asset.')
   if (!allowsWikimediaImages(activity) && [imageUrl, sourcePageUrl].some(isWikimediaSource)) {
     throw new Error('Wikimedia images are not allowed for this activity category.')
   }
@@ -441,7 +452,7 @@ async function searchUnfilteredSerpApiCandidates(
     if (activityError) throw new Error(activityError.message)
     if (requestError) throw new Error(requestError.message)
     return {
-      candidates, query: cachedQuery, searchedAt: completedAt, source: sourceLabel, reused: true,
+      candidates, canonicalCandidates, query: cachedQuery, searchedAt: completedAt, source: sourceLabel, reused: true,
       request: {
         ...requestRow, candidate_request_id: activeRequestId, requested_query: cachedQuery,
         status: 'completed', completed_at: completedAt, codex_model: sourceLabel,
@@ -519,6 +530,7 @@ async function searchUnfilteredSerpApiCandidates(
     if (requestError) throw new Error(requestError.message)
     return {
       candidates,
+      canonicalCandidates: storedCandidates,
       query,
       searchedAt: completedAt,
       source: sourceLabel,
@@ -693,6 +705,12 @@ async function storeReviewedCandidate(
     model_selected_reason: null,
     model_selected_model: null,
     model_selected_model_version: null,
+    image_review_approved_at: null,
+    image_review_approved_by_user_id: null,
+    image_review_approved_url: null,
+    image_review_approved_original_url: null,
+    image_review_approved_source_field: null,
+    image_review_approved_source_url: null,
     updated_at: selectedAt,
   }).eq('activity_id', activity.activity_id)
   const reviewLog = supabase.from('activity_image_manual_reviews').insert({
@@ -735,6 +753,81 @@ async function storeSearchCandidate(
   )
 }
 
+function candidateSourceRevision(activity: Activity, source: CandidateSourceField) {
+  if (source === 'codex_image_candidates') return cleanText(activity.codex_image_searched_at)
+  if (source === 'serpapi_image_candidates') return cleanText(activity.serpapi_image_candidates_fetched_at)
+  if (source === 'website_image_candidates') return cleanText(activity.website_image_candidates_fetched_at)
+  return ''
+}
+
+async function candidateSourceValues(
+  supabase: ReturnType<typeof createClient>,
+  activity: Activity,
+  source: CandidateSourceField,
+) {
+  if (source !== 'user_uploaded_image_candidates') {
+    return Array.isArray(activity[source]) ? activity[source] as Array<Record<string, unknown>> : []
+  }
+  const { data, error } = await supabase.from('activity_photos')
+    .select('photo_id,photo_url,caption,created_at')
+    .eq('activity_id', activity.activity_id)
+    .eq('source_provider', 'user_upload')
+    .order('created_at', { ascending: false })
+    .limit(100)
+  if (error) throw new Error(error.message)
+  return (data || []).map((photo) => ({
+    image_url: photo.photo_url,
+    thumbnail_url: photo.photo_url,
+    source_page_url: photo.photo_url,
+    title: photo.caption || 'Uploaded activity image',
+    photo_id: photo.photo_id,
+    created_at: photo.created_at,
+  }))
+}
+
+async function storeCandidateSource(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+  activity: Activity,
+  source: CandidateSourceField,
+  candidateIndex: number,
+  expectedFetchedAt: string,
+) {
+  const currentRevision = candidateSourceRevision(activity, source)
+  if (expectedFetchedAt && Date.parse(expectedFetchedAt) !== Date.parse(currentRevision)) {
+    throw new Error('The candidate set changed. Refresh the listing before saving.')
+  }
+  const candidates = await candidateSourceValues(supabase, activity, source)
+  const rawCandidate = candidates[candidateIndex]
+  if (!rawCandidate) throw new Error('The selected candidate is no longer available.')
+  const candidate = desktopCandidateFromStored(rawCandidate, candidateIndex)
+  if (!validHttpUrl(candidate.image_url)) throw new Error('The selected candidate no longer has a usable image URL.')
+  if (hasBlockedAssetTerms(candidate.image_url, candidate.thumbnail_url, candidate.source_page_url, candidate.title)) {
+    throw new Error('The selected candidate appears to be a logo, icon, placeholder, or other utility asset.')
+  }
+  if (!allowsWikimediaImages(activity) && [candidate.image_url, candidate.thumbnail_url, candidate.source_page_url].some(isWikimediaSource)) {
+    throw new Error('Wikimedia images are not allowed for this activity category.')
+  }
+  candidate.selection_kind = 'candidate_source'
+  candidate.candidate_source = source
+  candidate.source_label = source === 'website_image_candidates'
+    ? `Website discovery result ${candidateIndex + 1}`
+    : source === 'serpapi_image_candidates'
+      ? `Stored SerpAPI discovery result ${candidateIndex + 1}`
+      : source === 'codex_image_candidates'
+        ? `Desktop SerpAPI top 20 result ${candidateIndex + 1}`
+        : `Uploaded activity image ${candidateIndex + 1}`
+  return storeReviewedCandidate(
+    supabase,
+    userId,
+    activity,
+    candidate,
+    `${source}-${candidateIndex}`,
+    `${candidate.source_label}${currentRevision ? ` · set ${currentRevision}` : ''}`,
+    `Desktop image review — ${source}`,
+  )
+}
+
 async function storeExistingSource(
   supabase: ReturnType<typeof createClient>,
   userId: string,
@@ -770,6 +863,12 @@ async function storeCategoryIllustration(
     reviewed_image_model: null,
     reviewed_image_selected_by_user_id: null,
     use_category_image: true,
+    image_review_approved_at: null,
+    image_review_approved_by_user_id: null,
+    image_review_approved_url: null,
+    image_review_approved_original_url: null,
+    image_review_approved_source_field: null,
+    image_review_approved_source_url: null,
     updated_at: selectedAt,
   }).eq('activity_id', activity.activity_id)
   const reviewLog = supabase.from('activity_image_manual_reviews').insert({
@@ -786,6 +885,88 @@ async function storeCategoryIllustration(
   if (updateError) throw new Error(updateError.message)
   if (logError) throw new Error(`Image saved, but the manual review log failed: ${logError.message}`)
   return { reviewedImageUrl: null, sourceUrl, selectedAt, model, candidate, clearedModelSelection: false, useCategoryImage: true }
+}
+
+async function approveCurrentImage(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+  activity: Activity,
+  supplied: {
+    displayed_image_url?: unknown
+    original_image_url?: unknown
+    source_page_url?: unknown
+    source_field?: unknown
+    source_label?: unknown
+    is_category_art?: unknown
+  },
+) {
+  const displayedImageUrl = cleanText(supplied.displayed_image_url)
+  const originalImageUrl = cleanText(supplied.original_image_url) || displayedImageUrl
+  const sourcePageUrl = cleanText(supplied.source_page_url) || originalImageUrl
+  const sourceField = cleanText(supplied.source_field)
+  const sourceLabel = cleanText(supplied.source_label) || sourceField
+  const isCategoryArt = supplied.is_category_art === true || sourceField === 'category_placeholder'
+  const allowedSources = new Set<string>([...storedSourceFields, 'category_placeholder'])
+  if (!validHttpUrl(displayedImageUrl) || !validHttpUrl(originalImageUrl)) throw new Error('The displayed image URL is not usable.')
+  if (!allowedSources.has(sourceField)) throw new Error('The displayed image source is not recognised.')
+  if (!allowsWikimediaImages(activity) && [displayedImageUrl, originalImageUrl, sourcePageUrl].some(isWikimediaSource)) {
+    throw new Error('Wikimedia images are not allowed for this activity category.')
+  }
+  if (!isCategoryArt && hasBlockedAssetTerms(displayedImageUrl, originalImageUrl, sourcePageUrl)) {
+    throw new Error('The displayed image appears to be a logo, icon, placeholder, or other utility asset.')
+  }
+  if (cleanText(activity.image_review_approved_url) === displayedImageUrl
+    && cleanText(activity.image_review_approved_source_field) === sourceField
+    && activity.image_review_approved_at) {
+    return {
+      image_review_approved_at: activity.image_review_approved_at,
+      image_review_approved_by_user_id: activity.image_review_approved_by_user_id || userId,
+      image_review_approved_url: displayedImageUrl,
+      image_review_approved_original_url: cleanText(activity.image_review_approved_original_url) || originalImageUrl,
+      image_review_approved_source_field: sourceField,
+      image_review_approved_source_url: cleanText(activity.image_review_approved_source_url) || sourcePageUrl,
+    }
+  }
+  const approvedAt = new Date().toISOString()
+  const approval = {
+    image_review_approved_at: approvedAt,
+    image_review_approved_by_user_id: userId,
+    image_review_approved_url: displayedImageUrl,
+    image_review_approved_original_url: originalImageUrl,
+    image_review_approved_source_field: sourceField,
+    image_review_approved_source_url: sourcePageUrl,
+  }
+  const candidate = {
+    image_url: originalImageUrl,
+    thumbnail_url: displayedImageUrl,
+    source_page_url: sourcePageUrl,
+    source_domain: domain(sourcePageUrl) || domain(originalImageUrl),
+    title: `${sourceLabel} approved in quick review`,
+    width: null,
+    height: null,
+    relevance_reason: 'Administrator confirmed that the currently displayed card image is accurate and good quality.',
+    selection_kind: 'current_image_approval' as const,
+    source_field: sourceField,
+    source_label: sourceLabel,
+    displayed_image_url: displayedImageUrl,
+    is_category_art: isCategoryArt,
+  }
+  const activityUpdate = supabase.from('activities').update({ ...approval, updated_at: approvedAt })
+    .eq('activity_id', activity.activity_id)
+  const reviewLog = supabase.from('activity_image_manual_reviews').insert({
+    activity_id: activity.activity_id,
+    reviewed_image_url: displayedImageUrl,
+    original_image_url: originalImageUrl,
+    source_page_url: sourcePageUrl,
+    search_query: `Quick review approval: ${sourceField}`,
+    candidate,
+    model: 'Desktop quick review approval',
+    selected_by_user_id: userId,
+  })
+  const [{ error: updateError }, { error: logError }] = await Promise.all([activityUpdate, reviewLog])
+  if (updateError) throw new Error(updateError.message)
+  if (logError) throw new Error(`Approval saved on the activity, but the ground-truth log failed: ${logError.message}`)
+  return approval
 }
 
 async function publishDraft(supabase: ReturnType<typeof createClient>, activity: Activity, userId: string) {
@@ -911,6 +1092,12 @@ async function promoteModelSelection(
     model_selected_reason: null,
     model_selected_model: null,
     model_selected_model_version: null,
+    image_review_approved_at: null,
+    image_review_approved_by_user_id: null,
+    image_review_approved_url: null,
+    image_review_approved_original_url: null,
+    image_review_approved_source_field: null,
+    image_review_approved_source_url: null,
     updated_at: selectedAt,
   }).eq('activity_id', activity.activity_id)
   const reviewLog = supabase.from('activity_image_manual_reviews').insert({
@@ -965,6 +1152,12 @@ async function useNextHierarchyImage(
     model_selected_reason: null,
     model_selected_model: null,
     model_selected_model_version: null,
+    image_review_approved_at: null,
+    image_review_approved_by_user_id: null,
+    image_review_approved_url: null,
+    image_review_approved_original_url: null,
+    image_review_approved_source_field: null,
+    image_review_approved_source_url: null,
     updated_at: changedAt,
   }).in('activity_id', activityIds)
     .eq('archive', false)
@@ -1016,18 +1209,25 @@ Deno.serve(async (request) => {
   const user = await authenticatedAdmin(request, supabase)
   if (!user) return jsonResponse({ error: 'Only Tiny Outings administrators can use desktop image review.' }, 403)
   const body = await request.json().catch(() => ({})) as {
-    action?: 'search' | 'select' | 'approve_model' | 'select_category_illustration' | 'use_next_hierarchy_image' | 'publish' | 'ignore' | 'archive' | 'unarchive'
+    action?: 'search' | 'select' | 'approve_model' | 'approve_current_image' | 'select_category_illustration' | 'use_next_hierarchy_image' | 'publish' | 'ignore' | 'archive' | 'unarchive'
     activity_id?: string
     activity_ids?: string[]
     candidate_request_id?: string
     query?: string
     request_variant?: string
     candidate_index?: number
-    selection_kind?: 'search_candidate' | 'hierarchy_source' | typeof categoryIllustrationSelectionKind
+    selection_kind?: 'search_candidate' | 'hierarchy_source' | 'candidate_source' | typeof categoryIllustrationSelectionKind
     source_field?: StoredSourceField
+    candidate_source?: CandidateSourceField
     candidate_set_searched_at?: string
+    candidate_set_fetched_at?: string
     automated_review_id?: string
     ignored?: boolean
+    displayed_image_url?: string
+    original_image_url?: string
+    source_page_url?: string
+    source_label?: string
+    is_category_art?: boolean
   }
   if (!body.activity_id || !body.action) return jsonResponse({ error: 'action and activity_id are required.' }, 400)
   try {
@@ -1055,6 +1255,11 @@ Deno.serve(async (request) => {
         : null
       return jsonResponse({ status: 'selected', ...result, automatedReview: completedAutomatedReview })
     }
+    if (body.action === 'approve_current_image') {
+      if (!user.id) return jsonResponse({ error: 'An administrator user session is required to approve an image.' }, 403)
+      const approval = await approveCurrentImage(supabase, user.id, activity, body)
+      return jsonResponse({ status: 'approved', approval })
+    }
     if (body.action === 'select') {
       if (!user.id) return jsonResponse({ error: 'An administrator user session is required to select an image.' }, 403)
       if (body.selection_kind === categoryIllustrationSelectionKind) {
@@ -1069,8 +1274,12 @@ Deno.serve(async (request) => {
         return jsonResponse({ status: 'selected', ...result, automatedReview: completedAutomatedReview })
       }
       const selectedStoredSource = body.selection_kind === 'hierarchy_source'
+      const selectedCandidateSource = body.selection_kind === 'candidate_source'
       if (selectedStoredSource && !isStoredSourceField(body.source_field)) {
         return jsonResponse({ error: 'A valid source_field is required.' }, 400)
+      }
+      if (selectedCandidateSource && !isCandidateSourceField(body.candidate_source)) {
+        return jsonResponse({ error: 'A valid candidate_source is required.' }, 400)
       }
       if (!selectedStoredSource && (!Number.isInteger(body.candidate_index) || Number(body.candidate_index) < 0)) {
         return jsonResponse({ error: 'candidate_index is required.' }, 400)
@@ -1082,7 +1291,16 @@ Deno.serve(async (request) => {
       const selectedCandidateIndex = selectedStoredSource ? null : Number(body.candidate_index)
       const result = selectedStoredSource
         ? await storeExistingSource(supabase, user.id, activity, body.source_field as StoredSourceField)
-        : await storeSearchCandidate(supabase, user.id, activity, selectedCandidateIndex as number, cleanText(body.candidate_set_searched_at))
+        : selectedCandidateSource
+          ? await storeCandidateSource(
+            supabase,
+            user.id,
+            activity,
+            body.candidate_source as CandidateSourceField,
+            selectedCandidateIndex as number,
+            cleanText(body.candidate_set_fetched_at),
+          )
+          : await storeSearchCandidate(supabase, user.id, activity, selectedCandidateIndex as number, cleanText(body.candidate_set_searched_at))
       const completedAutomatedReview = automatedReview
         ? await completeAutomatedReview(supabase, automatedReview, selectedCandidateIndex, result.reviewedImageUrl, user.id)
         : null

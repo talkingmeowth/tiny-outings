@@ -10,6 +10,8 @@ import {
 import {
   QUEUES,
   activitiesToPreload,
+  candidateArraySelectionForValue,
+  candidateArraySelectionKey,
   bestLocation,
   clean,
   currentImage,
@@ -18,6 +20,8 @@ import {
   fullReviewUrl,
   googlePlacesUrl,
   imageSourceOptions,
+  imageCandidateSections,
+  isQuickReviewApproved,
   listingSearchText,
   openListingUrl,
   prepareActivities,
@@ -25,6 +29,7 @@ import {
   preloadReadinessByQueue,
   providerLabel,
   quickReviewImage,
+  quickReviewApproval,
   queueCountsFromPrepared,
   searchQueries,
   storedImageCandidates,
@@ -45,13 +50,16 @@ const AUTOMATED_MODEL_SELECTION_KIND = 'automated_model_selection';
 
 const activityColumns = [
   'activity_id', 'activity_name', 'address', 'postcode', 'borough', 'category', 'age_suitability',
-  'description', 'card_summary', 'website', 'organiser_website', 'source_url', 'source_name', 'image_source_url',
+  'description', 'card_summary', 'website', 'organiser_website', 'source_url', 'source_name', 'image_source_url', 'image_url', 'google_photo_url',
   'google_place_uri', 'google_link', 'public_listing_status', 'archive', 'archive_reason', 'archived_at', 'archive_previous_listing_status', 'audit_image_status', 'audit_image_original_url', 'audit_image_original_source_field',
   'admin_cover_image_url', 'reviewed_image_url', 'use_category_image', 'reviewed_image_source_url', 'reviewed_image_original_url',
   'reviewed_image_selected_at', 'reviewed_image_model', 'user_image_url', 'audit_image_url', 'audit_image_source_url',
   'scraped_image_url', 'model_selected_url', 'model_selected_confidence', 'model_selected_original_url', 'model_selected_source_url', 'model_selected_source_field', 'model_selected_reason', 'model_selected_model', 'model_selected_model_version', 'organiser_website_downloaded_image', 'website_downloaded_image', 'wikimedia_image_url', 'website_image_url',
   'listing_image_url', 'codex_image_search_query', 'codex_image_searched_at',
-  'codex_image_search_model', 'image_review_ignored_at', 'image_review_ignored_by_user_id', 'created_at', 'updated_at',
+  'codex_image_search_model', 'image_review_ignored_at', 'image_review_ignored_by_user_id',
+  'image_review_approved_at', 'image_review_approved_by_user_id', 'image_review_approved_url',
+  'image_review_approved_original_url', 'image_review_approved_source_field', 'image_review_approved_source_url',
+  'created_at', 'updated_at',
 ].join(',');
 
 const initialPageParams = new URLSearchParams(window.location.search);
@@ -149,7 +157,7 @@ async function loadAllActivities() {
     .order('activity_id', { ascending: true })
     .range(from, from + pageSize - 1));
   const photosPromise = loadPages((from) => supabase.from('activity_photos')
-    .select('activity_id,photo_url')
+    .select('photo_id,activity_id,photo_url,caption,created_at')
     .eq('source_provider', 'user_upload')
     .order('created_at', { ascending: false })
     .range(from, from + pageSize - 1), 1).catch(() => []);
@@ -160,19 +168,39 @@ async function loadAllActivities() {
     .range(from, from + pageSize - 1), 1);
   const [activities, photos, automatedReviews] = await Promise.all([activitiesPromise, photosPromise, automatedReviewsPromise]);
 
-  const userImageByActivity = new Map();
+  const userImagesByActivity = new Map();
   for (const photo of photos) {
-    if (photo.activity_id && photo.photo_url && !userImageByActivity.has(String(photo.activity_id))) {
-      userImageByActivity.set(String(photo.activity_id), photo.photo_url);
-    }
+    if (!photo.activity_id || !photo.photo_url) continue;
+    const activityId = String(photo.activity_id);
+    const images = userImagesByActivity.get(activityId) || [];
+    images.push({
+      image_url: photo.photo_url,
+      thumbnail_url: photo.photo_url,
+      source_page_url: photo.photo_url,
+      title: photo.caption || 'Uploaded activity image',
+      photo_id: photo.photo_id,
+      created_at: photo.created_at,
+    });
+    userImagesByActivity.set(activityId, images);
   }
   const automatedReviewByActivity = new Map(automatedReviews.map((review) => [String(review.activity_id), review]));
-  return activities.map((activity) => ({
-    ...activity,
-    candidate_set_loaded: false,
-    user_uploaded_image_url: userImageByActivity.get(String(activity.activity_id)) || null,
-    automated_image_review: automatedReviewByActivity.get(String(activity.activity_id)) || null,
-  }));
+  return activities.map((activity) => {
+    const uploadedImages = userImagesByActivity.get(String(activity.activity_id)) || [];
+    return {
+      ...activity,
+      candidate_set_loaded: false,
+      user_uploaded_image_url: uploadedImages[0]?.image_url || null,
+      user_uploaded_image_candidates: uploadedImages,
+      automated_image_review: automatedReviewByActivity.get(String(activity.activity_id)) || null,
+    };
+  });
+}
+
+function candidateSetRevision(activity, field) {
+  if (field === 'serpapi_image_candidates') return activity?.serpapi_image_candidates_fetched_at || '';
+  if (field === 'website_image_candidates') return activity?.website_image_candidates_fetched_at || '';
+  if (field === 'codex_image_candidates') return activity?.codex_image_searched_at || '';
+  return '';
 }
 
 async function loadRequestedActivity(activityId) {
@@ -182,12 +210,11 @@ async function loadRequestedActivity(activityId) {
       .eq('activity_id', activityId)
       .single(),
     supabase.from('activity_photos')
-      .select('photo_url')
+      .select('photo_id,photo_url,caption,created_at')
       .eq('activity_id', activityId)
       .eq('source_provider', 'user_upload')
       .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle(),
+      .limit(100),
     supabase.from('activity_image_automated_reviews')
       .select('automated_review_id,activity_id,status,source_queue,candidate_index,candidate,candidate_set_searched_at,confidence,reason,model_name,model_version,training_review_count,model_metrics,created_at,auto_applied_at,auto_applied_image_url,apply_failure_reason,apply_attempted_at')
       .eq('activity_id', activityId)
@@ -197,11 +224,21 @@ async function loadRequestedActivity(activityId) {
       .maybeSingle(),
   ]);
   if (activityResponse.error) throw activityResponse.error;
+  if (photoResponse.error) throw photoResponse.error;
   if (automatedReviewResponse.error) throw automatedReviewResponse.error;
+  const uploadedImages = (photoResponse.data || []).map((photo) => ({
+    image_url: photo.photo_url,
+    thumbnail_url: photo.photo_url,
+    source_page_url: photo.photo_url,
+    title: photo.caption || 'Uploaded activity image',
+    photo_id: photo.photo_id,
+    created_at: photo.created_at,
+  }));
   return {
     ...activityResponse.data,
     candidate_set_loaded: false,
-    user_uploaded_image_url: photoResponse.data?.photo_url || null,
+    user_uploaded_image_url: uploadedImages[0]?.image_url || null,
+    user_uploaded_image_candidates: uploadedImages,
     automated_image_review: automatedReviewResponse.data || null,
   };
 }
@@ -306,17 +343,19 @@ function CandidateLightbox({ candidate, index, onClose }) {
   );
 }
 
-function QuickReviewCard({ activity, onOpenDetail }) {
+function QuickReviewCard({ activity, approving, onApprove, onOpenDetail }) {
   const image = quickReviewImage(activity);
+  const approved = isQuickReviewApproved(activity);
   const provider = providerLabel(activity);
   const status = listingStatusLabel(activity);
   const statusClass = status.toLowerCase();
   return (
-    <article className={`quick-review-card${image.isPlaceholder ? ' placeholder' : ''}`}>
+    <article className={`quick-review-card${image.isPlaceholder ? ' placeholder' : ''}${approved ? ' approved' : ''}`}>
       <button className="quick-review-image" type="button" onClick={() => onOpenDetail(activity.activity_id)} aria-label={`Review ${activity.activity_name || 'untitled listing'}`}>
         <img src={image.url} alt={activity.activity_name || 'Activity image'} loading="lazy" decoding="async" />
         <span className={`quick-status-badge ${statusClass}`}>{status}</span>
         <span className={`quick-source-badge${image.isPlaceholder ? ' placeholder' : ''}`}>{image.field}</span>
+        {approved ? <span className="quick-approved-badge">Approved</span> : null}
       </button>
       <div className="quick-review-copy">
         <strong>{activity.activity_name || 'Untitled listing'}</strong>
@@ -325,6 +364,9 @@ function QuickReviewCard({ activity, onOpenDetail }) {
         <small>{image.label}</small>
       </div>
       <div className="quick-review-actions">
+        <button className={`quick-approve-button${approved ? ' approved' : ''}`} type="button" disabled={approved || approving} onClick={() => onApprove(activity)}>
+          {approving ? 'Saving…' : approved ? 'Approved ✓' : 'Approve image'}
+        </button>
         <button type="button" onClick={() => onOpenDetail(activity.activity_id)}>Open full review</button>
         {image.sourceUrl ? <a href={image.sourceUrl} target="_blank" rel="noreferrer">Open source ↗</a> : <span>Category artwork</span>}
       </div>
@@ -343,7 +385,9 @@ function QuickReviewPage({
   onFilterChange,
   onImageSourceFilterChange,
   onLoadMore,
+  onApprove,
   onOpenDetail,
+  approvingActivityId,
   queue,
   sourceFilterOptions,
   totalActivities,
@@ -380,13 +424,22 @@ function QuickReviewPage({
       <div className="quick-review-summary">
         <strong>{compactNumber(activities.length)} shown</strong>
         <span>of {compactNumber(totalActivities)} matching listings</span>
+        <span>{compactNumber(activities.filter(isQuickReviewApproved).length)} shown are approved</span>
         <span>Click any picture to open its full review.</span>
       </div>
 
       {loading ? <p className="quick-review-empty">Loading listings…</p> : null}
       {!loading && !totalActivities ? <p className="quick-review-empty">No listings match this queue and filter.</p> : null}
       <section className="quick-review-grid" aria-label="Listing pictures">
-        {activities.map((activity) => <QuickReviewCard activity={activity} key={activity.activity_id} onOpenDetail={onOpenDetail} />)}
+        {activities.map((activity) => (
+          <QuickReviewCard
+            activity={activity}
+            approving={approvingActivityId === activity.activity_id}
+            key={activity.activity_id}
+            onApprove={onApprove}
+            onOpenDetail={onOpenDetail}
+          />
+        ))}
       </section>
 
       {activities.length < totalActivities ? (
@@ -416,6 +469,7 @@ function App() {
   const [busy, setBusy] = useState('');
   const [notice, setNotice] = useState('');
   const [archiveConfirmId, setArchiveConfirmId] = useState('');
+  const [approvingActivityId, setApprovingActivityId] = useState('');
   const [preloadStatus, setPreloadStatus] = useState({ status: 'idle', ready: 0, total: 0, apiCalls: 0, failed: 0 });
   const [quickVisibleCount, setQuickVisibleCount] = useState(QUICK_REVIEW_BATCH_SIZE);
   const selectedIdRef = useRef(selectedId);
@@ -538,20 +592,24 @@ function App() {
     ? selectedActivity.automated_image_review
     : null;
   const queries = useMemo(() => selectedActivity ? searchQueries(selectedActivity) : null, [selectedActivity]);
-  const candidates = Array.isArray(selectedActivity?.codex_image_candidates) ? selectedActivity.codex_image_candidates.slice(0, 20) : [];
+  const candidateSections = selectedActivity ? imageCandidateSections(selectedActivity) : [];
+  const arrayCandidates = candidateSections.flatMap((section) => section.candidates);
+  const candidates = candidateSections.find((section) => section.id === 'codex_image_candidates')?.candidates || [];
   const storedCandidates = selectedActivity ? storedImageCandidates(selectedActivity) : [];
   const automatedCandidate = automatedReview?.candidate || null;
   const automatedStoredSource = automatedCandidate?.source_field
     ? storedCandidates.find((candidate) => candidate.source_field === automatedCandidate.source_field
       && candidate.image_url === automatedCandidate.image_url)
     : null;
-  const automatedSearchIndex = automatedCandidate
-    ? candidates.findIndex((candidate) => candidate.image_url === automatedCandidate.image_url
+  const automatedArrayCandidate = automatedCandidate
+    ? arrayCandidates.find((candidate) => candidate.image_url === automatedCandidate.image_url
       || candidate.original === automatedCandidate.image_url)
-    : -1;
+    : null;
   const automatedSelectionValue = automatedStoredSource
     ? storedSourceSelectionKey(automatedStoredSource.source_field)
-    : automatedSearchIndex >= 0 ? automatedSearchIndex : automatedCandidate ? AUTOMATED_MODEL_SELECTION_KIND : null;
+    : automatedArrayCandidate
+      ? candidateArraySelectionKey(automatedArrayCandidate.candidate_source, automatedArrayCandidate.candidate_index)
+      : automatedCandidate ? AUTOMATED_MODEL_SELECTION_KIND : null;
   const standaloneAutomatedCandidate = automatedSelectionValue === AUTOMATED_MODEL_SELECTION_KIND ? automatedCandidate : null;
   const illustratedCandidate = selectedActivity ? categoryIllustrationCandidate(selectedActivity) : null;
   const activeImage = selectedActivity ? currentImage(selectedActivity) : null;
@@ -586,7 +644,7 @@ function App() {
           codex_image_search_query: query,
           codex_image_searched_at: completedAt,
           codex_image_search_model: 'SerpAPI Google Images — top 20 unfiltered',
-          candidate_set_loaded: true,
+          search_candidate_set_loaded: true,
         } : currentActivity));
         if (selectedIdRef.current === activityId) setCandidateRequest({ status: 'completed', requested_query: query, request_variant: variant, requested_at: requestedAt, completed_at: completedAt, candidate_count: demoCandidates.length, codex_model: 'SerpAPI Google Images — top 20 unfiltered' });
         return true;
@@ -606,10 +664,11 @@ function App() {
         setActivities((current) => current.map((currentActivity) => currentActivity.activity_id === activityId ? {
           ...currentActivity,
           codex_image_candidates: searchResponse.data.candidates,
+          serpapi_image_candidates: searchResponse.data.canonicalCandidates || currentActivity.serpapi_image_candidates,
           codex_image_search_query: searchResponse.data.query,
           codex_image_searched_at: searchResponse.data.searchedAt,
           codex_image_search_model: searchResponse.data.source,
-          candidate_set_loaded: true,
+          search_candidate_set_loaded: true,
         } : currentActivity));
         if (selectedIdRef.current === activityId) {
           setCandidateRequest(searchResponse.data.request || {
@@ -656,16 +715,16 @@ function App() {
       setPreloadStatus({ status: 'loading', ready: 0, total: targetIds.length, apiCalls: 0, failed: 0 });
       try {
         const response = await supabase.from('activities')
-          .select('activity_id,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model')
+          .select('activity_id,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,serpapi_image_candidates,serpapi_image_search_query,serpapi_image_candidates_fetched_at')
           .in('activity_id', targetIds);
         if (response.error) throw response.error;
         const savedById = new Map((response.data || []).map((activity) => [activity.activity_id, activity]));
         setActivities((current) => current.map((activity) => {
           const saved = savedById.get(activity.activity_id);
-          return saved ? { ...activity, ...saved, candidate_set_loaded: true } : activity;
+          return saved ? { ...activity, ...saved, search_candidate_set_loaded: true } : activity;
         }));
         const missing = currentTargets
-          .map((activity) => ({ ...activity, ...(savedById.get(activity.activity_id) || {}), candidate_set_loaded: true }))
+          .map((activity) => ({ ...activity, ...(savedById.get(activity.activity_id) || {}), search_candidate_set_loaded: true }))
           .filter((activity) => !Array.isArray(activity.codex_image_candidates) || !activity.codex_image_candidates.length);
         let ready = targetIds.length - missing.length;
         let failed = 0;
@@ -715,7 +774,7 @@ function App() {
     async function loadSavedCandidates() {
       try {
         const response = await supabase.from('activities')
-          .select('activity_id,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model')
+          .select('activity_id,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,serpapi_image_candidates,serpapi_image_search_query,serpapi_image_candidates_fetched_at,website_image_candidates,website_image_candidates_fetched_at')
           .eq('activity_id', activityId)
           .single();
         if (response.error) throw response.error;
@@ -753,18 +812,21 @@ function App() {
     const selectedAutomatedModel = selectedCandidate === AUTOMATED_MODEL_SELECTION_KIND;
     const selectedSourceField = storedSourceFieldForSelection(selectedCandidate);
     const selectedStoredSource = Boolean(selectedSourceField);
-    const selectedCandidateIndex = selectedCategoryIllustration || selectedStoredSource || selectedAutomatedModel ? null : Number(selectedCandidate);
+    const selectedArraySource = candidateArraySelectionForValue(selectedCandidate);
+    const selectedCandidateIndex = selectedArraySource?.index ?? null;
     const candidate = selectedCategoryIllustration
       ? illustratedCandidate
       : selectedAutomatedModel
         ? standaloneAutomatedCandidate
       : selectedStoredSource
         ? storedCandidates.find((item) => item.source_field === selectedSourceField)
-        : candidates[selectedCandidateIndex];
-    if (!candidate || (!selectedCategoryIllustration && !selectedStoredSource && !selectedAutomatedModel && !Number.isInteger(selectedCandidateIndex))) return;
+        : arrayCandidates.find((item) => item.candidate_source === selectedArraySource?.field
+          && item.candidate_index === selectedArraySource?.index);
+    if (!candidate || (!selectedCategoryIllustration && !selectedStoredSource && !selectedAutomatedModel && !selectedArraySource)) return;
     const acceptedModelChoice = selectedAutomatedModel
       || (!selectedCategoryIllustration && pendingAutomatedReview?.candidate?.image_url === candidate.image_url)
-      || (!selectedCategoryIllustration && !selectedStoredSource && pendingAutomatedReview?.candidate_index === selectedCandidateIndex);
+      || (!selectedCategoryIllustration && pendingAutomatedReview?.candidate_index === selectedCandidateIndex
+        && ['codex_image_candidates', 'serpapi_image_candidates'].includes(selectedArraySource?.field));
     setBusy('save');
     setNotice('');
     if (isDemo) {
@@ -776,6 +838,12 @@ function App() {
         model_selected_confidence: selectedCategoryIllustration ? activity.model_selected_confidence : null,
         reviewed_image_source_url: selectedCategoryIllustration ? null : candidate.source_page_url || candidate.image_url,
         reviewed_image_original_url: selectedCategoryIllustration ? null : candidate.image_url,
+        image_review_approved_at: null,
+        image_review_approved_by_user_id: null,
+        image_review_approved_url: null,
+        image_review_approved_original_url: null,
+        image_review_approved_source_field: null,
+        image_review_approved_source_url: null,
         automated_image_review: null,
       } : activity));
       setSelectedCandidate(null);
@@ -787,11 +855,12 @@ function App() {
       body: {
         action: selectedCategoryIllustration ? 'select_category_illustration' : selectedAutomatedModel ? 'approve_model' : 'select',
         activity_id: selectedActivity.activity_id,
-        selection_kind: selectedStoredSource ? 'hierarchy_source' : 'search_candidate',
+        selection_kind: selectedStoredSource ? 'hierarchy_source' : selectedArraySource ? 'candidate_source' : 'search_candidate',
         ...(selectedStoredSource ? { source_field: selectedSourceField } : {}),
-        ...(!selectedCategoryIllustration && !selectedStoredSource && !selectedAutomatedModel ? {
+        ...(selectedArraySource ? {
+          candidate_source: selectedArraySource.field,
           candidate_index: selectedCandidateIndex,
-          candidate_set_searched_at: selectedActivity.codex_image_searched_at,
+          candidate_set_fetched_at: candidateSetRevision(selectedActivity, selectedArraySource.field),
         } : {}),
         ...(pendingAutomatedReview ? { automated_review_id: pendingAutomatedReview.automated_review_id } : {}),
       },
@@ -815,6 +884,12 @@ function App() {
         reviewed_image_original_url: response.data.reviewedImageUrl ? response.data.candidate?.image_url : null,
         reviewed_image_selected_at: response.data.reviewedImageUrl ? response.data.selectedAt : null,
         reviewed_image_model: response.data.reviewedImageUrl ? response.data.model : null,
+        image_review_approved_at: null,
+        image_review_approved_by_user_id: null,
+        image_review_approved_url: null,
+        image_review_approved_original_url: null,
+        image_review_approved_source_field: null,
+        image_review_approved_source_url: null,
         automated_image_review: response.data.automatedReview ? null : activity.automated_image_review,
       } : activity));
       setSelectedCandidate(null);
@@ -828,9 +903,51 @@ function App() {
           : 'Your correction was downloaded and applied; the model proposal was logged as corrected.'
         : selectedStoredSource
           ? `${selectedSourceField} was copied into reviewed_image_url and applied to the listing.`
-          : 'Reviewed image downloaded, stored, and applied to the listing.');
+          : `${candidate.source_label || selectedArraySource?.field || 'Selected image'} was downloaded, stored, and applied to the listing.`);
     }
     setBusy('');
+  }
+
+  async function approveQuickImage(activity) {
+    if (!activity || approvingActivityId || isQuickReviewApproved(activity)) return;
+    const approval = quickReviewApproval(activity);
+    if (!approval.displayed_image_url) {
+      setNotice('There is no displayed image to approve. Open full review and choose an image first.');
+      return;
+    }
+    const approvedAt = new Date().toISOString();
+    setApprovingActivityId(activity.activity_id);
+    setNotice('');
+    if (isDemo) {
+      setActivities((current) => current.map((item) => item.activity_id === activity.activity_id ? {
+        ...item,
+        image_review_approved_at: approvedAt,
+        image_review_approved_by_user_id: session?.user?.id || 'demo',
+        image_review_approved_url: approval.displayed_image_url,
+        image_review_approved_original_url: approval.original_image_url,
+        image_review_approved_source_field: approval.source_field,
+        image_review_approved_source_url: approval.source_page_url,
+      } : item));
+      setApprovingActivityId('');
+      setNotice('Image approved and added to the ground-truth set.');
+      return;
+    }
+    const response = await invokeFunctionWithRetry(() => supabase.functions.invoke('image-review-admin', {
+      body: {
+        action: 'approve_current_image',
+        activity_id: activity.activity_id,
+        ...approval,
+      },
+    }));
+    if (response.error || response.data?.error) {
+      setNotice(`Could not approve this image: ${await edgeFunctionErrorMessage(response, 'Quick approval failed.')}`);
+    } else {
+      setActivities((current) => current.map((item) => item.activity_id === activity.activity_id
+        ? { ...item, ...response.data.approval }
+        : item));
+      setNotice('Image approved without changing the listing. It is now part of the image ground truth.');
+    }
+    setApprovingActivityId('');
   }
 
   async function doNotUseModelImage() {
@@ -1007,6 +1124,7 @@ function App() {
     : candidateRequest?.status || (candidates.length ? 'completed' : selectedActivity?.candidate_set_loaded ? 'not_requested' : 'loading');
   const selectedIsCategoryIllustration = selectedCandidate === CATEGORY_ILLUSTRATION_SELECTION_KIND;
   const selectedStoredSourceField = storedSourceFieldForSelection(selectedCandidate);
+  const selectedArraySource = candidateArraySelectionForValue(selectedCandidate);
   const candidateSource = candidates.length
     ? selectedActivity.codex_image_search_model || candidateRequest?.codex_model || 'Saved image candidates'
     : 'SerpAPI Google Images';
@@ -1066,7 +1184,9 @@ function App() {
           onFilterChange={(event) => setFilter(event.target.value)}
           onImageSourceFilterChange={(event) => setImageSourceFilter(event.target.value)}
           onLoadMore={() => setQuickVisibleCount((current) => Math.min(current + QUICK_REVIEW_BATCH_SIZE, queueActivities.length))}
+          onApprove={approveQuickImage}
           onOpenDetail={openDetailedReview}
+          approvingActivityId={approvingActivityId}
           queue={selectedQueue}
           sourceFilterOptions={sourceFilterOptions}
           totalActivities={queueActivities.length}
@@ -1219,12 +1339,12 @@ function App() {
 
             <section className="candidate-column">
               <div className="candidate-header">
-                <div><p className="eyebrow">Stored sources + category illustration + Google Images</p><h2>Candidate gallery <span>{storedCandidates.length + candidates.length + (illustratedCandidate ? 1 : 0) + (standaloneAutomatedCandidate ? 1 : 0)}</span></h2></div>
-                <div className="candidate-actions"><button className="text-button" type="button" disabled={selectedCandidate == null} onClick={() => setSelectedCandidate(null)}>Clear selection</button><button className="primary-button" type="button" disabled={isSelectedArchived || selectedCandidate == null || busy === 'save'} onClick={saveSelected}>{isSelectedArchived ? 'Unarchive to edit' : busy === 'save' ? 'Downloading…' : selectedIsCategoryIllustration ? 'Use category image' : selectedStoredSourceField ? `Use ${selectedStoredSourceField}` : automatedReview ? automatedReview.candidate_index === selectedCandidate ? automatedReview.status === 'auto_applied' ? 'Confirm model choice' : 'Approve model choice' : 'Save correction' : 'Use selected image'}</button></div>
+                <div><p className="eyebrow">Every stored image source, fully labelled</p><h2>Candidate gallery <span>{storedCandidates.length + arrayCandidates.length + (illustratedCandidate ? 1 : 0) + (standaloneAutomatedCandidate ? 1 : 0)}</span></h2></div>
+                <div className="candidate-actions"><button className="text-button" type="button" disabled={selectedCandidate == null} onClick={() => setSelectedCandidate(null)}>Clear selection</button><button className="primary-button" type="button" disabled={isSelectedArchived || selectedCandidate == null || busy === 'save'} onClick={saveSelected}>{isSelectedArchived ? 'Unarchive to edit' : busy === 'save' ? 'Downloading…' : selectedIsCategoryIllustration ? 'Use category image' : selectedStoredSourceField ? `Use ${selectedStoredSourceField}` : automatedReview && selectedCandidate === automatedSelectionValue ? automatedReview.status === 'auto_applied' ? 'Confirm model choice' : 'Approve model choice' : automatedReview ? 'Save correction' : selectedArraySource ? `Use ${selectedArraySource.field.replaceAll('_', ' ')}` : 'Use selected image'}</button></div>
               </div>
               {illustratedCandidate ? (
                 <>
-                  <p className="gallery-section-label">Existing listing sources</p>
+                  <p className="gallery-section-label">Category artwork and all stored listing fields</p>
                   <div className="candidate-grid source-candidate-grid">
                     <CandidateCard key={CATEGORY_ILLUSTRATION_SELECTION_KIND} candidate={illustratedCandidate} index={-1} selectionKey={CATEGORY_ILLUSTRATION_SELECTION_KIND} selected={selectedIsCategoryIllustration} recommended={false} onSelect={selectCandidate} onZoom={(imageCandidate) => setZoomedCandidate({ candidate: imageCandidate, index: -1 })} />
                     {standaloneAutomatedCandidate ? <CandidateCard key={AUTOMATED_MODEL_SELECTION_KIND} candidate={standaloneAutomatedCandidate} index={Number(automatedReview?.candidate_index) || 0} selectionKey={AUTOMATED_MODEL_SELECTION_KIND} selected={selectedCandidate === AUTOMATED_MODEL_SELECTION_KIND} recommended onSelect={selectCandidate} onZoom={(imageCandidate) => setZoomedCandidate({ candidate: imageCandidate, index: Number(automatedReview?.candidate_index) || 0 })} /> : null}
@@ -1233,10 +1353,34 @@ function App() {
                       return <CandidateCard key={selectionKey} candidate={candidate} index={index} selectionKey={selectionKey} selected={selectedCandidate === selectionKey} recommended={automatedReview?.candidate?.image_url === candidate.image_url} onSelect={selectCandidate} onZoom={(imageCandidate) => setZoomedCandidate({ candidate: imageCandidate, index })} />;
                     })}
                   </div>
-                  <p className="gallery-section-label google-results">SerpAPI Google Images — top {candidates.length || 20}</p>
-                  <div className="candidate-grid">
-                    {candidates.map((candidate, index) => <CandidateCard key={`${candidate.image_url}-${index}`} candidate={candidate} index={index} selected={selectedCandidate === index} recommended={automatedReview?.candidate?.image_url === (candidate.image_url || candidate.original) || automatedReview?.candidate_index === index} onSelect={selectCandidate} onZoom={(imageCandidate, candidateIndex) => setZoomedCandidate({ candidate: imageCandidate, index: candidateIndex })} />)}
-                  </div>
+                  {candidateSections.map((section) => (
+                    <section className="candidate-source-section" key={section.id}>
+                      <p className="gallery-section-label google-results">{section.label} <span>{section.candidates.length}</span></p>
+                      <div className="candidate-grid">
+                        {section.candidates.map((candidate, index) => {
+                          const selectionKey = candidateArraySelectionKey(candidate.candidate_source, candidate.candidate_index);
+                          return (
+                            <CandidateCard
+                              candidate={candidate}
+                              index={index}
+                              key={selectionKey}
+                              selectionKey={selectionKey}
+                              selected={selectedCandidate === selectionKey}
+                              recommended={automatedReview?.candidate?.image_url === candidate.image_url}
+                              onSelect={selectCandidate}
+                              onZoom={(imageCandidate) => setZoomedCandidate({ candidate: imageCandidate, index })}
+                            />
+                          );
+                        })}
+                      </div>
+                    </section>
+                  ))}
+                  {!candidateSections.length && requestStatus !== 'loading' ? (
+                    <div className="waiting-panel compact">
+                      <h3>No stored search or website candidates</h3>
+                      <p>The category image and any populated listing image fields above are still available. Run the search to add the saved SerpAPI top 20.</p>
+                    </div>
+                  ) : null}
                 </>
               ) : (
                 <div className="waiting-panel">

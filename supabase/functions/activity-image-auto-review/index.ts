@@ -252,8 +252,26 @@ async function trainingData(
   const activityById = new Map((activities || []).map((activity) => [activity.activity_id, activity]))
   return {
     rows: (reviews || []).map((review) => ({ ...review, activity: activityById.get(review.activity_id) || null }))
-      .filter((review) => review.activity && review.candidate?.selection_kind !== 'category_illustration'),
+      .filter((review) => review.activity
+        && review.candidate?.selection_kind !== 'category_illustration'
+        && review.candidate?.is_category_art !== true),
     next_offset: (reviews || []).length === pageSize ? offset + pageSize : null,
+  }
+}
+
+async function groundTruthData(
+  supabase: ReturnType<typeof createClient>,
+  offset: number,
+  pageSize: number,
+) {
+  const { data, error } = await supabase.from('activity_image_ground_truth')
+    .select('ground_truth_id,activity_id,image_url,original_image_url,source_page_url,source_field,source_label,ground_truth_label,evidence_type,is_photo,selected_by_user_id,evidence_at,metadata')
+    .order('evidence_at', { ascending: true })
+    .range(offset, offset + pageSize - 1)
+  if (error) throw new Error(error.message)
+  return {
+    rows: data || [],
+    next_offset: (data || []).length === pageSize ? offset + pageSize : null,
   }
 }
 
@@ -624,7 +642,7 @@ Deno.serve(async (request) => {
   if (!key) return jsonResponse({ error: 'Supabase service credentials are unavailable.' }, 500)
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, key)
   const body = await request.json().catch(() => ({})) as {
-    action?: 'training_data' | 'targets' | 'store_proposals' | 'apply_pending' | 'reset_apply_failures'
+    action?: 'training_data' | 'ground_truth_data' | 'targets' | 'store_proposals' | 'apply_pending' | 'reset_apply_failures'
     offset?: number
     page_size?: number
     scope?: 'targeted' | 'all_unreviewed' | 'all_active' | 'failed_applications'
@@ -664,6 +682,10 @@ Deno.serve(async (request) => {
       const batchSize = Math.min(20, Math.max(1, Number(body.batch_size) || 10))
       const result = await applyPendingProposals(supabase, batchSize, clean(body.model_version))
       return jsonResponse({ processed_count: result.rows.length, ...result })
+    }
+    if (body.action === 'ground_truth_data') {
+      const pageSize = Math.min(500, Math.max(1, Number(body.page_size) || 200))
+      return jsonResponse(await groundTruthData(supabase, Math.max(0, Number(body.offset) || 0), pageSize))
     }
     if (body.action === 'reset_apply_failures') {
       return jsonResponse({ reset_count: await resetApplyFailures(supabase, clean(body.model_version)) })

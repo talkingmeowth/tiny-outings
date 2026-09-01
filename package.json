@@ -36,6 +36,7 @@
     "activities:images:create-website-decisions": "node scripts/codex-image-review.js --source website --create-decisions",
     "activities:images:apply-website-review": "node scripts/codex-image-review.js --source website --apply",
     "activities:images:auto-review": "node scripts/automate-tagged-image-review.js",
+    "activities:images:evaluate-selector": "node scripts/evaluate-image-selection-strategies.js",
     "activities:images:auto-review:apply": "node scripts/automate-tagged-image-review.js --apply",
     "activities:images:auto-review:complete": "node scripts/automate-tagged-image-review.js --apply --search-missing",
     "activities:images:auto-review:all-unreviewed": "node scripts/automate-tagged-image-review.js --scope all-unreviewed --apply",

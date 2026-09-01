@@ -89,17 +89,29 @@ export function fullReviewUrl(baseUrl, activityId, queueId = 'all_activities') {
 export const IMAGE_SOURCE_LABELS = {
   admin_cover_image_url: 'Admin cover',
   reviewed_image_url: 'Manual desktop review',
+  reviewed_image_original_url: 'Manual review original',
   user_image_url: 'Admin image URL',
   audit_image_url: 'Audited replacement',
-  scraped_image_url: 'Scraped image (audit-safe)',
+  audit_image_original_url: 'Image checked by audit',
+  scraped_image_url: 'Scraped image (SerpAPI selector)',
   organiser_website_downloaded_image: 'Organiser website download',
   website_downloaded_image: 'Website download',
   model_selected_url: 'Model selected (70%+ confidence)',
+  model_selected_original_url: 'Model selection original',
   user_uploaded_image_url: 'User upload',
+  google_photo_url: 'Google Places photo',
+  image_url: 'Legacy activity image',
   wikimedia_image_url: 'Wikimedia',
   website_image_url: 'Website image',
   listing_image_url: 'Listing image',
   category_placeholder: 'Illustrated category image',
+};
+
+export const CANDIDATE_ARRAY_LABELS = {
+  website_image_candidates: 'Website discovery',
+  serpapi_image_candidates: 'Stored SerpAPI discovery',
+  codex_image_candidates: 'Desktop SerpAPI top 20',
+  user_uploaded_image_candidates: 'Uploaded image',
 };
 
 export const DISPLAY_IMAGE_SOURCE_ORDER = [
@@ -110,19 +122,27 @@ export const DISPLAY_IMAGE_SOURCE_ORDER = [
 export const STORED_CANDIDATE_FIELDS = [
   'admin_cover_image_url',
   'reviewed_image_url',
+  'reviewed_image_original_url',
   'user_image_url',
   'user_uploaded_image_url',
   'audit_image_url',
+  'audit_image_original_url',
   'scraped_image_url',
   'organiser_website_downloaded_image',
   'website_downloaded_image',
   'model_selected_url',
+  'model_selected_original_url',
+  'google_photo_url',
   'wikimedia_image_url',
   'website_image_url',
   'listing_image_url',
+  'image_url',
 ];
 
+export const CANDIDATE_ARRAY_FIELDS = Object.keys(CANDIDATE_ARRAY_LABELS);
+
 const storedSourceSelectionPrefix = 'stored_source:';
+const candidateArraySelectionPrefix = 'candidate_source:';
 
 export function storedSourceSelectionKey(field) {
   return `${storedSourceSelectionPrefix}${field}`;
@@ -225,6 +245,19 @@ export function currentImage(activity) {
   return { url, field, label: IMAGE_SOURCE_LABELS[field] || 'No image', sourceUrl, sourceDomain: domain(sourceUrl) };
 }
 
+export function candidateArraySelectionKey(field, index) {
+  return `${candidateArraySelectionPrefix}${field}:${Number(index)}`;
+}
+
+export function candidateArraySelectionForValue(value) {
+  const selection = clean(value);
+  if (!selection.startsWith(candidateArraySelectionPrefix)) return null;
+  const [field, rawIndex] = selection.slice(candidateArraySelectionPrefix.length).split(':');
+  const index = Number(rawIndex);
+  if (!CANDIDATE_ARRAY_FIELDS.includes(field) || !Number.isInteger(index) || index < 0) return null;
+  return { field, index };
+}
+
 export function quickReviewImage(activity) {
   const image = currentImage(activity);
   if (image.url) return { ...image, isPlaceholder: image.field === 'category_placeholder' };
@@ -256,8 +289,11 @@ export function imageSourceOptions(activities) {
 
 function storedCandidateSourceUrl(activity, field, imageUrl) {
   if (field === 'reviewed_image_url') return activity.reviewed_image_source_url || activity.reviewed_image_original_url || imageUrl;
+  if (field === 'reviewed_image_original_url') return activity.reviewed_image_source_url || imageUrl;
   if (field === 'audit_image_url') return activity.audit_image_source_url || imageUrl;
-  if (field === 'scraped_image_url') return activity.image_source_url || imageUrl;
+  if (field === 'audit_image_original_url') return activity.audit_image_source_url || activity.image_source_url || imageUrl;
+  if (field === 'scraped_image_url' || field === 'google_photo_url' || field === 'image_url') return activity.image_source_url || activity.google_place_uri || activity.google_link || imageUrl;
+  if (field === 'model_selected_original_url') return activity.model_selected_source_url || imageUrl;
   if (field === 'organiser_website_downloaded_image') return activity.organiser_website || activity.website || imageUrl;
   if (['website_downloaded_image', 'website_image_url', 'listing_image_url'].includes(field)) {
     return activity.image_source_url || activity.website || activity.source_url || imageUrl;
@@ -265,12 +301,33 @@ function storedCandidateSourceUrl(activity, field, imageUrl) {
   return imageUrl;
 }
 
+function storedCandidateLabel(activity, field) {
+  const base = IMAGE_SOURCE_LABELS[field] || field;
+  if (field === 'audit_image_url' || field === 'audit_image_original_url') {
+    return `${base} — audit ${clean(activity.audit_image_status || 'not reviewed').replaceAll('_', ' ')}`;
+  }
+  if (field === 'scraped_image_url') {
+    const exactPass = clean(activity.audit_image_status) === 'pass'
+      && clean(activity.audit_image_original_source_field) === 'scraped_image_url'
+      && securePhotoUrl(activity.audit_image_original_url) === securePhotoUrl(activity.scraped_image_url);
+    return `${base} — ${exactPass ? 'audit passed' : clean(activity.audit_image_status || 'not audited').replaceAll('_', ' ')}`;
+  }
+  if (field === 'model_selected_url' || field === 'model_selected_original_url') {
+    const confidence = Number(activity.model_selected_confidence);
+    return Number.isFinite(confidence) ? `${base} — ${Math.round(confidence * 100)}% confidence` : base;
+  }
+  return base;
+}
+
 export function storedImageCandidates(activity) {
+  const seen = new Set();
   return STORED_CANDIDATE_FIELDS.flatMap((field) => {
     const imageUrl = securePhotoUrl(activity?.[field]);
-    if (!isQualityApprovedImageField(activity, field, imageUrl)) return [];
     if (!isUsablePhotoUrl(imageUrl) || !isAllowedActivityPhoto(activity, field, imageUrl)) return [];
-    const label = IMAGE_SOURCE_LABELS[field] || field;
+    const duplicateKey = `${field}:${imageUrl}`;
+    if (seen.has(duplicateKey)) return [];
+    seen.add(duplicateKey);
+    const label = storedCandidateLabel(activity, field);
     const sourcePageUrl = storedCandidateSourceUrl(activity, field, imageUrl);
     return [{
       image_url: imageUrl,
@@ -287,6 +344,82 @@ export function storedImageCandidates(activity) {
       is_stored_source: true,
     }];
   });
+}
+
+function numberOrNull(value) {
+  const number = Number(value);
+  return Number.isFinite(number) && number > 0 ? number : null;
+}
+
+function normalizeArrayCandidate(candidate, index, field) {
+  if (!candidate || typeof candidate !== 'object') return null;
+  const imageUrl = securePhotoUrl(candidate.original || candidate.image_url || candidate.photo_url);
+  if (!isUsablePhotoUrl(imageUrl)) return null;
+  const thumbnailUrl = securePhotoUrl(candidate.thumbnail || candidate.thumbnail_url || imageUrl);
+  const sourcePageUrl = clean(candidate.link || candidate.source_page_url || candidate.page_url || imageUrl);
+  const sourceKind = clean(candidate.source_kind);
+  const sourceLabel = field === 'website_image_candidates' && sourceKind
+    ? `${CANDIDATE_ARRAY_LABELS[field]} — ${sourceKind}`
+    : `${CANDIDATE_ARRAY_LABELS[field]} #${Number(candidate.position) || index + 1}`;
+  return {
+    ...candidate,
+    image_url: imageUrl,
+    thumbnail_url: thumbnailUrl,
+    source_page_url: sourcePageUrl,
+    source_domain: clean(candidate.source_domain || candidate.source) || domain(sourcePageUrl) || domain(imageUrl),
+    title: clean(candidate.title) || null,
+    width: numberOrNull(candidate.original_width ?? candidate.width),
+    height: numberOrNull(candidate.original_height ?? candidate.height),
+    relevance_reason: clean(candidate.relevance_reason)
+      || `${CANDIDATE_ARRAY_LABELS[field]} result ${Number(candidate.position) || index + 1}`,
+    selection_kind: 'candidate_source',
+    candidate_source: field,
+    candidate_index: index,
+    source_field: field,
+    source_label: sourceLabel,
+  };
+}
+
+export function arrayImageCandidates(activity, field) {
+  if (!CANDIDATE_ARRAY_FIELDS.includes(field)) return [];
+  const values = Array.isArray(activity?.[field]) ? activity[field] : [];
+  const maximum = field === 'serpapi_image_candidates' || field === 'codex_image_candidates' ? 20 : values.length;
+  return values.slice(0, maximum)
+    .map((candidate, index) => normalizeArrayCandidate(candidate, index, field))
+    .filter((candidate) => candidate
+      && isAllowedActivityPhoto(activity, field, candidate.image_url)
+      && isAllowedActivityPhoto(activity, field, candidate.source_page_url));
+}
+
+export function imageCandidateSections(activity) {
+  return [
+    { id: 'website_image_candidates', label: 'All images discovered on listing and organiser websites', candidates: arrayImageCandidates(activity, 'website_image_candidates') },
+    { id: 'serpapi_image_candidates', label: 'Stored SerpAPI discovery results — top 20', candidates: arrayImageCandidates(activity, 'serpapi_image_candidates') },
+    { id: 'codex_image_candidates', label: 'Desktop Google Images search — SerpAPI top 20', candidates: arrayImageCandidates(activity, 'codex_image_candidates') },
+    { id: 'user_uploaded_image_candidates', label: 'All uploaded activity images', candidates: arrayImageCandidates(activity, 'user_uploaded_image_candidates') },
+  ].filter((section) => section.candidates.length);
+}
+
+export function quickReviewApproval(activity) {
+  const image = quickReviewImage(activity);
+  let originalUrl = image.url;
+  if (image.field === 'reviewed_image_url') originalUrl = clean(activity.reviewed_image_original_url) || image.url;
+  if (image.field === 'model_selected_url') originalUrl = clean(activity.model_selected_original_url) || image.url;
+  return {
+    displayed_image_url: image.url,
+    original_image_url: originalUrl,
+    source_page_url: image.sourceUrl || image.url,
+    source_field: image.field || 'category_placeholder',
+    source_label: image.label || IMAGE_SOURCE_LABELS[image.field] || image.field,
+    is_category_art: image.field === 'category_placeholder',
+  };
+}
+
+export function isQuickReviewApproved(activity) {
+  if (!activity?.image_review_approved_at) return false;
+  const approval = quickReviewApproval(activity);
+  return securePhotoUrl(activity.image_review_approved_url) === securePhotoUrl(approval.displayed_image_url)
+    && clean(activity.image_review_approved_source_field) === approval.source_field;
 }
 
 export function prepareActivities(activities) {

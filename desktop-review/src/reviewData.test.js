@@ -3,15 +3,20 @@ import test from 'node:test';
 import {
   activitiesForQueue,
   activitiesToPreload,
+  candidateArraySelectionForValue,
+  candidateArraySelectionKey,
   currentImage,
   displayedImageSource,
   fullReviewUrl,
   googlePlacesUrl,
   imageSourceOptions,
+  imageCandidateSections,
+  isQuickReviewApproved,
   prepareActivities,
   preparedActivitiesForQueue,
   preloadReadinessByQueue,
   quickReviewImage,
+  quickReviewApproval,
   queueCounts,
   queueCountsFromPrepared,
   searchQueries,
@@ -322,7 +327,7 @@ test('builds ordered displayed-image source options and counts category placehol
   ]);
 });
 
-test('adds validated hierarchy sources and audited replacements as manual candidates', () => {
+test('adds every populated stored image field as a clearly labelled manual candidate', () => {
   const candidates = storedImageCandidates(listing({
     user_image_url: 'https://storage.test/user.jpg',
     model_selected_url: 'https://storage.test/model.jpg',
@@ -336,13 +341,14 @@ test('adds validated hierarchy sources and audited replacements as manual candid
   assert.deepEqual(candidates.map((candidate) => candidate.source_field), [
     'user_image_url',
     'audit_image_url',
+    'scraped_image_url',
     'model_selected_url',
   ]);
   assert.equal(candidates[0].source_label, 'Admin image URL');
   assert.equal(candidates[1].source_page_url, 'https://auditor.test/replacement');
 });
 
-test('offers a scraped source after that exact URL passes the audit', () => {
+test('labels a scraped source after that exact URL passes the audit', () => {
   const candidates = storedImageCandidates(listing({
     audit_image_status: 'pass',
     audit_image_original_source_field: 'scraped_image_url',
@@ -350,11 +356,12 @@ test('offers a scraped source after that exact URL passes the audit', () => {
     scraped_image_url: 'https://storage.test/scraped.jpg',
     image_source_url: 'https://venue.test/gallery',
   }));
-  assert.deepEqual(candidates.map((candidate) => candidate.source_field), ['scraped_image_url']);
-  assert.equal(candidates[0].source_page_url, 'https://venue.test/gallery');
+  assert.deepEqual(candidates.map((candidate) => candidate.source_field), ['audit_image_original_url', 'scraped_image_url']);
+  assert.match(candidates[1].source_label, /audit passed/);
+  assert.equal(candidates[1].source_page_url, 'https://venue.test/gallery');
 });
 
-test('does not offer a scraped source when that exact image failed the audit', () => {
+test('keeps audit-rejected sources visible and clearly labelled for manual correction', () => {
   const candidates = storedImageCandidates(listing({
     audit_image_status: 'needs_replacement',
     audit_image_original_source_field: 'scraped_image_url',
@@ -362,7 +369,12 @@ test('does not offer a scraped source when that exact image failed the audit', (
     scraped_image_url: 'https://storage.test/rejected.jpg',
     model_selected_url: 'https://storage.test/model.jpg',
   }));
-  assert.deepEqual(candidates.map((candidate) => candidate.source_field), ['model_selected_url']);
+  assert.deepEqual(candidates.map((candidate) => candidate.source_field), [
+    'audit_image_original_url',
+    'scraped_image_url',
+    'model_selected_url',
+  ]);
+  assert.match(candidates[1].source_label, /needs replacement/);
 });
 
 test('round-trips stored-source candidate selection keys safely', () => {
@@ -371,4 +383,58 @@ test('round-trips stored-source candidate selection keys safely', () => {
   assert.equal(storedSourceFieldForSelection('stored_source:scraped_image_url'), 'scraped_image_url');
   assert.equal(storedSourceFieldForSelection('stored_source:not_a_field'), '');
   assert.equal(storedSourceFieldForSelection(3), '');
+});
+
+test('shows complete website, canonical SerpAPI, desktop top-20 and upload candidate sections', () => {
+  const sections = imageCandidateSections(listing({
+    website_image_candidates: [{ original: 'https://venue.test/room.jpg', link: 'https://venue.test/gallery', source_kind: 'organiser' }],
+    serpapi_image_candidates: Array.from({ length: 24 }, (_, index) => ({ original: `https://google.test/${index}.jpg`, position: index + 1 })),
+    codex_image_candidates: [{ image_url: 'https://desktop.test/one.jpg', source_page_url: 'https://desktop.test/page' }],
+    user_uploaded_image_candidates: [{ image_url: 'https://uploads.test/photo.jpg', title: 'Admin upload' }],
+  }));
+  assert.deepEqual(sections.map((section) => [section.id, section.candidates.length]), [
+    ['website_image_candidates', 1],
+    ['serpapi_image_candidates', 20],
+    ['codex_image_candidates', 1],
+    ['user_uploaded_image_candidates', 1],
+  ]);
+  assert.equal(sections[0].candidates[0].source_label, 'Website discovery — organiser');
+  assert.equal(sections[1].candidates[0].candidate_source, 'serpapi_image_candidates');
+});
+
+test('round-trips candidate-array selection keys safely', () => {
+  const selection = candidateArraySelectionKey('website_image_candidates', 17);
+  assert.deepEqual(candidateArraySelectionForValue(selection), { field: 'website_image_candidates', index: 17 });
+  assert.equal(candidateArraySelectionForValue('candidate_source:not_real:1'), null);
+  assert.equal(candidateArraySelectionForValue('candidate_source:serpapi_image_candidates:nope'), null);
+});
+
+test('quick approval is current only while the displayed URL and source still match', () => {
+  const activity = listing({
+    reviewed_image_url: 'https://storage.test/reviewed.jpg',
+    reviewed_image_original_url: 'https://venue.test/original.jpg',
+    reviewed_image_source_url: 'https://venue.test/gallery',
+  });
+  const approval = quickReviewApproval(activity);
+  assert.deepEqual(approval, {
+    displayed_image_url: 'https://storage.test/reviewed.jpg',
+    original_image_url: 'https://venue.test/original.jpg',
+    source_page_url: 'https://venue.test/gallery',
+    source_field: 'reviewed_image_url',
+    source_label: 'Manual desktop review',
+    is_category_art: false,
+  });
+  assert.equal(isQuickReviewApproved({
+    ...activity,
+    image_review_approved_at: '2026-09-01T12:00:00Z',
+    image_review_approved_url: approval.displayed_image_url,
+    image_review_approved_source_field: approval.source_field,
+  }), true);
+  assert.equal(isQuickReviewApproved({
+    ...activity,
+    admin_cover_image_url: 'https://storage.test/new-admin.jpg',
+    image_review_approved_at: '2026-09-01T12:00:00Z',
+    image_review_approved_url: approval.displayed_image_url,
+    image_review_approved_source_field: approval.source_field,
+  }), false);
 });
