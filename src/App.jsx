@@ -3084,7 +3084,6 @@ export default function App() {
         <button className="brand-lockup" type="button" onClick={() => navigate('start')}>
           <span>Tiny</span>
           <strong>Outings</strong>
-          <small className="brand-city">London</small>
         </button>
         <div className="topbar-actions account-actions">
           {session ? (
@@ -3295,54 +3294,14 @@ export default function App() {
   );
 }
 
-function B2FrameScene({ compact = false }) {
-  return (
-    <div className={classNames('b2-frame-scene', compact && 'is-compact')} aria-hidden="true">
-      <svg viewBox="0 0 640 360" focusable="false">
-        <rect className="b2-scene-sky" width="640" height="360" />
-        <circle className="b2-scene-sun" cx="528" cy="72" r="38" />
-        <path className="b2-scene-jade" d="M0 244 640 92v132L0 334Z" />
-        <g className="b2-scene-buildings">
-          <rect x="0" y="138" width="82" height="170" />
-          <rect x="96" y="100" width="94" height="208" />
-          <rect x="204" y="164" width="76" height="144" />
-          <rect x="294" y="76" width="124" height="232" />
-          <rect x="432" y="132" width="82" height="176" />
-          <rect x="528" y="106" width="112" height="202" />
-        </g>
-        <g className="b2-scene-windows">
-          <rect x="22" y="168" width="16" height="24" /><rect x="50" y="168" width="16" height="24" />
-          <rect x="22" y="210" width="16" height="24" /><rect x="50" y="210" width="16" height="24" />
-          <rect x="118" y="132" width="20" height="28" /><rect x="150" y="132" width="20" height="28" />
-          <rect x="118" y="178" width="20" height="28" /><rect x="150" y="178" width="20" height="28" />
-          <rect x="318" y="108" width="22" height="30" /><rect x="356" y="108" width="22" height="30" />
-          <rect x="318" y="156" width="22" height="30" /><rect x="356" y="156" width="22" height="30" />
-          <rect x="454" y="164" width="16" height="24" /><rect x="482" y="164" width="16" height="24" />
-          <rect x="550" y="138" width="20" height="28" /><rect x="586" y="138" width="20" height="28" />
-        </g>
-        <g className="b2-scene-bus">
-          <rect x="226" y="240" width="184" height="70" rx="3" />
-          <rect className="b2-scene-bus-window" x="244" y="254" width="40" height="24" />
-          <rect className="b2-scene-bus-window" x="294" y="254" width="40" height="24" />
-          <rect className="b2-scene-bus-window" x="344" y="254" width="46" height="24" />
-          <circle className="b2-scene-wheel" cx="266" cy="310" r="18" />
-          <circle className="b2-scene-wheel" cx="372" cy="310" r="18" />
-        </g>
-        <rect className="b2-scene-ground" y="326" width="640" height="34" />
-      </svg>
-    </div>
-  );
-}
-
 function WelcomeScreen({ authLoading, onSignIn, onContinueAsGuest }) {
   return (
     <main className="welcome-screen">
       <div className="welcome-sun" aria-hidden="true" />
       <div className="welcome-mark" aria-hidden="true"><span /><span /><span /></div>
       <p className="welcome-kicker">Tiny Outings - London family planner</p>
-      <h1><span>Small plans.</span><strong>Big days.</strong></h1>
+      <h1>Small plans.<br />Big days.</h1>
       <p className="welcome-copy">Discover family-friendly London outings, then build your week one outing at a time.</p>
-      <B2FrameScene />
       <div className="welcome-actions">
         <button className="welcome-google" type="button" onClick={onSignIn} disabled={authLoading}>
           <span className="google-g" aria-hidden="true">G</span>
@@ -3459,7 +3418,6 @@ function StartScreen({
         <p>
           Pick a week. Set your range. Swipe your day into shape.
         </p>
-        <B2FrameScene compact />
         <div className="hero-badges" aria-label="Planning windows">
           <span>Morning</span>
           <span>Afternoon</span>
