@@ -136,7 +136,7 @@ function listingStatusLabel(activity) {
 }
 
 async function loadAllActivities() {
-  const pageSize = 1000;
+  const pageSize = 500;
   async function loadPages(queryPage, windowSize = 4) {
     const rows = [];
     for (let base = 0; ; base += pageSize * windowSize) {
@@ -153,7 +153,6 @@ async function loadAllActivities() {
 
   const activitiesPromise = loadPages((from) => supabase.from('activities')
     .select(activityColumns)
-    .order('activity_name', { ascending: true })
     .order('activity_id', { ascending: true })
     .range(from, from + pageSize - 1));
   const photosPromise = loadPages((from) => supabase.from('activity_photos')
@@ -161,12 +160,9 @@ async function loadAllActivities() {
     .eq('source_provider', 'user_upload')
     .order('created_at', { ascending: false })
     .range(from, from + pageSize - 1), 1).catch(() => []);
-  const automatedReviewsPromise = loadPages((from) => supabase.from('activity_image_automated_reviews')
-    .select('automated_review_id,activity_id,status,source_queue,candidate_index,candidate,candidate_set_searched_at,confidence,reason,model_name,model_version,training_review_count,model_metrics,created_at,auto_applied_at,auto_applied_image_url,apply_failure_reason,apply_attempted_at')
-    .in('status', ['pending', 'auto_applied'])
-    .order('created_at', { ascending: true })
-    .range(from, from + pageSize - 1), 1);
-  const [activities, photos, automatedReviews] = await Promise.all([activitiesPromise, photosPromise, automatedReviewsPromise]);
+  const [activities, photos] = await Promise.all([activitiesPromise, photosPromise]);
+  activities.sort((left, right) => clean(left.activity_name).localeCompare(clean(right.activity_name), 'en-GB', { sensitivity: 'base' })
+    || String(left.activity_id).localeCompare(String(right.activity_id)));
 
   const userImagesByActivity = new Map();
   for (const photo of photos) {
@@ -183,15 +179,15 @@ async function loadAllActivities() {
     });
     userImagesByActivity.set(activityId, images);
   }
-  const automatedReviewByActivity = new Map(automatedReviews.map((review) => [String(review.activity_id), review]));
   return activities.map((activity) => {
     const uploadedImages = userImagesByActivity.get(String(activity.activity_id)) || [];
     return {
       ...activity,
       candidate_set_loaded: false,
+      automated_review_loaded: false,
       user_uploaded_image_url: uploadedImages[0]?.image_url || null,
       user_uploaded_image_candidates: uploadedImages,
-      automated_image_review: automatedReviewByActivity.get(String(activity.activity_id)) || null,
+      automated_image_review: null,
     };
   });
 }
@@ -237,6 +233,7 @@ async function loadRequestedActivity(activityId) {
   return {
     ...activityResponse.data,
     candidate_set_loaded: false,
+    automated_review_loaded: true,
     user_uploaded_image_url: uploadedImages[0]?.image_url || null,
     user_uploaded_image_candidates: uploadedImages,
     automated_image_review: automatedReviewResponse.data || null,
@@ -475,6 +472,7 @@ function App() {
   const selectedIdRef = useRef(selectedId);
   const quickLoadMoreRef = useRef(null);
   const candidateLoadsRef = useRef(new Set());
+  const automatedReviewLoadsRef = useRef(new Set());
   const candidateSearchesRef = useRef(new Map());
   const candidateSearchSequenceRef = useRef(0);
   const preloadRunRef = useRef(0);
@@ -614,6 +612,36 @@ function App() {
   const illustratedCandidate = selectedActivity ? categoryIllustrationCandidate(selectedActivity) : null;
   const activeImage = selectedActivity ? currentImage(selectedActivity) : null;
   const isSelectedArchived = isArchivedListing(selectedActivity);
+
+  useEffect(() => {
+    if (isDemo || !selectedActivity || selectedActivity.automated_review_loaded || !supabase) return undefined;
+    const activityId = selectedActivity.activity_id;
+    if (automatedReviewLoadsRef.current.has(activityId)) return undefined;
+    automatedReviewLoadsRef.current.add(activityId);
+    async function loadAutomatedReview() {
+      try {
+        const response = await supabase.from('activity_image_automated_reviews')
+          .select('automated_review_id,activity_id,status,source_queue,candidate_index,candidate,candidate_set_searched_at,confidence,reason,model_name,model_version,training_review_count,model_metrics,created_at,auto_applied_at,auto_applied_image_url,apply_failure_reason,apply_attempted_at')
+          .eq('activity_id', activityId)
+          .in('status', ['pending', 'auto_applied'])
+          .order('created_at', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        if (response.error) throw response.error;
+        setActivities((current) => current.map((activity) => activity.activity_id === activityId
+          ? { ...activity, automated_review_loaded: true, automated_image_review: response.data || null }
+          : activity));
+      } catch (error) {
+        if (selectedIdRef.current === activityId && activeQueue === 'model_selected') {
+          setNotice(`Listings loaded, but this model recommendation could not be loaded: ${error.message}`);
+        }
+      } finally {
+        automatedReviewLoadsRef.current.delete(activityId);
+      }
+    }
+    loadAutomatedReview();
+    return undefined;
+  }, [activeQueue, selectedActivity]);
 
   const requestCandidates = useCallback((activity, variant = 'activity_location', requestedQuery = '', background = false) => {
     if (!activity || isArchivedListing(activity) || !session?.user) return Promise.resolve(false);
