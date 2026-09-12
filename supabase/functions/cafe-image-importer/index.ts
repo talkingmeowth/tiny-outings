@@ -546,14 +546,7 @@ const cardImageFields = [
   'admin_cover_image_url',
   'reviewed_image_url',
   'user_image_url',
-  'audit_image_url',
-  'scraped_image_url',
-  'organiser_website_downloaded_image',
-  'website_downloaded_image',
   'model_selected_url',
-  'wikimedia_image_url',
-  'website_image_url',
-  'listing_image_url',
 ] as const
 
 function secureImageUrl(value: unknown) {
@@ -569,26 +562,16 @@ function validCardImageUrl(value: string) {
   }
 }
 
-function cardImageAllowed(activity: Record<string, unknown>, field: typeof cardImageFields[number], url: string) {
-  if (field === 'audit_image_url' && text(activity.audit_image_status as string | null | undefined) !== 'replaced') return false
-  if (field === 'scraped_image_url' && (
-    text(activity.audit_image_status as string | null | undefined) !== 'pass'
-    || text(activity.audit_image_original_source_field as string | null | undefined) !== 'scraped_image_url'
-    || secureImageUrl(activity.audit_image_original_url) !== secureImageUrl(url)
-  )) return false
-  if (field === 'model_selected_url' && Number(activity.model_selected_confidence) < 0.7) return false
+function cardImageAllowed(activity: Record<string, unknown>, url: string) {
   if (allowsWikimediaImages(activity as Pick<Activity, 'category'>)) return true
-  if (field === 'wikimedia_image_url' || isWikimediaSource(url)) return false
-  if (field === 'audit_image_url' && isWikimediaSource(activity.audit_image_source_url)) return false
-  if (field === 'scraped_image_url' && isWikimediaSource(activity.image_source_url)) return false
-  return true
+  return !isWikimediaSource(url)
 }
 
 function selectedGroupImage(activities: Record<string, unknown>[]) {
   for (const field of cardImageFields) {
     const candidates = activities
       .map((activity) => ({ activity, url: secureImageUrl(activity[field]) }))
-      .filter(({ activity, url }) => validCardImageUrl(url) && cardImageAllowed(activity, field, url))
+      .filter(({ activity, url }) => validCardImageUrl(url) && cardImageAllowed(activity, url))
       .sort((left, right) => {
         const leftUpdated = Date.parse(String(left.activity.updated_at || left.activity.created_at || 0)) || 0
         const rightUpdated = Date.parse(String(right.activity.updated_at || right.activity.created_at || 0)) || 0

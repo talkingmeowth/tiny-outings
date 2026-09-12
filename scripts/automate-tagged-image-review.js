@@ -34,6 +34,12 @@ const concurrencyIndex = process.argv.indexOf('--search-concurrency');
 const searchConcurrency = concurrencyIndex >= 0 ? Math.min(8, Math.max(1, Number(process.argv[concurrencyIndex + 1]) || 4)) : 4;
 const sourceNameIndex = process.argv.indexOf('--source-name');
 const sourceName = sourceNameIndex >= 0 ? String(process.argv[sourceNameIndex + 1] || '').trim() : '';
+const createdAfterIndex = process.argv.indexOf('--created-after');
+const createdAfterInput = createdAfterIndex >= 0 ? String(process.argv[createdAfterIndex + 1] || '').trim() : '';
+if (createdAfterInput && !Number.isFinite(Date.parse(createdAfterInput))) {
+  throw new Error('--created-after must be an ISO date-time.');
+}
+const createdAfter = createdAfterInput ? new Date(createdAfterInput).toISOString() : '';
 const missingOnly = process.argv.includes('--missing-only');
 const visualAssessmentEnabled = !process.argv.includes('--skip-visual-assessment');
 const visualFinalistsIndex = process.argv.indexOf('--visual-finalists');
@@ -108,6 +114,7 @@ async function loadPaged(action, pageSize) {
       scope,
       ...(action === 'targets' && sourceName ? { source_name: sourceName } : {}),
       ...(action === 'targets' && missingOnly ? { missing_only: true } : {}),
+      ...(action === 'targets' && createdAfter ? { created_after: createdAfter } : {}),
     });
     rows.push(...(payload.rows || []));
     offset = payload.next_offset;
@@ -383,7 +390,7 @@ async function main() {
   }
   const trainingRows = await loadPaged('training_data', 100);
   const model = trainTaggedImageRanker(trainingRows);
-  console.log(`Model trained from ${model.trainingReviewCount} matched manual choices.`);
+  console.log(`Model trained from ${model.trainingReviewCount} matched ground-truth listings.`);
   console.log(`Held-out accuracy: top-1 ${model.metrics.top_1_accuracy}, top-3 ${model.metrics.top_3_recall}, MRR ${model.metrics.mean_reciprocal_rank}.`);
   const targets = await loadPaged('targets', 500);
   const targetLabel = scope === 'all_unreviewed'
@@ -408,6 +415,7 @@ async function main() {
     applied: apply,
     scope,
     source_name: sourceName || null,
+    created_after: createdAfter || null,
     missing_only: missingOnly,
     cross_source_selection: true,
     visual_assessment: {

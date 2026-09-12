@@ -1063,7 +1063,7 @@ async function promoteModelSelection(
   },
 ) {
   const reviewedImageUrl = cleanText(activity.model_selected_url)
-  if (!validHttpUrl(reviewedImageUrl) || Number(activity.model_selected_confidence) < 0.7) {
+  if (!validHttpUrl(reviewedImageUrl)) {
     throw new Error('The model-selected image is no longer approved for this listing.')
   }
   const candidate = automatedReview.candidate || {

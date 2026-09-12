@@ -56,6 +56,7 @@ test('normalizes legacy SerpAPI candidates without another API call', () => {
   assert.equal(normalized[0].width, 1200);
   assert.equal(normalized[0].relevance_reason, 'Google Images result 1');
   assert.equal(normalized[0].candidate_set_index, 0);
+  assert.equal(normalized[0].source_position, 0);
 });
 
 test('falls back to official-website candidates and preserves their source index', () => {
@@ -73,6 +74,7 @@ test('falls back to official-website candidates and preserves their source index
   }, 80);
   assert.equal(normalized.length, 1);
   assert.equal(normalized[0].candidate_set_index, 1);
+  assert.equal(normalized[0].source_position, 1);
 });
 
 test('uses one selected candidate and the unselected set as tagged choice examples', () => {
@@ -98,7 +100,20 @@ test('learns from manual choices and ranks an eligible candidate', () => {
   assert.equal(model.trainingReviewCount, 30);
   assert.equal(result.candidateIndex, 2);
   assert.ok(result.confidence >= 0.5 && result.confidence <= 0.97);
-  assert.match(result.reason, /Learned from 30 manual selections/);
+  assert.match(result.reason, /Learned from 30 ground-truth listings/);
+});
+
+test('consolidates multiple accepted images for one activity without treating either as a negative', () => {
+  const first = review(4);
+  const second = {
+    ...first,
+    manual_review_id: 'second-approval',
+    original_image_url: first.activity.codex_image_candidates[2].image_url,
+    evidence_type: 'quick_review_approval',
+  };
+  const groups = taggedChoiceGroups([first, second]);
+  assert.equal(groups.length, 1);
+  assert.deepEqual(groups[0].selectedIndices, [1, 2]);
 });
 
 test('never recommends Wikimedia outside the allowed categories', () => {
@@ -186,4 +201,28 @@ test('returns no automatic image when no cross-source candidate passes visual re
     visualAssessments: new Map([[imageUrl, { visual_status: 'rejected', visual_reason: 'Unrelated image' }]]),
   });
   assert.equal(recommendation, null);
+});
+
+test('caps confidence when an otherwise plausible image clearly belongs to another location', () => {
+  const model = trainTaggedImageRanker(Array.from({ length: 30 }, (_, index) => review(index)));
+  const conflictUrl = 'https://chicagoplaygrounds.com/images/abbott-park.jpg';
+  const safeUrl = 'https://directory.test/uncertain-local-park.jpg';
+  const target = {
+    activity_id: 'abbotts-park',
+    activity_name: 'Abbotts Park Play Area',
+    address: 'London E10 6HX',
+    category: 'Parks & outdoor play',
+    codex_image_candidates: [
+      { image_url: conflictUrl, source_page_url: 'https://chicagoplaygrounds.com/abbott-park', title: 'Abbott Park Chicago playground', width: 1800, height: 1200 },
+      { image_url: safeUrl, source_page_url: 'https://directory.test/parks', title: 'Local playground', width: 800, height: 600 },
+    ],
+  };
+  const recommendation = rankCrossSourceCandidates(target, model, {
+    visualAssessments: new Map([
+      [conflictUrl, { visual_status: 'approved', visual_confidence: 0.96, visual_reason: 'Clear playground' }],
+    ]),
+  });
+  assert.equal(recommendation.candidate.image_url, conflictUrl);
+  assert.ok(recommendation.featureSnapshot.source_conflict >= 0.8);
+  assert.ok(recommendation.confidence <= 0.54);
 });

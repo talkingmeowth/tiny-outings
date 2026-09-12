@@ -100,7 +100,9 @@ function qualityApprovedImage(activity: Record<string, unknown>, field: string) 
     if (clean(activity.audit_image_original_source_field) !== 'scraped_image_url') return false
     if (secureImageUrl(activity.audit_image_original_url) !== imageUrl) return false
   }
-  if (field === 'model_selected_url' && Number(activity.model_selected_confidence) < 0.7) return false
+  // Model output is stored only after the candidate has passed the download,
+  // image-quality, source and visual checks. Keep confidence as review
+  // metadata instead of using it as a second frontend visibility gate.
   if (allowsWikimediaImages(activity)) return true
   if (field === 'wikimedia_image_url' || isWikimediaSource(imageUrl)) return false
   if (field === 'scraped_image_url' && isWikimediaSource(activity.image_source_url)) return false
@@ -113,8 +115,8 @@ function isMissingActivity(activity: Record<string, unknown>) {
     'admin_cover_image_url',
     'reviewed_image_url',
     'user_image_url',
-    'model_selected_url',
     'user_uploaded_image_url',
+    'model_selected_url',
   ].some((field) => qualityApprovedImage(activity, field))
 }
 
@@ -237,25 +239,39 @@ async function trainingData(
   offset: number,
   pageSize: number,
 ) {
-  const { data: reviews, error } = await supabase.from('activity_image_manual_reviews')
-    .select('manual_review_id,activity_id,original_image_url,source_page_url,search_query,candidate,created_at')
-    .order('created_at', { ascending: true })
+  const { data: evidence, error } = await supabase.from('activity_image_ground_truth')
+    .select('ground_truth_id,activity_id,image_url,original_image_url,source_page_url,source_field,source_label,evidence_type,is_photo,evidence_at,metadata')
+    .eq('is_photo', true)
+    .order('evidence_at', { ascending: true })
     .range(offset, offset + pageSize - 1)
   if (error) throw new Error(error.message)
-  const activityIds = [...new Set((reviews || []).map((review) => review.activity_id))]
+  const activityIds = [...new Set((evidence || []).map((row) => row.activity_id))]
   const { data: activities, error: activityError } = activityIds.length
     ? await supabase.from('activities')
       .select('activity_id,activity_name,address,postcode,borough,category,source_name,website,organiser_website,source_url,image_source_url,audit_image_status,audit_image_url,audit_image_source_url,audit_image_original_url,audit_image_original_source_field,scraped_image_url,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,codex_image_candidates,serpapi_image_candidates,serpapi_image_vision_status,serpapi_image_vision_candidate_index,serpapi_image_vision_reason,website_image_candidates,website_image_vision_status,website_image_vision_candidate_index,website_image_vision_reason')
       .in('activity_id', activityIds)
+      .eq('archive', false)
+      .in('public_listing_status', ['draft', 'published'])
     : { data: [], error: null }
   if (activityError) throw new Error(activityError.message)
   const activityById = new Map((activities || []).map((activity) => [activity.activity_id, activity]))
   return {
-    rows: (reviews || []).map((review) => ({ ...review, activity: activityById.get(review.activity_id) || null }))
-      .filter((review) => review.activity
-        && review.candidate?.selection_kind !== 'category_illustration'
-        && review.candidate?.is_category_art !== true),
-    next_offset: (reviews || []).length === pageSize ? offset + pageSize : null,
+    rows: (evidence || []).map((row) => ({
+      ground_truth_id: row.ground_truth_id,
+      manual_review_id: row.ground_truth_id,
+      activity_id: row.activity_id,
+      image_url: row.image_url,
+      original_image_url: row.original_image_url || row.image_url,
+      selected_image_url: row.image_url,
+      source_page_url: row.source_page_url,
+      source_field: row.source_field,
+      source_label: row.source_label,
+      evidence_type: row.evidence_type,
+      candidate: row.metadata || {},
+      created_at: row.evidence_at,
+      activity: activityById.get(row.activity_id) || null,
+    })).filter((row) => row.activity),
+    next_offset: (evidence || []).length === pageSize ? offset + pageSize : null,
   }
 }
 
@@ -282,15 +298,17 @@ async function targetData(
   scope: 'targeted' | 'all_unreviewed' | 'all_active' | 'failed_applications',
   sourceName: string | null,
   missingOnly: boolean,
+  createdAfter: string | null,
 ) {
   let query = supabase.from('activities')
-    .select('activity_id,activity_name,address,postcode,borough,category,website,organiser_website,source_url,source_name,image_source_url,public_listing_status,archive,audit_image_status,audit_image_url,audit_image_source_url,audit_image_original_url,audit_image_original_source_field,image_review_ignored_at,admin_cover_image_url,reviewed_image_url,use_category_image,scraped_image_url,model_selected_url,model_selected_confidence,model_selected_original_url,model_selected_source_field,model_selected_model_version,user_image_url,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,serpapi_image_candidates,serpapi_image_search_query,serpapi_image_candidates_fetched_at,serpapi_image_vision_status,serpapi_image_vision_candidate_index,serpapi_image_vision_reason,website_image_candidates,website_image_candidates_fetched_at,website_image_vision_status,website_image_vision_candidate_index,website_image_vision_reason')
+    .select('activity_id,activity_name,address,postcode,borough,category,website,organiser_website,source_url,source_name,image_source_url,created_at,public_listing_status,archive,audit_image_status,audit_image_url,audit_image_source_url,audit_image_original_url,audit_image_original_source_field,image_review_ignored_at,admin_cover_image_url,reviewed_image_url,use_category_image,scraped_image_url,model_selected_url,model_selected_confidence,model_selected_original_url,model_selected_source_field,model_selected_model_version,user_image_url,organiser_website_downloaded_image,website_downloaded_image,wikimedia_image_url,website_image_url,listing_image_url,codex_image_candidates,codex_image_search_query,codex_image_searched_at,codex_image_search_model,serpapi_image_candidates,serpapi_image_search_query,serpapi_image_candidates_fetched_at,serpapi_image_vision_status,serpapi_image_vision_candidate_index,serpapi_image_vision_reason,website_image_candidates,website_image_candidates_fetched_at,website_image_vision_status,website_image_vision_candidate_index,website_image_vision_reason')
     .eq('archive', false)
     .in('public_listing_status', ['draft', 'published'])
     .order('activity_id', { ascending: true })
     .range(offset, offset + pageSize - 1)
   if (scope === 'targeted') query = query.is('image_review_ignored_at', null).is('reviewed_image_url', null).eq('use_category_image', false).is('model_selected_url', null)
   if (sourceName) query = query.eq('source_name', sourceName)
+  if (createdAfter) query = query.gte('created_at', createdAfter)
   const { data, error } = await query
   if (error) throw new Error(error.message)
   const activityIds = (data || []).map((activity) => activity.activity_id)
@@ -367,7 +385,7 @@ async function storeProposals(
   for (const proposal of proposals) {
     if (!clean(proposal.activity_id) || !['missing_published', 'unsuitable_audit', 'both', 'all_published', 'all_draft'].includes(proposal.source_queue)) throw new Error('A proposal has invalid activity or queue data.')
     if (proposal.terminal_rejection !== true
-      && (!Number.isInteger(proposal.candidate_index) || Number(proposal.candidate_index) < 0 || Number(proposal.candidate_index) > 99)) throw new Error('A proposal has an invalid candidate index.')
+      && (!Number.isInteger(proposal.candidate_index) || Number(proposal.candidate_index) < 0)) throw new Error('A proposal has an invalid candidate index.')
     if (proposal.terminal_rejection !== true && !validCandidate(proposal.candidate)) throw new Error('A proposal has an invalid candidate.')
     if (!(Number(proposal.confidence) >= 0 && Number(proposal.confidence) <= 1)) throw new Error('A proposal has invalid confidence.')
     if (!clean(proposal.reason) || !clean(proposal.model_name) || !clean(proposal.model_version) || Number(proposal.training_review_count) < 1) throw new Error('A proposal is missing model audit data.')
@@ -430,25 +448,13 @@ async function applyProposal(
     })
     return { activity_id: proposal.activity_id, status: 'archived' }
   }
-  if (Number(proposal.confidence) < 0.7) {
-    await updateAutomatedReview(supabase, automatedReviewId, {
-      status: 'rejected',
-      reviewed_at: attemptedAt,
-      apply_attempted_at: attemptedAt,
-      apply_failure_reason: 'Model confidence was below the 70% frontend quality threshold.',
-    })
-    return { activity_id: proposal.activity_id, status: 'below-quality-threshold' }
-  }
-
-  const protectedImage = clean(activity.admin_cover_image_url)
-    || clean(activity.user_image_url)
-    || clean(activity.user_uploaded_image_url)
-  if (protectedImage || activity.use_category_image || activity.image_review_ignored_at) {
+  const adminImage = clean(activity.admin_cover_image_url)
+  if (adminImage || activity.use_category_image || activity.image_review_ignored_at) {
     await updateAutomatedReview(supabase, automatedReviewId, {
       status: 'corrected',
       reviewed_at: attemptedAt,
       reviewed_candidate_index: null,
-    reviewed_image_url: protectedImage || null,
+      reviewed_image_url: adminImage || null,
       apply_attempted_at: attemptedAt,
       apply_failure_reason: null,
     })
@@ -475,12 +481,23 @@ async function applyProposal(
     return { activity_id: proposal.activity_id, status: selectedSameCandidate ? 'already-applied' : 'preserved-existing-review' }
   }
 
+  const userImage = clean(activity.user_image_url) || clean(activity.user_uploaded_image_url)
+  if (userImage) {
+    await updateAutomatedReview(supabase, automatedReviewId, {
+      status: 'corrected',
+      reviewed_at: attemptedAt,
+      reviewed_candidate_index: null,
+      reviewed_image_url: userImage,
+      apply_attempted_at: attemptedAt,
+      apply_failure_reason: null,
+    })
+    return { activity_id: proposal.activity_id, status: 'preserved-user-choice' }
+  }
+
   const currentModelImage = clean(activity.model_selected_url)
-  const currentModelConfidence = Number(activity.model_selected_confidence)
   const currentModelVersion = clean(activity.model_selected_model_version)
   const proposalModelVersion = clean(proposal.model_version)
-  if (currentModelImage && Number.isFinite(currentModelConfidence) && currentModelConfidence >= 0.7
-    && currentModelVersion === proposalModelVersion) {
+  if (currentModelImage && currentModelVersion === proposalModelVersion) {
     await updateAutomatedReview(supabase, automatedReviewId, {
       status: 'superseded',
       reviewed_at: attemptedAt,
@@ -648,6 +665,7 @@ Deno.serve(async (request) => {
     scope?: 'targeted' | 'all_unreviewed' | 'all_active' | 'failed_applications'
     source_name?: string
     missing_only?: boolean
+    created_after?: string
     proposals?: Proposal[]
     batch_size?: number
     model_version?: string
@@ -665,6 +683,11 @@ Deno.serve(async (request) => {
           ? 'all_active'
           : body.scope === 'failed_applications' ? 'failed_applications' : 'targeted'
       const sourceName = clean(body.source_name).slice(0, 200) || null
+      const requestedCreatedAfter = clean(body.created_after)
+      if (requestedCreatedAfter && !Number.isFinite(Date.parse(requestedCreatedAfter))) {
+        return jsonResponse({ error: 'created_after must be an ISO date-time.' }, 400)
+      }
+      const createdAfter = requestedCreatedAfter ? new Date(requestedCreatedAfter).toISOString() : null
       return jsonResponse(await targetData(
         supabase,
         Math.max(0, Number(body.offset) || 0),
@@ -672,6 +695,7 @@ Deno.serve(async (request) => {
         scope,
         sourceName,
         body.missing_only === true,
+        createdAfter,
       ))
     }
     if (body.action === 'store_proposals') {

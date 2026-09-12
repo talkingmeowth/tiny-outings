@@ -1,3 +1,6 @@
+import { activityImageGroupKey } from '../../src/activityDuplicates.js';
+import { imageSourceConflict } from './image-source-provenance.js';
+
 const blockedAssetTerms = /(favicon|icon|logo|wordmark|brand|badge|avatar|social[-_ ]?(?:icon|link|media)|facebook|fbcdn|scontent|cdninstagram|instagram|twitter|twimg|tiktok|linkedin|pinterest|youtube|tracking|pixel|spinner|placeholder|cookie|consent|newsletter|payment|checkout|app-store|google-play|sprite)/i;
 const weakImageTerms = /(thumb(?:nail)?|small|tiny|low[-_ ]?res|cropped|avatar|profile|header|banner)/i;
 const stopWords = new Set(['a', 'an', 'and', 'at', 'by', 'for', 'from', 'in', 'london', 'of', 'on', 'the', 'to', 'uk', 'with']);
@@ -9,7 +12,7 @@ const directoryDomains = /(tripadvisor|wheree|yelp|foursquare|restaurantguru|wan
 const authorityDomains = /(\.gov\.uk$|\.org\.uk$|visitlondon|goparks\.london|wikipedia|wikimedia|geograph)/i;
 
 export const TAGGED_IMAGE_MODEL_NAME = 'Tiny Outings learned cross-source image ranker';
-export const TAGGED_IMAGE_MODEL_VERSION = 'cross-source-ranker-v2';
+export const TAGGED_IMAGE_MODEL_VERSION = 'cross-source-ranker-v3';
 
 export const AUTOMATIC_IMAGE_SOURCE_FIELDS = [
   'audit_image_url',
@@ -46,6 +49,11 @@ export const FEATURE_NAMES = [
   'landscape',
   'title_name_overlap',
   'title_location_overlap',
+  'source_identity_support',
+  'source_conflict',
+  'source_postcode_conflict',
+  'source_location_conflict',
+  'source_brand_conflict',
   'scene_terms',
   'cafe_scene_terms',
   'park_scene_terms',
@@ -60,6 +68,10 @@ export const FEATURE_NAMES = [
   'category_source_preference',
   'visual_approved',
   'visual_rejected',
+  'visual_confidence',
+  'visual_category_match',
+  'visual_rejection_risk',
+  'visual_preference_rank',
   'audit_approved',
   'image_url_quality',
   'descriptive_title',
@@ -202,6 +214,12 @@ export function normalizeStoredCandidate(value, index = 0, defaults = {}) {
   const sourcePageUrl = clean(value.source_page_url || value.link);
   const width = Number(value.width ?? value.original_width);
   const height = Number(value.height ?? value.original_height);
+  const reportedPosition = value.source_position ?? value.position ?? defaults.sourcePosition;
+  const normalizedPosition = reportedPosition == null || !Number.isInteger(Number(reportedPosition))
+    ? null
+    : value.source_position == null && value.position != null && Number(reportedPosition) >= 1
+      ? Number(reportedPosition) - 1
+      : Number(reportedPosition);
   return {
     image_url: imageUrl,
     thumbnail_url: validHttpUrl(thumbnailUrl) ? thumbnailUrl : null,
@@ -212,8 +230,7 @@ export function normalizeStoredCandidate(value, index = 0, defaults = {}) {
     height: Number.isFinite(height) && height > 0 ? height : null,
     relevance_reason: clean(value.relevance_reason) || `Google Images result ${Number(value.position) || index + 1}`,
     candidate_set_index: value.candidate_set_index != null && Number.isInteger(Number(value.candidate_set_index)) ? Number(value.candidate_set_index) : index,
-    source_position: (value.source_position ?? value.position) != null && Number.isInteger(Number(value.source_position ?? value.position))
-      ? Number(value.source_position ?? value.position) : null,
+    source_position: normalizedPosition,
     candidate_source: clean(value.candidate_source || value.source_kind || defaults.candidateSource) || 'google_images',
     source_field: clean(value.source_field || defaults.sourceField) || null,
     visual_status: clean(value.visual_status || defaults.visualStatus) || 'unreviewed',
@@ -235,6 +252,7 @@ export function storedCandidateSet(activity, maximumCandidates = 20) {
       const visual = arrayCandidateVisualEvidence(activity, candidateSource, index);
       return normalizeStoredCandidate(candidate, index, {
         candidateSource,
+        sourcePosition: index,
         visualStatus: visual.visual_status,
         visualReason: visual.visual_reason,
       });
@@ -286,7 +304,7 @@ function mergeCandidate(existing, candidate) {
   };
 }
 
-export function crossSourceCandidateSet(activity, maximumCandidates = 100) {
+export function crossSourceCandidateSet(activity, maximumCandidates = Number.POSITIVE_INFINITY) {
   const direct = AUTOMATIC_IMAGE_SOURCE_FIELDS.map((field) => storedFieldCandidate(activity, field)).filter(Boolean);
   const googleSource = Array.isArray(activity?.codex_image_candidates) && activity.codex_image_candidates.length
     ? activity.codex_image_candidates
@@ -295,6 +313,7 @@ export function crossSourceCandidateSet(activity, maximumCandidates = 100) {
     const visual = arrayCandidateVisualEvidence(activity, 'google_images', index);
     return normalizeStoredCandidate(candidate, index, {
       candidateSource: 'google_images',
+      sourcePosition: index,
       visualStatus: visual.visual_status,
       visualReason: visual.visual_reason,
     });
@@ -304,6 +323,7 @@ export function crossSourceCandidateSet(activity, maximumCandidates = 100) {
       const visual = arrayCandidateVisualEvidence(activity, 'official_website_candidate', index);
       return normalizeStoredCandidate(candidate, index, {
         candidateSource: 'official_website_candidate',
+        sourcePosition: index,
         visualStatus: visual.visual_status,
         visualReason: visual.visual_reason,
       });
@@ -387,6 +407,8 @@ function featureObject(activity, candidate, index, stats) {
   const locationTokens = tokens([activity?.address, activity?.borough, activity?.postcode].filter(Boolean).join(' '));
   const titleTokens = tokens(title);
   const official = officialDomains(activity);
+  const sourceConflict = imageSourceConflict(activity, candidate);
+  const visual = candidate.visual_assessment?.visual || {};
   return {
     bias: 1,
     inverse_position: sourcePosition == null ? 0 : 1 / (sourcePosition + 1),
@@ -400,6 +422,11 @@ function featureObject(activity, candidate, index, stats) {
     landscape: aspect >= 1.05 ? 1 : 0,
     title_name_overlap: overlap(titleTokens, nameTokens),
     title_location_overlap: overlap(titleTokens, locationTokens),
+    source_identity_support: Math.max(sourceConflict.name_overlap, sourceConflict.location_overlap, sourceConflict.official ? 1 : 0),
+    source_conflict: sourceConflict.score,
+    source_postcode_conflict: sourceConflict.postcode_conflict ? 1 : 0,
+    source_location_conflict: sourceConflict.location_conflict ? 1 : 0,
+    source_brand_conflict: sourceConflict.brand_conflict ? 1 : 0,
     scene_terms: generalSceneTerms.test(title) ? 1 : 0,
     cafe_scene_terms: /(?:cafe|food|play cafe)/.test(category) && cafeSceneTerms.test(title) ? 1 : 0,
     park_scene_terms: /(?:park|outdoor)/.test(category) && parkSceneTerms.test(title) ? 1 : 0,
@@ -414,6 +441,10 @@ function featureObject(activity, candidate, index, stats) {
     category_source_preference: domainStat(stats.categorySource, `${category}|${sourceKind}`),
     visual_approved: candidate.visual_status === 'approved' ? 1 : 0,
     visual_rejected: candidate.visual_status === 'rejected' ? 1 : 0,
+    visual_confidence: Number(candidate.visual_confidence) || 0,
+    visual_category_match: Number(visual.accepted) || 0,
+    visual_rejection_risk: Number(visual.rejected) || 0,
+    visual_preference_rank: Number(visual.preference_rank) ? clamp(Number(visual.preference_rank) / 3, 0, 1) : 0,
     audit_approved: candidate.audit_approved ? 1 : 0,
     image_url_quality: weakImageTerms.test(imageUrl) ? -1 : 1,
     descriptive_title: clamp(titleTokens.size / 9, 0, 1),
@@ -441,16 +472,50 @@ function deterministicBucket(value) {
 }
 
 export function taggedChoiceGroups(rows) {
-  const groups = [];
+  const groupsByActivity = new Map();
   for (const row of rows || []) {
     const activity = row.activity || row;
-    const candidates = crossSourceCandidateSet(activity);
-    const selectedUrl = clean(row.original_image_url || row.selected_image_url || row.reviewed_image_original_url);
-    const selectedIndex = candidates.findIndex((candidate) => candidate.image_url === selectedUrl);
-    if (candidates.length < 2 || selectedIndex < 0) continue;
-    groups.push({ activity, candidates, selectedIndex, reviewId: row.manual_review_id || activity.activity_id });
+    const activityId = clean(activity?.activity_id);
+    if (!activityId) continue;
+    let group = groupsByActivity.get(activityId);
+    if (!group) {
+      const candidates = crossSourceCandidateSet(activity);
+      group = {
+        activity,
+        candidates,
+        selectedIndices: new Set(),
+        reviewIds: new Set(),
+        evidenceTypes: new Set(),
+        groupKey: activityImageGroupKey(activity),
+      };
+      groupsByActivity.set(activityId, group);
+    }
+    const selectedUrls = new Set([
+      row.original_image_url,
+      row.selected_image_url,
+      row.reviewed_image_original_url,
+      row.image_url,
+    ].map(secureUrl).filter(Boolean));
+    group.candidates.forEach((candidate, index) => {
+      if (selectedUrls.has(secureUrl(candidate.image_url))) group.selectedIndices.add(index);
+    });
+    group.reviewIds.add(clean(row.ground_truth_id || row.manual_review_id || activityId));
+    if (row.evidence_type) group.evidenceTypes.add(clean(row.evidence_type));
   }
-  return groups;
+  return [...groupsByActivity.values()]
+    .filter((group) => group.candidates.length >= 2 && group.selectedIndices.size > 0)
+    .map((group) => {
+      const selectedIndices = [...group.selectedIndices].sort((left, right) => left - right);
+      return {
+        activity: group.activity,
+        candidates: group.candidates,
+        selectedIndex: selectedIndices[0],
+        selectedIndices,
+        reviewId: [...group.reviewIds].sort().join('|'),
+        evidenceTypes: [...group.evidenceTypes].sort(),
+        groupKey: group.groupKey,
+      };
+    });
 }
 
 function preferenceStats(groups) {
@@ -468,6 +533,7 @@ function preferenceStats(groups) {
   for (const group of groups) {
     const category = normalizedCategory(group.activity.category);
     const importer = clean(group.activity.source_name).toLowerCase() || 'unknown';
+    const selectedIndices = new Set(group.selectedIndices || [group.selectedIndex]);
     group.candidates.forEach((candidate, index) => {
       const host = rootDomain(candidate.source_page_url || candidate.source_domain || candidate.image_url);
       const candidateSource = clean(candidate.candidate_source) || 'google_images';
@@ -481,10 +547,10 @@ function preferenceStats(groups) {
         if (!key) continue;
         const current = map.get(key) || { exposed: 0, selected: 0 };
         current.exposed += 1;
-        if (index === group.selectedIndex) current.selected += 1;
+        if (selectedIndices.has(index)) current.selected += 1;
         map.set(key, current);
         map.exposedTotal += 1;
-        if (index === group.selectedIndex) map.selectedTotal += 1;
+        if (selectedIndices.has(index)) map.selectedTotal += 1;
       }
     });
   }
@@ -493,7 +559,8 @@ function preferenceStats(groups) {
 
 function trainingFingerprint(groups) {
   let hash = 2166136261;
-  const values = groups.map((group) => `${group.reviewId}|${group.candidates[group.selectedIndex]?.image_url || ''}`).sort();
+  const values = groups.map((group) => `${group.reviewId}|${(group.selectedIndices || [group.selectedIndex])
+    .map((index) => group.candidates[index]?.image_url || '').sort().join('|')}`).sort();
   for (const value of values.join('\n')) {
     hash ^= value.charCodeAt(0);
     hash = Math.imul(hash, 16777619);
@@ -504,12 +571,17 @@ function trainingFingerprint(groups) {
 function trainWeights(groups, stats, epochs = 260) {
   const pairs = [];
   for (const group of groups) {
-    const selected = featureVector(featureObject(group.activity, group.candidates[group.selectedIndex], group.selectedIndex, stats));
-    group.candidates.forEach((candidate, index) => {
-      if (index === group.selectedIndex || !candidateEligible(group.activity, candidate)) return;
-      const negative = featureVector(featureObject(group.activity, candidate, index, stats));
-      pairs.push(selected.map((value, featureIndex) => value - negative[featureIndex]));
-    });
+    const selectedIndices = new Set(group.selectedIndices || [group.selectedIndex]);
+    for (const selectedIndex of selectedIndices) {
+      const selectedCandidate = group.candidates[selectedIndex];
+      if (!candidateEligible(group.activity, selectedCandidate)) continue;
+      const selected = featureVector(featureObject(group.activity, selectedCandidate, selectedIndex, stats));
+      group.candidates.forEach((candidate, index) => {
+        if (selectedIndices.has(index) || !candidateEligible(group.activity, candidate)) return;
+        const negative = featureVector(featureObject(group.activity, candidate, index, stats));
+        pairs.push(selected.map((value, featureIndex) => value - negative[featureIndex]));
+      });
+    }
   }
   const weights = Array(FEATURE_NAMES.length).fill(0);
   for (let epoch = 0; epoch < epochs; epoch += 1) {
@@ -532,7 +604,14 @@ function ranked(group, weights, stats) {
     eligible: candidateEligible(group.activity, candidate),
     features: featureObject(group.activity, candidate, index, stats),
   })).filter((row) => row.eligible)
-    .map((row) => ({ ...row, score: dot(weights, featureVector(row.features)) }))
+    .map((row) => {
+      const learnedScore = dot(weights, featureVector(row.features));
+      const visualBoost = row.features.visual_approved
+        ? (0.45 * row.features.visual_confidence) + (0.25 * row.features.visual_preference_rank)
+        : 0;
+      const conflictPenalty = 3.2 * row.features.source_conflict;
+      return { ...row, learnedScore, score: learnedScore + visualBoost - conflictPenalty };
+    })
     .sort((left, right) => right.score - left.score || left.index - right.index);
 }
 
@@ -543,7 +622,8 @@ function evaluate(groups, weights, stats) {
   let reciprocalRank = 0;
   for (const group of groups) {
     const ranking = ranked(group, weights, stats);
-    const position = ranking.findIndex((row) => row.index === group.selectedIndex);
+    const selectedIndices = new Set(group.selectedIndices || [group.selectedIndex]);
+    const position = ranking.findIndex((row) => selectedIndices.has(row.index));
     if (position === 0) top1 += 1;
     if (position >= 0 && position < 3) top3 += 1;
     if (position >= 0) reciprocalRank += 1 / (position + 1);
@@ -559,8 +639,8 @@ function evaluate(groups, weights, stats) {
 export function trainTaggedImageRanker(rows) {
   const groups = taggedChoiceGroups(rows);
   if (groups.length < 20) throw new Error(`At least 20 matched manual reviews are required; found ${groups.length}.`);
-  const validationGroups = groups.filter((group) => deterministicBucket(group.activity.activity_id) === 0);
-  const trainingGroups = groups.filter((group) => deterministicBucket(group.activity.activity_id) !== 0);
+  const validationGroups = groups.filter((group) => deterministicBucket(group.groupKey) === 0);
+  const trainingGroups = groups.filter((group) => deterministicBucket(group.groupKey) !== 0);
   const validationStats = preferenceStats(trainingGroups);
   const validationWeights = trainWeights(trainingGroups, validationStats);
   const metrics = evaluate(validationGroups, validationWeights, validationStats);
@@ -576,6 +656,7 @@ export function trainTaggedImageRanker(rows) {
       ...metrics,
       training_choices: trainingGroups.length,
       total_matched_choices: groups.length,
+      accepted_image_count: groups.reduce((total, group) => total + (group.selectedIndices?.length || 1), 0),
       feature_count: FEATURE_NAMES.length,
     },
   };
@@ -592,10 +673,11 @@ function recommendationReason(activity, choice, model) {
   if (choice.features.park_scene_terms) evidence.push('clear outdoor/play context');
   if (choice.features.log_pixels >= 0.55) evidence.push('high reported resolution');
   if (choice.features.card_aspect >= 0.8) evidence.push('useful card framing');
+  if (choice.features.source_conflict >= 0.5) evidence.push('conflicting source metadata lowered confidence');
   if (choice.candidate.candidate_source) evidence.push(`best learned ${choice.candidate.candidate_source.replaceAll('_', ' ')} source`);
-  if (!evidence.length) evidence.push(`result-position and source patterns from ${model.trainingReviewCount} manual choices`);
+  if (!evidence.length) evidence.push(`result-position and source patterns from ${model.trainingReviewCount} ground-truth listings`);
   const visualReason = clean(choice.candidate.visual_reason);
-  return `Learned from ${model.trainingReviewCount} manual selections; ${evidence.slice(0, 4).join(', ')}.${visualReason ? ` Visual review: ${visualReason}` : ''}`;
+  return `Learned from ${model.trainingReviewCount} ground-truth listings; ${evidence.slice(0, 4).join(', ')}.${visualReason ? ` Visual review: ${visualReason}` : ''}`;
 }
 
 function visualAssessmentFor(visualAssessments, imageUrl) {
@@ -614,13 +696,18 @@ function candidatesWithVisualAssessments(candidates, visualAssessments) {
 function recommendationFromCandidates(activity, model, candidates, {
   requireVisualApproval = false,
   visualAssessments = null,
+  allowVisualFallback = false,
 } = {}) {
   const assessedCandidates = candidatesWithVisualAssessments(candidates, visualAssessments);
   if (!assessedCandidates.length) return null;
   const excludedImageUrls = new Set((activity.automated_failed_image_urls || []).map(clean));
-  const ranking = ranked({ activity, candidates: assessedCandidates }, model.weights, model.stats)
-    .filter((row) => !excludedImageUrls.has(clean(row.candidate.image_url)))
-    .filter((row) => !requireVisualApproval || row.candidate.visual_status === 'approved');
+  const eligibleRanking = ranked({ activity, candidates: assessedCandidates }, model.weights, model.stats)
+    .filter((row) => !excludedImageUrls.has(clean(row.candidate.image_url)));
+  const ranking = requireVisualApproval
+    ? allowVisualFallback
+      ? eligibleRanking.filter((row) => row.candidate.visual_status === 'approved')
+      : eligibleRanking[0]?.candidate.visual_status === 'approved' ? eligibleRanking : []
+    : eligibleRanking;
   if (!ranking.length) return null;
   const choice = ranking[0];
   const runnerUp = ranking[1];
@@ -629,9 +716,13 @@ function recommendationFromCandidates(activity, model, candidates, {
   const learnedConfidence = clamp(0.34 + (0.36 * sigmoid(gap)) + (0.26 * validationAccuracy), 0.5, 0.97);
   const visualConfidence = choice.candidate.visual_confidence == null ? null : Number(choice.candidate.visual_confidence);
   const hasVisualConfidence = visualConfidence != null && Number.isFinite(visualConfidence);
-  const confidence = hasVisualConfidence
+  const unpenalizedConfidence = hasVisualConfidence
     ? clamp((learnedConfidence * 0.45) + (visualConfidence * 0.55), 0.5, 0.97)
     : requireVisualApproval ? Math.min(learnedConfidence, 0.69) : learnedConfidence;
+  const sourceConflict = Number(choice.features.source_conflict) || 0;
+  let confidence = clamp(unpenalizedConfidence - (sourceConflict * 0.38), 0.05, 0.97);
+  if (sourceConflict >= 0.8) confidence = Math.min(confidence, 0.54);
+  else if (sourceConflict >= 0.6) confidence = Math.min(confidence, 0.66);
   const significantFeatures = Object.fromEntries(Object.entries(choice.features)
     .filter(([, value]) => Math.abs(Number(value)) >= 0.4));
   return {
@@ -649,6 +740,8 @@ function recommendationFromCandidates(activity, model, candidates, {
       selected_source_field: choice.candidate.source_field || null,
       visual_status: choice.candidate.visual_status || 'unreviewed',
       visual_confidence: hasVisualConfidence ? visualConfidence : null,
+      source_conflict: sourceConflict,
+      confidence_before_source_conflict: Number(unpenalizedConfidence.toFixed(4)),
       significant_features: significantFeatures,
     },
   };
@@ -659,7 +752,7 @@ export function rankStoredCandidates(activity, model, { maximumCandidates = 20 }
   return recommendationFromCandidates(activity, model, candidates);
 }
 
-export function crossSourceCandidateRanking(activity, model, { maximumCandidates = 100 } = {}) {
+export function crossSourceCandidateRanking(activity, model, { maximumCandidates = Number.POSITIVE_INFINITY } = {}) {
   const candidates = crossSourceCandidateSet(activity, maximumCandidates);
   const excludedImageUrls = new Set((activity.automated_failed_image_urls || []).map(clean));
   return ranked({ activity, candidates }, model.weights, model.stats)
@@ -673,10 +766,11 @@ export function crossSourceCandidateRanking(activity, model, { maximumCandidates
 }
 
 export function rankCrossSourceCandidates(activity, model, {
-  maximumCandidates = 100,
+  maximumCandidates = Number.POSITIVE_INFINITY,
   requireVisualApproval = true,
   visualAssessments = null,
+  allowVisualFallback = false,
 } = {}) {
   const candidates = crossSourceCandidateSet(activity, maximumCandidates);
-  return recommendationFromCandidates(activity, model, candidates, { requireVisualApproval, visualAssessments });
+  return recommendationFromCandidates(activity, model, candidates, { requireVisualApproval, visualAssessments, allowVisualFallback });
 }

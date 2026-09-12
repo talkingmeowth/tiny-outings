@@ -35,6 +35,24 @@ test('the importer pipeline reruns every selector from stored candidates', () =>
     'select-stored-serpapi-images',
     'apply-repeatable-model-image-review',
   ]) assert.match(pipeline, new RegExp(`name: '${job}'`));
-  assert.match(pipeline, /'--scope', 'all-unreviewed', '--visual-assessment', '--apply'/);
+  assert.match(pipeline, /'--scope', 'all-unreviewed', '--created-after', runStartedAt, '--visual-assessment', '--apply'/);
   assert.doesNotMatch(pipeline, /'--search-missing'/);
+});
+
+test('website and organiser discovery stores every unique eligible candidate before model inference', () => {
+  const downloader = read('supabase/functions/activity-website-image-downloader/index.ts');
+  const ranker = read('scripts/lib/tagged-image-ranker.js');
+  assert.doesNotMatch(downloader, /maxStoredCandidates/);
+  assert.doesNotMatch(downloader, /\.slice\(0,\s*maxStoredCandidates\)/);
+  assert.match(ranker, /crossSourceCandidateSet\(activity, maximumCandidates = Number\.POSITIVE_INFINITY\)/);
+});
+
+test('new-listing model inference is scoped to the current import and accepts every quality-gated winner', () => {
+  const pipeline = read('scripts/tiny-outings-update.js');
+  const runner = read('scripts/automate-tagged-image-review.js');
+  const endpoint = read('supabase/functions/activity-image-auto-review/index.ts');
+  assert.match(pipeline, /'--created-after', runStartedAt/);
+  assert.match(runner, /created_after: createdAfter/);
+  assert.match(endpoint, /query = query\.gte\('created_at', createdAfter\)/);
+  assert.doesNotMatch(endpoint, /Number\(proposal\.confidence\) < 0\.7/);
 });

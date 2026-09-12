@@ -79,7 +79,8 @@ function present(value) {
 function presentForActivity(activity, field) {
   const imageUrl = activity[field];
   if (!present(imageUrl)) return false;
-  if (field === 'model_selected_url' && Number(activity.model_selected_confidence) < 0.7) return false;
+  // model_selected_url is populated only after the cross-source quality and
+  // visual gate; confidence remains informational for desktop review.
   return true;
 }
 

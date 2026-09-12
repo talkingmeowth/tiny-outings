@@ -16,7 +16,6 @@ const adminEmails = new Set([
   'benfielden@gmail.com',
 ])
 const maxImageBytes = 8 * 1024 * 1024
-const maxStoredCandidates = 80
 const acceptedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif'])
 
 type Activity = {
@@ -320,7 +319,6 @@ async function discoverActivityCandidates(
     .sort((left, right) => Number(right.source_kind === 'organiser') - Number(left.source_kind === 'organiser')
       || right.metadata_score - left.metadata_score)
     .filter((candidate) => !seen.has(candidate.original) && Boolean(seen.add(candidate.original)))
-    .slice(0, maxStoredCandidates)
     .map((candidate, index) => databaseSafeCandidate({ ...candidate, position: index + 1 }))
   const now = new Date().toISOString()
   const emptyReason = 'Official-website discovery completed but returned no eligible image candidates.'

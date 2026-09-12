@@ -12,8 +12,6 @@ export const activityImageFields = [
   'model_selected_url',
 ];
 
-export const minimumModelImageConfidence = 0.7;
-
 export function securePhotoUrl(url) {
   return String(url || '').trim().replace(/^http:\/\//i, 'https://');
 }
@@ -47,10 +45,11 @@ export function isScrapedImageApprovedByAudit(activity, url = activity?.scraped_
 }
 
 export function isModelImageApproved(activity, url = activity?.model_selected_url) {
-  const confidence = Number(activity?.model_selected_confidence);
-  return securePhotoUrl(activity?.model_selected_url) === securePhotoUrl(url)
-    && Number.isFinite(confidence)
-    && confidence >= minimumModelImageConfidence;
+  // A value reaches model_selected_url only after the cross-source selector's
+  // download, resolution, logo, provenance and visual checks. Confidence is
+  // retained for audit/review, but it no longer hides an accepted model choice.
+  const selectedUrl = securePhotoUrl(activity?.model_selected_url);
+  return Boolean(selectedUrl && selectedUrl === securePhotoUrl(url));
 }
 
 export function isQualityApprovedImageField(activity, field, url) {

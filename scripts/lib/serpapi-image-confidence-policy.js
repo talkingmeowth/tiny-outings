@@ -1,4 +1,5 @@
 import { allowsWikimediaImages, isWikimediaSource } from '../../src/wikimediaImagePolicy.js';
+import { imageSourceConflict } from './image-source-provenance.js';
 
 function normalise(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -237,13 +238,15 @@ function candidateProvenance(activity, candidate) {
     exactTitle
     || (terms.length >= 2 && matchedTerms.length >= 2)
   );
+  const sourceConflict = imageSourceConflict(activity, candidate);
   return {
-    highConfidence: officialIdentityEvidence || titleEvidence,
+    highConfidence: (officialIdentityEvidence || titleEvidence) && !sourceConflict.clear,
     official,
     officialIdentityEvidence,
     exactTitle,
     matchedTerms,
     terms,
+    sourceConflict,
   };
 }
 
@@ -261,13 +264,17 @@ function resolutionScore(candidate) {
 export function assessSerpApiCandidate(activity, candidate, results) {
   const visual = visualAssessment(activity, results);
   const provenance = candidateProvenance(activity, candidate);
-  const confidence = Number(((visual.accepted + (provenance.official ? 0.2 : 0.08)) / 1.2).toFixed(4));
+  const confidenceBeforeConflict = (visual.accepted + (provenance.official ? 0.2 : 0.08)) / 1.2;
+  const confidence = Number(Math.max(0.05, confidenceBeforeConflict - (provenance.sourceConflict.score * 0.5)).toFixed(4));
   if (!allowsWikimediaImages(activity)
     && [candidate.original, candidate.thumbnail, candidate.link, candidate.source].some(isWikimediaSource)) {
     return { outcome: 'remove', reason: 'Wikimedia images are not allowed for this activity category.', provenance, visual, confidence };
   }
   if (!provenance.highConfidence) {
-    return { outcome: 'remove', reason: 'Candidate lacks official-source or distinctive-title evidence.', provenance, visual, confidence };
+    const reason = provenance.sourceConflict.clear
+      ? `Candidate source conflicts with the activity: ${provenance.sourceConflict.reasons.join('; ')}.`
+      : 'Candidate lacks official-source or distinctive-title evidence.';
+    return { outcome: 'remove', reason, provenance, visual, confidence };
   }
   if (!visual.highConfidence) {
     return { outcome: 'remove', reason: 'Candidate is a logo, unrelated, low quality, or not clearly representative.', provenance, visual, confidence };
