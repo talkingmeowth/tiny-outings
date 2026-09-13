@@ -1,5 +1,6 @@
 import { activityImageGroupKey } from '../../src/activityDuplicates.js';
 import { isQualityApprovedImageField } from '../../src/activityImages.js';
+import { isActiveDraftActivity } from '../../src/reviewQueue.js';
 import { allowsWikimediaImages, isWikimediaUrl } from '../../src/wikimediaImagePolicy.js';
 import { categoryIllustrationCandidate } from './categoryIllustrations.js';
 
@@ -465,7 +466,7 @@ export function preparedActivitiesForQueue(prepared, queueId) {
     const image = currentImage(activity);
     return !image.url || image.field === 'category_placeholder';
   });
-  if (queueId === 'all_draft') return active.filter((activity) => activity.public_listing_status === 'draft');
+  if (queueId === 'all_draft') return active.filter(isActiveDraftActivity);
   return active.filter((activity) => activity.public_listing_status === 'published');
 }
 

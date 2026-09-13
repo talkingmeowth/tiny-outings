@@ -15,7 +15,7 @@ import { ACTIVITY_PAGE_SIZE, loadActivityPageWithRetries } from './activityLoade
 import { activityFallbackImage, activityImageUrls, hasActivityImage, securePhotoUrl, shareListingImages } from './activityImages';
 import { activityCoordinates, resolveActivityCoordinates } from './activityLocation';
 import { profileQrUrl, profileShareData } from './profileSharing';
-import { activityIdBatches } from './reviewQueue';
+import { buildAdminDraftReviewQueue, isActiveDraftActivity } from './reviewQueue';
 
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
@@ -116,51 +116,11 @@ const statusLabels = {
 
 const reviewQueueSections = [
   {
-    type: 'user_submission',
-    title: 'User submissions',
-    description: 'Drafts waiting to be checked and published or archived.',
-  },
-  {
-    type: 'import_new',
-    title: 'New from importers',
-    description: 'New listings added by an importer.',
-  },
-  {
-    type: 'import_change',
-    title: 'Importer updates',
-    description: 'Changes an importer made to an existing listing.',
+    type: 'draft',
+    title: 'All draft listings',
+    description: 'The same active drafts shown in the desktop review app.',
   },
 ];
-
-const reviewChangeLabels = {
-  name: 'name',
-  address: 'address',
-  category: 'category',
-  start_time: 'start time',
-  end_time: 'end time',
-  website: 'website',
-  organiser_website: 'organiser website',
-  google_places_link: 'Google Places link',
-  description: 'description',
-  card_summary: 'card summary',
-  price: 'price',
-  age_suitability: 'age suitability',
-  latitude: 'location',
-  longitude: 'location',
-  availability_dates: 'available dates',
-  availability_days: 'available days',
-  status: 'listing status',
-  archived: 'archive status',
-  cover_image: 'cover image',
-};
-
-function reviewQueueChangeSummary(item) {
-  if (item.queue_type === 'user_submission') return 'A parent submitted this for review.';
-  if (item.queue_type === 'import_new') return 'A new listing was imported.';
-  const changedFields = Object.keys(item.changes || {})
-    .map((field) => reviewChangeLabels[field] || field.replaceAll('_', ' '));
-  return changedFields.length ? `Changed: ${[...new Set(changedFields)].join(', ')}.` : 'An importer updated this listing.';
-}
 
 const emptyLinkForm = {
   link: '',
@@ -2054,31 +2014,52 @@ export default function App() {
   useEffect(() => {
     if (!supabase) return undefined;
 
+    const syncChangedActivity = ({ eventType, new: changedActivity, old: previousActivity }) => {
+      const changedId = changedActivity?.activity_id || previousActivity?.activity_id;
+      if (!changedId) return;
+      if (eventType === 'DELETE') {
+        setActivities((current) => current.filter((item) => String(item.activity_id) !== String(changedId)));
+        setReviewQueue((current) => current.filter((item) => String(item.activity_id) !== String(changedId)));
+        setSelectedActivity((current) => (String(current?.activity_id) === String(changedId) ? null : current));
+        return;
+      }
+
+      const updatedActivity = normalizeActivity(changedActivity);
+      const isVisible = updatedActivity.public_listing_status === 'published' && !updatedActivity.archive;
+
+      setActivities((current) => {
+        const exists = current.some((item) => String(item.activity_id) === String(updatedActivity.activity_id));
+        if (!isVisible) {
+          return current.filter((item) => String(item.activity_id) !== String(updatedActivity.activity_id));
+        }
+        return exists
+          ? current.map((item) => (String(item.activity_id) === String(updatedActivity.activity_id) ? updatedActivity : item))
+          : [...current, updatedActivity];
+      });
+
+      setReviewQueue((current) => {
+        const otherDrafts = current
+          .filter((item) => String(item.activity_id) !== String(updatedActivity.activity_id))
+          .map((item) => item.activity)
+          .filter(Boolean);
+        return buildAdminDraftReviewQueue(
+          isActiveDraftActivity(updatedActivity) ? [...otherDrafts, updatedActivity] : otherDrafts,
+        );
+      });
+
+      setSelectedActivity((current) => (
+        String(current?.activity_id) === String(updatedActivity.activity_id)
+          ? (isVisible || isActiveDraftActivity(updatedActivity) ? updatedActivity : null)
+          : current
+      ));
+    };
+
     const channel = supabase
       .channel('tiny-outings-activity-cards')
       .on(
         'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'activities' },
-        ({ new: changedActivity }) => {
-          const updatedActivity = normalizeActivity(changedActivity);
-          const isVisible = updatedActivity.public_listing_status === 'published' && !updatedActivity.archive;
-
-          setActivities((current) => {
-            const exists = current.some((item) => String(item.activity_id) === String(updatedActivity.activity_id));
-            if (!isVisible) {
-              return current.filter((item) => String(item.activity_id) !== String(updatedActivity.activity_id));
-            }
-            return exists
-              ? current.map((item) => (String(item.activity_id) === String(updatedActivity.activity_id) ? updatedActivity : item))
-              : [...current, updatedActivity];
-          });
-
-          setSelectedActivity((current) => (
-            String(current?.activity_id) === String(updatedActivity.activity_id)
-              ? (isVisible ? updatedActivity : null)
-              : current
-          ));
-        },
+        { event: '*', schema: 'public', table: 'activities' },
+        syncChangedActivity,
       )
       .subscribe();
 
@@ -2105,54 +2086,26 @@ export default function App() {
         setReviewQueueError('');
       }
       try {
-        const { data: queueRows, error: queueError } = await supabase
-          .from('activity_review_queue')
-          .select('review_queue_id,activity_id,queue_type,status,summary,changes,source_name,data_source,created_at')
-          .eq('status', 'pending')
-          .order('created_at', { ascending: true });
+        const draftActivities = [];
+        for (let from = 0; ; from += ACTIVITY_PAGE_SIZE) {
+          const response = await loadActivityPageWithRetries(() => supabase
+            .from('activities')
+            .select(activitySelectColumns)
+            .eq('public_listing_status', 'draft')
+            .eq('archive', false)
+            .order('activity_id', { ascending: true })
+            .range(from, from + ACTIVITY_PAGE_SIZE - 1));
+          if (response.error) throw response.error;
+          draftActivities.push(...(response.data || []));
+          if ((response.data || []).length < ACTIVITY_PAGE_SIZE) break;
+        }
         if (cancelled) return;
-        if (queueError) {
-          setReviewQueueError(queueError.message || 'We could not load the review queue.');
-          setNotice(`Review queue could not be loaded: ${queueError.message}`);
-          return;
-        }
-
-        const queueItems = (queueRows || []).map((item) => ({ ...item, activity: null }));
-        // Render the queue immediately. Activity details are supplementary and
-        // should not make the whole review screen appear stuck loading.
-        setReviewQueue(queueItems);
-        setReviewQueueLoading(false);
-
-        const activityBatches = activityIdBatches(queueRows);
-        let activitiesById = new Map();
-        if (activityBatches.length) {
-          const activityResults = await Promise.all(activityBatches.map(async (activityIds) => (
-            supabase
-              .from('activities')
-              .select(activitySelectColumns)
-              .in('activity_id', activityIds)
-          )));
-          if (cancelled) return;
-          const activitiesError = activityResults.find((result) => result.error)?.error;
-          if (activitiesError) {
-            setNotice(`Some review listing details could not be loaded: ${activitiesError.message}`);
-            return;
-          }
-          const queueActivities = activityResults.flatMap((result) => result.data || []);
-          activitiesById = new Map((queueActivities || []).map((activity) => [
-            String(activity.activity_id),
-            normalizeActivity(activity),
-          ]));
-        }
-
-        setReviewQueue((queueRows || []).map((item) => ({
-          ...item,
-          activity: activitiesById.get(String(item.activity_id)) || null,
-        })));
-      } catch {
+        setReviewQueue(buildAdminDraftReviewQueue(draftActivities.map(normalizeActivity)));
+      } catch (error) {
         if (!cancelled) {
-          setReviewQueueError('We could not load the review queue.');
-          setNotice('Review queue could not be loaded. Try again in a moment.');
+          const message = error?.message || 'We could not load the draft queue.';
+          setReviewQueueError(message);
+          setNotice(`Draft queue could not be loaded: ${message}`);
         }
       } finally {
         if (!cancelled) setReviewQueueLoading(false);
@@ -2927,27 +2880,6 @@ export default function App() {
     return true;
   }
 
-  async function markReviewQueueItemReviewed(item) {
-    if (!supabase || !isAdmin || !item?.review_queue_id) return;
-    setAdminSaving(true);
-    const { error } = await supabase
-      .from('activity_review_queue')
-      .update({
-        status: 'reviewed',
-        reviewed_at: new Date().toISOString(),
-        reviewed_by_user_id: session?.user?.id || null,
-      })
-      .eq('review_queue_id', item.review_queue_id)
-      .eq('status', 'pending');
-    setAdminSaving(false);
-    if (error) {
-      setNotice(`Review item could not be updated: ${error.message}`);
-      return;
-    }
-    setReviewQueue((current) => current.filter((queuedItem) => queuedItem.review_queue_id !== item.review_queue_id));
-    setNotice('Importer review marked as complete.');
-  }
-
   async function reviewSubmittedActivity(activity, status, values = {}) {
     if (!supabase || !isAdmin) return;
     const label = status === 'published' ? 'approve' : 'archive';
@@ -3407,7 +3339,6 @@ export default function App() {
             reviewQueueError={reviewQueueError}
             adminSaving={adminSaving}
             onOpenReview={openDraftForReview}
-            onResolveQueueItem={markReviewQueueItemReviewed}
             missingImageActivities={activitiesMissingImages}
             onRefresh={() => {
               setReviewQueueRefresh((current) => current + 1);
@@ -4680,7 +4611,6 @@ function ReviewScreen({
   reviewQueueError,
   adminSaving,
   onOpenReview,
-  onResolveQueueItem,
   missingImageActivities,
   onRefresh,
 }) {
@@ -4704,16 +4634,16 @@ function ReviewScreen({
       <section className="review-queue" aria-live="polite">
         <div className="section-heading">
           <div>
-            <span>Review queue</span>
-            <h2>{reviewQueueLoading ? 'Loading review queue...' : `${reviewQueue.length} items to check`}</h2>
+            <span>Draft queue</span>
+            <h2>{reviewQueueLoading ? 'Loading draft queue...' : `${reviewQueue.length} draft listings to check`}</h2>
           </div>
           <button className="queue-refresh" type="button" onClick={onRefresh} disabled={reviewQueueLoading || adminSaving}>
             Refresh
           </button>
         </div>
-        <p className="queue-intro">User submissions stay private until approved. Importer changes are logged here too.</p>
+        <p className="queue-intro">This is the same active Draft queue shown in the desktop review app. Publishing or archiving a listing removes it from both.</p>
         {reviewQueueError && (
-          <p className="queue-error">The review queue could not load. Tap Refresh to try again.</p>
+          <p className="queue-error">The draft queue could not load. Tap Refresh to try again.</p>
         )}
         {!reviewQueueLoading && !reviewQueueError && reviewQueueSections.map((section) => {
           const items = reviewQueue.filter((item) => item.queue_type === section.type);
@@ -4734,7 +4664,7 @@ function ReviewScreen({
                   <div className="review-list">
                   {sectionItems.map((item) => {
                     const activity = item.activity;
-                    const isUserSubmission = item.queue_type === 'user_submission';
+                    const isUserSubmission = Boolean(activity?.submitted_by_user_id);
                     return (
                       <article key={item.review_queue_id} className="review-item">
                         {activity ? (
@@ -4745,17 +4675,16 @@ function ReviewScreen({
                         <div>
                           <strong>{activity?.activity_name || item.summary}</strong>
                           <small>{activity ? `${activityPlanLabel(activity)} - ${activity.address || 'Address to review'}` : (item.source_name || 'Listing no longer available')}</small>
-                          <small>{isUserSubmission ? (activity?.submission_notes || 'No parent note') : reviewQueueChangeSummary(item)}</small>
+                          <small>
+                            {isUserSubmission
+                              ? (activity?.submission_notes || 'Parent-submitted draft')
+                              : `Source: ${activity?.source_name || activity?.data_source || 'Manual draft'}`}
+                          </small>
                         </div>
                         <div className="review-actions">
                           {activity && (
                             <button type="button" onClick={() => onOpenReview(activity)} disabled={adminSaving}>
-                              {isUserSubmission ? 'Review submission' : 'View listing'}
-                            </button>
-                          )}
-                          {!isUserSubmission && (
-                            <button type="button" onClick={() => onResolveQueueItem(item)} disabled={adminSaving}>
-                              Mark reviewed
+                              Review draft
                             </button>
                           )}
                         </div>

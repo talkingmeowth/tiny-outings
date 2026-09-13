@@ -1,13 +1,23 @@
-export function activityIdBatches(queueRows, batchSize = 100) {
-  const uniqueIds = [...new Set(
-    (queueRows || [])
-      .map((item) => item?.activity_id)
-      .filter(Boolean)
-      .map(String),
-  )];
+export function isActiveDraftActivity(activity) {
+  return activity?.public_listing_status === 'draft' && !activity?.archive;
+}
 
-  return Array.from(
-    { length: Math.ceil(uniqueIds.length / batchSize) },
-    (_, index) => uniqueIds.slice(index * batchSize, (index + 1) * batchSize),
-  );
+export function buildAdminDraftReviewQueue(activities) {
+  return (activities || [])
+    .filter(isActiveDraftActivity)
+    .sort((left, right) => (
+      String(left.activity_name || '').localeCompare(String(right.activity_name || ''), 'en-GB', { sensitivity: 'base' })
+      || String(left.activity_id || '').localeCompare(String(right.activity_id || ''))
+    ))
+    .map((activity) => ({
+      review_queue_id: `draft:${activity.activity_id}`,
+      activity_id: activity.activity_id,
+      queue_type: 'draft',
+      status: 'pending',
+      summary: activity.activity_name || 'Draft listing',
+      source_name: activity.source_name || null,
+      data_source: activity.data_source || null,
+      created_at: activity.created_at || null,
+      activity,
+    }));
 }
