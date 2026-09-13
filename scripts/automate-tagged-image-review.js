@@ -43,7 +43,11 @@ const createdAfter = createdAfterInput ? new Date(createdAfterInput).toISOString
 const missingOnly = process.argv.includes('--missing-only');
 const visualAssessmentEnabled = !process.argv.includes('--skip-visual-assessment');
 const visualFinalistsIndex = process.argv.indexOf('--visual-finalists');
-const visualFinalists = visualFinalistsIndex >= 0 ? Math.min(6, Math.max(1, Number(process.argv[visualFinalistsIndex + 1]) || 4)) : 4;
+const automaticImageDisplayMinimumConfidence = 0.5;
+const defaultVisualFinalists = 6;
+const visualFinalists = visualFinalistsIndex >= 0
+  ? Math.min(6, Math.max(1, Number(process.argv[visualFinalistsIndex + 1]) || defaultVisualFinalists))
+  : defaultVisualFinalists;
 const visionModelId = process.env.TINY_OUTINGS_SERPAPI_IMAGE_MODEL || 'Xenova/clip-vit-base-patch32';
 
 function readDotEnv(path) {
@@ -290,6 +294,10 @@ function buildProposals(targets, model) {
     const recommendation = rankCrossSourceCandidates(activity, model, {
       requireVisualApproval: true,
       visualAssessments: activity.automated_visual_assessments,
+      // A visually-approved finalist remains eligible even if a higher-ranked
+      // candidate is unreviewed. This avoids category artwork when there is a
+      // safe, relevant alternative already in the cached candidate set.
+      allowVisualFallback: true,
     });
     const normalizedCandidates = crossSourceCandidateSet(activity);
     const hasSerpApiCandidates = Array.isArray(activity.serpapi_image_candidates) && activity.serpapi_image_candidates.length;
@@ -423,6 +431,11 @@ async function main() {
       model: visionModelId,
       finalists_per_activity: visualFinalists,
     },
+    coverage_policy: {
+      category_art_only_when: `no candidate passes hard checks or model confidence is below ${automaticImageDisplayMinimumConfidence}`,
+      automatic_image_display_minimum_confidence: automaticImageDisplayMinimumConfidence,
+      visually_assessed_finalists_per_activity: visualFinalists,
+    },
     searched_missing_candidates: searchMissing,
     model: {
       name: model.name,
@@ -437,6 +450,10 @@ async function main() {
     serpapi_search_count: candidateResult.searched,
     serpapi_failure_count: candidateResult.failed.length,
     proposal_count: proposals.length,
+    displayable_model_selection_count: proposals.filter((proposal) => !proposal.terminal_rejection
+      && Number(proposal.confidence) >= automaticImageDisplayMinimumConfidence).length,
+    low_confidence_model_selection_count: proposals.filter((proposal) => !proposal.terminal_rejection
+      && Number(proposal.confidence) < automaticImageDisplayMinimumConfidence).length,
     stored_count: stored,
     automatic_application: automaticApplication,
     skipped_counts: Object.fromEntries([...new Set(skipped.map((row) => row.reason))].map((reason) => [reason, skipped.filter((row) => row.reason === reason).length])),

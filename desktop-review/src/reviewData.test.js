@@ -278,7 +278,7 @@ test('shows model-selected images below manual and user images with a distinct s
   assert.deepEqual(currentImage(modelSelected), {
     url: 'https://storage.test/model.jpg',
     field: 'model_selected_url',
-    label: 'Model selected (70%+ confidence)',
+    label: 'Model selected (50%+ confidence)',
     sourceUrl: 'https://venue.test/model-source',
     sourceDomain: 'venue.test',
   });
@@ -342,7 +342,7 @@ test('builds ordered displayed-image source options and counts category placehol
   assert.equal(displayedImageSource(activities[3]), 'category_placeholder');
   assert.deepEqual(imageSourceOptions(activities), [
     { field: 'reviewed_image_url', label: 'Manual desktop review', count: 1 },
-    { field: 'model_selected_url', label: 'Model selected (70%+ confidence)', count: 1 },
+    { field: 'model_selected_url', label: 'Model selected (50%+ confidence)', count: 1 },
     { field: 'category_placeholder', label: 'Illustrated category image', count: 3 },
   ]);
 });

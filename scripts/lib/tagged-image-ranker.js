@@ -12,7 +12,7 @@ const directoryDomains = /(tripadvisor|wheree|yelp|foursquare|restaurantguru|wan
 const authorityDomains = /(\.gov\.uk$|\.org\.uk$|visitlondon|goparks\.london|wikipedia|wikimedia|geograph)/i;
 
 export const TAGGED_IMAGE_MODEL_NAME = 'Tiny Outings learned cross-source image ranker';
-export const TAGGED_IMAGE_MODEL_VERSION = 'cross-source-ranker-v3';
+export const TAGGED_IMAGE_MODEL_VERSION = 'cross-source-ranker-v4';
 
 export const AUTOMATIC_IMAGE_SOURCE_FIELDS = [
   'audit_image_url',
@@ -380,7 +380,11 @@ function candidateEligible(activity, candidate) {
   const combined = [candidate.image_url, candidate.thumbnail_url, candidate.source_page_url, candidate.title].filter(Boolean).join(' ');
   if (blockedAssetTerms.test(combined)) return false;
   if (candidate.visual_status === 'rejected' || candidate.llm_status === 'rejected') return false;
-  if (imageSourceConflict(activity, candidate).metadata_context_conflict) return false;
+  const sourceConflict = imageSourceConflict(activity, candidate);
+  // A different postcode, named non-London location, or obviously unrelated
+  // property metadata is stronger evidence than a visually plausible scene.
+  // Never trade accuracy for coverage in these clear-conflict cases.
+  if (sourceConflict.clear || sourceConflict.metadata_context_conflict) return false;
   if (!allowsWikimedia(activity) && isWikimedia(candidate)) return false;
   if (candidate.width && candidate.height) {
     if (Math.min(candidate.width, candidate.height) < 300) return false;

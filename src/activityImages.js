@@ -16,10 +16,11 @@ export const activityImageFields = [
   'model_selected_url',
 ];
 
-// Below this confidence the model's choice is intentionally treated as
-// unreviewed, so the card falls back to the category illustration and remains
-// visible in the missing-image queue.
-export const MODEL_IMAGE_MIN_CONFIDENCE = 0.70;
+// The selector has already passed download, resolution, logo, provenance and
+// visual checks before writing a model choice. Keep usable coverage high: only
+// genuinely uncertain results fall back to category artwork and remain in the
+// missing-image queue.
+export const MODEL_IMAGE_MIN_CONFIDENCE = 0.50;
 
 export function securePhotoUrl(url) {
   return String(url || '').trim().replace(/^http:\/\//i, 'https://');
@@ -56,7 +57,8 @@ export function isScrapedImageApprovedByAudit(activity, url = activity?.scraped_
 export function isModelImageApproved(activity, url = activity?.model_selected_url) {
   // A value reaches model_selected_url only after the cross-source selector's
   // download, resolution, logo, provenance and visual checks. Confidence is
-  // retained for audit/review, but it no longer hides an accepted model choice.
+  // retained for audit/review. A human-approved choice is always valid; an
+  // automatic choice needs the coverage-first minimum confidence above.
   const selectedUrl = securePhotoUrl(activity?.model_selected_url);
   if (!selectedUrl || selectedUrl !== securePhotoUrl(url)) return false;
   const confidence = Number(activity?.model_selected_confidence);

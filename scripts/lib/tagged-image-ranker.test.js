@@ -203,7 +203,7 @@ test('returns no automatic image when no cross-source candidate passes visual re
   assert.equal(recommendation, null);
 });
 
-test('caps confidence when an otherwise plausible image clearly belongs to another location', () => {
+test('rejects an otherwise plausible image that clearly belongs to another location', () => {
   const model = trainTaggedImageRanker(Array.from({ length: 30 }, (_, index) => review(index)));
   const conflictUrl = 'https://chicagoplaygrounds.com/images/abbott-park.jpg';
   const safeUrl = 'https://directory.test/uncertain-local-park.jpg';
@@ -220,11 +220,35 @@ test('caps confidence when an otherwise plausible image clearly belongs to anoth
   const recommendation = rankCrossSourceCandidates(target, model, {
     visualAssessments: new Map([
       [conflictUrl, { visual_status: 'approved', visual_confidence: 0.96, visual_reason: 'Clear playground' }],
+      [safeUrl, { visual_status: 'approved', visual_confidence: 0.82, visual_reason: 'Clear local playground' }],
     ]),
   });
-  assert.equal(recommendation.candidate.image_url, conflictUrl);
-  assert.ok(recommendation.featureSnapshot.source_conflict >= 0.8);
-  assert.ok(recommendation.confidence <= 0.54);
+  assert.equal(recommendation.candidate.image_url, safeUrl);
+  assert.ok(recommendation.featureSnapshot.source_conflict < 0.8);
+});
+
+test('uses an approved visual finalist when a higher-ranked candidate is still unreviewed', () => {
+  const model = trainTaggedImageRanker(Array.from({ length: 30 }, (_, index) => review(index)));
+  const topUrl = 'https://official-verified-place.test/hero.jpg';
+  const checkedUrl = 'https://directory.test/verified-place-session.jpg';
+  const recommendation = rankCrossSourceCandidates({
+    activity_id: 'visual-fallback-target',
+    activity_name: 'verified-place',
+    address: 'Hackney, London E8 1AA',
+    category: 'Family activities',
+    website: 'https://official-verified-place.test',
+    codex_image_candidates: [
+      { image_url: topUrl, source_page_url: 'https://official-verified-place.test/gallery', title: 'verified-place family activity', width: 1800, height: 1200 },
+      { image_url: checkedUrl, source_page_url: 'https://directory.test/verified-place', title: 'verified-place family activity session London', width: 1600, height: 1000 },
+    ],
+  }, model, {
+    visualAssessments: new Map([
+      [checkedUrl, { visual_status: 'approved', visual_confidence: 0.91, visual_reason: 'Clear family activity scene' }],
+    ]),
+    allowVisualFallback: true,
+  });
+  assert.equal(recommendation.candidate.image_url, checkedUrl);
+  assert.equal(recommendation.candidate.visual_status, 'approved');
 });
 
 test('uses the activity description and rejects conflicting property metadata', () => {

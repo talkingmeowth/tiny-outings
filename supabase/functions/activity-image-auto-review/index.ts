@@ -7,6 +7,10 @@ const corsHeaders = {
 }
 const acceptedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif'])
 const maxImageBytes = 8 * 1024 * 1024
+// All automatic choices have already passed the hard download, resolution,
+// logo, provenance and visual gates. Only genuinely low-confidence decisions
+// should fall back to illustrated category artwork.
+const automaticImageDisplayMinimumConfidence = 0.5
 
 type Candidate = {
   image_url: string
@@ -101,13 +105,14 @@ function qualityApprovedImage(activity: Record<string, unknown>, field: string) 
     if (secureImageUrl(activity.audit_image_original_url) !== imageUrl) return false
   }
   // Model output is stored only after the candidate has passed the download,
-  // image-quality, source and visual checks. Low-confidence output remains a
-  // missing image until an admin explicitly approves it in the review queue.
+  // image-quality, source and visual checks. Keep medium-confidence coverage
+  // visible; only genuinely low-confidence output remains missing until an
+  // admin explicitly approves it in the review queue.
   if (field === 'model_selected_url') {
     const explicitlyApproved = clean(activity.image_review_approved_source_field) === 'model_selected_url'
       && secureImageUrl(activity.image_review_approved_url) === imageUrl
     const confidence = Number(activity.model_selected_confidence)
-    if (!explicitlyApproved && (!Number.isFinite(confidence) || confidence < 0.70)) return false
+    if (!explicitlyApproved && (!Number.isFinite(confidence) || confidence < automaticImageDisplayMinimumConfidence)) return false
   }
   if (allowsWikimediaImages(activity)) return true
   if (field === 'wikimedia_image_url' || isWikimediaSource(imageUrl)) return false

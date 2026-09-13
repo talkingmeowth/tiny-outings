@@ -134,7 +134,7 @@ export const IMAGE_SOURCE_LABELS = {
   scraped_image_url: 'Scraped image (SerpAPI selector)',
   organiser_website_downloaded_image: 'Organiser website download',
   website_downloaded_image: 'Website download',
-  model_selected_url: 'Model selected (70%+ confidence)',
+  model_selected_url: 'Model selected (50%+ confidence)',
   model_selected_original_url: 'Model selection original',
   user_uploaded_image_url: 'User upload',
   google_photo_url: 'Google Places photo',

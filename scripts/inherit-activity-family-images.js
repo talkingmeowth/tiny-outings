@@ -4,6 +4,7 @@ import { execSync } from 'node:child_process';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { activityImageFamilyKey, activityImageLocationKey } from '../src/activityDuplicates.js';
+import { isModelImageApproved } from '../src/activityImages.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const defaultSqlPath = join(root, 'supabase', 'seed', 'activity_family_image_inheritance.generated.sql');
@@ -40,6 +41,10 @@ function activityCandidate(activity) {
     if (field === 'reviewed_image_url' && activity.use_category_image) continue;
     const url = clean(activity[field]).replace(/^http:\/\//i, 'https://');
     if (!usableUrl(url)) continue;
+    // Do not turn one low-confidence local model choice into a supposedly
+    // certain cover for a whole provider family. Approved or coverage-safe
+    // model choices remain excellent donors for verified same-activity groups.
+    if (field === 'model_selected_url' && !isModelImageApproved(activity, url)) continue;
     const approved = approvedDisplayedImage(activity, field, url);
     return {
       activity,

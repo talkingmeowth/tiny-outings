@@ -36,7 +36,7 @@ test('the importer pipeline reruns every selector from stored candidates', () =>
     'select-stored-serpapi-images',
     'apply-repeatable-model-image-review',
   ]) assert.match(pipeline, new RegExp(`name: '${job}'`));
-  assert.match(pipeline, /'--scope', 'all-unreviewed', '--created-after', runStartedAt, '--visual-assessment', '--apply'/);
+  assert.match(pipeline, /'--scope', 'all-unreviewed', '--created-after', runStartedAt, '--visual-assessment', '--visual-finalists', '6', '--apply'/);
   assert.doesNotMatch(pipeline, /'--search-missing'/);
   assert.ok(
     pipeline.indexOf("name: 'inherit-verified-activity-family-images'")
@@ -74,6 +74,8 @@ test('new-listing model inference is scoped to the current import and accepts ev
   assert.match(runner, /created_after: createdAfter/);
   assert.match(read('scripts/select-serpapi-image-candidates.js'), /created_at >= '\$\{createdAfter/);
   assert.match(endpoint, /query = query\.gte\('created_at', createdAfter\)/);
+  assert.match(runner, /allowVisualFallback: true/);
+  assert.match(endpoint, /automaticImageDisplayMinimumConfidence = 0\.5/);
   assert.doesNotMatch(endpoint, /Number\(proposal\.confidence\) < 0\.7/);
 });
 

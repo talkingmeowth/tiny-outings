@@ -103,3 +103,23 @@ test('uses the highest-confidence existing automatic image as the family donor',
   ]);
   assert.equal(result.updates[0].image_url, 'https://images.test/stronger.jpg');
 });
+
+test('does not propagate a low-confidence automatic image across a provider family', () => {
+  const result = buildFamilyImageInheritances([
+    activity({
+      activity_id: '00000000-0000-4000-8000-000000000001',
+      activity_name: 'Monkey Music High Ho',
+      address: 'Hackney, London E8 1AA',
+      organiser_website: 'https://monkeymusic.co.uk/hackney/',
+      model_selected_url: 'https://images.test/uncertain.jpg',
+      model_selected_confidence: 0.49,
+    }),
+    activity({
+      activity_id: '00000000-0000-4000-8000-000000000002',
+      activity_name: 'Monkey Music High Ho',
+      address: 'Islington, London N1 1AA',
+      organiser_website: 'https://monkeymusic.co.uk/islington/',
+    }),
+  ]);
+  assert.equal(result.updates.length, 0);
+});
