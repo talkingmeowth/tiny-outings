@@ -235,10 +235,17 @@ test('keeps validated audit replacements in the candidate pool until a learned w
   assert.equal(shareListingImages([replacement])[0].shared_card_image_source, undefined);
 });
 
-test('uses every accepted model-selected image while preserving its confidence for review', () => {
+test('uses high-confidence model-selected images while preserving their confidence for review', () => {
   const modelUrl = 'https://images.example.test/model.jpg';
-  assert.deepEqual(activityImageUrls(activity({ model_selected_url: modelUrl, model_selected_confidence: 0.42 })), [modelUrl]);
-  assert.deepEqual(activityImageUrls(activity({ model_selected_url: modelUrl, model_selected_confidence: null })), [modelUrl]);
+  assert.deepEqual(activityImageUrls(activity({ model_selected_url: modelUrl, model_selected_confidence: 0.42 })), []);
+  assert.deepEqual(activityImageUrls(activity({ model_selected_url: modelUrl, model_selected_confidence: null })), []);
+  assert.deepEqual(activityImageUrls(activity({ model_selected_url: modelUrl, model_selected_confidence: 0.70 })), [modelUrl]);
+  assert.deepEqual(activityImageUrls(activity({
+    model_selected_url: modelUrl,
+    model_selected_confidence: 0.42,
+    image_review_approved_source_field: 'model_selected_url',
+    image_review_approved_url: modelUrl,
+  })), [modelUrl]);
 });
 
 test('uses an explicitly selected category illustration at the reviewed-image priority', () => {

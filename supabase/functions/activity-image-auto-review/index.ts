@@ -101,8 +101,14 @@ function qualityApprovedImage(activity: Record<string, unknown>, field: string) 
     if (secureImageUrl(activity.audit_image_original_url) !== imageUrl) return false
   }
   // Model output is stored only after the candidate has passed the download,
-  // image-quality, source and visual checks. Keep confidence as review
-  // metadata instead of using it as a second frontend visibility gate.
+  // image-quality, source and visual checks. Low-confidence output remains a
+  // missing image until an admin explicitly approves it in the review queue.
+  if (field === 'model_selected_url') {
+    const explicitlyApproved = clean(activity.image_review_approved_source_field) === 'model_selected_url'
+      && secureImageUrl(activity.image_review_approved_url) === imageUrl
+    const confidence = Number(activity.model_selected_confidence)
+    if (!explicitlyApproved && (!Number.isFinite(confidence) || confidence < 0.70)) return false
+  }
   if (allowsWikimediaImages(activity)) return true
   if (field === 'wikimedia_image_url' || isWikimediaSource(imageUrl)) return false
   if (field === 'scraped_image_url' && isWikimediaSource(activity.image_source_url)) return false

@@ -16,6 +16,11 @@ export const activityImageFields = [
   'model_selected_url',
 ];
 
+// Below this confidence the model's choice is intentionally treated as
+// unreviewed, so the card falls back to the category illustration and remains
+// visible in the missing-image queue.
+export const MODEL_IMAGE_MIN_CONFIDENCE = 0.70;
+
 export function securePhotoUrl(url) {
   return String(url || '').trim().replace(/^http:\/\//i, 'https://');
 }
@@ -53,7 +58,11 @@ export function isModelImageApproved(activity, url = activity?.model_selected_ur
   // download, resolution, logo, provenance and visual checks. Confidence is
   // retained for audit/review, but it no longer hides an accepted model choice.
   const selectedUrl = securePhotoUrl(activity?.model_selected_url);
-  return Boolean(selectedUrl && selectedUrl === securePhotoUrl(url));
+  if (!selectedUrl || selectedUrl !== securePhotoUrl(url)) return false;
+  const confidence = Number(activity?.model_selected_confidence);
+  const explicitlyApproved = activity?.image_review_approved_source_field === 'model_selected_url'
+    && securePhotoUrl(activity?.image_review_approved_url) === selectedUrl;
+  return explicitlyApproved || (Number.isFinite(confidence) && confidence >= MODEL_IMAGE_MIN_CONFIDENCE);
 }
 
 export function isQualityApprovedImageField(activity, field, url) {

@@ -23,6 +23,26 @@ const crossLocationImageFamilyRules = [
     name: /\bmini mozart\b.*\btoddler\b/,
     provider: /(^|\.)minimozart\./,
   },
+  {
+    key: 'monkey-music-ding-dong',
+    name: /\bmonkey music\b.*\bding dong\b/,
+    provider: /(^|\.)monkeymusic\./,
+  },
+  {
+    key: 'monkey-music-heigh-ho',
+    name: /\bmonkey music\b.*\bheigh ho\b/,
+    provider: /(^|\.)monkeymusic\./,
+  },
+  {
+    key: 'monkey-music-jiggety-jig',
+    name: /\bmonkey music\b.*\bjiggety jig\b/,
+    provider: /(^|\.)monkeymusic\./,
+  },
+  {
+    key: 'monkey-music-rock-n-roll',
+    name: /\bmonkey music\b.*\b(?:rock n roll|rock'n'roll|rock and roll)\b/,
+    provider: /(^|\.)monkeymusic\./,
+  },
 ];
 
 const nonProviderImageHosts = [

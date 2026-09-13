@@ -182,3 +182,11 @@ test('keeps Mini Mozart Baby and Toddler classes in separate provider families',
   assert.equal(activityImageFamilyKey(baby), 'family:mini-mozart-baby');
   assert.equal(activityImageFamilyKey(toddler), 'family:mini-mozart-toddler');
 });
+
+test('keeps Monkey Music class types separate while sharing each class across locations', () => {
+  const provider = 'https://www.monkeymusic.co.uk/';
+  assert.equal(activityImageFamilyKey(activity({ activity_name: 'MONKEY MUSIC DING DONG', organiser_website: provider })), 'family:monkey-music-ding-dong');
+  assert.equal(activityImageFamilyKey(activity({ activity_name: 'Monkey Music Heigh Ho', organiser_website: provider })), 'family:monkey-music-heigh-ho');
+  assert.equal(activityImageFamilyKey(activity({ activity_name: 'MONKEY MUSIC JIGGETY JIG', organiser_website: provider })), 'family:monkey-music-jiggety-jig');
+  assert.equal(activityImageFamilyKey(activity({ activity_name: "Monkey Music Rock n Roll", organiser_website: provider })), 'family:monkey-music-rock-n-roll');
+});
