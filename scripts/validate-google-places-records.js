@@ -4,6 +4,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { googlePlacesJson } from './lib/google-places-client.js';
 import { officialWebsiteUrl } from './lib/activity-import-policy.js';
+import { loadActiveActivities } from './lib/active-activity-reader.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const outputSql = join(root, 'supabase', 'seed', 'activity_google_places_validation.generated.sql');
@@ -35,9 +36,11 @@ function readDotEnv(name) {
 const env = { ...readDotEnv('.env.local'), ...process.env };
 const supabaseUrl = env.VITE_SUPABASE_URL;
 const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY;
+const supabaseServiceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
 const googleApiKey = env.GOOGLE_PLACES_API_KEY || env.GOOGLE_MAPS_API_KEY || env.VITE_GOOGLE_MAPS_API_KEY;
 const requestedLimit = Number(process.argv.find((argument) => argument.startsWith('--limit='))?.split('=')[1] || 0);
 const forceAll = process.argv.includes('--full');
+const staleAfterDays = Math.max(0, Number(process.argv.find((argument) => argument.startsWith('--stale-after-days='))?.split('=')[1] || 14));
 
 function sql(value) {
   return value == null || value === '' ? 'null' : `$$${String(value).replaceAll('$$', '$ $')}$$`;
@@ -92,26 +95,11 @@ function sqlNumeric(value) {
 }
 
 async function fetchActivities() {
-  if (!supabaseUrl || !supabaseAnonKey) throw new Error('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY.');
-  const rows = [];
-  const select = 'activity_id,activity_name,address,postcode,lat,long,website,google_link,google_place_id,google_place_uri,source_name,data_source';
-  for (let offset = 0; ; offset += 1000) {
-    const params = new URLSearchParams({
-      select,
-      public_listing_status: 'eq.published',
-      archive: 'eq.false',
-      order: 'activity_id.asc',
-      limit: '1000',
-      offset: String(offset),
-    });
-    const response = await fetch(`${supabaseUrl}/rest/v1/activities?${params}`, {
-      headers: { apikey: supabaseAnonKey, Authorization: `Bearer ${supabaseAnonKey}` },
-    });
-    if (!response.ok) throw new Error(`Could not load activities: ${response.status} ${await response.text()}`);
-    const page = await response.json();
-    rows.push(...page);
-    if (page.length < 1000) return rows;
-  }
+  const columns = [
+    'activity_id', 'activity_name', 'address', 'postcode', 'lat', 'long', 'website', 'google_link',
+    'google_place_id', 'google_place_uri', 'source_name', 'data_source', 'google_place_checked_at',
+  ];
+  return loadActiveActivities({ root, supabaseUrl, supabaseAnonKey, supabaseServiceRoleKey, columns });
 }
 
 async function googleRequest(url, { fieldMask: requestedFieldMask = fieldMask, ...options } = {}) {
@@ -169,29 +157,35 @@ function valuesForPlace(activity, place) {
 }
 
 async function validateActivity(activity) {
-  const direct = await getPlace(activity.google_place_id);
-  if (direct && isPlausiblePlace(activity, direct)) {
-    if (direct.businessStatus === 'CLOSED_PERMANENTLY') {
-      return { activity, action: 'archive-permanently-closed', source: 'stored-place-id', place: direct };
+  try {
+    const direct = await getPlace(activity.google_place_id);
+    if (direct && isPlausiblePlace(activity, direct)) {
+      if (direct.businessStatus === 'CLOSED_PERMANENTLY') {
+        return { activity, action: 'archive-permanently-closed', source: 'stored-place-id', place: direct };
+      }
+      return { activity, action: 'update', source: 'stored-place-id', place: direct };
     }
-    return { activity, action: 'update', source: 'stored-place-id', place: direct };
-  }
 
-  const resolved = await findPlace(activity);
-  if (!resolved.place) {
-    return {
-      activity,
-      action: 'unresolved',
-      source: direct ? 'stored-place-id-mismatch' : 'missing-or-invalid-place-id',
-      error: resolved.error,
-    };
+    const resolved = await findPlace(activity);
+    if (!resolved.place) {
+      return {
+        activity,
+        action: 'unresolved',
+        source: direct ? 'stored-place-id-mismatch' : 'missing-or-invalid-place-id',
+        error: resolved.error,
+      };
+    }
+    if (resolved.place.businessStatus === 'CLOSED_PERMANENTLY') {
+      // A text match is not strong enough to archive a listing; avoid false
+      // removals and leave it unresolved for the next source refresh.
+      return { activity, action: 'unresolved-closed-match', source: 'text-search', place: resolved.place };
+    }
+    return { activity, action: 'update', source: 'text-search', place: resolved.place };
+  } catch (error) {
+    // Quota, timeout, and upstream failures are audit results, never evidence
+    // that a venue closed.
+    return { activity, action: 'request-error', source: 'google-places', error: error.message };
   }
-  if (resolved.place.businessStatus === 'CLOSED_PERMANENTLY') {
-    // A text match is not strong enough to archive a listing; avoid false
-    // removals and leave it unresolved for the next source refresh.
-    return { activity, action: 'unresolved-closed-match', source: 'text-search', place: resolved.place };
-  }
-  return { activity, action: 'update', source: 'text-search', place: resolved.place };
 }
 
 async function mapWithConcurrency(items, limit, mapper) {
@@ -208,7 +202,7 @@ async function mapWithConcurrency(items, limit, mapper) {
   return results;
 }
 
-function buildSql(updates, archives) {
+function buildSql(updates, archives, results) {
   const updateSql = updates.length
     ? `with verified_places (activity_id, address, lat, long, google_place_id, google_place_uri, website, google_rating, google_user_rating_count, google_primary_type) as (
   values
@@ -234,12 +228,27 @@ from verified_places
 where activity.activity_id = verified_places.activity_id;
 `
     : '-- No valid Google Place updates found.\n';
+  const checkSql = results.length
+    ? `\nwith place_checks (activity_id, check_status, business_status) as (
+  values
+    ${results.map((row) => `(${sql(row.activity.activity_id)}::uuid, ${sql(row.action)}::text, ${sql(row.place?.businessStatus)}::text)`).join(',\n    ')}
+)
+update public.activities as activity
+set google_place_checked_at = now(),
+    google_place_check_status = place_checks.check_status,
+    google_business_status = coalesce(place_checks.business_status, activity.google_business_status),
+    updated_at = now()
+from place_checks
+where activity.activity_id = place_checks.activity_id;
+`
+    : '';
   const archiveSql = archives.length
     ? `\n-- Google confirmed these stored Place records as permanently closed.
 update public.activities
-set archive = true,
+set archive_previous_listing_status = case when public_listing_status in ('draft', 'published') then public_listing_status else archive_previous_listing_status end,
+    archive = true,
     public_listing_status = 'archived',
-    archive_reason = 'Google Places marked this listing permanently closed',
+    archive_reason = 'Stale listing: Google Places marks the identity-matched venue permanently closed',
     archived_at = coalesce(archived_at, now()),
     updated_at = now()
 where activity_id in (${archives.map((row) => `${sql(row.activity.activity_id)}::uuid`).join(', ')});
@@ -248,15 +257,16 @@ where activity_id in (${archives.map((row) => `${sql(row.activity.activity_id)}:
   return `-- Generated by scripts/validate-google-places-records.js
 -- Each update is based on a current Google Places record whose name/address
 -- matches the activity. Permanently closed stored Place records are archived.
-\n${updateSql}${archiveSql}`;
+\n${updateSql}${checkSql}${archiveSql}`;
 }
 
 async function main() {
   if (!googleApiKey) throw new Error('Missing GOOGLE_PLACES_API_KEY or GOOGLE_MAPS_API_KEY.');
   const activities = await fetchActivities();
+  const cutoff = Date.now() - staleAfterDays * 24 * 60 * 60 * 1000;
   const targets = (forceAll
     ? activities
-    : activities.filter((activity) => !activity.google_place_id || !activity.google_place_uri))
+    : activities.filter((activity) => !activity.google_place_checked_at || new Date(activity.google_place_checked_at).valueOf() <= cutoff))
     .slice(0, requestedLimit || undefined);
   console.log(`Validating ${targets.length} of ${activities.length} active activities against Google Places.`);
   const results = await mapWithConcurrency(targets, 5, validateActivity);
@@ -266,10 +276,11 @@ async function main() {
 
   mkdirSync(dirname(outputSql), { recursive: true });
   mkdirSync(dirname(outputAudit), { recursive: true });
-  writeFileSync(outputSql, buildSql(updates, archives));
+  writeFileSync(outputSql, buildSql(updates, archives, results));
   writeFileSync(outputAudit, JSON.stringify({
     generated_at: new Date().toISOString(),
     full_validation: forceAll,
+    stale_after_days: staleAfterDays,
     active_activity_count: activities.length,
     target_count: targets.length,
     summary,

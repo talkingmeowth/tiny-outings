@@ -57,15 +57,18 @@ const jobs = [
   { name: 'family-cafes-and-bakeries', script: 'build-high-rated-family-cafes.js', output: 'supabase/seed/activities_high_rated_family_cafes_20260711.generated.sql', google: true },
   { name: 'repair-generic-happity-links', script: 'repair-generic-happity-links.js', output: 'supabase/seed/activity_generic_happity_link_repairs.generated.sql' },
   { name: 'verify-happity-listing-links', script: 'audit-happity-website-links.js', output: 'supabase/seed/activity_happity_website_link_repairs.generated.sql' },
+  // Recheck individual event/schedule pages after discovery. Direct 404/410,
+  // cancellation, elapsed dates, and authoritative directory redirects are
+  // archived as stale; blocks and rate limits remain active for a later retry.
+  { name: 'validate-source-listing-freshness', script: 'validate-activity-freshness.js', args: ['--stale-after-days=1', '--happity-limit=120'], output: 'supabase/seed/activity_source_freshness.generated.sql' },
   { name: 'provider-websites', script: 'enrich-activity-provider-links.js', output: 'supabase/seed/activity_provider_link_updates.generated.sql' },
   { name: 'activity-images', script: 'enrich-activity-images.js', args: ['--missing-only'], output: 'supabase/seed/activity_image_updates.generated.sql', optional: 'images' },
   // Preserve source addresses, then use Places only to fill records that still
   // lack coordinates before the full identity and closure validation pass.
   { name: 'resolve-missing-locations', script: 'enrich-activity-locations.js', output: 'supabase/seed/activity_location_updates.generated.sql', google: true },
-  // New import records already receive a Places match. Validate only existing
-  // gaps here; `validate-google-places-records.js --full` remains the explicit
-  // paced maintenance audit for refreshing every stored Place record.
-  { name: 'validate-google-places', script: 'validate-google-places-records.js', output: 'supabase/seed/activity_google_places_validation.generated.sql', google: true },
+  // Validate new/missing matches immediately and recheck older stored Place
+  // records on a rolling cadence so permanent closures cannot remain live.
+  { name: 'validate-google-places', script: 'validate-google-places-records.js', args: ['--stale-after-days=14'], output: 'supabase/seed/activity_google_places_validation.generated.sql', google: true },
   { name: 'audit-websites', script: 'audit-activity-websites.js', output: 'supabase/seed/activity_link_repairs.generated.sql' },
   { name: 'data-quality', script: 'apply-activity-data-quality.js', output: 'supabase/seed/activity_import_quality_updates.generated.sql' },
   { name: 'category-audit', script: 'audit-activity-categories.js', output: 'data/activity_category_audit.generated.json' },
@@ -154,12 +157,12 @@ function printHelp() {
 
 Runs every supported Tiny Outings importer across London and then applies the
 same shared quality contract to all results:
-  - source and organiser website discovery, direct Happity listing repair, and link health checks
+  - source and organiser website discovery, authoritative event/Happity date-and-time refresh, and stale-link archiving
   - complete website and organiser image candidate extraction, local quality checks,
     and compact contact sheets for Codex vision before any website image is stored
   - one SerpAPI candidate discovery for each new record followed by the same compact,
     cached contact-sheet review without another paid search call
-  - missing-coordinate resolution followed by Google Places identity, Maps location, canonical link, and permanent-closure validation
+  - missing-coordinate resolution followed by rolling Google Places identity, Maps location, canonical link, and permanent-closure validation
   - age suitability and "Any time" completion for unknown availability
   - existing-record updates, cross-source duplicate consolidation, and expiry archiving with reasons
 

@@ -68,6 +68,8 @@
     "activities:audit-duplicates": "node scripts/audit-cross-source-duplicates.js",
     "activities:audit-websites": "node scripts/audit-activity-websites.js",
     "activities:audit-websites:places": "node scripts/audit-activity-websites.js --google-places",
+    "activities:validate-freshness": "node scripts/validate-activity-freshness.js",
+    "activities:validate-freshness:full": "node scripts/validate-activity-freshness.js --full",
     "tiny-outings-update": "node scripts/tiny-outings-update.js",
     "tiny-outings-update:apply": "node scripts/tiny-outings-update.js --apply",
     "render:download": "node scripts/prepare-render-download.js",
