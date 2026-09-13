@@ -218,6 +218,26 @@ test('builds a Google Maps search link for a listing without a stored place URL'
   assert.equal(url.searchParams.get('query'), 'Baby Sensory Leyton Leyton, London E10 5AB');
 });
 
+test('does not count an official cross-location activity family as missing when one branch has an admin cover', () => {
+  const activities = [
+    listing({
+      activity_id: 'southwark',
+      activity_name: 'Baby Sensory Southwark',
+      address: 'Southwark, London SE1 1AA',
+      organiser_website: 'https://www.babysensory.com/southwark/',
+      admin_cover_image_url: 'https://venue.test/baby-sensory.jpg',
+    }),
+    listing({
+      activity_id: 'dulwich',
+      activity_name: 'Dulwich Baby Sensory',
+      address: 'Dulwich, London SE21 7LD',
+      organiser_website: 'https://www.babysensory.com/dulwich/',
+    }),
+  ];
+  assert.equal(activitiesForQueue(activities, 'missing_images').length, 0);
+  assert.equal(prepareActivities(activities)[1].shared_card_image_source, 'admin_cover_image_url');
+});
+
 test('builds a deep link that opens an activity in full review', () => {
   const url = new URL(fullReviewUrl(
     'https://tiny-outings.example/review/?demo=1',

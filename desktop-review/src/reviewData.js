@@ -1,4 +1,8 @@
-import { activityImageGroupKey } from '../../src/activityDuplicates.js';
+import {
+  activityImageFamilyKey,
+  activityImageGroupKey,
+  activityImageLocationKey,
+} from '../../src/activityDuplicates.js';
 import { isQualityApprovedImageField } from '../../src/activityImages.js';
 import { isActiveDraftActivity } from '../../src/reviewQueue.js';
 import { allowsWikimediaImages, isWikimediaUrl } from '../../src/wikimediaImagePolicy.js';
@@ -52,18 +56,45 @@ function isPreferredImage(candidate, current) {
   return String(candidate.activity.activity_id) < String(current.activity.activity_id);
 }
 
+function familyCandidateImage(activity, image) {
+  if (!image) return null;
+  const approvedModel = image.field === 'model_selected_url'
+    && activity.image_review_approved_at
+    && activity.image_review_approved_source_field === image.field
+    && securePhotoUrl(activity.image_review_approved_url) === image.url;
+  return { ...image, priority: approvedModel ? 3.5 : image.priority };
+}
+
 function shareListingImages(activities) {
   const imageByListing = new Map();
+  const locationsByFamily = new Map();
+  const imageByFamily = new Map();
   activities.forEach((activity) => {
+    const familyKey = activityImageFamilyKey(activity);
+    if (familyKey) {
+      if (!locationsByFamily.has(familyKey)) locationsByFamily.set(familyKey, new Set());
+      locationsByFamily.get(familyKey).add(activityImageLocationKey(activity));
+    }
     const image = candidateImage(activity);
     if (!image) return;
     const key = activityImageGroupKey(activity);
-    const candidate = { ...image, activity };
+    const candidate = { ...familyCandidateImage(activity, image), activity };
     const current = imageByListing.get(key);
     if (isPreferredImage(candidate, current)) imageByListing.set(key, candidate);
+
+    if (!familyKey || image.field === 'category_placeholder') return;
+    const currentFamilyImage = imageByFamily.get(familyKey);
+    if (isPreferredImage(candidate, currentFamilyImage)) imageByFamily.set(familyKey, candidate);
   });
   return activities.map((activity) => {
-    const sharedImage = imageByListing.get(activityImageGroupKey(activity));
+    const listingImage = imageByListing.get(activityImageGroupKey(activity));
+    const familyKey = activityImageFamilyKey(activity);
+    const familyImage = familyKey && locationsByFamily.get(familyKey)?.size > 1
+      ? imageByFamily.get(familyKey)
+      : null;
+    const sharedImage = familyImage && isPreferredImage(familyImage, listingImage)
+      ? familyImage
+      : listingImage;
     if (!sharedImage || !isAllowedActivityPhoto(activity, sharedImage.field, sharedImage.url)) return activity;
     return { ...activity, shared_card_image_url: sharedImage.url, shared_card_image_source: sharedImage.field };
   });

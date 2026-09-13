@@ -84,6 +84,9 @@ const activitySelectColumns = [
   'model_selected_reason',
   'model_selected_model',
   'model_selected_model_version',
+  'image_review_approved_at',
+  'image_review_approved_url',
+  'image_review_approved_source_field',
   'organiser_website_downloaded_image',
   'website_downloaded_image',
   'wikimedia_image_url',
@@ -107,6 +110,7 @@ const activitySelectColumns = [
   'submission_notes',
   'submission_rating',
   'created_at',
+  'updated_at',
 ].join(',');
 const statusLabels = {
   booked: 'Booked',

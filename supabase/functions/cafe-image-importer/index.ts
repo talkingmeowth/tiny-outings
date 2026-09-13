@@ -901,7 +901,7 @@ Deno.serve(async (request) => {
 
   let query = supabase
     .from('activities')
-    .select('activity_id,activity_name,address,postcode,borough,category,description,website,organiser_website,serpapi_image_search_attempted_at')
+    .select('activity_id,activity_name,address,postcode,borough,category,description,website,organiser_website,serpapi_image_search_attempted_at,model_selected_model')
     .in('public_listing_status', ['draft', 'published'])
     .eq('archive', false)
     .order('activity_id', { ascending: true })
@@ -909,6 +909,7 @@ Deno.serve(async (request) => {
   query = query.is('serpapi_image_search_attempted_at', null)
   if (scope === 'cafes') query = query.or('category.ilike.%cafe%,category.ilike.%food%')
   if (createdAfter) query = query.gte('created_at', createdAfter)
+    .or('model_selected_model.is.null,model_selected_model.neq.activity-family-inheritance')
   if (activityIds.length) query = query.in('activity_id', activityIds)
   else if (body.cursor) query = query.gt('activity_id', body.cursor)
 

@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { dedupePublishedActivities, findLikelyDuplicate } from './activityDuplicates.js';
+import {
+  activityImageFamilyKey,
+  dedupePublishedActivities,
+  findLikelyDuplicate,
+} from './activityDuplicates.js';
 
 const published = (overrides = {}) => ({
   public_listing_status: 'published',
@@ -116,4 +120,52 @@ test('collapses genuinely matching cross-source listings', () => {
   const result = dedupePublishedActivities(records);
   assert.equal(result.length, 1);
   assert.equal(result[0].description, 'A fuller description');
+});
+
+test('groups official Baby Sensory branches but not unrelated sensory activities', () => {
+  const woolwich = activity({
+    activity_name: 'Baby Sensory Woolwich-Greenwich',
+    address: 'Woolwich, London SE18 6HQ',
+    organiser_website: 'https://www.babysensory.com/greenwich/',
+  });
+  const dulwich = activity({
+    activity_name: 'Dulwich Baby Sensory',
+    address: 'Dulwich, London SE21 7LD',
+    website: 'https://www.babysensory.com/dulwich/',
+  });
+  const unrelated = activity({
+    activity_name: 'Quaggy Baby Sensory Stay and Play',
+    address: 'Greenwich, London SE10',
+    website: 'https://www.royalgreenwich.gov.uk/community-directory/quaggy',
+  });
+
+  assert.equal(activityImageFamilyKey(woolwich), 'family:baby-sensory');
+  assert.equal(activityImageFamilyKey(dulwich), 'family:baby-sensory');
+  assert.notEqual(activityImageFamilyKey(unrelated), 'family:baby-sensory');
+});
+
+test('keeps Baby Sensory and Toddler Sense as separate image families', () => {
+  assert.equal(activityImageFamilyKey(activity({
+    activity_name: 'Baby Sensory Enfield',
+    organiser_website: 'https://www.babysensory.com/enfield/',
+  })), 'family:baby-sensory');
+  assert.equal(activityImageFamilyKey(activity({
+    activity_name: 'Toddler Sense Enfield',
+    organiser_website: 'https://www.babysensory.com/enfield/toddler-sense',
+  })), 'family:toddler-sense');
+});
+
+test('normalises road abbreviations when the same official activity name includes its location', () => {
+  const greatRussellStreet = activity({
+    activity_name: "GAIL's Bakery Great Russell Street",
+    address: '58 Great Russell St, London WC1B 3BA',
+    website: 'https://gailsbread.co.uk/bakeries/great-russell-street/',
+  });
+  const archway = activity({
+    activity_name: "GAIL's Bakery Archway",
+    address: 'Archway, London N19 5RQ',
+    website: 'https://gailsbread.co.uk/bakeries/archway/',
+  });
+  assert.equal(activityImageFamilyKey(greatRussellStreet), 'provider:gailsbread.co.uk|gail bakery');
+  assert.equal(activityImageFamilyKey(archway), 'provider:gailsbread.co.uk|gail bakery');
 });

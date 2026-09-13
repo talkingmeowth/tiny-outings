@@ -83,6 +83,16 @@ const jobs = [
 // must run after generated SQL has been applied to the linked project.
 const postApplyJobs = [
   {
+    name: 'inherit-verified-activity-family-images',
+    // Reuse an established cover for the same verified provider activity at a
+    // new location before doing any website or paid image discovery.
+    script: 'inherit-activity-family-images.js',
+    args: ['--linked-database', '--created-after', runStartedAt],
+    output: 'supabase/seed/activity_family_image_inheritance.generated.sql',
+    optional: 'images',
+    applySql: true,
+  },
+  {
     name: 'discover-website-image-candidates',
     // Collect every unique non-utility image exposed by each new activity,
     // listing, and organiser page. Nothing is applied before vision review.
@@ -162,6 +172,8 @@ same shared quality contract to all results:
   - source and organiser website discovery, authoritative event/Happity date-and-time refresh, and stale-link archiving
   - complete website and organiser image candidate extraction, local quality checks,
     and compact contact sheets for Codex vision before any website image is stored
+  - verified same-provider activity families inherit their established cover first,
+    avoiding unnecessary website and SerpAPI discovery for new locations
   - one SerpAPI candidate discovery for each new record followed by the same compact,
     cached contact-sheet review without another paid search call
   - missing-coordinate resolution followed by rolling Google Places identity, Maps location, canonical link, and permanent-closure validation
@@ -296,6 +308,17 @@ if (applyChanges && failed.length === 0) {
         failed.push(result);
         break;
       }
+      if (job.applySql && hasDatabaseChanges(result.output)) {
+        try {
+          applySql(result.output);
+          result.applied = true;
+        } catch (error) {
+          result.status = 'failed';
+          result.reason = error.message;
+          failed.push(result);
+          break;
+        }
+      }
     }
   }
 } else if (!applyChanges) {
@@ -319,6 +342,7 @@ writeFileSync(auditPath, JSON.stringify({
   archive_protection: 'database trigger preserves archive=true and archived status',
   downloaded_website_images: 'official website candidates are stored only after Codex vision rejects logos and low-quality images',
   image_candidate_review: 'Each activity gets at most one claimed SerpAPI request; every returned image record and call metadata are cached, and all selectors rerun from stored candidates without another paid call',
+  activity_family_images: 'Verified same-provider activities at different locations inherit one established cover before image discovery; category artwork is never used as a donor',
   jobs: results,
 }, null, 2) + '\n');
 

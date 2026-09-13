@@ -29,6 +29,7 @@ test('desktop review reuses canonical candidates and only limits the displayed g
 test('the importer pipeline reruns every selector from stored candidates', () => {
   const pipeline = read('scripts/tiny-outings-update.js');
   for (const job of [
+    'inherit-verified-activity-family-images',
     'discover-website-image-candidates',
     'select-stored-website-images',
     'serpapi-image-enrichment',
@@ -37,6 +38,14 @@ test('the importer pipeline reruns every selector from stored candidates', () =>
   ]) assert.match(pipeline, new RegExp(`name: '${job}'`));
   assert.match(pipeline, /'--scope', 'all-unreviewed', '--created-after', runStartedAt, '--visual-assessment', '--apply'/);
   assert.doesNotMatch(pipeline, /'--search-missing'/);
+  assert.ok(
+    pipeline.indexOf("name: 'inherit-verified-activity-family-images'")
+      < pipeline.indexOf("name: 'discover-website-image-candidates'"),
+  );
+  assert.match(pipeline, /applySql: true/);
+  assert.match(read('scripts/download-activity-website-images.js'), /model_selected_model !== 'activity-family-inheritance'/);
+  assert.match(read('supabase/functions/cafe-image-importer/index.ts'), /model_selected_model\.neq\.activity-family-inheritance/);
+  assert.match(read('supabase/functions/activity-image-auto-review/index.ts'), /model_selected_model\.neq\.activity-family-inheritance/);
 });
 
 test('website and organiser discovery stores every unique eligible candidate before model inference', () => {

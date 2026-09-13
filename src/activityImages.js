@@ -1,4 +1,8 @@
-import { activityImageGroupKey } from './activityDuplicates.js';
+import {
+  activityImageFamilyKey,
+  activityImageGroupKey,
+  activityImageLocationKey,
+} from './activityDuplicates.js';
 import { allowsWikimediaImages, isWikimediaUrl } from './wikimediaImagePolicy.js';
 
 // Only explicit human choices and the learned cross-source winner are display
@@ -89,6 +93,15 @@ function candidateImage(activity) {
   return imageCandidates(activity)[0] || null;
 }
 
+function familyCandidateImage(activity, image) {
+  if (!image) return null;
+  const approvedModel = image.field === 'model_selected_url'
+    && activity.image_review_approved_at
+    && activity.image_review_approved_source_field === image.field
+    && securePhotoUrl(activity.image_review_approved_url) === image.url;
+  return { ...image, priority: approvedModel ? 3.5 : image.priority };
+}
+
 function isPreferredImage(candidate, current) {
   if (!current) return true;
   if (candidate.priority !== current.priority) return candidate.priority < current.priority;
@@ -112,19 +125,39 @@ export function hasActivityImage(activity) {
 // every such record so changing time never changes the visual card identity.
 export function shareListingImages(activities) {
   const imageByListing = new Map();
+  const locationsByFamily = new Map();
+  const imageByFamily = new Map();
 
   activities.forEach((activity) => {
+    const familyKey = activityImageFamilyKey(activity);
+    if (familyKey) {
+      if (!locationsByFamily.has(familyKey)) locationsByFamily.set(familyKey, new Set());
+      locationsByFamily.get(familyKey).add(activityImageLocationKey(activity));
+    }
+
     const image = candidateImage(activity);
     if (!image) return;
 
     const key = activityImageGroupKey(activity);
-    const candidate = { ...image, activity };
+    const candidate = { ...familyCandidateImage(activity, image), activity };
     const current = imageByListing.get(key);
     if (isPreferredImage(candidate, current)) imageByListing.set(key, candidate);
+
+    // Category artwork is an explicit fallback, not a reusable activity photo.
+    if (!familyKey || image.field === 'category_placeholder') return;
+    const currentFamilyImage = imageByFamily.get(familyKey);
+    if (isPreferredImage(candidate, currentFamilyImage)) imageByFamily.set(familyKey, candidate);
   });
 
   return activities.map((activity) => {
-    const sharedImage = imageByListing.get(activityImageGroupKey(activity));
+    const listingImage = imageByListing.get(activityImageGroupKey(activity));
+    const familyKey = activityImageFamilyKey(activity);
+    const familyImage = familyKey && locationsByFamily.get(familyKey)?.size > 1
+      ? imageByFamily.get(familyKey)
+      : null;
+    const sharedImage = familyImage && isPreferredImage(familyImage, listingImage)
+      ? familyImage
+      : listingImage;
     if (!sharedImage) return activity;
     if (!isAllowedActivityPhoto(activity, sharedImage.field, sharedImage.url)) return activity;
     return {

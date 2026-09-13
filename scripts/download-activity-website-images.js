@@ -47,7 +47,7 @@ async function fetchActivities() {
   const columns = [
     'activity_id', 'activity_name', 'category', 'website', 'organiser_website', 'source_url', 'created_at',
     'image_url', 'scraped_image_url', 'website_image_url', 'listing_image_url',
-    'wikimedia_image_url', 'user_image_url', 'admin_cover_image_url',
+    'wikimedia_image_url', 'user_image_url', 'admin_cover_image_url', 'model_selected_url', 'model_selected_model',
     'website_downloaded_image', 'organiser_website_downloaded_image', 'website_image_candidates_fetched_at', 'website_image_vision_candidates_fetched_at',
   ].join(',');
   const activities = [];
@@ -67,7 +67,7 @@ function fetchActivitiesFromLinkedDatabase() {
   const columns = [
     'activity_id', 'activity_name', 'category', 'website', 'organiser_website', 'source_url', 'created_at',
     'image_url', 'scraped_image_url', 'website_image_url', 'listing_image_url',
-    'wikimedia_image_url', 'user_image_url', 'admin_cover_image_url',
+    'wikimedia_image_url', 'user_image_url', 'admin_cover_image_url', 'model_selected_url', 'model_selected_model',
     'website_downloaded_image', 'organiser_website_downloaded_image', 'website_image_candidates_fetched_at', 'website_image_vision_candidates_fetched_at',
   ].join(',');
   const statement = `select ${columns} from public.activities where coalesce(archive, false) = false and public_listing_status in ('draft', 'published') order by activity_id asc;`;
@@ -130,6 +130,7 @@ async function main() {
     }
     if (createdAfter) {
       return !activity.website_image_candidates_fetched_at
+        && activity.model_selected_model !== 'activity-family-inheritance'
         && Number.isFinite(Date.parse(activity.created_at))
         && Date.parse(activity.created_at) >= Date.parse(createdAfter);
     }

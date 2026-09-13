@@ -2,6 +2,42 @@ const duplicateComparisonStopWords = new Set([
   'a', 'an', 'and', 'at', 'class', 'classes', 'for', 'in', 'of', 'the', 'to', 'with',
 ]);
 
+const crossLocationImageFamilyRules = [
+  {
+    key: 'baby-sensory',
+    name: /\bbaby sensory\b/,
+    provider: /(^|\.)babysensory\./,
+  },
+  {
+    key: 'toddler-sense',
+    name: /\btoddler sense\b/,
+    provider: /(^|\.)(?:toddlersense|babysensory)\./,
+  },
+];
+
+const nonProviderImageHosts = [
+  /(^|\.)facebook\.com$/,
+  /(^|\.)instagram\.com$/,
+  /(^|\.)google\.[a-z.]+$/,
+  /(^|\.)googleusercontent\.com$/,
+  /(^|\.)happity\.co\.uk$/,
+  /(^|\.)eventbrite\.[a-z.]+$/,
+  /(^|\.)feverup\.com$/,
+  /(^|\.)timeout\.com$/,
+  /(^|\.)loopla\.com$/,
+  /(^|\.)familiesonline\.co\.uk$/,
+  /(^|\.)netmums\.com$/,
+  /(^|\.)classforkids\.io$/,
+  /(^|\.)bookwhen\.com$/,
+  /(^|\.)linktr\.ee$/,
+  /\.gov\.uk$/,
+];
+
+const removableFamilyNameTokens = new Set([
+  'avenue', 'ave', 'branch', 'centre', 'center', 'lane', 'ln', 'london',
+  'road', 'rd', 'square', 'sq', 'street', 'st', 'studio', 'venue',
+]);
+
 function comparisonText(value) {
   return String(value || '')
     .normalize('NFKD')
@@ -41,6 +77,52 @@ function comparableActivityUrl(value) {
   }
 }
 
+function activityUrlHost(value) {
+  if (!value) return '';
+  try {
+    return new URL(value).hostname.toLowerCase().replace(/^www\./, '');
+  } catch {
+    return '';
+  }
+}
+
+function trustedProviderHost(activity) {
+  return [activity.organiser_website, activity.website, activity.source_url]
+    .map(activityUrlHost)
+    .find((host) => host && !nonProviderImageHosts.some((pattern) => pattern.test(host))) || '';
+}
+
+// Some providers run the same recognisable activity at several venues. A
+// cross-location family key is intentionally stricter than a title match: it
+// requires a verified provider website, and known franchises also require the
+// provider's own domain. This prevents an unrelated "baby sensory" event from
+// borrowing the Baby Sensory franchise cover.
+export function activityImageFamilyKey(activity) {
+  const name = comparisonText(activity?.activity_name);
+  if (!name) return '';
+
+  const hosts = [activity?.organiser_website, activity?.website, activity?.source_url]
+    .map(activityUrlHost)
+    .filter(Boolean);
+  const knownFamily = crossLocationImageFamilyRules.find((rule) => (
+    rule.name.test(name) && hosts.some((host) => rule.provider.test(host))
+  ));
+  if (knownFamily) return `family:${knownFamily.key}`;
+
+  const providerHost = trustedProviderHost(activity || {});
+  if (!providerHost) return '';
+  const locationTokens = new Set(comparisonTokens([
+    activity?.address,
+    activity?.postcode,
+    activity?.borough,
+  ].filter(Boolean).join(' ')));
+  const familyTokens = comparisonTokens(name).filter((token) => (
+    !locationTokens.has(token) && !removableFamilyNameTokens.has(token)
+  ));
+  if (familyTokens.length < 2) return '';
+  return `provider:${providerHost}|${familyTokens.join(' ')}`;
+}
+
 function postcode(value) {
   return String(value || '').match(/\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b/i)?.[0]?.toUpperCase() || '';
 }
@@ -48,6 +130,22 @@ function postcode(value) {
 function activityAddressKey(activity) {
   const postCode = postcode(activity.postcode || activity.address);
   return postCode || comparisonText(activity.address);
+}
+
+// Cross-location image sharing needs to prove that a family is represented at
+// more than one venue. Keep this more specific than activityAddressKey so two
+// nearby branches with the same outward postcode still count as distinct.
+export function activityImageLocationKey(activity) {
+  if (activity?.google_place_id) return `place:${activity.google_place_id}`;
+  const address = comparisonText(activity?.address);
+  if (address && !address.includes('address needs review') && !address.includes('address to review')) {
+    return `address:${address}`;
+  }
+  const postCode = postcode(activity?.postcode);
+  if (postCode) return `postcode:${postCode}`;
+  const borough = comparisonText(activity?.borough);
+  if (borough) return `borough:${borough}`;
+  return `activity:${String(activity?.activity_id || '')}`;
 }
 
 // Time is intentionally excluded. A recurring listing can run several times

@@ -63,6 +63,61 @@ test('does not display Wikimedia or other automatic sources until the learned se
   assert.deepEqual(activityImageUrls(cafe), []);
 });
 
+test('uses one admin-approved cover across official Baby Sensory locations', () => {
+  const woolwich = activity({
+    activity_id: 'woolwich',
+    activity_name: 'Baby Sensory Woolwich-Greenwich',
+    address: 'Woolwich, London SE18 6HQ',
+    organiser_website: 'https://www.babysensory.com/greenwich/',
+    admin_cover_image_url: 'https://images.example.test/baby-sensory-cover.jpg',
+  });
+  const dulwich = activity({
+    activity_id: 'dulwich',
+    activity_name: 'Dulwich Baby Sensory',
+    address: 'Dulwich, London SE21 7LD',
+    website: 'https://www.babysensory.com/dulwich/',
+    model_selected_url: 'https://images.example.test/dulwich-model.jpg',
+  });
+
+  const [sharedWoolwich, sharedDulwich] = shareListingImages([woolwich, dulwich]);
+  assert.equal(sharedWoolwich.shared_card_image_url, woolwich.admin_cover_image_url);
+  assert.equal(sharedDulwich.shared_card_image_url, woolwich.admin_cover_image_url);
+  assert.equal(sharedDulwich.shared_card_image_source, 'admin_cover_image_url');
+});
+
+test('does not lend an official franchise image to an unrelated similarly named activity', () => {
+  const official = activity({
+    activity_name: 'Baby Sensory Southwark',
+    organiser_website: 'https://www.babysensory.com/southwark/',
+    admin_cover_image_url: 'https://images.example.test/official.jpg',
+  });
+  const unrelated = activity({
+    activity_name: 'Quaggy Baby Sensory Stay and Play',
+    address: 'Greenwich, London SE10 8RE',
+    website: 'https://www.royalgreenwich.gov.uk/community-directory/quaggy',
+  });
+
+  const [, sharedUnrelated] = shareListingImages([official, unrelated]);
+  assert.equal(sharedUnrelated.shared_card_image_url, undefined);
+});
+
+test('never promotes category artwork as a reusable cross-location cover', () => {
+  const first = activity({
+    activity_name: 'Baby Sensory Bromley',
+    address: 'Bromley, London BR1 1AA',
+    organiser_website: 'https://www.babysensory.com/bromley/',
+    use_category_image: true,
+  });
+  const second = activity({
+    activity_name: 'Baby Sensory Croydon',
+    address: 'Croydon, London CR0 1AA',
+    organiser_website: 'https://www.babysensory.com/croydon/',
+  });
+
+  const [, sharedSecond] = shareListingImages([first, second]);
+  assert.equal(sharedSecond.shared_card_image_url, undefined);
+});
+
 test('keeps an audit-passed scraped image as candidate data rather than displaying it directly', () => {
   assert.deepEqual(activityImageUrls(activity({
     audit_image_status: 'pass',
