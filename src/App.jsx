@@ -1283,6 +1283,9 @@ export default function App() {
   });
   const [activeScreen, setActiveScreen] = useState('start');
   const [activities, setActivities] = useState([]);
+  // Keep the last directory visible while a background refresh runs (for
+  // example when returning from an activity detail screen on mobile).
+  const activitiesLoadedRef = useRef(false);
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState('');
   const [selectedDate, setSelectedDate] = useState(todayISO());
@@ -1936,7 +1939,9 @@ export default function App() {
 
     async function loadActivities() {
       if (!supabase) return;
-      setLoading(true);
+      // A refresh should not replace the already-rendered cards with the
+      // full-screen loading state. Only the first load needs that treatment.
+      setLoading(!activitiesLoadedRef.current);
       const pageSize = ACTIVITY_PAGE_SIZE;
       const data = [];
       let error = null;
@@ -1985,6 +1990,7 @@ export default function App() {
       if (error) {
         setNotice(`We could not refresh outings just now: ${error.message}`);
       } else {
+        activitiesLoadedRef.current = true;
         setActivities(data.map((activity) => ({
           ...activity,
           user_uploaded_image_url: uploadedImageByActivityId.get(String(activity.activity_id)) || null,
