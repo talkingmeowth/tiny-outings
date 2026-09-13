@@ -234,6 +234,27 @@ function basicGoogleListing(link: string) {
   };
 }
 
+function basicWebsiteListing(link: string) {
+  const url = new URL(link);
+  const pathName = decodeURIComponent(url.pathname)
+    .split('/')
+    .filter(Boolean)
+    .pop()
+    ?.replace(/[+_-]+/g, ' ')
+    .trim();
+  const hostName = url.hostname.replace(/^www\./i, '').split('.')[0].replace(/[+_-]+/g, ' ').trim();
+
+  return {
+    ...basicGoogleListing(link),
+    activity_name: pathName || hostName || 'Activity to review',
+    google_link: null,
+    google_place_uri: null,
+    website: officialWebsiteUrl(link),
+    description: 'Website link saved for admin review.',
+    source_url: link,
+  };
+}
+
 function embeddedGoogleMapsLink(html: string, baseUrl: string) {
   const matches = html.matchAll(/<a\b[^>]*href=["']([^"']+)["'][^>]*>/gi);
   for (const match of matches) {
@@ -310,7 +331,7 @@ Deno.serve(async (request) => {
       try {
         activity = await extractWebsiteMetadata(resolvedLink, typeof activityName === 'string' ? activityName : null);
       } catch {
-        activity = { ...basicGoogleListing(resolvedLink), website: officialWebsiteUrl(resolvedLink), source_url: resolvedLink };
+        activity = basicWebsiteListing(resolvedLink);
       }
     }
 

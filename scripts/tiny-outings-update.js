@@ -69,7 +69,9 @@ const jobs = [
   // Validate new/missing matches immediately and recheck older stored Place
   // records on a rolling cadence so permanent closures cannot remain live.
   { name: 'validate-google-places', script: 'validate-google-places-records.js', args: ['--stale-after-days=14'], output: 'supabase/seed/activity_google_places_validation.generated.sql', google: true },
-  { name: 'audit-websites', script: 'audit-activity-websites.js', output: 'supabase/seed/activity_link_repairs.generated.sql' },
+  // Repair conclusive 404/410 links from the venue's current Places website
+  // when possible; otherwise clear the dead button instead of exposing it.
+  { name: 'audit-websites', script: 'audit-activity-websites.js', args: ['--google-places'], output: 'supabase/seed/activity_link_repairs.generated.sql', google: true },
   { name: 'data-quality', script: 'apply-activity-data-quality.js', output: 'supabase/seed/activity_import_quality_updates.generated.sql' },
   { name: 'category-audit', script: 'audit-activity-categories.js', output: 'data/activity_category_audit.generated.json' },
   { name: 'family-suitability', script: 'audit-activity-suitability.js', output: 'supabase/seed/activity_suitability_archives.generated.sql' },

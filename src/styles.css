@@ -2405,6 +2405,10 @@ input[type='range'] {
 }
 
 .duplicate-activity-photo {
+  position: relative;
+  overflow: hidden;
+  width: 84px;
+  height: 84px;
   min-height: 84px;
   border-radius: 15px;
 }

@@ -10,6 +10,8 @@ import 'leaflet/dist/leaflet.css';
 import { supabase } from './supabaseClient';
 import { googleSignInErrorMessage, signInWithNativeGoogle } from './googleAuth';
 import { comparisonTokens, dedupePublishedActivities, findLikelyDuplicate } from './activityDuplicates';
+import { isDirectorySearchResult } from './activityDirectory';
+import { ACTIVITY_PAGE_SIZE, loadActivityPageWithRetries } from './activityLoader';
 import { activityFallbackImage, activityImageUrls, hasActivityImage, securePhotoUrl, shareListingImages } from './activityImages';
 import { activityCoordinates, resolveActivityCoordinates } from './activityLocation';
 import { profileQrUrl, profileShareData } from './profileSharing';
@@ -1082,20 +1084,13 @@ function activityMatchesSearch(activity, value) {
   return query.split(/\s+/).filter(Boolean).every((term) => searchable.includes(term));
 }
 
-function activityNameMatchesSearch(activity, value) {
-  const queryTerms = cleanDisplayText(value).toLowerCase().split(/\s+/).filter(Boolean);
-  if (!queryTerms.length) return true;
-  const name = cleanDisplayText(activity.activity_name).toLowerCase();
-  return queryTerms.every((term) => name.includes(term));
-}
-
 function searchResultTime(activity) {
   return isFlexibleActivity(activity) ? 'Anytime' : `${activity.start_time} to ${activity.end_time}`;
 }
 
 function searchResultDate(activity, weekDays) {
   const matchingDays = weekDays.filter((day) => isActivityAvailableOn(activity, day));
-  if (matchingDays.length === 0) return 'Date to confirm';
+  if (matchingDays.length === 0) return formatAvailability(activity);
   if (matchingDays.length === 7) return 'Every day this week';
   return matchingDays.map((day) => formatDay(day, 'short')).join(', ');
 }
@@ -1361,10 +1356,11 @@ export default function App() {
   const [calendarEvents, setCalendarEvents] = useState(() => loadStored('calendar-events', []));
   const calendarEventsRef = useRef(calendarEvents);
   const [calendarSyncedUserId, setCalendarSyncedUserId] = useState(null);
+  const [planningSyncedUserId, setPlanningSyncedUserId] = useState(null);
   const [linkForm, setLinkForm] = useState(emptyLinkForm);
   const [reviewForm, setReviewForm] = useState(emptyReviewForm);
   const [selectedActivity, setSelectedActivity] = useState(null);
-  const [sharedActivityId] = useState(sharedActivityIdFromLocation);
+  const sharedActivityId = sharedActivityIdFromLocation();
   const [openedSharedActivity, setOpenedSharedActivity] = useState(false);
   const [shareSheetActivity, setShareSheetActivity] = useState(null);
   const [shareSheetApp, setShareSheetApp] = useState(false);
@@ -1421,9 +1417,13 @@ export default function App() {
   );
   const calendarDays = useMemo(() => calendarDaysForMonth(calendarMonth), [calendarMonth]);
   const activeSlot = slotKey(selectedDate, selectedWindow);
-  const allActivities = useMemo(
-    () => dedupePublishedActivities(shareListingImages(activities.map(normalizeActivity))),
+  const normalizedActivities = useMemo(
+    () => shareListingImages(activities.map(normalizeActivity)),
     [activities],
+  );
+  const allActivities = useMemo(
+    () => dedupePublishedActivities(normalizedActivities),
+    [normalizedActivities],
   );
   const publishedActivityIds = useMemo(
     () => new Set(activities.map((activity) => String(activity.activity_id))),
@@ -1437,8 +1437,8 @@ export default function App() {
     [allActivities],
   );
   const activityById = useMemo(
-    () => new Map(allActivities.map((activity) => [String(activity.activity_id), activity])),
-    [allActivities],
+    () => new Map(normalizedActivities.map((activity) => [String(activity.activity_id), activity])),
+    [normalizedActivities],
   );
 
   useEffect(() => {
@@ -1524,6 +1524,66 @@ export default function App() {
     loadSocialWeek();
     return () => { cancelled = true; };
   }, [activeScreen, activityById, filters.weekStart, signedInUser, socialRefresh]);
+
+  useEffect(() => {
+    if (!supabase || !signedInUser) {
+      setPlanningSyncedUserId(null);
+      return undefined;
+    }
+    if (planningSyncedUserId === signedInUser.id) return undefined;
+
+    let cancelled = false;
+    async function syncPlanningDecisions() {
+      const [{ data: swipeRows, error: swipeError }, { data: shortlistRows, error: shortlistError }] = await Promise.all([
+        supabase
+          .from('activity_swipes')
+          .select('activity_id,planned_date,day_window,decision,created_at')
+          .eq('user_id', signedInUser.id)
+          .order('created_at', { ascending: true }),
+        supabase
+          .from('activity_shortlist')
+          .select('activity_id,planned_date,day_window,position,created_at')
+          .eq('user_id', signedInUser.id)
+          .order('position', { ascending: true })
+          .order('created_at', { ascending: true }),
+      ]);
+      if (cancelled) return;
+      if (swipeError || shortlistError) {
+        setNotice('Your saved ideas could not be synced yet. This device copy is still available.');
+        return;
+      }
+
+      const syncedSwipes = {};
+      const syncedStatuses = {};
+      for (const row of swipeRows || []) {
+        const key = slotKey(row.planned_date, row.day_window);
+        syncedSwipes[key] ||= [];
+        syncedSwipes[key].push({
+          activity_id: String(row.activity_id),
+          decision: row.decision,
+          status: row.decision === 'yes' ? 'tentative' : 'not_selected',
+          created_at: row.created_at,
+        });
+        syncedStatuses[statusKey(row.planned_date, row.day_window, row.activity_id)] = row.decision === 'yes'
+          ? 'tentative'
+          : 'not_selected';
+      }
+      const syncedShortlists = {};
+      for (const row of shortlistRows || []) {
+        const key = slotKey(row.planned_date, row.day_window);
+        syncedShortlists[key] ||= [];
+        syncedShortlists[key].push(String(row.activity_id));
+      }
+
+      setSwipes(syncedSwipes);
+      setShortlists(syncedShortlists);
+      setStatuses(syncedStatuses);
+      setPlanningSyncedUserId(signedInUser.id);
+    }
+
+    void syncPlanningDecisions();
+    return () => { cancelled = true; };
+  }, [planningSyncedUserId, signedInUser]);
 
   useEffect(() => {
     if (
@@ -1642,19 +1702,17 @@ export default function App() {
   );
   const directorySearchActivities = useMemo(
     () => activitiesWithDistance
-      .filter((activity) => (
-        activity.public_listing_status === 'published'
-        && !activity.archive
-        && !hiddenActivityIdSet.has(String(activity.activity_id))
-        && activityNameMatchesSearch(activity, filters.activitySearch)
-        && filteredWeekDays.some((day) => isActivityAvailableOn(activity, day))
+      .filter((activity) => isDirectorySearchResult(
+        activity,
+        filters.activitySearch,
+        hiddenActivityIdSet,
       ))
       .sort((left, right) => (
         left.activity_name.localeCompare(right.activity_name)
         || searchResultLocation(left).localeCompare(searchResultLocation(right))
         || String(left.start_time).localeCompare(String(right.start_time))
       )),
-    [activitiesWithDistance, filteredWeekDays, filters.activitySearch, hiddenActivityIdSet],
+    [activitiesWithDistance, filters.activitySearch, hiddenActivityIdSet],
   );
   const filteredActivities = useMemo(
     () => sharedFilteredActivities.filter(
@@ -1857,16 +1915,37 @@ export default function App() {
   }, [followPendingProfile, pendingFollowUsername, profile?.user_id, signedInUser]);
 
   useEffect(() => {
-    if (!sharedActivityId || openedSharedActivity || allActivities.length === 0) return;
-    const sharedActivity = allActivities.find(
-      (activity) => String(activity.activity_id) === String(sharedActivityId),
-    );
-    if (!sharedActivity) return;
-    setReturnScreen('start');
-    setSelectedActivity(sharedActivity);
-    setActiveScreen('activity');
-    setOpenedSharedActivity(true);
-  }, [allActivities, openedSharedActivity, sharedActivityId]);
+    if (!sharedActivityId || openedSharedActivity) return undefined;
+    let cancelled = false;
+
+    async function openSharedActivity() {
+      let sharedActivity = normalizedActivities.find(
+        (activity) => String(activity.activity_id) === String(sharedActivityId),
+      );
+      if (!sharedActivity && supabase) {
+        const { data } = await supabase
+          .from('activities')
+          .select(activitySelectColumns)
+          .eq('activity_id', sharedActivityId)
+          .eq('public_listing_status', 'published')
+          .eq('archive', false)
+          .maybeSingle();
+        if (data) sharedActivity = normalizeActivity(data);
+      }
+      if (cancelled) return;
+      setOpenedSharedActivity(true);
+      if (!sharedActivity) {
+        setNotice('This shared outing is no longer available.');
+        return;
+      }
+      setReturnScreen('start');
+      setSelectedActivity(sharedActivity);
+      setActiveScreen('activity');
+    }
+
+    void openSharedActivity();
+    return () => { cancelled = true; };
+  }, [normalizedActivities, openedSharedActivity, sharedActivityId]);
 
   useEffect(() => {
     const weekEnd = addDaysISO(filters.weekStart, 6);
@@ -1894,19 +1973,19 @@ export default function App() {
     async function loadActivities() {
       if (!supabase) return;
       setLoading(true);
-      const pageSize = 1000;
+      const pageSize = ACTIVITY_PAGE_SIZE;
       const data = [];
       let error = null;
 
       for (let from = 0; ; from += pageSize) {
-        const response = await supabase
+        const response = await loadActivityPageWithRetries(() => supabase
           .from('activities')
           .select(activitySelectColumns)
           .eq('public_listing_status', 'published')
           .eq('archive', false)
           .order('start_time', { ascending: true })
           .order('activity_id', { ascending: true })
-          .range(from, from + pageSize - 1);
+          .range(from, from + pageSize - 1));
 
         if (response.error) {
           error = response.error;
@@ -2163,6 +2242,7 @@ export default function App() {
     setShortlists({});
     setStatuses({});
     setNotice('Your swipe deck is fresh again. Calendar plans stayed put.');
+    void clearAllSyncedPlanning();
   }
 
   function hideActivityFromBrowsing(activity) {
@@ -2234,6 +2314,74 @@ export default function App() {
 
     setLocalStatus(activity, nextStatus);
     setDragState({ activityId: null, startX: null, offsetX: 0 });
+    void persistSwipeDecision(activity, decision);
+  }
+
+  async function persistSwipeDecision(activity, decision) {
+    const userId = session?.user?.id;
+    if (!supabase || !userId || !activity?.activity_id) return;
+    const { data: swipe, error: swipeError } = await supabase
+      .from('activity_swipes')
+      .upsert({
+        user_id: userId,
+        activity_id: activity.activity_id,
+        planned_date: selectedDate,
+        day_window: selectedWindow,
+        decision,
+      }, { onConflict: 'user_id,activity_id,planned_date,day_window' })
+      .select('swipe_id')
+      .single();
+    if (swipeError) {
+      setNotice('Your choice is saved on this device but could not be synced yet.');
+      return;
+    }
+
+    if (decision === 'yes') {
+      const { error } = await supabase.from('activity_shortlist').upsert({
+        user_id: userId,
+        activity_id: activity.activity_id,
+        planned_date: selectedDate,
+        day_window: selectedWindow,
+        added_from_swipe_id: swipe.swipe_id,
+        position: (shortlists[activeSlot] || []).length,
+      }, { onConflict: 'user_id,activity_id,planned_date,day_window' });
+      if (error) setNotice('Your choice is synced, but the saved list could not be updated yet.');
+    } else {
+      const { error } = await supabase
+        .from('activity_shortlist')
+        .delete()
+        .eq('user_id', userId)
+        .eq('activity_id', activity.activity_id)
+        .eq('planned_date', selectedDate)
+        .eq('day_window', selectedWindow);
+      if (error) setNotice('Your choice is synced, but the saved list could not be updated yet.');
+    }
+  }
+
+  async function clearSyncedPlanningSlot(date, windowName) {
+    const userId = session?.user?.id;
+    if (!supabase || !userId) return;
+    const { error: shortlistError } = await supabase
+      .from('activity_shortlist')
+      .delete()
+      .eq('user_id', userId)
+      .eq('planned_date', date)
+      .eq('day_window', windowName);
+    const { error: swipesError } = await supabase
+      .from('activity_swipes')
+      .delete()
+      .eq('user_id', userId)
+      .eq('planned_date', date)
+      .eq('day_window', windowName);
+    if (shortlistError || swipesError) setNotice('This slot was reset here, but could not be fully reset online.');
+  }
+
+  async function clearAllSyncedPlanning() {
+    const userId = session?.user?.id;
+    if (!supabase || !userId) return;
+    const { error: shortlistError } = await supabase.from('activity_shortlist').delete().eq('user_id', userId);
+    const { error: swipesError } = await supabase.from('activity_swipes').delete().eq('user_id', userId);
+    if (shortlistError || swipesError) setNotice('Swipes were reset here, but could not be fully reset online.');
   }
 
   function startDrag(event, activity) {
@@ -2272,6 +2420,7 @@ export default function App() {
       Object.fromEntries(Object.entries(current).filter(([key]) => !key.startsWith(`${activeSlot}:`))),
     );
     setNotice(`Cleared ${selectedWindow} on ${formatDay(selectedDate)}.`);
+    void clearSyncedPlanningSlot(selectedDate, selectedWindow);
   }
 
   function chooseActivity(activity, status = 'booked') {
@@ -2416,6 +2565,14 @@ export default function App() {
           // The Supabase session is closed even if Android credential cleanup fails.
         }
       }
+      setSwipes({});
+      setShortlists({});
+      setStatuses({});
+      setCalendarEvents([]);
+      setCalendarSyncedUserId(null);
+      setPlanningSyncedUserId(null);
+      setSelectedActivity(null);
+      setActiveScreen('start');
       setEntryChoice(null);
     }
   }
@@ -2570,7 +2727,13 @@ export default function App() {
       await navigator.clipboard?.writeText(data.text);
       setNotice('Follow code copied.');
     } catch (error) {
-      if (error?.name !== 'AbortError') setNotice('Could not open sharing right now.');
+      if (error?.name === 'AbortError') return;
+      try {
+        await navigator.clipboard?.writeText(data.text);
+        setNotice('Follow code copied.');
+      } catch {
+        setNotice('Could not open sharing right now.');
+      }
     }
   }
 
@@ -2584,7 +2747,13 @@ export default function App() {
       await navigator.clipboard?.writeText(`${shareData.text} ${shareData.url}`);
       setNotice('Activity link copied.');
     } catch (error) {
-      if (error?.name !== 'AbortError') setNotice('Could not open sharing. Try WhatsApp or Facebook below.');
+      if (error?.name === 'AbortError') return;
+      try {
+        await navigator.clipboard?.writeText(`${shareData.text} ${shareData.url}`);
+        setNotice('Activity link copied.');
+      } catch {
+        setNotice('Could not open sharing. Try WhatsApp or Facebook below.');
+      }
     }
   }
 
@@ -2598,7 +2767,13 @@ export default function App() {
       await navigator.clipboard?.writeText(`${shareData.text} ${shareData.url}`);
       setNotice('Tiny Outings link copied.');
     } catch (error) {
-      if (error?.name !== 'AbortError') setNotice('Could not open sharing on this device.');
+      if (error?.name === 'AbortError') return;
+      try {
+        await navigator.clipboard?.writeText(`${shareData.text} ${shareData.url}`);
+        setNotice('Tiny Outings link copied.');
+      } catch {
+        setNotice('Could not open sharing on this device.');
+      }
     }
   }
 
@@ -3036,12 +3211,12 @@ export default function App() {
     const tasks = [];
     if (reviewForm.rating) {
       tasks.push(
-        supabase.from('activity_reviews').insert({
+        supabase.from('activity_reviews').upsert({
           activity_id: selectedActivity.activity_id,
           user_id: session?.user?.id || null,
           rating: Number(reviewForm.rating),
           review_text: reviewForm.comments.trim() || null,
-        }),
+        }, { onConflict: 'activity_id,user_id' }),
       );
     }
     let uploadedPhotos;
@@ -3113,13 +3288,6 @@ export default function App() {
           )}
         </div>
       </header>
-
-      {notice && (
-        <div className="toast" role="status">
-          <span>{notice}</span>
-          <button type="button" onClick={() => setNotice('')}>OK</button>
-        </div>
-      )}
 
       <main className="app-main">
         {activeScreen === 'start' && (
@@ -3301,6 +3469,12 @@ export default function App() {
 
       <BottomNav activeScreen={activeScreen} setActiveScreen={navigate} isAdmin={isAdmin} />
         </>
+      )}
+      {notice && (
+        <div className="toast" role="status">
+          <span>{notice}</span>
+          <button type="button" onClick={() => setNotice('')}>OK</button>
+        </div>
       )}
     </div>
   );
@@ -3666,7 +3840,7 @@ function StartScreen({
             Start swiping
           </button>
           <button className="secondary-button" type="button" onClick={onResetBrowsing}>
-            Reset
+            Reset swipes
           </button>
         </div>
       </div>
@@ -3743,7 +3917,7 @@ function SearchResultsScreen({ query, activities, weekDays, loading, onBack, onO
       ) : (
         <div className="empty-list">
           <strong>No matching outings</strong>
-          <span>Try a different name or loosen one of the Plan filters.</span>
+          <span>Try a different listing name.</span>
         </div>
       )}
     </section>
@@ -4203,7 +4377,7 @@ function UserScreen({
           <span className="eyebrow">Your account</span>
           <strong>{profile?.display_name || profile?.user_name || 'Plan together'}</strong>
           <small>{profile?.user_name ? `@${profile.user_name}` : 'Sign in to create your profile'}</small>
-          {profile && <small>{profile.followers || 0} followers - {profile.following || 0} following</small>}
+          {profile && <small>{followerProfiles.length} followers - {followingProfiles.length} following</small>}
         </div>
         {signedIn ? (
           <button type="button" className="profile-edit-button" onClick={() => setEditingProfile((current) => !current)}>

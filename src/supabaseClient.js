@@ -9,7 +9,10 @@ export const supabase = hasSupabaseConfig
     auth: {
       persistSession: true,
       autoRefreshToken: true,
-      detectSessionInUrl: false,
+      // Production Android authentication uses the native Google token flow.
+      // Accept an auth callback only in local development so end-to-end QA can
+      // use disposable Supabase users without touching a real Google account.
+      detectSessionInUrl: import.meta.env.DEV,
     },
   })
   : null;
