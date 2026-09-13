@@ -1,0 +1,907 @@
+/*
+ * Muted London visual layer.
+ *
+ * This file intentionally contains presentation overrides only. Removing this
+ * import from main.jsx restores the previous visual design without touching
+ * application behaviour, data, routes or component markup.
+ */
+
+:root {
+  --ink: #263b45;
+  --muted: #66736f;
+  --paper: #f8f6ef;
+  --cream: #e9e4d9;
+  --line: rgba(38, 59, 69, 0.18);
+  --line-soft: rgba(38, 59, 69, 0.1);
+  --green: #8da39a;
+  --green-dark: #42645e;
+  --coral: #c89a91;
+  --coral-dark: #9c514b;
+  --yellow: #c6aa6a;
+  --blue: #a6b7bc;
+  --mint: #dce4dc;
+  --blush: #eadbd6;
+  --lavender: #d9d7dc;
+  --apricot: #c9a47b;
+  --shadow: 0 12px 30px rgba(38, 48, 47, 0.09);
+  --london-navy: #263b45;
+  --london-brick: #9c514b;
+  --london-sage: #708a82;
+  --london-ochre: #b49354;
+  --london-stone: #e9e4d9;
+  --london-chalk: #f8f6ef;
+  --london-fog: #d5dbd8;
+  color: var(--ink);
+  background-color: var(--london-stone);
+}
+
+html,
+body,
+#root,
+.phone-app {
+  background-color: var(--london-stone);
+}
+
+body::before,
+.phone-app::before,
+.phone-app::after {
+  display: none;
+}
+
+.phone-app {
+  color: var(--ink);
+}
+
+/* Editorial type for destinations; wayfinding type for everything functional. */
+h1,
+h2,
+h3,
+.brand-lockup,
+.week-calendar-header strong,
+.week-selection-label strong,
+.start-summary strong,
+.card-photo strong,
+.detail-photo strong {
+  color: var(--london-navy);
+}
+
+.eyebrow,
+.section-heading span,
+.welcome-kicker,
+.onboarding-kicker,
+.field-group > label,
+.field-group > span,
+.source-filter > span,
+.card-tags > span:first-child:not(.status-pill),
+.week-share-card > span {
+  color: var(--london-brick);
+  letter-spacing: 0.14em;
+}
+
+p,
+.welcome-copy,
+.onboarding-intro,
+.onboarding-note {
+  color: var(--muted);
+}
+
+/* Compact, civic framing replaces the previous soft sticker treatment. */
+.screen-title,
+.filter-card,
+.range-card,
+.start-summary,
+.shortlist-panel,
+.calendar-day,
+.soft-note,
+.app-form,
+.detail-sheet,
+.review-card,
+.profile-card,
+.community-card,
+.profile-editor,
+.share-card,
+.week-export-card,
+.week-share-card,
+.toast,
+.detail-content-card,
+.share-sheet,
+.report-sheet,
+.map-summary,
+.review-queue,
+.review-item,
+.admin-editor,
+.empty-deck,
+.empty-list,
+.open-slot,
+.search-result-card,
+.onboarding-screen {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background-color: var(--london-chalk);
+  box-shadow: var(--shadow);
+}
+
+.screen-title,
+.filter-card,
+.profile-card,
+.week-export-card,
+.week-share-card,
+.map-summary,
+.app-form,
+.detail-content-card,
+.search-dock,
+.planner-strip,
+.swipe-status-bar {
+  position: relative;
+}
+
+.filter-card::before,
+.filter-card::after,
+.profile-card::after,
+.week-export-card::after,
+.week-share-card::after,
+.map-summary::after,
+.app-form::before,
+.app-form::after,
+.detail-content-card::after,
+.planner-strip::after,
+.swipe-status-bar::after,
+.hero-badges::after,
+.bottom-nav::before {
+  display: none;
+}
+
+/* Top bar and identity: understated London station-sign geometry. */
+.app-topbar {
+  margin: 0 -14px 14px;
+  padding: 12px 14px 13px;
+  border-bottom: 3px solid var(--london-ochre);
+  background-color: rgba(248, 246, 239, 0.96);
+  box-shadow: 0 5px 16px rgba(38, 59, 69, 0.07);
+  backdrop-filter: blur(14px);
+}
+
+.brand-lockup {
+  min-height: 42px;
+  padding-left: 51px;
+  border: 0 !important;
+  border-radius: 0;
+  background-color: transparent;
+  box-shadow: none;
+  font-size: 1.2rem;
+  line-height: 0.92;
+}
+
+.brand-lockup::before {
+  top: 1px;
+  left: 0;
+  width: 39px;
+  height: 39px;
+  border: 5px solid var(--london-brick);
+  border-radius: 50%;
+  background-color: var(--london-chalk);
+  background-image: none !important;
+  box-shadow: none;
+  transform: none;
+}
+
+.brand-lockup::after {
+  position: absolute;
+  top: 17px;
+  left: -3px;
+  display: block;
+  width: 45px;
+  height: 8px;
+  border: 2px solid var(--london-chalk);
+  border-radius: 1px;
+  content: '';
+  background-color: var(--london-navy);
+  transform: none;
+}
+
+.brand-lockup span,
+.brand-lockup strong {
+  color: var(--london-navy);
+}
+
+.brand-lockup strong {
+  color: var(--london-brick);
+}
+
+.account-button,
+.guest-button,
+.account-profile-button,
+.account-pill {
+  border: 1px solid var(--line) !important;
+  border-radius: 4px;
+  background-color: var(--london-chalk);
+  box-shadow: none;
+}
+
+.account-button {
+  color: var(--london-navy);
+}
+
+/* Poster-like introductions with a strong frame and restrained route marker. */
+.screen-title {
+  overflow: hidden;
+  padding: 24px 20px 22px;
+  border: 1px solid var(--line);
+  border-top: 8px solid var(--london-navy);
+  border-radius: 8px;
+  background-color: var(--london-chalk) !important;
+  box-shadow: var(--shadow);
+}
+
+.screen-title.compact {
+  border-radius: 8px;
+}
+
+.screen-title::before {
+  top: 16px;
+  right: 18px;
+  left: auto;
+  display: block;
+  width: 17px;
+  height: 17px;
+  border: 5px solid var(--london-brick);
+  border-radius: 50%;
+  color: transparent;
+  content: '';
+  transform: none;
+}
+
+.screen-title::after {
+  right: 20px;
+  bottom: 18px;
+  display: block;
+  width: 68px;
+  height: 4px;
+  border: 0;
+  border-radius: 0;
+  background-color: var(--london-ochre);
+  box-shadow: none;
+  content: '';
+  opacity: 1;
+  transform: none;
+}
+
+.hero-title {
+  min-height: min(42vh, 400px);
+  align-content: end;
+  padding: 30px 22px 24px;
+  border-top-width: 10px;
+}
+
+.hero-title h1 {
+  max-width: 8.2ch;
+  font-size: clamp(3rem, 14vw, 4.8rem);
+  line-height: 0.91;
+  letter-spacing: -0.065em;
+}
+
+.hero-title::after {
+  top: 28px;
+  right: 25px;
+  bottom: auto;
+  width: 72px;
+  height: 72px;
+  border: 8px solid rgba(156, 81, 75, 0.62);
+  border-radius: 50%;
+  background-color: transparent;
+  box-shadow: none;
+  opacity: 1;
+}
+
+.hero-badges {
+  gap: 0;
+  margin-top: 8px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+
+.hero-badges span {
+  min-height: 36px;
+  padding: 9px 12px;
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-radius: 0;
+  color: var(--london-navy);
+  background-color: #e8e3d7;
+  box-shadow: none;
+}
+
+.hero-badges span:last-child {
+  border-right: 0;
+}
+
+/* Buttons and controls use one muted red action colour and crisp geometry. */
+button,
+.card-links a,
+.external-links a,
+.source-picker summary,
+[role='button'] {
+  border-radius: 5px;
+}
+
+.primary-action,
+.welcome-google,
+.onboarding-start,
+.week-export-card button,
+.search-dock .search-results-button,
+.filter-chip.is-on,
+.segment.is-on,
+.date-pill.is-on,
+.window-pill.is-on,
+.distance-toggle button.is-on {
+  border: 1px solid var(--london-brick) !important;
+  border-radius: 5px;
+  color: #fffdf8;
+  background-color: var(--london-brick);
+  box-shadow: 0 5px 0 rgba(79, 48, 46, 0.14);
+}
+
+.secondary-button,
+.link-button,
+.welcome-guest,
+.onboarding-skip,
+.search-results-button,
+.hide-activity-button,
+.source-picker summary,
+.calendar-month-button {
+  border: 1px solid var(--line) !important;
+  border-radius: 5px;
+  color: var(--london-navy);
+  background-color: var(--london-chalk);
+  box-shadow: none;
+}
+
+.secondary-button.is-on {
+  border-color: var(--london-navy) !important;
+  color: #fffdf8;
+  background-color: var(--london-navy);
+}
+
+button:focus-visible,
+.card-links a:focus-visible,
+.external-links a:focus-visible,
+.source-picker summary:focus-visible {
+  outline: 3px solid var(--london-ochre);
+  outline-offset: 3px;
+}
+
+button:disabled {
+  color: #7e8883 !important;
+  background-color: #e0e2dc !important;
+}
+
+/* Planner controls borrow the legibility of a tube map, not its bright palette. */
+.filter-card,
+.location-card,
+.range-card,
+.start-summary {
+  border-radius: 8px;
+}
+
+.location-card .field-group {
+  padding: 14px;
+  border: 1px solid var(--line-soft);
+  border-left: 4px solid var(--london-sage);
+  border-radius: 3px;
+  background-color: #f1eee5 !important;
+}
+
+.location-card .field-group:nth-of-type(3n + 2) {
+  border-left-color: var(--london-ochre);
+}
+
+.location-card .field-group:nth-of-type(3n + 3) {
+  border-left-color: var(--london-brick);
+}
+
+.filter-chip,
+.segment,
+.window-pill,
+.distance-toggle button,
+.week-preview span {
+  border: 1px solid var(--line) !important;
+  border-radius: 4px;
+  color: var(--london-navy);
+  background-color: #efebe1 !important;
+  box-shadow: none;
+  text-transform: none;
+}
+
+.filter-chip:nth-child(3n + 2),
+.week-preview span:nth-child(3n + 2) {
+  background-color: #e2e8e5 !important;
+}
+
+.filter-chip:nth-child(3n + 3),
+.week-preview span:nth-child(3n + 3) {
+  background-color: #e6dfd2 !important;
+}
+
+.filter-chip.is-on,
+.segment.is-on,
+.window-pill.is-on,
+.distance-toggle button.is-on {
+  color: #fffdf8;
+  background-color: var(--london-brick) !important;
+}
+
+.week-calendar {
+  padding: 11px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background-color: #fcfaf4;
+  box-shadow: none;
+}
+
+.calendar-month-button {
+  width: 34px;
+  height: 34px;
+  min-height: 0;
+}
+
+.week-calendar-day {
+  border-radius: 2px;
+  color: var(--london-navy);
+}
+
+.week-calendar-day.is-selected-week {
+  color: #fffdf8;
+  background-color: var(--london-sage);
+}
+
+.week-calendar-day.is-today::after {
+  background-color: var(--london-brick);
+}
+
+.start-summary {
+  border-left: 6px solid var(--london-ochre);
+  background-color: var(--london-chalk);
+}
+
+.search-dock {
+  border: 1px solid var(--line);
+  border-left: 6px solid var(--london-sage);
+  border-radius: 8px;
+  background-color: #f1eee5;
+  box-shadow: var(--shadow);
+}
+
+.search-input-wrap,
+input,
+select,
+textarea,
+.source-picker,
+.source-options {
+  border: 1px solid var(--line) !important;
+  border-radius: 4px;
+  background-color: #fcfaf4;
+  box-shadow: none;
+}
+
+.search-input-wrap:focus-within {
+  border-color: var(--london-brick);
+  box-shadow: 0 0 0 3px rgba(156, 81, 75, 0.12);
+}
+
+.search-icon,
+.search-result-distance {
+  color: var(--london-brick) !important;
+}
+
+.search-result-card {
+  border-left: 5px solid var(--london-sage);
+}
+
+/* Swipe deck: framed photography with information set like a small poster. */
+.planner-strip,
+.swipe-status-bar {
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background-color: var(--london-chalk);
+  box-shadow: none;
+}
+
+.date-pill {
+  flex-basis: 74px;
+  min-height: 62px;
+  border: 1px solid var(--line) !important;
+  border-radius: 50%;
+  color: var(--london-navy);
+  background-color: var(--london-chalk);
+  box-shadow: none;
+  text-align: center;
+}
+
+.date-pill.is-on {
+  border-color: var(--london-brick) !important;
+  background-color: var(--london-brick);
+}
+
+.window-switcher,
+.distance-toggle {
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background-color: #ebe7dc;
+}
+
+.swipe-card {
+  border: 1px solid var(--london-navy);
+  border-radius: 8px;
+  background-color: var(--london-chalk);
+  box-shadow: 8px 8px 0 rgba(38, 59, 69, 0.1), 0 18px 34px rgba(38, 48, 47, 0.12);
+}
+
+.swipe-card.is-stacked {
+  border-color: var(--london-ochre);
+  background-color: #ddd7ca;
+}
+
+.swipe-card.is-yes {
+  border-color: var(--london-sage);
+}
+
+.swipe-card.is-no {
+  border-color: var(--london-brick);
+}
+
+.card-photo,
+.detail-photo {
+  border-bottom: 6px solid var(--london-ochre);
+  background-color: var(--london-sage);
+}
+
+.card-photo::after,
+.detail-photo::after {
+  display: none;
+}
+
+.activity-photo-image {
+  filter: saturate(0.82) contrast(0.98) brightness(0.88);
+}
+
+.card-content {
+  border: 0;
+  border-radius: 0;
+  background-color: var(--london-chalk);
+  box-shadow: none;
+}
+
+.card-content h2 {
+  color: var(--london-navy);
+}
+
+.card-tags > span:first-child:not(.status-pill) {
+  color: var(--london-brick);
+}
+
+.term-time-badge,
+.status-pill,
+.hero-badges span {
+  border-radius: 3px;
+}
+
+.card-summary span,
+.detail-grid span,
+.activity-facts span,
+.card-travel span {
+  border: 1px solid var(--line-soft) !important;
+  border-radius: 3px;
+  background-color: #efede5 !important;
+}
+
+.card-summary span:nth-child(2n),
+.detail-grid span:nth-child(2n) {
+  background-color: #e4e9e6 !important;
+}
+
+.card-summary strong,
+.detail-grid strong,
+.card-travel strong {
+  color: var(--london-brick);
+}
+
+.swipe-button {
+  border: 1px solid var(--line) !important;
+  border-radius: 50%;
+  background-color: var(--london-chalk);
+  box-shadow: 0 5px 12px rgba(38, 48, 47, 0.08);
+}
+
+.swipe-button.yes {
+  border-color: var(--london-sage) !important;
+  background-color: var(--london-sage);
+}
+
+.swipe-button.no {
+  color: var(--london-brick);
+  background-color: #f0e5e1;
+}
+
+/* Week, profile, forms and maps keep the same layout with calmer section cues. */
+.calendar-day {
+  border-left: 5px solid var(--london-sage);
+  background-color: var(--london-chalk) !important;
+}
+
+.calendar-day:nth-of-type(3n + 2) {
+  border-left-color: var(--london-ochre);
+}
+
+.calendar-day:nth-of-type(3n + 3) {
+  border-left-color: var(--london-brick);
+}
+
+.slot-name {
+  border: 1px solid var(--line-soft);
+  border-radius: 3px;
+  color: var(--london-navy);
+  background-color: #e6e2d7;
+}
+
+.calendar-event,
+.open-slot {
+  border: 1px solid var(--line) !important;
+  border-radius: 4px;
+  background-color: #f6f3eb;
+  box-shadow: none;
+}
+
+.week-export-card,
+.week-share-card,
+.profile-card,
+.community-card,
+.share-card,
+.app-form,
+.review-card,
+.admin-editor,
+.detail-content-card,
+.map-summary {
+  border-left: 6px solid var(--london-sage);
+}
+
+.week-share-card,
+.share-card {
+  border-left-color: var(--london-ochre);
+}
+
+.app-form,
+.review-card,
+.admin-editor {
+  border-left-color: var(--london-brick);
+}
+
+.london-map-shell {
+  border: 6px solid var(--london-chalk);
+  border-radius: 8px;
+  outline: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.london-map-shell::before,
+.london-map-shell::after {
+  display: none;
+}
+
+.london-landmark-doodles {
+  color: var(--london-navy);
+  opacity: 0.58;
+}
+
+.doodle-big-ben {
+  fill: var(--london-navy);
+}
+
+.doodle-eye {
+  fill: var(--london-ochre);
+}
+
+.doodle-bridge {
+  stroke: var(--london-brick) !important;
+}
+
+/* Welcome and onboarding use the same visual system before the main shell. */
+.welcome-screen,
+.onboarding-screen {
+  min-height: calc(100vh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  min-height: calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  border: 1px solid var(--line);
+  border-top: 10px solid var(--london-navy);
+  border-radius: 8px;
+  background-color: var(--london-chalk);
+  box-shadow: var(--shadow);
+}
+
+.welcome-screen::before {
+  top: 12%;
+  right: -50px;
+  display: block;
+  width: 170px;
+  height: 170px;
+  border: 18px solid rgba(156, 81, 75, 0.46);
+  border-radius: 50%;
+  background-color: transparent;
+  opacity: 1;
+}
+
+.welcome-screen::after {
+  bottom: 34%;
+  left: -42px;
+  display: block;
+  width: 145px;
+  height: 7px;
+  border-radius: 0;
+  background-color: var(--london-ochre);
+  opacity: 0.72;
+  transform: rotate(-12deg);
+}
+
+.welcome-sun {
+  width: 56px;
+  height: 56px;
+  border: 7px solid var(--london-ochre);
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.welcome-mark {
+  width: 78px;
+  height: 78px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background-color: #e3e7e3;
+  box-shadow: none;
+  transform: none;
+}
+
+.welcome-screen h1,
+.onboarding-screen h1 {
+  color: var(--london-navy);
+}
+
+.onboarding-doodle-sun {
+  border: 16px solid rgba(180, 147, 84, 0.52);
+  background-color: transparent;
+}
+
+.onboarding-doodle-scribble {
+  border-color: var(--london-sage) transparent transparent;
+}
+
+.onboarding-steps li {
+  border: 1px solid var(--line-soft);
+  border-left: 5px solid var(--london-sage);
+  border-radius: 4px;
+  background-color: #efebe1 !important;
+}
+
+.onboarding-steps li:nth-child(2) {
+  border-left-color: var(--london-ochre);
+}
+
+.onboarding-steps li:nth-child(3) {
+  border-left-color: var(--london-brick);
+}
+
+.onboarding-step-number {
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--london-navy);
+  background-color: var(--london-chalk);
+  transform: none !important;
+}
+
+/* Bottom navigation reads as a compact wayfinding strip. */
+.bottom-nav {
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background-color: rgba(248, 246, 239, 0.97);
+  box-shadow: 0 10px 24px rgba(38, 48, 47, 0.14);
+}
+
+.bottom-nav button {
+  min-height: 44px;
+  border-radius: 3px;
+  color: var(--london-navy);
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.bottom-nav button.is-on {
+  border-color: var(--london-navy) !important;
+  border-radius: 3px;
+  color: #fffdf8;
+  background-color: var(--london-navy);
+  box-shadow: inset 0 -4px 0 var(--london-brick);
+}
+
+.toast {
+  border-left: 6px solid var(--london-ochre);
+  background-color: rgba(248, 246, 239, 0.97);
+}
+
+@media (min-width: 760px) {
+  .app-topbar {
+    margin-right: 0;
+    margin-left: 0;
+    padding-right: 18px;
+    padding-left: 18px;
+    border-right: 1px solid var(--line);
+    border-left: 1px solid var(--line);
+  }
+
+  .start-screen {
+    column-gap: 22px;
+  }
+
+  .start-screen .screen-title {
+    min-height: 520px;
+  }
+}
+
+@media (max-width: 420px) {
+  .app-topbar {
+    margin-right: -10px;
+    margin-left: -10px;
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .brand-lockup {
+    padding-left: 43px;
+    font-size: 1.08rem;
+  }
+
+  .brand-lockup::before {
+    width: 34px;
+    height: 34px;
+    border-width: 4px;
+  }
+
+  .brand-lockup::after {
+    top: 14px;
+    width: 39px;
+    height: 7px;
+  }
+
+  .hero-title {
+    min-height: min(40vh, 370px);
+  }
+
+  .hero-title::after {
+    width: 58px;
+    height: 58px;
+    border-width: 7px;
+  }
+
+  .screen-title {
+    padding: 21px 17px 19px;
+  }
+
+  .swipe-card {
+    border-radius: 7px;
+  }
+
+  .bottom-nav {
+    right: 8px;
+    left: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-lockup,
+  .primary-action,
+  .secondary-button,
+  .filter-chip,
+  .segment,
+  .date-pill,
+  .window-pill {
+    transform: none !important;
+  }
+}
