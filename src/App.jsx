@@ -11,7 +11,9 @@ import { supabase } from './supabaseClient';
 import { googleSignInErrorMessage, signInWithNativeGoogle } from './googleAuth';
 import { comparisonTokens, dedupePublishedActivities, findLikelyDuplicate } from './activityDuplicates';
 import { isDirectorySearchResult } from './activityDirectory';
-import { ACTIVITY_PAGE_SIZE, loadActivityPageWithRetries } from './activityLoader';
+import { ACTIVITY_PAGE_SIZE, loadActivityPageWithRetries, loadActivityPages, loadCachedActivityDirectory } from './activityLoader';
+import { ACTIVITY_SELECT_COLUMNS as activitySelectColumns } from './activityColumns';
+import { readActivityDirectoryCache, writeActivityDirectoryCache } from './activityCache';
 import { activityFallbackImage, activityImageUrls, hasActivityImage, securePhotoUrl, shareListingImages } from './activityImages';
 import { activityCoordinates, resolveActivityCoordinates } from './activityLocation';
 import { profileQrUrl, profileShareData } from './profileSharing';
@@ -32,86 +34,6 @@ const NativeGoogleSignIn = registerPlugin('TinyOutingsGoogle');
 const planningStorageVersion = '2026-08-17-family-activities-filter';
 const onboardingStorageKey = 'onboarding-complete';
 const statusOptions = ['booked', 'tentative'];
-const activitySelectColumns = [
-  'activity_id',
-  'activity_name',
-  'address',
-  'lat',
-  'long',
-  'category',
-  'start_time',
-  'end_time',
-  'google_link',
-  'website',
-  'organiser_website',
-  'child_friendly_score',
-  'app_rating',
-  'number_of_reviews',
-  'age_suitability',
-  'borough',
-  'days_of_week',
-  'available_days_of_week',
-  'available_dates',
-  'activity_date',
-  'availability_start_date',
-  'availability_end_date',
-  'availability_type',
-  'availability_notes',
-  'schedule_notes',
-  'time_window',
-  'description',
-  'card_summary',
-  'cost',
-  'admin_cover_image_url',
-  'reviewed_image_url',
-  'use_category_image',
-  'reviewed_image_source_url',
-  'reviewed_image_original_url',
-  'reviewed_image_selected_at',
-  'reviewed_image_model',
-  'audit_image_url',
-  'audit_image_source_url',
-  'audit_image_status',
-  'audit_image_original_url',
-  'audit_image_original_source_field',
-  'scraped_image_url',
-  'user_image_url',
-  'model_selected_url',
-  'model_selected_confidence',
-  'model_selected_original_url',
-  'model_selected_source_url',
-  'model_selected_source_field',
-  'model_selected_reason',
-  'model_selected_model',
-  'model_selected_model_version',
-  'image_review_approved_at',
-  'image_review_approved_url',
-  'image_review_approved_source_field',
-  'organiser_website_downloaded_image',
-  'website_downloaded_image',
-  'wikimedia_image_url',
-  'website_image_url',
-  'listing_image_url',
-  'image_url',
-  'google_photo_url',
-  'image_source_url',
-  'source_url',
-  'source_name',
-  'data_source',
-  'plan_filters',
-  'google_primary_type',
-  'google_place_id',
-  'google_place_uri',
-  'google_rating',
-  'google_user_rating_count',
-  'public_listing_status',
-  'archive',
-  'submitted_by_user_id',
-  'submission_notes',
-  'submission_rating',
-  'created_at',
-  'updated_at',
-].join(',');
 const statusLabels = {
   booked: 'Booked',
   tentative: 'Tentative',
@@ -1286,6 +1208,9 @@ export default function App() {
   // Keep the last directory visible while a background refresh runs (for
   // example when returning from an activity detail screen on mobile).
   const activitiesLoadedRef = useRef(false);
+  const [directoryLoading, setDirectoryLoading] = useState(Boolean(supabase));
+  const [directoryRefreshing, setDirectoryRefreshing] = useState(Boolean(supabase));
+  const [directoryFresh, setDirectoryFresh] = useState(false);
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState('');
   const [selectedDate, setSelectedDate] = useState(todayISO());
@@ -1558,7 +1483,7 @@ export default function App() {
       || !signedInUser
       || !profile?.user_id
       || calendarSyncedUserId === signedInUser.id
-      || loading
+      || !directoryFresh
       || activities.length === 0
     ) return;
     let cancelled = false;
@@ -1605,7 +1530,7 @@ export default function App() {
 
     syncSavedPlan();
     return () => { cancelled = true; };
-  }, [activities.length, calendarSyncedUserId, loading, profile?.default_calendar_visibility, profile?.user_id, publishedActivityIds, signedInUser]);
+  }, [activities.length, calendarSyncedUserId, directoryFresh, profile?.default_calendar_visibility, profile?.user_id, publishedActivityIds, signedInUser]);
   const filteredWeekDays = useMemo(
     () => Array.from({ length: 7 }, (_, index) => addDaysISO(deferredFilters.weekStart, index)),
     [deferredFilters.weekStart],
@@ -1935,82 +1860,101 @@ export default function App() {
   }, [activeScreen, isAdmin]);
 
   useEffect(() => {
-    let cancelled = false;
+    if (!supabase) return undefined;
+    const controller = new AbortController();
+    const { signal } = controller;
+    setDirectoryLoading(!activitiesLoadedRef.current);
+    setDirectoryRefreshing(true);
+    setDirectoryFresh(false);
+
+    // Photos enrich cards independently; the activity count never waits on them.
+    const uploadedPhotos = loadActivityPages((from, to, includeCount) => supabase
+      .from('activity_photos')
+      .select('activity_id,photo_url', includeCount ? { count: 'exact' } : {})
+      .eq('source_provider', 'user_upload')
+      .order('created_at', { ascending: false })
+      .order('photo_id', { ascending: false })
+      .range(from, to)
+      .abortSignal(signal), { signal }).catch(() => null);
 
     async function loadActivities() {
-      if (!supabase) return;
-      // A refresh should not replace the already-rendered cards with the
-      // full-screen loading state. Only the first load needs that treatment.
-      setLoading(!activitiesLoadedRef.current);
-      const pageSize = ACTIVITY_PAGE_SIZE;
-      const data = [];
-      let error = null;
-
-      for (let from = 0; ; from += pageSize) {
-        const response = await loadActivityPageWithRetries(() => supabase
-          .from('activities')
-          .select(activitySelectColumns)
-          .eq('public_listing_status', 'published')
-          .eq('archive', false)
-          .order('start_time', { ascending: true })
-          .order('activity_id', { ascending: true })
-          .range(from, from + pageSize - 1));
-
-        if (response.error) {
-          error = response.error;
-          break;
+      try {
+        await loadCachedActivityDirectory({
+          readCache: readActivityDirectoryCache,
+          loadFresh: () => loadActivityPages((from, to, includeCount) => supabase
+            .from('activities')
+            .select(activitySelectColumns, includeCount ? { count: 'exact' } : {})
+            .eq('public_listing_status', 'published')
+            .eq('archive', false)
+            .order('start_time', { ascending: true })
+            .order('activity_id', { ascending: true })
+            .range(from, to)
+            .abortSignal(signal), { signal }),
+          signal,
+          onData: (data, fresh) => {
+            if (!fresh && activitiesLoadedRef.current) return;
+            activitiesLoadedRef.current = true;
+            setActivities((current) => {
+              if (!fresh) return data;
+              const priorPhotos = new Map(current.map((activity) => [
+                String(activity.activity_id), activity.user_uploaded_image_url,
+              ]));
+              return data.map((activity) => ({
+                ...activity,
+                user_uploaded_image_url: priorPhotos.get(String(activity.activity_id)) || null,
+              }));
+            });
+            setDirectoryLoading(false);
+            setDirectoryFresh(fresh);
+            if (fresh) setDirectoryRefreshing(false);
+          },
+        });
+        const photos = await uploadedPhotos;
+        if (signal.aborted || !photos) return;
+        const photoByActivity = new Map();
+        for (const photo of photos) {
+          const id = String(photo.activity_id);
+          if (photo.activity_id && photo.photo_url && !photoByActivity.has(id)) photoByActivity.set(id, photo.photo_url);
         }
-        data.push(...(response.data || []));
-        if ((response.data || []).length < pageSize) break;
-      }
-
-      const uploadedImageByActivityId = new Map();
-      if (!error) {
-        // A parent-uploaded photo is the most current view of an outing.
-        for (let from = 0; ; from += pageSize) {
-          const response = await supabase
-            .from('activity_photos')
-            .select('activity_id,photo_url')
-            .eq('source_provider', 'user_upload')
-            .order('created_at', { ascending: false })
-            .range(from, from + pageSize - 1);
-
-          if (response.error) break;
-          for (const photo of response.data || []) {
-            if (photo.activity_id && photo.photo_url && !uploadedImageByActivityId.has(String(photo.activity_id))) {
-              uploadedImageByActivityId.set(String(photo.activity_id), photo.photo_url);
-            }
-          }
-          if ((response.data || []).length < pageSize) break;
+        setActivities((current) => {
+          let changed = false;
+          const enriched = current.map((activity) => {
+            const url = photoByActivity.get(String(activity.activity_id)) || null;
+            if ((activity.user_uploaded_image_url || null) === url) return activity;
+            changed = true;
+            return { ...activity, user_uploaded_image_url: url };
+          });
+          return changed ? enriched : current;
+        });
+      } catch (error) {
+        if (!signal.aborted) setNotice(`We could not refresh outings just now: ${error.message}`);
+      } finally {
+        if (!signal.aborted) {
+          setDirectoryLoading(false);
+          setDirectoryRefreshing(false);
         }
       }
-
-      if (cancelled) return;
-
-      if (error) {
-        setNotice(`We could not refresh outings just now: ${error.message}`);
-      } else {
-        activitiesLoadedRef.current = true;
-        setActivities(data.map((activity) => ({
-          ...activity,
-          user_uploaded_image_url: uploadedImageByActivityId.get(String(activity.activity_id)) || null,
-        })));
-      }
-      setLoading(false);
     }
 
-    loadActivities();
-    return () => {
-      cancelled = true;
-    };
+    void loadActivities();
+    return () => controller.abort();
   }, [activityRefresh]);
+
+  useEffect(() => {
+    if (!directoryFresh) return undefined;
+    // Let the count and cards paint before copying the public snapshot to disk.
+    const timer = setTimeout(() => { void writeActivityDirectoryCache(activities); }, 200);
+    return () => clearTimeout(timer);
+  }, [activities, directoryFresh]);
 
   useEffect(() => {
     // Realtime updates can be delayed when a phone puts the app in the
     // background. Refresh on return so newly archived listings disappear.
+    let refreshTimer;
     const refreshVisibleActivities = () => {
       if (document.visibilityState === 'visible') {
-        setActivityRefresh((current) => current + 1);
+        clearTimeout(refreshTimer);
+        refreshTimer = setTimeout(() => setActivityRefresh((current) => current + 1), 150);
       }
     };
     window.addEventListener('focus', refreshVisibleActivities);
@@ -2018,6 +1962,7 @@ export default function App() {
     return () => {
       window.removeEventListener('focus', refreshVisibleActivities);
       document.removeEventListener('visibilitychange', refreshVisibleActivities);
+      clearTimeout(refreshTimer);
     };
   }, []);
 
@@ -3240,6 +3185,9 @@ export default function App() {
             calendarDays={calendarDays}
             setSelectedDate={setSelectedDate}
             totalActivityCount={weekMatchedActivities.length}
+            activitiesLoaded={activitiesLoadedRef.current}
+            activitiesLoading={directoryLoading}
+            activitiesRefreshing={directoryRefreshing}
             dayActivityCount={filteredActivities.length}
             slotActivityCount={slotActivities.length}
             onRequestLocation={requestLocation}
@@ -3255,7 +3203,7 @@ export default function App() {
             query={filters.activitySearch}
             activities={directorySearchActivities}
             weekDays={weekDays}
-            loading={loading}
+            loading={directoryLoading}
             onBack={() => navigate('start')}
             onOpenActivity={openActivity}
             onHideActivity={hideActivityFromBrowsing}
@@ -3277,7 +3225,7 @@ export default function App() {
             statuses={statuses}
             selectedDateKey={selectedDate}
             dragState={dragState}
-            loading={loading}
+            loading={directoryLoading}
             hasActivities={allActivities.length > 0}
             onSwipe={handleSwipe}
             onStartDrag={startDrag}
@@ -3546,6 +3494,9 @@ function StartScreen({
   calendarDays,
   setSelectedDate,
   totalActivityCount,
+  activitiesLoaded,
+  activitiesLoading,
+  activitiesRefreshing,
   dayActivityCount,
   slotActivityCount,
   onRequestLocation,
@@ -3827,10 +3778,12 @@ function StartScreen({
       </div>
 
       <div className="start-summary">
-        <div>
+        <div aria-live="polite" aria-busy={activitiesLoading}>
           <span>Outings</span>
-          <strong>{totalActivityCount}</strong>
-          <small>{dayActivityCount} today. {slotActivityCount} in this slot.</small>
+          <strong>{activitiesLoaded ? totalActivityCount : activitiesLoading ? 'Loading…' : 'Unavailable'}</strong>
+          <small>{activitiesLoaded
+            ? `${dayActivityCount} today. ${slotActivityCount} in this slot.${activitiesRefreshing ? ' Updating…' : ''}`
+            : activitiesLoading ? 'Finding your outings.' : 'Could not load outings. Please try again.'}</small>
         </div>
         <div className="start-actions">
           <button className="primary-action" type="button" onClick={onStart}>
