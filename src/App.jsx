@@ -3216,13 +3216,7 @@ export default function App() {
         </button>
         <div className="topbar-actions account-actions">
           {session ? (
-            <>
-              <button className="account-profile-button" type="button" onClick={() => navigate('user')}>
-                <img src={profile?.avatar_url || defaultProfileAvatar} alt="" onError={(event) => { event.currentTarget.src = defaultProfileAvatar; }} />
-                <span>{isAdmin ? 'Admin' : (profile?.user_name || 'You')}</span>
-              </button>
-              <button className="account-button" type="button" onClick={signOut}>Log out</button>
-            </>
+            <button className="account-button" type="button" onClick={signOut}>Log out</button>
           ) : (
             <button className="account-button" type="button" onClick={signInWithGoogle} disabled={authLoading}>
               {authLoading ? 'Opening...' : 'Sign in'}
@@ -3478,6 +3472,67 @@ function OnboardingScreen({ onComplete }) {
   );
 }
 
+function LondonTitleDoodle({ variant }) {
+  const doodles = {
+    planner: (
+      <>
+        <svg className="title-doodle-bus" viewBox="0 0 72 54" fill="none">
+          <rect x="10" y="10" width="52" height="28" rx="6" />
+          <path d="M15 21h42M20 15v6m10-6v6m10-6v6m10-6v6M17 38v7m38-7v7" />
+          <circle cx="22" cy="42" r="5" />
+          <circle cx="50" cy="42" r="5" />
+        </svg>
+        <svg className="title-doodle-route" viewBox="0 0 40 28" fill="none">
+          <path d="M3 22C11 4 23 29 37 6" />
+          <circle cx="4" cy="22" r="2" />
+          <circle cx="37" cy="6" r="2" />
+        </svg>
+      </>
+    ),
+    calendar: (
+      <>
+        <svg className="title-doodle-tube" viewBox="0 0 64 64" fill="none">
+          <circle cx="32" cy="32" r="18" />
+          <path d="M6 27h52v10H6z" />
+        </svg>
+        <svg className="title-doodle-ticket" viewBox="0 0 35 25" fill="none">
+          <path d="M3 4h29v17H3zM9 4v17m17-17v17" />
+          <path d="M14 9h8m-8 4h8" />
+        </svg>
+      </>
+    ),
+    add: (
+      <>
+        <svg className="title-doodle-pin" viewBox="0 0 50 66" fill="none">
+          <path d="M25 59S7 40 7 25a18 18 0 1 1 36 0c0 15-18 34-18 34Z" />
+          <circle cx="25" cy="25" r="6" />
+        </svg>
+        <svg className="title-doodle-sign" viewBox="0 0 44 36" fill="none">
+          <path d="M22 3v30M6 10h31l-5 7 5 7H6l5-7-5-7Z" />
+        </svg>
+      </>
+    ),
+    profile: (
+      <>
+        <svg className="title-doodle-eye" viewBox="0 0 70 70" fill="none">
+          <circle cx="35" cy="29" r="21" />
+          <circle cx="35" cy="29" r="3" />
+          <path d="M35 8v42M14 29h42M20 14l30 30M50 14 20 44M28 50l-9 13m23-13 9 13M10 63h50" />
+        </svg>
+        <svg className="title-doodle-star" viewBox="0 0 28 28" fill="none">
+          <path d="m14 2 3 9 9 3-9 3-3 9-3-9-9-3 9-3 3-9Z" />
+        </svg>
+      </>
+    ),
+  };
+
+  return (
+    <div className={classNames('london-title-doodle', `london-title-doodle--${variant}`)} aria-hidden="true">
+      {doodles[variant] || doodles.planner}
+    </div>
+  );
+}
+
 function StartScreen({
   filters,
   setFilters,
@@ -3539,7 +3594,7 @@ function StartScreen({
 
   return (
     <section className="app-screen start-screen">
-      <div className="screen-title hero-title">
+      <div className="screen-title hero-title has-london-doodle">
         <span className="eyebrow">Family day planner</span>
         <h1>Little plans, sorted.</h1>
         <p>
@@ -3550,6 +3605,7 @@ function StartScreen({
           <span>Afternoon</span>
           <span>Evening</span>
         </div>
+        <LondonTitleDoodle variant="planner" />
       </div>
 
       <div className="filter-card location-card">
@@ -4301,10 +4357,11 @@ function UserScreen({
 
   return (
     <section className="app-screen user-screen">
-      <div className="screen-title compact">
+      <div className="screen-title compact has-london-doodle">
         <span className="eyebrow">User</span>
         <h1>Your profile</h1>
         <p>Share your code and plan with your people.</p>
+        <LondonTitleDoodle variant="profile" />
       </div>
 
       <section className="profile-card">
@@ -4452,10 +4509,11 @@ function CalendarScreen({
 
   return (
     <section className="app-screen calendar-screen">
-      <div className="screen-title compact">
+      <div className="screen-title compact has-london-doodle">
         <span className="eyebrow">Week</span>
         <h1>Your plan</h1>
         <p>Booked and maybe plans.</p>
+        <LondonTitleDoodle variant="calendar" />
       </div>
 
       <div className="week-export-card">
@@ -4541,10 +4599,11 @@ function AddActivityScreen({
 }) {
   return (
     <section className="app-screen form-screen">
-      <div className="screen-title compact">
+      <div className="screen-title compact has-london-doodle">
         <span className="eyebrow">Add</span>
         <h1>Add a spot.</h1>
         <p>Share the basics. Every new listing is checked before it appears.</p>
+        <LondonTitleDoodle variant="add" />
       </div>
 
       <form className="app-form link-only-form" onSubmit={onSubmit}>
@@ -5305,6 +5364,7 @@ function BottomNav({ activeScreen, setActiveScreen, isAdmin }) {
     ['calendar', 'Week'],
     ['map', 'Where'],
     ['add', 'Add'],
+    ['user', 'Profile'],
     ...(isAdmin ? [['review', 'Review']] : []),
   ];
 
@@ -5315,6 +5375,7 @@ function BottomNav({ activeScreen, setActiveScreen, isAdmin }) {
           key={screen}
           type="button"
           className={classNames(activeScreen === screen && 'is-on')}
+          aria-current={activeScreen === screen ? 'page' : undefined}
           onClick={() => setActiveScreen(screen)}
         >
           {label}
