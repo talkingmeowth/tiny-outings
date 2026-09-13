@@ -340,12 +340,13 @@ function CandidateLightbox({ candidate, index, onClose }) {
   );
 }
 
-function QuickReviewCard({ activity, approving, onApprove, onOpenDetail }) {
+function QuickReviewCard({ activity, approving, publishing, onApprove, onPublish, onOpenDetail }) {
   const image = quickReviewImage(activity);
   const approved = isQuickReviewApproved(activity);
   const provider = providerLabel(activity);
   const status = listingStatusLabel(activity);
   const statusClass = status.toLowerCase();
+  const isDraft = activity.public_listing_status === 'draft';
   return (
     <article className={`quick-review-card${image.isPlaceholder ? ' placeholder' : ''}${approved ? ' approved' : ''}`}>
       <button className="quick-review-image" type="button" onClick={() => onOpenDetail(activity.activity_id)} aria-label={`Review ${activity.activity_name || 'untitled listing'}`}>
@@ -360,7 +361,12 @@ function QuickReviewCard({ activity, approving, onApprove, onOpenDetail }) {
         <span>{bestLocation(activity)} · {activity.category || 'Uncategorised'}</span>
         <small>{image.label}</small>
       </div>
-      <div className="quick-review-actions">
+      <div className={`quick-review-actions${isDraft ? ' has-publish' : ''}`}>
+        {isDraft ? (
+          <button className="quick-publish-button" type="button" disabled={publishing} onClick={() => onPublish(activity)}>
+            {publishing ? 'Publishing…' : 'Publish'}
+          </button>
+        ) : null}
         <button className={`quick-approve-button${approved ? ' approved' : ''}`} type="button" disabled={approved || approving} onClick={() => onApprove(activity)}>
           {approving ? 'Saving…' : approved ? 'Approved ✓' : 'Approve image'}
         </button>
@@ -383,8 +389,10 @@ function QuickReviewPage({
   onImageSourceFilterChange,
   onLoadMore,
   onApprove,
+  onPublish,
   onOpenDetail,
   approvingActivityId,
+  publishingActivityId,
   queue,
   sourceFilterOptions,
   totalActivities,
@@ -435,6 +443,8 @@ function QuickReviewPage({
             key={activity.activity_id}
             onApprove={onApprove}
             onOpenDetail={onOpenDetail}
+            onPublish={onPublish}
+            publishing={publishingActivityId === activity.activity_id}
           />
         ))}
       </section>
@@ -467,6 +477,7 @@ function App() {
   const [notice, setNotice] = useState('');
   const [archiveConfirmId, setArchiveConfirmId] = useState('');
   const [approvingActivityId, setApprovingActivityId] = useState('');
+  const [publishingActivityId, setPublishingActivityId] = useState('');
   const [preloadStatus, setPreloadStatus] = useState({ status: 'idle', ready: 0, total: 0, apiCalls: 0, failed: 0 });
   const [quickVisibleCount, setQuickVisibleCount] = useState(QUICK_REVIEW_BATCH_SIZE);
   const selectedIdRef = useRef(selectedId);
@@ -1032,30 +1043,41 @@ function App() {
     setBusy('');
   }
 
-  async function publishDraft() {
-    if (!selectedActivity || selectedActivity.public_listing_status !== 'draft') return;
+  async function publishDraftActivity(activity) {
+    if (!activity || activity.public_listing_status !== 'draft' || publishingActivityId) return;
+    const activityId = activity.activity_id;
     setBusy('publish');
+    setPublishingActivityId(activityId);
     setNotice('');
-    if (isDemo) {
-      setActivities((current) => current.map((activity) => activity.activity_id === selectedActivity.activity_id
-        ? { ...activity, public_listing_status: 'published' }
-        : activity));
+    try {
+      if (isDemo) {
+        setActivities((current) => current.map((item) => item.activity_id === activityId
+          ? { ...item, public_listing_status: 'published' }
+          : item));
+        setNotice('Demo listing published.');
+        return;
+      }
+      const response = await invokeFunctionWithRetry(() => supabase.functions.invoke('image-review-admin', {
+        body: { action: 'publish', activity_id: activityId },
+      }));
+      if (response.error || response.data?.error) {
+        setNotice(`Could not publish this listing: ${await edgeFunctionErrorMessage(response, 'Publishing failed.')}`);
+      } else {
+        setActivities((current) => current.map((item) => item.activity_id === activityId
+          ? { ...item, public_listing_status: 'published', archive: false }
+          : item));
+        setNotice('Listing published and moved into the published queues.');
+      }
+    } catch (error) {
+      setNotice(`Could not publish this listing: ${error instanceof Error ? error.message : 'Publishing failed.'}`);
+    } finally {
+      setPublishingActivityId('');
       setBusy('');
-      setNotice('Demo listing published.');
-      return;
     }
-    const response = await invokeFunctionWithRetry(() => supabase.functions.invoke('image-review-admin', {
-      body: { action: 'publish', activity_id: selectedActivity.activity_id },
-    }));
-    if (response.error || response.data?.error) {
-      setNotice(`Could not publish this listing: ${await edgeFunctionErrorMessage(response, 'Publishing failed.')}`);
-    } else {
-      setActivities((current) => current.map((activity) => activity.activity_id === selectedActivity.activity_id
-        ? { ...activity, public_listing_status: 'published', archive: false }
-        : activity));
-      setNotice('Listing published and moved into the published queues.');
-    }
-    setBusy('');
+  }
+
+  function publishDraft() {
+    return publishDraftActivity(selectedActivity);
   }
 
   async function archiveListing() {
@@ -1214,7 +1236,9 @@ function App() {
           onLoadMore={() => setQuickVisibleCount((current) => Math.min(current + QUICK_REVIEW_BATCH_SIZE, queueActivities.length))}
           onApprove={approveQuickImage}
           onOpenDetail={openDetailedReview}
+          onPublish={publishDraftActivity}
           approvingActivityId={approvingActivityId}
+          publishingActivityId={publishingActivityId}
           queue={selectedQueue}
           sourceFilterOptions={sourceFilterOptions}
           totalActivities={queueActivities.length}

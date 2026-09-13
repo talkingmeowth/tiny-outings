@@ -82,9 +82,13 @@ a { color: #17604e; }
 .quick-review-copy .quick-provider { color: #355f53; font-weight: 750; }
 .quick-review-copy small { color: #2b6c5a; font-size: 9px; font-weight: 850; text-transform: uppercase; letter-spacing: .04em; }
 .quick-review-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid #ece9e1; }
+.quick-review-actions.has-publish { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .quick-review-actions button, .quick-review-actions a, .quick-review-actions span { min-width: 0; border: 0; padding: 10px 8px; background: #faf9f6; color: #35685a; font-size: 9px; font-weight: 850; text-align: center; text-decoration: none; white-space: nowrap; cursor: pointer; }
 .quick-review-actions button, .quick-review-actions a { border-right: 1px solid #ece9e1; }
 .quick-review-actions button:hover, .quick-review-actions a:hover { background: #e8f3ef; color: #154f3f; }
+.quick-review-actions .quick-publish-button { background: #f7d58e; color: #75410b; }
+.quick-review-actions .quick-publish-button:hover { background: #efbd54; color: #583008; }
+.quick-review-actions .quick-publish-button:disabled { background: #f2e2b7; color: #896a36; cursor: wait; }
 .quick-review-actions .quick-approve-button { background: #e7f4ee; color: #176047; }
 .quick-review-actions .quick-approve-button.approved, .quick-review-actions .quick-approve-button:disabled { background: #d8ece4; color: #35715e; cursor: default; opacity: 1; }
 .quick-review-actions span { color: #8b8174; cursor: default; }
