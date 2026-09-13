@@ -41,10 +41,12 @@ test('the importer pipeline reruns every selector from stored candidates', () =>
 
 test('website and organiser discovery stores every unique eligible candidate before model inference', () => {
   const downloader = read('supabase/functions/activity-website-image-downloader/index.ts');
+  const runner = read('scripts/download-activity-website-images.js');
   const ranker = read('scripts/lib/tagged-image-ranker.js');
   assert.doesNotMatch(downloader, /maxStoredCandidates/);
   assert.doesNotMatch(downloader, /\.slice\(0,\s*maxStoredCandidates\)/);
   assert.match(ranker, /crossSourceCandidateSet\(activity, maximumCandidates = Number\.POSITIVE_INFINITY\)/);
+  assert.match(runner, /return !activity\.website_image_candidates_fetched_at/);
 });
 
 test('new-listing model inference is scoped to the current import and accepts every quality-gated winner', () => {
@@ -53,6 +55,23 @@ test('new-listing model inference is scoped to the current import and accepts ev
   const endpoint = read('supabase/functions/activity-image-auto-review/index.ts');
   assert.match(pipeline, /'--created-after', runStartedAt/);
   assert.match(runner, /created_after: createdAfter/);
+  assert.match(read('scripts/select-serpapi-image-candidates.js'), /created_at >= '\$\{createdAfter/);
   assert.match(endpoint, /query = query\.gte\('created_at', createdAfter\)/);
   assert.doesNotMatch(endpoint, /Number\(proposal\.confidence\) < 0\.7/);
+});
+
+test('importer category changes cannot retain a disallowed Wikimedia image', () => {
+  const importer = read('scripts/import-timeout-london-kids.js');
+  assert.match(importer, /wikimedia_image_url = case/);
+  assert.match(importer, /when excluded\.category in \('Parks & outdoor play', 'Museums & culture', 'Family activities'\)/);
+  assert.match(importer, /else null/);
+});
+
+test('cross-source reviews and coverage scale beyond one provider page', () => {
+  const migration = read('supabase/migrations/20260912223000_expand_automated_image_candidate_indices.sql');
+  const coverage = read('scripts/audit-activity-image-coverage.js');
+  assert.match(migration, /candidate_index is null or candidate_index >= 0/);
+  assert.doesNotMatch(migration, /between 0 and/);
+  assert.match(coverage, /jsonb_array_length\(coalesce\(serpapi_image_candidates/);
+  assert.match(coverage, /serpapi_image_candidate_count/);
 });

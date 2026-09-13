@@ -52,7 +52,13 @@ async function fetchActivities() {
 }
 
 function fetchActivitiesFromLinkedDatabase() {
-  const select = ['activity_id', 'category', 'image_source_url', 'audit_image_source_url', 'audit_image_status', 'audit_image_original_url', 'audit_image_original_source_field', 'model_selected_confidence', 'serpapi_image_candidates', 'serpapi_image_candidates_fetched_at', 'serpapi_image_selected_at', ...imageFields].join(',');
+  const select = [
+    'activity_id', 'category', 'image_source_url', 'audit_image_source_url',
+    'audit_image_status', 'audit_image_original_url', 'audit_image_original_source_field',
+    'model_selected_confidence',
+    `jsonb_array_length(coalesce(serpapi_image_candidates, '[]'::jsonb)) as serpapi_image_candidate_count`,
+    'serpapi_image_candidates_fetched_at', 'serpapi_image_selected_at', ...imageFields,
+  ].join(',');
   const statement = `select ${select} from public.activities where coalesce(archive, false) = false and public_listing_status in ('draft', 'published');`;
   const escaped = statement.replaceAll('"', '\\"');
   const command = `npx${process.platform === 'win32' ? '.cmd' : ''} supabase db query --linked --output-format json "${escaped}"`;
@@ -60,8 +66,8 @@ function fetchActivitiesFromLinkedDatabase() {
     cwd: root,
     encoding: 'utf8',
     shell: process.platform === 'win32',
-    // Candidate sets can contain twenty result records each, so a full London
-    // coverage report can legitimately exceed Node's default 1 MB buffer.
+    // The linked query returns only the candidate count, not every candidate's
+    // metadata, so the audit remains fast as the catalogue grows.
     maxBuffer: 50 * 1024 * 1024,
   });
   const start = output.indexOf('{');
@@ -97,7 +103,10 @@ async function main() {
     with_any_image: activities.filter((activity) => imageFields.some((field) => presentForActivity(activity, field))).length,
     missing_all_images: activities.filter((activity) => imageFields.every((field) => !presentForActivity(activity, field))).length,
     serpapi_candidate_discovery_complete: activities.filter((activity) => present(activity.serpapi_image_candidates_fetched_at)).length,
-    serpapi_candidate_sets_saved: activities.filter((activity) => Array.isArray(activity.serpapi_image_candidates) && activity.serpapi_image_candidates.length > 0).length,
+    serpapi_candidate_sets_saved: activities.filter((activity) => (
+      Number(activity.serpapi_image_candidate_count) > 0
+      || (Array.isArray(activity.serpapi_image_candidates) && activity.serpapi_image_candidates.length > 0)
+    )).length,
     serpapi_selection_complete: activities.filter((activity) => present(activity.serpapi_image_selected_at)).length,
     image_field_coverage: perField,
   };

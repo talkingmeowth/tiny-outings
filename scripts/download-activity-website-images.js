@@ -128,7 +128,11 @@ async function main() {
         && Date.parse(activity.website_image_candidates_fetched_at) === Date.parse(activity.website_image_vision_candidates_fetched_at);
       return hasDownloadedImage && !currentSetAlreadyReviewed;
     }
-    if (createdAfter) return Number.isFinite(Date.parse(activity.created_at)) && Date.parse(activity.created_at) >= Date.parse(createdAfter);
+    if (createdAfter) {
+      return !activity.website_image_candidates_fetched_at
+        && Number.isFinite(Date.parse(activity.created_at))
+        && Date.parse(activity.created_at) >= Date.parse(createdAfter);
+    }
     return !activity.website_image_candidates_fetched_at;
   });
   const targets = eligible.slice(0, maxActivities);

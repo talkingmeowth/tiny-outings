@@ -21,6 +21,12 @@ const taggedRanker = process.argv.includes('--tagged-ranker');
 const linkedDatabase = process.argv.includes('--linked-database');
 const activityIdsFileIndex = process.argv.indexOf('--activity-ids-file');
 const activityIdsFile = activityIdsFileIndex >= 0 ? process.argv[activityIdsFileIndex + 1] : null;
+const createdAfterIndex = process.argv.indexOf('--created-after');
+const createdAfterInput = createdAfterIndex >= 0 ? String(process.argv[createdAfterIndex + 1] || '').trim() : '';
+if (createdAfterInput && !Number.isFinite(Date.parse(createdAfterInput))) {
+  throw new Error('--created-after must be an ISO date-time.');
+}
+const createdAfter = createdAfterInput ? new Date(createdAfterInput).toISOString() : '';
 const limitIndex = process.argv.indexOf('--limit');
 const limit = limitIndex >= 0
   ? Math.max(1, Number(process.argv[limitIndex + 1]) || 1)
@@ -69,6 +75,7 @@ async function fetchActivities() {
     url.searchParams.set('archive', 'eq.false');
     url.searchParams.set('public_listing_status', 'in.(draft,published)');
     url.searchParams.set('serpapi_image_candidates_fetched_at', 'not.is.null');
+    if (createdAfter) url.searchParams.set('created_at', `gte.${createdAfter}`);
     url.searchParams.set('order', 'activity_id.asc');
     url.searchParams.set('limit', '1000');
     url.searchParams.set('offset', String(offset));
@@ -123,7 +130,8 @@ async function persistSelections(selections) {
 }
 
 function fetchActivitiesFromLinkedDatabase() {
-  const statement = `select activity_id,activity_name,address,category,website,organiser_website,serpapi_image_candidates,serpapi_image_candidates_fetched_at,serpapi_image_selected_at from public.activities where coalesce(archive, false) = false and public_listing_status in ('draft', 'published') and serpapi_image_candidates_fetched_at is not null order by activity_id asc;`;
+  const createdAfterClause = createdAfter ? ` and created_at >= '${createdAfter.replaceAll("'", "''")}'::timestamptz` : '';
+  const statement = `select activity_id,activity_name,address,category,website,organiser_website,serpapi_image_candidates,serpapi_image_candidates_fetched_at,serpapi_image_selected_at from public.activities where coalesce(archive, false) = false and public_listing_status in ('draft', 'published') and serpapi_image_candidates_fetched_at is not null${createdAfterClause} order by activity_id asc;`;
   const escaped = statement.replaceAll('"', '\\"');
   const command = `npx${process.platform === 'win32' ? '.cmd' : ''} supabase db query --linked --output-format json "${escaped}"`;
   const output = execSync(command, {
@@ -169,6 +177,7 @@ function writeAudit(rows, total, saved, selectedModel = modelId) {
   mkdirSync(dirname(outputPath), { recursive: true });
   writeFileSync(outputPath, JSON.stringify({
     generated_at: new Date().toISOString(),
+    created_after: createdAfter || null,
     model: selectedModel,
     candidate_discovery_calls: 0,
     total_stored_candidate_records: total,
