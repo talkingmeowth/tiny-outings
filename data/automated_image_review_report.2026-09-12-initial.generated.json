@@ -1,0 +1,1092 @@
+{
+  "generated_at": "2026-09-12T21:03:12.349Z",
+  "applied": true,
+  "scope": "all_unreviewed",
+  "source_name": null,
+  "created_after": "2026-09-12T20:43:20.168Z",
+  "missing_only": false,
+  "cross_source_selection": true,
+  "visual_assessment": {
+    "enabled": true,
+    "model": "Xenova/clip-vit-base-patch32",
+    "finalists_per_activity": 4
+  },
+  "searched_missing_candidates": false,
+  "model": {
+    "name": "Tiny Outings learned cross-source image ranker",
+    "version": "cross-source-ranker-v3-d76fcc31",
+    "training_review_count": 413,
+    "metrics": {
+      "evaluated_choices": 90,
+      "top_1_accuracy": 0.5222,
+      "top_3_recall": 0.7333,
+      "mean_reciprocal_rank": 0.6433,
+      "training_choices": 323,
+      "total_matched_choices": 413,
+      "accepted_image_count": 414,
+      "feature_count": 47
+    },
+    "features": [
+      "bias",
+      "inverse_position",
+      "top_1",
+      "top_3",
+      "top_6",
+      "dimensions_known",
+      "log_pixels",
+      "minimum_side",
+      "card_aspect",
+      "landscape",
+      "title_name_overlap",
+      "title_location_overlap",
+      "source_identity_support",
+      "source_conflict",
+      "source_postcode_conflict",
+      "source_location_conflict",
+      "source_brand_conflict",
+      "scene_terms",
+      "cafe_scene_terms",
+      "park_scene_terms",
+      "official_source",
+      "social_source",
+      "directory_source",
+      "authority_source",
+      "domain_preference",
+      "category_domain_preference",
+      "source_kind_preference",
+      "importer_source_preference",
+      "category_source_preference",
+      "visual_approved",
+      "visual_rejected",
+      "visual_confidence",
+      "visual_category_match",
+      "visual_rejection_risk",
+      "visual_preference_rank",
+      "audit_approved",
+      "image_url_quality",
+      "descriptive_title",
+      "source_google_images",
+      "source_website_candidate",
+      "source_audit_replacement",
+      "source_scraped_audit_pass",
+      "source_organiser_download",
+      "source_website_download",
+      "source_wikimedia",
+      "source_website_url",
+      "source_listing_url"
+    ],
+    "weights": {
+      "bias": 0,
+      "inverse_position": 1.264758,
+      "top_1": 0.867721,
+      "top_3": 0.778139,
+      "top_6": 1.686468,
+      "dimensions_known": 0.725451,
+      "log_pixels": -0.668508,
+      "minimum_side": 0.214735,
+      "card_aspect": 0.119896,
+      "landscape": 0.130577,
+      "title_name_overlap": 0.328517,
+      "title_location_overlap": 0.180611,
+      "source_identity_support": 0.580018,
+      "source_conflict": -0.518042,
+      "source_postcode_conflict": -0.134833,
+      "source_location_conflict": -0.020979,
+      "source_brand_conflict": -0.539827,
+      "scene_terms": 0.089738,
+      "cafe_scene_terms": -0.252874,
+      "park_scene_terms": 0.859679,
+      "official_source": 1.333108,
+      "social_source": 0,
+      "directory_source": -0.087922,
+      "authority_source": -0.062693,
+      "domain_preference": 1.930004,
+      "category_domain_preference": 3.52446,
+      "source_kind_preference": 0.169991,
+      "importer_source_preference": 2.103851,
+      "category_source_preference": 2.109358,
+      "visual_approved": 0.144404,
+      "visual_rejected": 0,
+      "visual_confidence": 0,
+      "visual_category_match": 0,
+      "visual_rejection_risk": 0,
+      "visual_preference_rank": 0,
+      "audit_approved": 0.445932,
+      "image_url_quality": -0.625712,
+      "descriptive_title": -0.369438,
+      "source_google_images": -0.659174,
+      "source_website_candidate": 0,
+      "source_audit_replacement": -0.182397,
+      "source_scraped_audit_pass": 0.628329,
+      "source_organiser_download": 0.238911,
+      "source_website_download": 0.383989,
+      "source_wikimedia": -0.016729,
+      "source_website_url": -0.131782,
+      "source_listing_url": 0.353179
+    }
+  },
+  "target_count": 89,
+  "processed_target_count": 89,
+  "serpapi_search_count": 0,
+  "serpapi_failure_count": 0,
+  "proposal_count": 89,
+  "stored_count": 89,
+  "automatic_application": {
+    "applied": 41,
+    "preserved": 0,
+    "failedAttempts": 9
+  },
+  "skipped_counts": {
+    "no-eligible-candidate": 31,
+    "no-stored-candidates": 14
+  },
+  "selected_source_counts": {
+    "category_art_fallback": 45,
+    "website_downloaded_image": 5,
+    "website": 15,
+    "listing_image_url": 7,
+    "google_images": 17
+  },
+  "selections": [
+    {
+      "activity_id": "08157675-01f1-4cf2-b9fd-fc7e21d6ad39",
+      "activity_name": "Honeymoon Restaurant Croydon",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "0844308e-c105-4fb5-8d44-01811d2424d1",
+      "activity_name": "Whitings Swimming Academy",
+      "source": "website_downloaded_image",
+      "image_url": "https://kgvqbokhuqaonghcukel.supabase.co/storage/v1/object/public/activity-images/downloaded/website/0844308e-c105-4fb5-8d44-01811d2424d1-bdmxh3.jpg",
+      "confidence": 0.8706,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, official listing source, best learned website download source. Visual review: Learned from 413 ground-truth listings; conflicting source metadata lowered confidence, best learned website source."
+    },
+    {
+      "activity_id": "090b9ade-6c61-4214-b949-dbe6743a1ce0",
+      "activity_name": "Mah Cafe",
+      "source": "website",
+      "image_url": "https://mahcafe.com/imgs/dl_app/googleplay.png",
+      "confidence": 0.69,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, official listing source, strong name match, cafe interior/seating context. Visual review: Learned from 413 ground-truth listings; official listing source, strong name match, cafe interior/seating context, best learned website source."
+    },
+    {
+      "activity_id": "0da83b37-8040-45d5-8549-e31f21337d39",
+      "activity_name": "Toddler Sense Bromley",
+      "source": "listing_image_url",
+      "image_url": "https://www.toddlersense.com/content/S6389612198318749649/638978495247394285_80-whites.png",
+      "confidence": 0.8516,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, official listing source, best learned listing image url source. Visual review: High-confidence a clear photo of this child-friendly venue or activity space."
+    },
+    {
+      "activity_id": "0ee4f340-5ddb-4c90-95b1-805cd191c4a4",
+      "activity_name": "Chingford Village Green",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "1431471f-e9ed-4d50-826b-cdd4f88f474b",
+      "activity_name": "Paddlers Swim School, Romford",
+      "source": "website",
+      "image_url": "https://paddlers.co.uk/images/paddlers-image-class-1.png",
+      "confidence": 0.8256,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, official listing source, strong name match, best learned website source. Visual review: Learned from 413 ground-truth listings; official listing source, strong name match, best learned website source."
+    },
+    {
+      "activity_id": "15ed301b-249a-40ab-854d-f2a89579e333",
+      "activity_name": "Baby Sensory Croydon",
+      "source": "website",
+      "image_url": "https://www.babysensory.com/uploads/Images/fs_638964091024750316_Website%20blog%20image%20size%20(1).png",
+      "confidence": 0.8865,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, official listing source, best learned website source. Visual review: High-confidence children or families taking part in this child-friendly activity."
+    },
+    {
+      "activity_id": "1b9382a5-9de1-4138-b017-cab43e7f288d",
+      "activity_name": "Hartbeeps baby and toddler classes - Brook Green",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "1e364b7a-1d7d-4293-bd70-ef72e9a42333",
+      "activity_name": "Ika-Tere Swimming",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no stored image candidates were available; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "23af69dc-fdbe-413a-84c3-a07f10d105fa",
+      "activity_name": "Baby Sensory Winchmore Hill",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "2582c151-5edf-45e6-a1a0-f30b4a92abbe",
+      "activity_name": "Hartbeeps baby and toddler classes - Bayswater",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "25c8d515-1a37-406b-b6e2-173162b7b8c7",
+      "activity_name": "The Lacy Nook",
+      "source": "google_images",
+      "image_url": "https://res.cloudinary.com/the-infatuation/image/upload/c_fill,w_3840,ar_4:3,g_center,f_auto/images/The_Lacy_Nook_interior_Koray_London-4_rmkyh1",
+      "confidence": 0.8429,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, strong name match, high reported resolution, useful card framing. Visual review: High-confidence a clear interior photo of this cafe or play cafe."
+    },
+    {
+      "activity_id": "25ebbbe2-abe8-4cc6-8b65-ff0f43f2b123",
+      "activity_name": "Aqua Hub",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "27abe807-00de-491b-b013-bdddd12a0f47",
+      "activity_name": "playground",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "286a135a-26fd-42fd-bcf9-b69ec88de3cf",
+      "activity_name": "Tapri Junction (TJ)",
+      "source": "google_images",
+      "image_url": "https://static.where-e.com/United_Kingdom/Tapri-Junction-Tj_a1a3cbcb47afdad6d87cdf12aa35fb15.jpg",
+      "confidence": 0.8881,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, strong name match, useful card framing, best learned google images source. Visual review: High-confidence a clear interior photo of this cafe or play cafe."
+    },
+    {
+      "activity_id": "2b85b95c-497e-4e2b-805f-af92a420b3bc",
+      "activity_name": "Swimming Nature - Grove Park",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no stored image candidates were available; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "2d3c4afe-c94e-4ea6-a40d-7e28eec93052",
+      "activity_name": "Colfe's Leisure Centre",
+      "source": "google_images",
+      "image_url": "https://static.where-e.com/United_Kingdom/Colfes-Leisure-Centre_086ae7a86570df5d7fc85055de0e46c7.jpg",
+      "confidence": 0.8285,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, strong name match, useful card framing, best learned google images source. Visual review: High-confidence a clear photo of this swimming pool or baby swimming class."
+    },
+    {
+      "activity_id": "2e2f7346-e625-4f88-8dc2-f2a73d5c6e1f",
+      "activity_name": "Angel Swim Barnes",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "3222b3be-a822-4161-b53c-db2ee58ada54",
+      "activity_name": "Jesse's kitchen",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "334ad2f9-e08d-438f-8040-0001b895b986",
+      "activity_name": "Toddler Sense Bexley",
+      "source": "website",
+      "image_url": "https://www.toddlersense.com/uploads/Images/fs_638979481432443312_54.png",
+      "confidence": 0.8633,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, official listing source, best learned website source. Visual review: High-confidence a clear photo of this child-friendly venue or activity space."
+    },
+    {
+      "activity_id": "35b6d225-e3b0-4a41-8839-203231daac0a",
+      "activity_name": "Stamford Brook Common",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no stored image candidates were available; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "36491978-3b7c-43eb-a34a-d74a596ca63a",
+      "activity_name": "Angel Swim Clapham",
+      "source": "google_images",
+      "image_url": "https://images.squarespace-cdn.com/content/v1/58e8b9e66a49638159b106bc/1769178354343-QPXUZ0K4WGJ2EHAQBMAO/Putney+Summer-31.jpeg?format=750w",
+      "confidence": 0.8531,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, official listing source, strong name match, best learned google images source. Visual review: High-confidence a clear photo of this swimming pool or baby swimming class."
+    },
+    {
+      "activity_id": "366728ea-515a-4792-9b82-18901894182c",
+      "activity_name": "Lammas Park Play Centre Tippitoes Ealing",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no stored image candidates were available; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "387da858-8d47-4936-8985-89ddc255941e",
+      "activity_name": "Long Black Richmond",
+      "source": "listing_image_url",
+      "image_url": "https://images.squarespace-cdn.com/content/v1/66675f9e4706565d2bc23e51/1764592392614-XFLQAVGUJ4R0PYEAU6B4/image-asset.jpeg",
+      "confidence": 0.8626,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, best learned listing image url source. Visual review: High-confidence a clear photo of food or drink from this cafe."
+    },
+    {
+      "activity_id": "38c7be6a-e73a-4a04-9bda-60c26448a141",
+      "activity_name": "Happy Parents Happy Baby Antenatal Classes - Bethnal Green and Mile End",
+      "source": "website",
+      "image_url": "https://happyparentshappybaby.com/wp-content/uploads/2020/08/HPHB_Website_Feature-Image_Blog.2-2048x2048.jpg",
+      "confidence": 0.8039,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, official listing source, best learned website source. Visual review: Learned from 413 ground-truth listings; official listing source, best learned website source."
+    },
+    {
+      "activity_id": "39cea56c-435f-490c-80db-076693735bcd",
+      "activity_name": "Easy swim",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "3cf7f552-0b06-4514-96f9-f3d8e7bf7f35",
+      "activity_name": "Victoria Park Old English Garden",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "3de399d6-fcb0-497c-9fab-ce4abdff473b",
+      "activity_name": "SEN Swim Services",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "3fd82fd8-0f45-477c-a955-d136b595effa",
+      "activity_name": "Jolly Cafe",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no stored image candidates were available; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "4360496c-10a7-4e54-9de9-b81ddc786cca",
+      "activity_name": "St Luke's Playground",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no stored image candidates were available; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "4c05b01f-8bdd-4af6-b953-7c93be1f0894",
+      "activity_name": "Swimming Nature - Charlton/Greenwich",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "4c4bff15-324b-48b7-bcaa-ff4db2266f0c",
+      "activity_name": "The Homestead Cafe and Bar",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "4d6d42a4-aba2-4458-aef8-5b007d965cd0",
+      "activity_name": "Turner Swim - Open Water Swim Coaching",
+      "source": "website_downloaded_image",
+      "image_url": "https://kgvqbokhuqaonghcukel.supabase.co/storage/v1/object/public/activity-images/downloaded/website/4d6d42a4-aba2-4458-aef8-5b007d965cd0-1g7k96.jpg",
+      "confidence": 0.8504,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, official listing source, best learned website download source. Visual review: Learned from 413 ground-truth listings; official listing source, best learned website source."
+    },
+    {
+      "activity_id": "54e34fe9-510d-4d88-81f4-8170bdbc9143",
+      "activity_name": "Baby Sensory Putney",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no stored image candidates were available; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "59135f9e-8c76-4fd8-a824-4517d1c2d120",
+      "activity_name": "Sand Club",
+      "source": "website",
+      "image_url": "https://cdn.ln-cdn.com/c/recgHgYa8nACRdrQo/images/WhatsApp%20Image%202025-12-13%20at%2018.06.29.jpeg",
+      "confidence": 0.848,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, official listing source, strong name match, best learned website source. Visual review: Learned from 413 ground-truth listings; official listing source, strong name match, best learned website source."
+    },
+    {
+      "activity_id": "5b86bdf1-f67f-4eb3-b715-eee2b0e260d8",
+      "activity_name": "The Well Walk Theatre, Cafe and Bookshop",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "5d380f1b-c60a-4324-a099-4ba8cfac643a",
+      "activity_name": "Acacia Road Playground",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "5f6140d8-cbe6-413f-8738-66e257c04828",
+      "activity_name": "Mike's Cafe",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "5f70e518-83f5-496e-b42e-22ffb9a67857",
+      "activity_name": "La mia Mamma Notting Hill",
+      "source": "website",
+      "image_url": "https://static.wixstatic.com/media/5c63e4_0500f5b5bba341569654612fad03c04b%7Emv2.jpg/v1/fit/w_2500,h_1330,al_c/5c63e4_0500f5b5bba341569654612fad03c04b%7Emv2.jpg",
+      "confidence": 0.8426,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, official listing source, best learned website source. Visual review: Learned from 413 ground-truth listings; official listing source, best learned website source."
+    },
+    {
+      "activity_id": "6a0a9eb1-e912-44d4-bc6e-a9306ad0245e",
+      "activity_name": "Baby Bonding With Sarah",
+      "source": "website_downloaded_image",
+      "image_url": "https://kgvqbokhuqaonghcukel.supabase.co/storage/v1/object/public/activity-images/downloaded/website/6a0a9eb1-e912-44d4-bc6e-a9306ad0245e-vvbhao.webp",
+      "confidence": 0.8032,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, official listing source, best learned website download source. Visual review: Excluded 1 candidate that failed download validation. Learned from 413 ground-truth listings; official listing source, best learned website source."
+    },
+    {
+      "activity_id": "6a860dd2-da16-4181-801c-f4a63b5da5e3",
+      "activity_name": "Weekday Swim Ltd",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no stored image candidates were available; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "7452ed1e-237d-4972-ac38-e9fda0bd73d7",
+      "activity_name": "Park's Kitchen Hammersmith",
+      "source": "listing_image_url",
+      "image_url": "https://static.wixstatic.com/media/fa14c6_8cd977bc64af4c6fb69cca89f09e0a32~mv2.jpeg/v1/fit/w_480,h_640,q_90,enc_avif,quality_auto/fa14c6_8cd977bc64af4c6fb69cca89f09e0a32~mv2.jpeg",
+      "confidence": 0.9055,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, official listing source, best learned listing image url source. Visual review: High-confidence a clear photo of food or drink from this cafe."
+    },
+    {
+      "activity_id": "7541cf29-e714-48e4-b975-7cd160926fb5",
+      "activity_name": "Field Road Park",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no stored image candidates were available; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "772dbe2f-a1c0-4b3e-bf22-c575e55bf2fd",
+      "activity_name": "Ladysmith Cafe",
+      "source": "google_images",
+      "image_url": "https://static.where-e.com/United_Kingdom/Ladysmith-Cafe_1d5180e966f5d592163a3872c4239c36.jpg",
+      "confidence": 0.838,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, strong name match, location match, cafe interior/seating context. Visual review: High-confidence a clear photo of food or drink from this cafe."
+    },
+    {
+      "activity_id": "7961c48c-b0ca-4231-9ee1-7f27ef84f202",
+      "activity_name": "Little Olive",
+      "source": "google_images",
+      "image_url": "https://static.where-e.com/United_Kingdom/Little-Olive_a040f294e4981d4fd6e605abc5082ec0.jpg",
+      "confidence": 0.8994,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, strong name match, cafe interior/seating context, best learned google images source. Visual review: High-confidence a clear photo of food or drink from this cafe."
+    },
+    {
+      "activity_id": "7d43737e-11ce-4189-9fd0-073cb26c8a3f",
+      "activity_name": "The Light House Soft Play Cafe",
+      "source": "google_images",
+      "image_url": "https://static.where-e.com/United_Kingdom/Greater_London/Kingston_Upon_Thames/The-Light-House-Soft-Play-Cafe_65e1681e586271f25872de78b71a2b59.jpg",
+      "confidence": 0.8769,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, strong name match, cafe interior/seating context, best learned google images source. Visual review: High-confidence a clear interior photo of this cafe or play cafe."
+    },
+    {
+      "activity_id": "82005b44-2c00-464c-a2d4-dbd62483a698",
+      "activity_name": "Croydon Workspace",
+      "source": "listing_image_url",
+      "image_url": "https://static1.squarespace.com/static/68c905b2385cf37db056c45f/t/68c92ae88f47357addbdc69a/1769722481381/croydon+workspace+bg+none+and+white+text.png?format=1500w",
+      "confidence": 0.8558,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, official listing source, best learned listing image url source. Visual review: Learned from 413 ground-truth listings; official listing source, best learned website source."
+    },
+    {
+      "activity_id": "8245c538-b12c-4f5a-90f1-0cd3951feb27",
+      "activity_name": "Lampton Parkside Cafe",
+      "source": "listing_image_url",
+      "image_url": "https://lamptonparksidecafe.com/assets/imgs/about-our-cafe/cafe.png",
+      "confidence": 0.8558,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, official listing source, best learned listing image url source. Visual review: Learned from 413 ground-truth listings; official listing source, best learned website source."
+    },
+    {
+      "activity_id": "8351aaab-e5a6-49aa-a843-0331365e59b5",
+      "activity_name": "cafe no 41",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "8355b670-c54a-4f2f-9a21-714709b01abc",
+      "activity_name": "DMT Swimming Lessons In London",
+      "source": "website",
+      "image_url": "https://static1.squarespace.com/static/68729e4cdfc18f090f7bfb1d/t/68729fafb31dd453e549fef3/1771093190616/",
+      "confidence": 0.8135,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, official listing source, best learned website source. Visual review: Learned from 413 ground-truth listings; official listing source, best learned website source."
+    },
+    {
+      "activity_id": "879c2862-c7ee-4c66-8cf8-d29f47f49430",
+      "activity_name": "Megan's in the Village Restaurant (Wimbledon)",
+      "source": "google_images",
+      "image_url": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/1c/ea/9d/30/megan-s-in-the-village.jpg?w=1100&h=1100&s=1",
+      "confidence": 0.88,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, strong name match, best learned google images source. Visual review: High-confidence a clear interior photo of this cafe or play cafe."
+    },
+    {
+      "activity_id": "8c3f1481-d3bb-463e-a72c-92de1a3708ea",
+      "activity_name": "The Green Room, Cafe and Bistro",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "8dc3e9f2-f057-4afb-a6db-e639b9c5c3b5",
+      "activity_name": "Duck Feeding Ground",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "8f793ff3-a39b-4256-98fc-151ea4123dfa",
+      "activity_name": "Zephyr Notting Hill",
+      "source": "google_images",
+      "image_url": "https://static.where-e.com/United_Kingdom/Zephyr-Notting-Hill_0b53fcc9fac71a1333a05a640979e5f3.jpg",
+      "confidence": 0.8081,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, strong name match, best learned google images source. Visual review: High-confidence a clear interior photo of this cafe or play cafe."
+    },
+    {
+      "activity_id": "91b433ab-6fbd-4b3d-84d0-a34c211fcd1f",
+      "activity_name": "Caffecinos",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "9364b384-f746-40bd-99be-fa9616de18fc",
+      "activity_name": "Smoky Boys Wandsworth",
+      "source": "google_images",
+      "image_url": "https://cdn.thefork.com/tf-lab/image/upload/w_500,h_500,c_fill,q_auto,f_jpg/restaurant/2f1c776a-1e51-42f8-be55-f2c7071ad7e9/bd2727a4-5f9a-466b-812a-45a492bc7e5b.jpg",
+      "confidence": 0.8495,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, strong name match, best learned google images source. Visual review: High-confidence a clear interior photo of this cafe or play cafe."
+    },
+    {
+      "activity_id": "963a605a-0ade-4ca1-a6be-4f0ae00c3828",
+      "activity_name": "Cafe Jikoni",
+      "source": "website",
+      "image_url": "https://images.squarespace-cdn.com/content/v1/65a5124fbff6572771e293ae/4abe40ef-573e-486d-b844-285a117efc07/original.jpeg?format=2500w",
+      "confidence": 0.812,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, official listing source, best learned website source. Visual review: Learned from 413 ground-truth listings; official listing source, best learned website source."
+    },
+    {
+      "activity_id": "9719a52e-090e-4887-9243-ba484f0806d9",
+      "activity_name": "Samarkand",
+      "source": "website",
+      "image_url": "https://www.samarkandlondon.co.uk/images/restaurant-interior-1.jpg",
+      "confidence": 0.8076,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, official listing source, best learned website source. Visual review: Learned from 413 ground-truth listings; official listing source, best learned website source."
+    },
+    {
+      "activity_id": "9c5e2653-4b2e-482b-a315-45ac2126f7b5",
+      "activity_name": "Third Coffee",
+      "source": "google_images",
+      "image_url": "https://static.where-e.com/United_Kingdom/Kwik-Fit-London-Wimbledon_d7e4235a9577bf0c5fa0c9574c3bf009.jpg",
+      "confidence": 0.8845,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, strong name match, cafe interior/seating context, useful card framing. Visual review: High-confidence a clear exterior photo of this cafe or play cafe."
+    },
+    {
+      "activity_id": "9e3f2ca4-0b0a-4254-b85e-763225d7ee73",
+      "activity_name": "Splash 4 Life Swim School",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no stored image candidates were available; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "9ee2833a-dc4e-457d-9f6a-2eb66958d880",
+      "activity_name": "Southgate Leisure Centre",
+      "source": "google_images",
+      "image_url": "https://res.dayoutwiththekids.co.uk/image/upload/c_fill,q_auto,w_639,h_359/v1789047205/attractions/s/southgate-leisure-centre-91dkvcp2/pool_masit2",
+      "confidence": 0.7967,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, strong name match, useful card framing, best learned google images source. Visual review: High-confidence a clear photo of this swimming pool or baby swimming class."
+    },
+    {
+      "activity_id": "a2011595-61fc-4faf-8bf0-47439d808518",
+      "activity_name": "Ferny Hill Farm",
+      "source": "google_images",
+      "image_url": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/1a/4e/49/00/xmas-party.jpg?w=900&h=500&s=1",
+      "confidence": 0.8244,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, strong name match, location match, useful card framing. Visual review: High-confidence a clear photo of food or drink from this cafe."
+    },
+    {
+      "activity_id": "a5809f42-5573-403b-97e0-dedbf59c5e14",
+      "activity_name": "Matte Coffee (Marna Coffee)",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "a7e1f8ca-6e7b-49dc-b42b-a87bcbe1bd8b",
+      "activity_name": "Canonbury Gardens",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "aa67c451-18a1-4840-8be9-8f3153424714",
+      "activity_name": "Shore Gardens",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no stored image candidates were available; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "ab90033d-454d-448b-ac27-298fc4c79e31",
+      "activity_name": "Bossa Nova Cafe",
+      "source": "google_images",
+      "image_url": "https://static.where-e.com/United_Kingdom/England_State/Greater_London_State_District/Bossa-Nova-Cafe_b730e5e02754ac03e0c1502450e5e162.jpg",
+      "confidence": 0.8311,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, strong name match, cafe interior/seating context, best learned google images source. Visual review: High-confidence a clear photo of food or drink from this cafe."
+    },
+    {
+      "activity_id": "ac86f767-ff81-4bd9-a0a2-7f6673ef22e2",
+      "activity_name": "Bobbin Babes Swimming Classes",
+      "source": "website",
+      "image_url": "https://static1.squarespace.com/static/638ccdfe5f139659d3b33ded/t/654f962e062bea71dae0883a/1699714606110/Expanded+BBDigital.png?format=1500w",
+      "confidence": 0.8135,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, official listing source, best learned website source. Visual review: Learned from 413 ground-truth listings; official listing source, best learned website source."
+    },
+    {
+      "activity_id": "b2d70cf9-84ca-4512-9255-39012324748f",
+      "activity_name": "Beddington Park",
+      "source": "google_images",
+      "image_url": "https://www.senlens.co.uk/_next/image?url=%2Fimages%2Fcategories%2Fpark.webp&w=3840&q=75",
+      "confidence": 0.9043,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, strong name match, clear outdoor/play context, useful card framing. Visual review: High-confidence a clear photo of this park, playground, or outdoor play space."
+    },
+    {
+      "activity_id": "b47bb3f0-675a-4bc9-a16e-0ecdeb278c0b",
+      "activity_name": "The Urban Chocolatier - Harrow",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "bb26b3ab-b1d8-41ac-b84b-20b356cf6cf2",
+      "activity_name": "Sassy Snax @ The Cabin",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no stored image candidates were available; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "c1b6d0fe-a360-4098-bdac-c7279c82d7f9",
+      "activity_name": "Happy Parents Happy Baby Antenatal Classes - Ealing",
+      "source": "website",
+      "image_url": "https://happyparentshappybaby.com/wp-content/uploads/2020/08/HPHB_Website_Feature-Image_Blog.2-2048x2048.jpg",
+      "confidence": 0.8072,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, official listing source, best learned website source. Visual review: Learned from 413 ground-truth listings; official listing source, best learned website source."
+    },
+    {
+      "activity_id": "c1d982e1-1d7c-487c-bee6-eeb32cde74fd",
+      "activity_name": "Rose Garden",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "c2866168-45ee-4fa8-baf8-8a31a644fbcb",
+      "activity_name": "Fabler Bakery Camden",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "c4ac495e-fb2b-433e-9ff9-ab089caef4b3",
+      "activity_name": "Happy Parents Happy Baby Antenatal Classes - Leyton",
+      "source": "website",
+      "image_url": "https://happyparentshappybaby.com/wp-content/uploads/2020/08/HPHB_Website_Feature-Image_Blog.2-2048x2048.jpg",
+      "confidence": 0.8072,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, official listing source, best learned website source. Visual review: Learned from 413 ground-truth listings; official listing source, best learned website source."
+    },
+    {
+      "activity_id": "c4c7c38e-5a66-438b-b089-27e450dc1220",
+      "activity_name": "Brothers Bakery",
+      "source": "google_images",
+      "image_url": "https://static.where-e.com/United_Kingdom/Brothers-Bakery_cdaf516d4bb7a9cbc6c4a8192ba42dd1.jpg",
+      "confidence": 0.885,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, strong name match, cafe interior/seating context, best learned google images source. Visual review: High-confidence a clear exterior photo of this cafe or play cafe."
+    },
+    {
+      "activity_id": "c721452c-c940-479a-979f-a3c5718c3a1d",
+      "activity_name": "Padmall Wood",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no stored image candidates were available; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "caa204c2-eb76-4d34-9397-abf835e92b10",
+      "activity_name": "Wesley's Cafe",
+      "source": "google_images",
+      "image_url": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2f/fc/3d/e0/caption.jpg?w=600&h=400&s=1",
+      "confidence": 0.8314,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, strong name match, cafe interior/seating context, useful card framing. Visual review: High-confidence a clear photo of food or drink from this cafe."
+    },
+    {
+      "activity_id": "cb69a5ab-36f9-4c53-a6bc-c74759eb89d3",
+      "activity_name": "Heston Pools And Fitness",
+      "source": "website_downloaded_image",
+      "image_url": "https://kgvqbokhuqaonghcukel.supabase.co/storage/v1/object/public/activity-images/downloaded/website/cb69a5ab-36f9-4c53-a6bc-c74759eb89d3-1qaq4r8.jpg",
+      "confidence": 0.8257,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, official listing source, best learned website download source. Visual review: Learned from 413 ground-truth listings; official listing source, best learned website source."
+    },
+    {
+      "activity_id": "cf7114c1-1f21-47c6-9314-580452d82379",
+      "activity_name": "Mabelle's",
+      "source": "listing_image_url",
+      "image_url": "https://mymenuweb.com/assets/assets_b/images/restaurant/1900x1200/background.webp",
+      "confidence": 0.8558,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, official listing source, best learned listing image url source. Visual review: Learned from 413 ground-truth listings; official listing source, best learned website source."
+    },
+    {
+      "activity_id": "cf7773d1-92de-45ee-bdf3-04b1b29ce0b6",
+      "activity_name": "Laz @Camden",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "cffc923a-f604-4428-ac17-68819c8320af",
+      "activity_name": "Snowflake Gelato - Westfield, Stratford",
+      "source": "website",
+      "image_url": "https://snowflakegelato.co.uk/wp-content/uploads/2026/04/STRAWBERRY-MATCHA-scaled.jpg",
+      "confidence": 0.8011,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, official listing source, best learned website source. Visual review: Learned from 413 ground-truth listings; official listing source, best learned website source."
+    },
+    {
+      "activity_id": "d5963426-3f47-426e-8529-ea3329da05f8",
+      "activity_name": "NOUR",
+      "source": "listing_image_url",
+      "image_url": "https://static.readdy.ai/image/e4daf21546be432a69886bd3d51dc3ae/1ddc0b4b8e1115d948c0aa40f80f6f98.jpeg?ogv=1cmo5vd",
+      "confidence": 0.8558,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, official listing source, best learned listing image url source. Visual review: Learned from 413 ground-truth listings; official listing source, best learned website source."
+    },
+    {
+      "activity_id": "d776b177-6b6c-45c0-b217-104158b9ce17",
+      "activity_name": "Coppetts Wood",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "d7c91686-4748-4987-9780-24ef818f9aa8",
+      "activity_name": "Ladybird Softplay and Cafe - North London's 1st Softplay Cafe",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "e13114a5-14c6-4813-8059-541663ab515f",
+      "activity_name": "Roe Green Park Playground",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no stored image candidates were available; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "e774cb3c-2053-4380-ae6f-632df79bcfa1",
+      "activity_name": "Playground",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "f7b88d9b-d899-467e-9f26-ab2e2bf48f90",
+      "activity_name": "Harrow Swimming",
+      "source": "category_art_fallback",
+      "image_url": null,
+      "confidence": 0.5,
+      "reason": "The learned cross-source selector ran, but no candidate passed identity, logo, resolution and visual-quality checks; category artwork remains the fallback."
+    },
+    {
+      "activity_id": "ff251ee5-9727-4165-8527-ee1bb9f54670",
+      "activity_name": "Baby College Lewisham",
+      "source": "website",
+      "image_url": "https://babycollege.co.uk/wp-content/uploads/20230824_141443-2048x1536.jpg",
+      "confidence": 0.8068,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, official listing source, best learned website source. Visual review: Learned from 413 ground-truth listings; official listing source, best learned website source."
+    },
+    {
+      "activity_id": "ffb8d53e-19db-4403-a05b-4e51a2f07a57",
+      "activity_name": "Cindy's Swim School, Herne Hill",
+      "source": "website_downloaded_image",
+      "image_url": "https://kgvqbokhuqaonghcukel.supabase.co/storage/v1/object/public/activity-images/downloaded/website/ffb8d53e-19db-4403-a05b-4e51a2f07a57-1x6n1za.avif",
+      "confidence": 0.8247,
+      "reason": "Learned from 413 ground-truth listings; visual assessment passed, official listing source, best learned website download source. Visual review: Learned from 413 ground-truth listings; official listing source, best learned website source."
+    }
+  ],
+  "search_failures": [],
+  "skipped": [
+    {
+      "activity_id": "08157675-01f1-4cf2-b9fd-fc7e21d6ad39",
+      "activity_name": "Honeymoon Restaurant Croydon",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "0ee4f340-5ddb-4c90-95b1-805cd191c4a4",
+      "activity_name": "Chingford Village Green",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "1b9382a5-9de1-4138-b017-cab43e7f288d",
+      "activity_name": "Hartbeeps baby and toddler classes - Brook Green",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "1e364b7a-1d7d-4293-bd70-ef72e9a42333",
+      "activity_name": "Ika-Tere Swimming",
+      "reason": "no-stored-candidates"
+    },
+    {
+      "activity_id": "23af69dc-fdbe-413a-84c3-a07f10d105fa",
+      "activity_name": "Baby Sensory Winchmore Hill",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "2582c151-5edf-45e6-a1a0-f30b4a92abbe",
+      "activity_name": "Hartbeeps baby and toddler classes - Bayswater",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "25ebbbe2-abe8-4cc6-8b65-ff0f43f2b123",
+      "activity_name": "Aqua Hub",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "27abe807-00de-491b-b013-bdddd12a0f47",
+      "activity_name": "playground",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "2b85b95c-497e-4e2b-805f-af92a420b3bc",
+      "activity_name": "Swimming Nature - Grove Park",
+      "reason": "no-stored-candidates"
+    },
+    {
+      "activity_id": "2e2f7346-e625-4f88-8dc2-f2a73d5c6e1f",
+      "activity_name": "Angel Swim Barnes",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "3222b3be-a822-4161-b53c-db2ee58ada54",
+      "activity_name": "Jesse's kitchen",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "35b6d225-e3b0-4a41-8839-203231daac0a",
+      "activity_name": "Stamford Brook Common",
+      "reason": "no-stored-candidates"
+    },
+    {
+      "activity_id": "366728ea-515a-4792-9b82-18901894182c",
+      "activity_name": "Lammas Park Play Centre Tippitoes Ealing",
+      "reason": "no-stored-candidates"
+    },
+    {
+      "activity_id": "39cea56c-435f-490c-80db-076693735bcd",
+      "activity_name": "Easy swim",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "3cf7f552-0b06-4514-96f9-f3d8e7bf7f35",
+      "activity_name": "Victoria Park Old English Garden",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "3de399d6-fcb0-497c-9fab-ce4abdff473b",
+      "activity_name": "SEN Swim Services",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "3fd82fd8-0f45-477c-a955-d136b595effa",
+      "activity_name": "Jolly Cafe",
+      "reason": "no-stored-candidates"
+    },
+    {
+      "activity_id": "4360496c-10a7-4e54-9de9-b81ddc786cca",
+      "activity_name": "St Luke's Playground",
+      "reason": "no-stored-candidates"
+    },
+    {
+      "activity_id": "4c05b01f-8bdd-4af6-b953-7c93be1f0894",
+      "activity_name": "Swimming Nature - Charlton/Greenwich",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "4c4bff15-324b-48b7-bcaa-ff4db2266f0c",
+      "activity_name": "The Homestead Cafe and Bar",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "54e34fe9-510d-4d88-81f4-8170bdbc9143",
+      "activity_name": "Baby Sensory Putney",
+      "reason": "no-stored-candidates"
+    },
+    {
+      "activity_id": "5b86bdf1-f67f-4eb3-b715-eee2b0e260d8",
+      "activity_name": "The Well Walk Theatre, Cafe and Bookshop",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "5d380f1b-c60a-4324-a099-4ba8cfac643a",
+      "activity_name": "Acacia Road Playground",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "5f6140d8-cbe6-413f-8738-66e257c04828",
+      "activity_name": "Mike's Cafe",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "6a860dd2-da16-4181-801c-f4a63b5da5e3",
+      "activity_name": "Weekday Swim Ltd",
+      "reason": "no-stored-candidates"
+    },
+    {
+      "activity_id": "7541cf29-e714-48e4-b975-7cd160926fb5",
+      "activity_name": "Field Road Park",
+      "reason": "no-stored-candidates"
+    },
+    {
+      "activity_id": "8351aaab-e5a6-49aa-a843-0331365e59b5",
+      "activity_name": "cafe no 41",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "8c3f1481-d3bb-463e-a72c-92de1a3708ea",
+      "activity_name": "The Green Room, Cafe and Bistro",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "8dc3e9f2-f057-4afb-a6db-e639b9c5c3b5",
+      "activity_name": "Duck Feeding Ground",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "91b433ab-6fbd-4b3d-84d0-a34c211fcd1f",
+      "activity_name": "Caffecinos",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "9e3f2ca4-0b0a-4254-b85e-763225d7ee73",
+      "activity_name": "Splash 4 Life Swim School",
+      "reason": "no-stored-candidates"
+    },
+    {
+      "activity_id": "a5809f42-5573-403b-97e0-dedbf59c5e14",
+      "activity_name": "Matte Coffee (Marna Coffee)",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "a7e1f8ca-6e7b-49dc-b42b-a87bcbe1bd8b",
+      "activity_name": "Canonbury Gardens",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "aa67c451-18a1-4840-8be9-8f3153424714",
+      "activity_name": "Shore Gardens",
+      "reason": "no-stored-candidates"
+    },
+    {
+      "activity_id": "b47bb3f0-675a-4bc9-a16e-0ecdeb278c0b",
+      "activity_name": "The Urban Chocolatier - Harrow",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "bb26b3ab-b1d8-41ac-b84b-20b356cf6cf2",
+      "activity_name": "Sassy Snax @ The Cabin",
+      "reason": "no-stored-candidates"
+    },
+    {
+      "activity_id": "c1d982e1-1d7c-487c-bee6-eeb32cde74fd",
+      "activity_name": "Rose Garden",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "c2866168-45ee-4fa8-baf8-8a31a644fbcb",
+      "activity_name": "Fabler Bakery Camden",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "c721452c-c940-479a-979f-a3c5718c3a1d",
+      "activity_name": "Padmall Wood",
+      "reason": "no-stored-candidates"
+    },
+    {
+      "activity_id": "cf7773d1-92de-45ee-bdf3-04b1b29ce0b6",
+      "activity_name": "Laz @Camden",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "d776b177-6b6c-45c0-b217-104158b9ce17",
+      "activity_name": "Coppetts Wood",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "d7c91686-4748-4987-9780-24ef818f9aa8",
+      "activity_name": "Ladybird Softplay and Cafe - North London's 1st Softplay Cafe",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "e13114a5-14c6-4813-8059-541663ab515f",
+      "activity_name": "Roe Green Park Playground",
+      "reason": "no-stored-candidates"
+    },
+    {
+      "activity_id": "e774cb3c-2053-4380-ae6f-632df79bcfa1",
+      "activity_name": "Playground",
+      "reason": "no-eligible-candidate"
+    },
+    {
+      "activity_id": "f7b88d9b-d899-467e-9f26-ab2e2bf48f90",
+      "activity_name": "Harrow Swimming",
+      "reason": "no-eligible-candidate"
+    }
+  ]
+}

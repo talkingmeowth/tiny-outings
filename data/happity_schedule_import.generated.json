@@ -1,21 +1,114 @@
 {
-  "generated_at": "2026-08-10T11:18:30.922Z",
+  "generated_at": "2026-09-12T19:22:07.559Z",
   "source_files": [
     "data\\happity_waltham_forest_2026.generated.json",
     "data\\happity_hackney_islington_newham_2026.generated.json",
     "data\\happity_manual_schedules.json"
   ],
-  "schedules_found": 1517,
-  "existing_happity_records": 1131,
-  "matched_and_refreshed": 1099,
+  "schedules_found": 1507,
+  "excluded_by_listing_policy": 10,
+  "excluded_listings": [
+    {
+      "name": "KIDSLINGO 3 5 YEARS FULL IMMERSION SPANISH CLASS",
+      "source_url": "https://www.happity.co.uk/schedules/kidslingo-london-mossbourne-victoria-park-academy-kidslingo-3-5-years-full-immersion-spanish-class",
+      "reasons": [
+        "Language-focused Happity activity"
+      ]
+    },
+    {
+      "name": "123 GREEK ENGLISH PLAYGROUP",
+      "source_url": "https://www.happity.co.uk/schedules/123-greek-english-playgroup-london-st-mary-s-church-123-greek-english-playgroup",
+      "reasons": [
+        "Language-focused Happity activity"
+      ]
+    },
+    {
+      "name": "ST AUGUSTINE S CHURCH HIGHBURY BUBBLE CHURCH",
+      "source_url": "https://www.happity.co.uk/schedules/st-augustine-s-church-highbury-london-st-augustine-s-church-bubble-church",
+      "reasons": [
+        "Explicitly religious Happity activity"
+      ]
+    },
+    {
+      "name": "KIDSLINGO FUN SPANISH TOGETHER A PARENT and TODDLER CLASS",
+      "source_url": "https://www.happity.co.uk/schedules/kidslingo-london-st-mary-s-church-fun-spanish-together-a-parent-toddler-class",
+      "reasons": [
+        "Language-focused Happity activity"
+      ]
+    },
+    {
+      "name": "KIDSLINGO EXPLORADORES FUN SPANISH FOR CHILDREN",
+      "source_url": "https://www.happity.co.uk/schedules/kidslingo-london-st-mary-s-church-exploradores-fun-spanish-for-children",
+      "reasons": [
+        "Language-focused Happity activity"
+      ]
+    },
+    {
+      "name": "RUSSIAN LANGUAGE SCHOOL RUSSIAN LANGUAGE LESSONS",
+      "source_url": "https://www.happity.co.uk/schedules/russian-language-school-london-school-21-russian-language-lessons",
+      "reasons": [
+        "Language-focused Happity activity"
+      ]
+    },
+    {
+      "name": "RUSSIAN LANGUAGE SCHOOL THEATRE STUDIO GROUPS FOR BILINGUAL RUSSIAN SPEAKING CHILDREN",
+      "source_url": "https://www.happity.co.uk/schedules/russian-language-school-london-school-21-theatre-studio-groups-for-bilingual-russian-speaking-children",
+      "reasons": [
+        "Language-focused Happity activity"
+      ]
+    },
+    {
+      "name": "RUSSIAN LANGUAGE SCHOOL ART STUDIO GROUPS FOR BILINGUAL RUSSIAN SPEAKING CHILDREN",
+      "source_url": "https://www.happity.co.uk/schedules/russian-school-london-school-21-art-studio-groups-for-bilingual-russian-speaking-children",
+      "reasons": [
+        "Language-focused Happity activity"
+      ]
+    },
+    {
+      "name": "RUSSIAN LANGUAGE SCHOOL THEATRE STUDIO GROUPS FOR BILINGUAL RUSSIAN SPEAKING CHILDREN",
+      "source_url": "https://www.happity.co.uk/schedules/russian-language-school-london-school-21-theatre-studio-groups-for-bilingual-russian-speaking-children-saturdays-12-00-13-00",
+      "reasons": [
+        "Language-focused Happity activity"
+      ]
+    },
+    {
+      "name": "RUSSIAN LANGUAGE SCHOOL ART STUDIO GROUPS FOR BILINGUAL RUSSIAN SPEAKING CHILDREN",
+      "source_url": "https://www.happity.co.uk/schedules/russian-school-london-school-21-art-studio-groups-for-bilingual-russian-speaking-children-saturdays-12-00-13-00",
+      "reasons": [
+        "Language-focused Happity activity"
+      ]
+    }
+  ],
+  "existing_happity_records": 1090,
+  "matched_and_refreshed": 1061,
   "safe_new_records": 0,
-  "awaiting_location_enrichment": 418,
-  "database_records_not_in_current_snapshot": 32,
+  "awaiting_location_enrichment": 446,
+  "database_records_not_in_current_snapshot": 29,
   "missing_location_records": [
+    {
+      "name": "BALLET WITH MY BABY",
+      "source_url": "https://www.happity.co.uk/schedules/ballet-with-my-baby-london-tun-ballet-with-my-baby",
+      "venue": "Tun, E10"
+    },
+    {
+      "name": "MINI ESPANOL",
+      "source_url": "https://www.happity.co.uk/schedules/mini-espanol-london-christchurch-parish-hall-mini-espanol",
+      "venue": "Christchurch Parish Hall, E11"
+    },
     {
       "name": "BONGALONG UNDER FIVES TRIAL SESSION",
       "source_url": "https://www.happity.co.uk/schedules/bongalong-london-the-scout-hall-bongalong-under-fives-trial-session-mondays-10-00-10-45",
       "venue": "The Scout Hall, E17"
+    },
+    {
+      "name": "BALLET WITH MY BABY",
+      "source_url": "https://www.happity.co.uk/schedules/ballet-with-my-baby-london-tun-ballet-with-my-baby-mondays-10-45-11-15",
+      "venue": "Tun, E10"
+    },
+    {
+      "name": "GREEN GROVE TINEY HOME NURSERY",
+      "source_url": "https://www.happity.co.uk/schedules/green-grove-tiney-home-nursery-london-green-grove-green-grove-tiney-home-nursery",
+      "venue": "Green Grove, N17"
     },
     {
       "name": "WALTHAMSTOW TOY LIBRARY AND PLAY CENTRE SENSORY ROOM SESSION",
@@ -291,6 +384,11 @@
       "name": "BOXXKIDS",
       "source_url": "https://www.happity.co.uk/schedules/boxx-london-boxx-boxxkids-thursdays-16-30-17-15",
       "venue": "Boxx, E18"
+    },
+    {
+      "name": "THE CASTLE PLAY SPACE CIC YEAR 6 LEAVERS PARTY",
+      "source_url": "https://www.happity.co.uk/schedules/the-castle-play-space-cic-london-heathcote-star-year-6-leavers-party",
+      "venue": "Heathcote & Star, E11"
     },
     {
       "name": "WALTHAMSTOW TOY LIBRARY AND PLAY CENTRE SENSORY ROOM SESSION",
@@ -673,6 +771,11 @@
       "venue": "Forest School, E17"
     },
     {
+      "name": "SALWAY EVANGELICAL CHURCH DISCOVERERS",
+      "source_url": "https://www.happity.co.uk/schedules/salway-evangelical-church-woodford-green-salway-evangelical-church-discoverers",
+      "venue": "Salway Evangelical Church, IG8"
+    },
+    {
       "name": "KINDHAUS WORKSPACE AND CHILDCARE",
       "source_url": "https://www.happity.co.uk/schedules/kindhaus-london-kindhaus-workspace-and-childcare",
       "venue": "KindHaus, N16"
@@ -688,9 +791,24 @@
       "venue": "Gracepoint, N1"
     },
     {
+      "name": "THE TINY RESET BABY MASSAGE COURSE",
+      "source_url": "https://www.happity.co.uk/schedules/the-tiny-reset-london-98b-st-paul-st-baby-massage-course",
+      "venue": "98b St Paul St, N1"
+    },
+    {
+      "name": "HELLO MARTIN AVRIL MINI AVENTUREROS FIRST STEPS IN SPANISH 0 12MONTHS",
+      "source_url": "https://www.happity.co.uk/schedules/hello-martin-avril-london-music-tree-mini-aventureros-first-steps-in-spanish-0-12months",
+      "venue": "Music Tree, N1"
+    },
+    {
       "name": "TENNIS TIME OUTDOOR TODDLER TENNIS SESSIONS",
       "source_url": "https://www.happity.co.uk/schedules/tennis-time-london-highbury-fields-tennis-courts-outdoor-toddler-tennis-sessions-mondays-10-10-10-50-1",
       "venue": "Highbury Fields Tennis Courts, N5"
+    },
+    {
+      "name": "SOOTHE ME DEVELOPMENTAL BABY MASSAGE",
+      "source_url": "https://www.happity.co.uk/schedules/soothe-me-london-animo-london-developmental-baby-massage-mondays-10-15-11-45",
+      "venue": "Ánimo London, E3"
     },
     {
       "name": "LITTLE MOVERS GYM OPEN GYM",
@@ -768,6 +886,11 @@
       "venue": "Rainforest Soft Play Cafe, E8"
     },
     {
+      "name": "ALWAYS BE CREATIVE LTD ALWAYS BE CREATIVE HOLIDAY CAMP",
+      "source_url": "https://www.happity.co.uk/schedules/always-be-creative-ltd-london-48b-bouverie-rd-always-be-creative-holiday-camp",
+      "venue": "48b Bouverie Rd, N16"
+    },
+    {
       "name": "RAINFOREST PLAY CLUB SOFT PLAY",
       "source_url": "https://www.happity.co.uk/schedules/rainforest-soft-play-cafe-london-rainforest-soft-play-cafe-soft-play-mondays-10-00-11-00",
       "venue": "Rainforest Soft Play Cafe, E8"
@@ -776,6 +899,11 @@
       "name": "RAINFOREST PLAY CLUB SOFT PLAY",
       "source_url": "https://www.happity.co.uk/schedules/rainforest-soft-play-cafe-london-rainforest-soft-play-cafe-soft-play-mondays-11-00-12-00",
       "venue": "Rainforest Soft Play Cafe, E8"
+    },
+    {
+      "name": "FORM PERSONAL TRAININGMUM AND BABY POSTNATAL GROUP PT SESSIONS FORM MUM AND BABY POSTNATAL GROUP PT SESSIONS MONDAY",
+      "source_url": "https://www.happity.co.uk/schedules/form-personal-trainingmum-and-baby-postnatal-group-pt-sessions-london-form-personal-training-form-mum-and-baby-postnatal-group-pt-sessions-monday",
+      "venue": "Form Personal Training, E8"
     },
     {
       "name": "MONKEY MUSIC JIGGETY JIG",
@@ -789,8 +917,23 @@
     },
     {
       "name": "RAINFOREST PLAY CLUB SOFT PLAY",
+      "source_url": "https://www.happity.co.uk/schedules/rainforest-soft-play-cafe-london-rainforest-soft-play-cafe-soft-play-mondays-12-00-13-00",
+      "venue": "Rainforest Soft Play Cafe, E8"
+    },
+    {
+      "name": "RAINFOREST PLAY CLUB SOFT PLAY",
       "source_url": "https://www.happity.co.uk/schedules/rainforest-soft-play-cafe-london-rainforest-soft-play-cafe-soft-play-mondays-13-00-14-00",
       "venue": "Rainforest Soft Play Cafe, E8"
+    },
+    {
+      "name": "MILLFIELD S CHILDREN S CENTRE 4 WEEK BABY MASSAGE COURSE",
+      "source_url": "https://www.happity.co.uk/schedules/millfield-s-children-s-centre-london-millfields-children-s-centre-4-week-baby-massage-course-mondays-13-30-15-00",
+      "venue": "Millfields Children's Centre, E5"
+    },
+    {
+      "name": "MILLFIELD S CHILDREN S CENTRE MINI MOVERS",
+      "source_url": "https://www.happity.co.uk/schedules/millfield-s-children-s-centre-london-millfields-children-s-centre-mini-movers",
+      "venue": "Millfields Children's Centre, E5"
     },
     {
       "name": "IAIM BABY MASSAGE AT HIGHBURY COMMUNITY NURSERY",
@@ -826,6 +969,11 @@
       "name": "MUSIC TREE SING THEIR CREATIVITY AGE 3 5 4 5 CLASS WITHOUT PARENTS",
       "source_url": "https://www.happity.co.uk/schedules/music-tree-london-music-tree-sing-their-creativity-age-3-5-4-5-class-without-parents",
       "venue": "Music Tree, N1"
+    },
+    {
+      "name": "NIGHTINGALE SCHOOL OF DANCE PRE PRIMARY BALLET",
+      "source_url": "https://www.happity.co.uk/schedules/nightingale-school-of-dance-islington-islington-ecology-centre-pre-primary-ballet-mondays-16-30-17-00",
+      "venue": "Islington Ecology Centre, N5"
     },
     {
       "name": "JUNIORSTRIKERS LTD LITTLE STRIKERS FOOTBALL 2 5YRS 3 5YRS",
@@ -1073,6 +1221,11 @@
       "venue": "Gracepoint, N1"
     },
     {
+      "name": "RAINFOREST PLAY CLUB SOFT PLAY",
+      "source_url": "https://www.happity.co.uk/schedules/rainforest-soft-play-london-rainforest-soft-play-cafe-soft-play-wednesdays-08-00-09-00",
+      "venue": "Rainforest Soft Play Cafe, E8"
+    },
+    {
       "name": "BABBU KIDS SUMMER CAMP",
       "source_url": "https://www.happity.co.uk/schedules/babbu-london-liverpool-road-community-centre-babbu-kids-summer-camp-wednesdays-08-30-17-30",
       "venue": "Liverpool Road Community Centre, N1"
@@ -1096,6 +1249,11 @@
       "name": "IVY STREET FAMILY CENTRE",
       "source_url": "https://www.happity.co.uk/schedules/ivy-street-family-centre-london-united-kingdom-ivy-street-family-centre-tuesdays-09-30-11-30",
       "venue": "United Kingdom, N1"
+    },
+    {
+      "name": "MILLFIELD S CHILDREN S CENTRE STAY AND PLAY AT MILLFIELDS",
+      "source_url": "https://www.happity.co.uk/schedules/millfield-s-children-s-centre-london-millfields-children-s-centre-stay-and-play-at-millfields-wednesdays-10-00-11-30",
+      "venue": "Millfields Children's Centre, E5"
     },
     {
       "name": "FRAMPTON PARK BAPTIST CHURCH TODDLER GROUPS",
@@ -1251,6 +1409,11 @@
       "name": "LITTLE MOVERS GYM OPEN GYM",
       "source_url": "https://www.happity.co.uk/schedules/little-movers-gym-london-gracepoint-little-movers-gym-thursdays-15-30-16-30",
       "venue": "Gracepoint, N1"
+    },
+    {
+      "name": "PAPER DRESS LIMITED PREGNANCY ANTENATAL YOGA CLASS",
+      "source_url": "https://www.happity.co.uk/schedules/paper-dress-limited-london-paper-dress-yoga-pregnancy-antenatal-yoga-class",
+      "venue": "Paper Dress Yoga, E8"
     },
     {
       "name": "RAINFOREST PLAY CLUB SOFT PLAY",
@@ -1778,6 +1941,11 @@
       "venue": "Clissold Park, N16"
     },
     {
+      "name": "HELLO MARTIN AVRIL MINI AVENTURIERS 0 18 MONTHS MES PREMIERS PAS EN MUSIQUE",
+      "source_url": "https://www.happity.co.uk/schedules/hello-martin-avril-london-music-tree-mini-aventuriers-0-18-months-mes-premiers-pas-en-musique",
+      "venue": "Music Tree, N1"
+    },
+    {
       "name": "TENNIS TIME OUTDOOR TODDLER TENNIS SESSIONS",
       "source_url": "https://www.happity.co.uk/schedules/tennis-time-london-highbury-fields-tennis-courts-outdoor-toddler-tennis-sessions-sundays-10-10-10-50-tennis-time-london-highbury-fields-tennis-courts-outdoor-toddler-tennis-sessions-sundays-10-10-10-50-tennis-time-london-tennis-court-11-outdoor-toddler-tennis-sessions-1-1",
       "venue": "Highbury Fields Tennis Courts, N5"
@@ -1796,6 +1964,16 @@
       "name": "LITTLE STRIKERS WEEKLY FOOTBALL CLASS",
       "source_url": "https://www.happity.co.uk/schedules/little-strikers-london-clissold-park-little-strikers-weekly-football-class-sundays-10-50-11-30",
       "venue": "Clissold Park, N16"
+    },
+    {
+      "name": "HELLO MARTIN AVRIL LES PETITS EXPLORATEURS 18 MONTHS 36 MONTHS OLD IMMERSION MUSICALE ET THEATRALE EN FRANCAIS",
+      "source_url": "https://www.happity.co.uk/schedules/hello-martin-avril-london-music-tree-les-petits-explorateurs-18-months-36-months-old-immersion-musicale-et-theatrale-en-francais",
+      "venue": "Music Tree, N1"
+    },
+    {
+      "name": "CURIOUS MINDS MESSY PLAY 1 50 SUMMER SAVER",
+      "source_url": "https://www.happity.co.uk/schedules/curious-minds-messy-play-london-hackney-downs-park-1-50-summer-saver-sundays-11-00-13-00",
+      "venue": "Hackney Downs Park, E5"
     },
     {
       "name": "LITTLE STRIKERS WEEKLY FOOTBALL CLASS NURSERY RECEPTION",
@@ -1843,14 +2021,29 @@
       "venue": "Rainforest Soft Play Cafe, E8"
     },
     {
+      "name": "ESTORICK COLLECTION OF MODERN ITALIAN ART FAMILY ART DAY",
+      "source_url": "https://www.happity.co.uk/schedules/estorick-collection-of-modern-italian-art-london-estorick-collection-of-modern-italian-art-family-art-day-sundays-10-00-12-00",
+      "venue": "Estorick Collection of Modern Italian Art, N1"
+    },
+    {
       "name": "KIDDIKICKS FOOTBALL FOR 18 MONTHS 8 YEARS OLDS KIDDIKICKS RUNNERS AGES 2 5YRS 3 6YRS",
       "source_url": "https://www.happity.co.uk/schedules/kiddikicks-london-victoria-park-kiddikicks-runners-ages-2-5yrs-3-6yrs",
       "venue": "Victoria Park, E3"
     },
     {
+      "name": "FREEDOM FIGHTERS ARTS COMMERCIAL DANCE",
+      "source_url": "https://www.happity.co.uk/schedules/freedom-fighters-arts-london-freedom-fighters-arts-commercial-dance",
+      "venue": "Freedom Fighters Arts, N1"
+    },
+    {
       "name": "PETITE PERFORMERS YOU and ME DANCE",
       "source_url": "https://www.happity.co.uk/schedules/petite-performers-london-mary-s-community-centre-you-me-dance-sundays-10-20-10-50",
       "venue": "Mary's Community Centre, N1"
+    },
+    {
+      "name": "ST MICHAEL and ALL ANGELS CHURCH LONDONFIELDS ALL STARS",
+      "source_url": "https://www.happity.co.uk/schedules/st-michael-all-angels-church-londonfields-hackney-st-michael-all-angels-church-all-stars",
+      "venue": "St Michael & All Angels Church, E8"
     },
     {
       "name": "RAINFOREST PLAY CLUB SOFT PLAY",
@@ -1898,9 +2091,24 @@
       "venue": "Moon, NW5"
     },
     {
+      "name": "SANDSCAPE KIDS PLAY AND CAFE",
+      "source_url": "https://www.happity.co.uk/schedules/sandscape-kids-play-and-cafe-finsburypark-sandscape-kids-play-and-cafe-sandscape-kids-play-and-cafe",
+      "venue": "Sandscape kids play and cafe, N4"
+    },
+    {
+      "name": "BIRKBECK BABYLAB and TODDLERLAB",
+      "source_url": "https://www.happity.co.uk/schedules/birkbeck-babylab-toddlerlab-london-birkbeck-toddlerlab-birkbeck-babylab-toddlerlab-mondays-09-00-17-00",
+      "venue": "Birkbeck ToddlerLab, WC1E"
+    },
+    {
       "name": "LITTLE SUPERNOVAS INTERACTIVE THEATRICAL SENSORY BABY TODDLER CLASS",
       "source_url": "https://www.happity.co.uk/schedules/little-supernovas-onceupona-london-the-playroom-the-toy-project-interactive-theatrical-sensory-baby-toddler-class",
       "venue": "The Playroom (The Toy Project), N19"
+    },
+    {
+      "name": "YOGA BASE LONDON MUMMY and ME YOGA CLASS",
+      "source_url": "https://www.happity.co.uk/schedules/yoga-base-london-london-172-arlington-rd-mummy-me-yoga-class",
+      "venue": "172 Arlington Rd, NW1"
     },
     {
       "name": "LEWIS CARROLL LIBRARY BABY BOUNCE",
@@ -1936,6 +2144,11 @@
       "name": "ARCHWAY DANCE ACADEMY PRE PRIMARY BALLET and TAP DANCE",
       "source_url": "https://www.happity.co.uk/schedules/archway-dance-academy-london-archway-dance-academy-pre-primary-ballet-tap-dance",
       "venue": "Archway Dance Academy, N19"
+    },
+    {
+      "name": "FREE SOFT PLAY ELIAN S CORNER",
+      "source_url": "https://www.happity.co.uk/schedules/elian-s-corner-london-elian-s-corner-free-soft-play-elian-s-corner",
+      "venue": "Elian’s Corner, N7"
     },
     {
       "name": "BIRKBECK BABYLAB and TODDLERLAB",
@@ -1976,6 +2189,11 @@
       "name": "NORTH LIBRARY BABY BOUNCE",
       "source_url": "https://www.happity.co.uk/schedules/north-library-london-north-library-baby-bounce-saturdays-14-00-15-00",
       "venue": "North Library, N7"
+    },
+    {
+      "name": "HER VILLAGE MATERNITY ANTENATAL CLASS THE INFORMED BIRTH PROGRAMME",
+      "source_url": "https://www.happity.co.uk/schedules/her-village-maternity-london-2-tiltman-place-antenatal-class-the-informed-birth-programme",
+      "venue": "2 Tiltman Place, N7"
     },
     {
       "name": "THE PERFORMING ARTS FACTORY TUMBLE TOWN 4 5 YEARS",
@@ -2068,11 +2286,6 @@
       "venue": "Cumberland Community School (CCS), E13"
     },
     {
-      "name": "RUSSIAN LANGUAGE SCHOOL THEATRE STUDIO GROUPS FOR BILINGUAL RUSSIAN SPEAKING CHILDREN",
-      "source_url": "https://www.happity.co.uk/schedules/russian-language-school-london-school-21-theatre-studio-groups-for-bilingual-russian-speaking-children",
-      "venue": "School 21, E15"
-    },
-    {
       "name": "RUSSIAN LANGUAGE SCHOOL RUSSIAN LANGUAGE WITH MUSIC",
       "source_url": "https://www.happity.co.uk/schedules/russian-language-school-london-school-21-russian-language-with-music",
       "venue": "School 21, E15"
@@ -2105,128 +2318,116 @@
   ],
   "database_only_records": [
     {
-      "activity_id": "84f478f6-3f88-45a4-82cb-d73e1f92261e",
-      "source_url": "https://www.happity.co.uk/hackney/baby-toddler-classes#little-movers-gym-open-gym-gracepoint-mon-0930"
-    },
-    {
-      "activity_id": "68ed68dd-1f24-45a6-b22b-84e27bb52276",
-      "source_url": "https://www.happity.co.uk/hackney/baby-toddler-classes#sing-and-sign-stage-1-st-marys-neighbourhood-mon-1000"
+      "activity_id": "32fbc3d0-59ed-4860-baec-bd8a4c4f3289",
+      "source_url": "https://www.happity.co.uk/newham/baby-toddler-classes#baby-dance-wee-movers-good-shepherd-tue-1040"
     },
     {
       "activity_id": "ad17374a-9492-464d-ba3b-073f55862e14",
       "source_url": "https://www.happity.co.uk/hackney/baby-toddler-classes#lisa-gilbert-preschool-acro-gymnastics-mon-0945"
     },
     {
-      "activity_id": "d69ff8a0-d8e9-4906-964e-5dca845f3b84",
-      "source_url": "https://www.happity.co.uk/hackney/baby-toddler-classes#minis-st-paul-old-ford-mon-1000"
-    },
-    {
-      "activity_id": "c27c9b2a-7940-4983-a59e-f10af63fb677",
-      "source_url": "https://www.happity.co.uk/islington/baby-toddler-classes#mini-mozart-baby-class-st-marys-wed-1025"
-    },
-    {
-      "activity_id": "f14cb658-364c-4eef-9c7f-be8d1d9fb8b6",
-      "source_url": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#mother-and-more-stage-1-pause-wed-1300"
-    },
-    {
       "activity_id": "02b81d99-5488-42e3-a191-21498db9896f",
       "source_url": "https://www.happity.co.uk/islington/baby-toddler-classes#music-tree-first-steps-18-36-wed-1015"
-    },
-    {
-      "activity_id": "0d8c0d48-f0d0-4f5d-971f-1f177c8d52da",
-      "source_url": "https://www.happity.co.uk/hackney/baby-toddler-classes#monkey-music-rock-n-roll-st-marys-mon-1140"
-    },
-    {
-      "activity_id": "d392d154-e4c4-44a0-b994-9c0b50d09fc1",
-      "source_url": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#bongalong-under-ones-highams-park-wed-1100"
-    },
-    {
-      "activity_id": "aa673217-63f0-4a7b-a93b-66227a871b42",
-      "source_url": "https://www.happity.co.uk/islington/baby-toddler-classes#sense-stories-0-6-ramsay-scout-centre-wed-1030"
-    },
-    {
-      "activity_id": "65558959-03aa-4a9c-8328-cfd8ab335e59",
-      "source_url": "https://www.happity.co.uk/islington/baby-toddler-classes#tta-leaves-colours-nature-painting-wed-1000"
-    },
-    {
-      "activity_id": "8acd47e9-b537-4370-9816-09b1fdf38164",
-      "source_url": "https://www.happity.co.uk/newham/baby-toddler-classes#monkey-music-jiggety-jig-st-george-east-tue-0945"
-    },
-    {
-      "activity_id": "938a5260-c338-4ef7-bcb1-3f830404d2cb",
-      "source_url": "https://www.happity.co.uk/islington/baby-toddler-classes#music-tree-first-steps-0-18-wed-1100"
-    },
-    {
-      "activity_id": "61a3f298-2bbc-4215-9fcd-91f4eb84c4cf",
-      "source_url": "https://www.happity.co.uk/hackney/baby-toddler-classes#little-boo-stories-mini-boo-christ-church-highbury-mon-1000"
-    },
-    {
-      "activity_id": "dfb9f029-c89e-4900-929b-f62bda381651",
-      "source_url": "https://www.happity.co.uk/newham/baby-toddler-classes#juniorstrikers-baby-strikers-victoria-park-tue-0940"
-    },
-    {
-      "activity_id": "452013e8-8a4b-4687-b05b-caf05779f8cc",
-      "source_url": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#tumble-tots-2-3-year-olds-wanstead-house-wed-0930"
-    },
-    {
-      "activity_id": "e7e6c03c-bd10-4818-8e9f-d0d6f40eb3c6",
-      "source_url": "https://www.happity.co.uk/islington/baby-toddler-classes#sense-stories-ramsay-scout-centre-wed-1145"
-    },
-    {
-      "activity_id": "7baaec93-0e58-462d-b7ff-cdb38c4d53e5",
-      "source_url": "https://www.happity.co.uk/hackney/baby-toddler-classes#tick-tock-music-st-stephens-canonbury-mon-0945"
-    },
-    {
-      "activity_id": "f3180475-3bc7-4956-8dc6-fcad8b6c34cb",
-      "source_url": "https://www.happity.co.uk/newham/baby-toddler-classes#flying-sycamores-good-shepherd-tue-1000"
     },
     {
       "activity_id": "13e5721b-0be3-4d4b-a456-06d66f5a9942",
       "source_url": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#walthamstow-toy-library-sensory-room-wed-0930"
     },
     {
-      "activity_id": "cc1cfc66-86cd-4066-9da0-ac1f602f5d4e",
-      "source_url": "https://www.happity.co.uk/newham/baby-toddler-classes#singing-mamas-newham-cornerstone-cafe-tue-1000"
+      "activity_id": "452013e8-8a4b-4687-b05b-caf05779f8cc",
+      "source_url": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#tumble-tots-2-3-year-olds-wanstead-house-wed-0930"
+    },
+    {
+      "activity_id": "65558959-03aa-4a9c-8328-cfd8ab335e59",
+      "source_url": "https://www.happity.co.uk/islington/baby-toddler-classes#tta-leaves-colours-nature-painting-wed-1000"
+    },
+    {
+      "activity_id": "c27c9b2a-7940-4983-a59e-f10af63fb677",
+      "source_url": "https://www.happity.co.uk/islington/baby-toddler-classes#mini-mozart-baby-class-st-marys-wed-1025"
+    },
+    {
+      "activity_id": "d392d154-e4c4-44a0-b994-9c0b50d09fc1",
+      "source_url": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#bongalong-under-ones-highams-park-wed-1100"
     },
     {
       "activity_id": "de8d2237-fb53-40ac-aa83-9e1f0262a09b",
       "source_url": "https://www.happity.co.uk/islington/baby-toddler-classes#little-movers-gym-open-gym-gracepoint-wed-0930"
     },
     {
-      "activity_id": "98f90426-165d-4ef5-a81f-7dcedb56fdef",
-      "source_url": "https://www.happity.co.uk/newham/baby-toddler-classes#blossom-babies-blossom-toddler-poplar-union-tue-1000"
+      "activity_id": "dfb9f029-c89e-4900-929b-f62bda381651",
+      "source_url": "https://www.happity.co.uk/newham/baby-toddler-classes#juniorstrikers-baby-strikers-victoria-park-tue-0940"
+    },
+    {
+      "activity_id": "e7e6c03c-bd10-4818-8e9f-d0d6f40eb3c6",
+      "source_url": "https://www.happity.co.uk/islington/baby-toddler-classes#sense-stories-ramsay-scout-centre-wed-1145"
+    },
+    {
+      "activity_id": "f3180475-3bc7-4956-8dc6-fcad8b6c34cb",
+      "source_url": "https://www.happity.co.uk/newham/baby-toddler-classes#flying-sycamores-good-shepherd-tue-1000"
+    },
+    {
+      "activity_id": "61a3f298-2bbc-4215-9fcd-91f4eb84c4cf",
+      "source_url": "https://www.happity.co.uk/hackney/baby-toddler-classes#little-boo-stories-mini-boo-christ-church-highbury-mon-1000"
+    },
+    {
+      "activity_id": "938a5260-c338-4ef7-bcb1-3f830404d2cb",
+      "source_url": "https://www.happity.co.uk/islington/baby-toddler-classes#music-tree-first-steps-0-18-wed-1100"
+    },
+    {
+      "activity_id": "8acd47e9-b537-4370-9816-09b1fdf38164",
+      "source_url": "https://www.happity.co.uk/newham/baby-toddler-classes#monkey-music-jiggety-jig-st-george-east-tue-0945"
+    },
+    {
+      "activity_id": "68ed68dd-1f24-45a6-b22b-84e27bb52276",
+      "source_url": "https://www.happity.co.uk/hackney/baby-toddler-classes#sing-and-sign-stage-1-st-marys-neighbourhood-mon-1000"
     },
     {
       "activity_id": "8307371a-99b3-45a8-b0df-07f86d2d81f7",
       "source_url": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#mums-art-club-quaker-meeting-house-wed-1000"
     },
     {
-      "activity_id": "1711b152-5a19-4368-9055-ddf0b8787db2",
-      "source_url": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#sing-and-sign-stage-two-st-josephs-wed-1015"
+      "activity_id": "0d8c0d48-f0d0-4f5d-971f-1f177c8d52da",
+      "source_url": "https://www.happity.co.uk/hackney/baby-toddler-classes#monkey-music-rock-n-roll-st-marys-mon-1140"
     },
     {
-      "activity_id": "32fbc3d0-59ed-4860-baec-bd8a4c4f3289",
-      "source_url": "https://www.happity.co.uk/newham/baby-toddler-classes#baby-dance-wee-movers-good-shepherd-tue-1040"
-    },
-    {
-      "activity_id": "02c0e686-a0b5-402e-94d7-5fb6eed1e07d",
-      "source_url": "https://www.happity.co.uk/islington/baby-toddler-classes#monkey-music-rock-n-roll-st-marys-wed-1130"
+      "activity_id": "98f90426-165d-4ef5-a81f-7dcedb56fdef",
+      "source_url": "https://www.happity.co.uk/newham/baby-toddler-classes#blossom-babies-blossom-toddler-poplar-union-tue-1000"
     },
     {
       "activity_id": "0c9d1cdf-c339-429b-bf3f-b0590f5036eb",
       "source_url": "https://www.happity.co.uk/newham/baby-toddler-classes#mother-and-more-stage-2-chobham-manor-tue-1215"
     },
     {
-      "activity_id": "89b37dc5-1d7c-4dfe-be2e-e7eb98673b16",
-      "source_url": "https://www.happity.co.uk/newham/baby-toddler-classes#boppin-bunnies-preschool-music-royal-standard-tue-0945"
+      "activity_id": "7baaec93-0e58-462d-b7ff-cdb38c4d53e5",
+      "source_url": "https://www.happity.co.uk/hackney/baby-toddler-classes#tick-tock-music-st-stephens-canonbury-mon-0945"
     },
     {
-      "activity_id": "6a958406-5d76-43a9-9992-c6b04b4da2a7",
-      "source_url": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#castle-play-space-stay-and-play-wed-0930"
+      "activity_id": "aa673217-63f0-4a7b-a93b-66227a871b42",
+      "source_url": "https://www.happity.co.uk/islington/baby-toddler-classes#sense-stories-0-6-ramsay-scout-centre-wed-1030"
+    },
+    {
+      "activity_id": "84f478f6-3f88-45a4-82cb-d73e1f92261e",
+      "source_url": "https://www.happity.co.uk/hackney/baby-toddler-classes#little-movers-gym-open-gym-gracepoint-mon-0930"
     },
     {
       "activity_id": "0fe267ff-4435-4f2d-be0b-22b01d228da8",
       "source_url": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#thula-mama-yonder-studio-wed-1000"
+    },
+    {
+      "activity_id": "f14cb658-364c-4eef-9c7f-be8d1d9fb8b6",
+      "source_url": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#mother-and-more-stage-1-pause-wed-1300"
+    },
+    {
+      "activity_id": "cc1cfc66-86cd-4066-9da0-ac1f602f5d4e",
+      "source_url": "https://www.happity.co.uk/newham/baby-toddler-classes#singing-mamas-newham-cornerstone-cafe-tue-1000"
+    },
+    {
+      "activity_id": "02c0e686-a0b5-402e-94d7-5fb6eed1e07d",
+      "source_url": "https://www.happity.co.uk/islington/baby-toddler-classes#monkey-music-rock-n-roll-st-marys-wed-1130"
+    },
+    {
+      "activity_id": "6a958406-5d76-43a9-9992-c6b04b4da2a7",
+      "source_url": "https://www.happity.co.uk/waltham-forest/baby-toddler-classes#castle-play-space-stay-and-play-wed-0930"
     },
     {
       "activity_id": "684ff48b-09db-470f-af80-2ca967ca1962",

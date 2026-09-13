@@ -1,0 +1,1075 @@
+{
+  "generated_at": "2026-09-13T09:54:37.424Z",
+  "created_after": "2026-09-12T20:38:00.000Z",
+  "model": "Tiny Outings learned cross-source image ranker cross-source-ranker-v3-d76fcc31",
+  "candidate_discovery_calls": 0,
+  "total_stored_candidate_records": 89,
+  "reviewed": 89,
+  "persisted": [
+    {
+      "activity_id": "23d84f22-b520-4028-96ea-a497b214e245",
+      "status": "no-high-confidence-candidate"
+    },
+    {
+      "activity_id": "40155e2f-e86d-4739-841d-de183faf5d02",
+      "status": "no-high-confidence-candidate"
+    },
+    {
+      "activity_id": "40e715f3-ebc5-4f22-9164-4af14c3036d8",
+      "status": "no-high-confidence-candidate"
+    },
+    {
+      "activity_id": "44d2e0e8-816b-494e-9bf0-2b640aa6b335",
+      "status": "no-high-confidence-candidate"
+    },
+    {
+      "activity_id": "48396729-7daa-4035-ba82-d1f89db3e528",
+      "status": "no-high-confidence-candidate"
+    },
+    {
+      "activity_id": "7577efa3-1594-4755-90fc-ea5a703c826e",
+      "status": "no-high-confidence-candidate"
+    },
+    {
+      "activity_id": "980d194e-6ec2-4915-9408-bcfcf48b08e7",
+      "status": "no-high-confidence-candidate"
+    },
+    {
+      "activity_id": "9fa2c12c-95f4-4b08-8f86-771cb3cb3f7e",
+      "status": "no-high-confidence-candidate"
+    },
+    {
+      "activity_id": "af6685f8-1cdb-4c6f-8982-b3faa32bb81c",
+      "status": "no-high-confidence-candidate"
+    },
+    {
+      "activity_id": "b874096c-b984-4eae-abb8-4f2dd86abcac",
+      "status": "no-high-confidence-candidate"
+    },
+    {
+      "activity_id": "decd0f6a-0bdb-471f-9717-fe88e0e9fdd9",
+      "status": "no-high-confidence-candidate"
+    },
+    {
+      "activity_id": "e4f1d113-d80f-4b6a-9bb2-c8bffa2d8b76",
+      "status": "no-high-confidence-candidate"
+    },
+    {
+      "activity_id": "e6d111ca-00c4-4f58-8f18-0617ce4dfccf",
+      "status": "no-high-confidence-candidate"
+    },
+    {
+      "activity_id": "e9efce00-efce-44b4-b336-b30ac20990dc",
+      "status": "no-high-confidence-candidate"
+    },
+    {
+      "activity_id": "eb24ed07-f02c-4db1-98eb-8e34edc58c6d",
+      "status": "no-high-confidence-candidate"
+    },
+    {
+      "activity_id": "2419943f-a748-4e07-9272-a40849957d29",
+      "status": "selected"
+    },
+    {
+      "activity_id": "25887570-5aed-4b91-bd99-90c950e3c64e",
+      "status": "selected"
+    },
+    {
+      "activity_id": "269342be-46d0-4775-ab11-5480c323f6e2",
+      "status": "selected"
+    },
+    {
+      "activity_id": "27233d42-baf6-4065-9011-59e366786e42",
+      "status": "selected"
+    },
+    {
+      "activity_id": "2c68e4a3-da04-42a0-ba57-32b92e3d2223",
+      "status": "selected"
+    },
+    {
+      "activity_id": "2f711320-1440-474a-ad48-c8e5a1cfac81",
+      "status": "selected"
+    },
+    {
+      "activity_id": "37e7c567-7a2f-41cd-8ea0-1b5df7168fe9",
+      "status": "selected"
+    },
+    {
+      "activity_id": "38df8014-d8f4-4a9a-823f-72ce130fa800",
+      "status": "selected"
+    },
+    {
+      "activity_id": "3913918c-bc9e-4d33-9d9a-06d0acc640dd",
+      "status": "selected"
+    },
+    {
+      "activity_id": "3dbd551c-31e6-42af-82f5-f8e41e1a34ef",
+      "status": "no-high-confidence-candidate"
+    },
+    {
+      "activity_id": "3e63b70f-3b62-47a0-8832-73d5b61b4ab0",
+      "status": "selected"
+    },
+    {
+      "activity_id": "4416246d-09d4-44ef-afd0-a4f05458b021",
+      "status": "selected"
+    },
+    {
+      "activity_id": "464949f7-fdfa-4310-8ecf-d9086e66e6e0",
+      "status": "selected"
+    },
+    {
+      "activity_id": "4847f38a-e267-4d5f-a569-70645b6f2f09",
+      "status": "selected"
+    },
+    {
+      "activity_id": "4b878771-a268-4f66-a0be-86189a6c1c5d",
+      "status": "selected"
+    },
+    {
+      "activity_id": "4c5c6f79-f122-4648-85f4-450c974dccab",
+      "status": "no-high-confidence-candidate"
+    },
+    {
+      "activity_id": "4d997a19-9a84-4754-bb2f-68f6ac086814",
+      "status": "selected"
+    },
+    {
+      "activity_id": "53b88a8c-2093-47fe-bea3-0c427eb076d7",
+      "status": "selected"
+    },
+    {
+      "activity_id": "55d11713-d3ea-4aaa-8d1e-d45b7bd012c0",
+      "status": "no-high-confidence-candidate"
+    },
+    {
+      "activity_id": "5dc1dcf1-937d-473e-8f8d-9d4ddb5dc6a7",
+      "status": "selected"
+    },
+    {
+      "activity_id": "6377444f-9495-4021-aaf7-10d3d38032f4",
+      "status": "selected"
+    },
+    {
+      "activity_id": "64218f8c-0fd9-4029-80b9-181948c3e701",
+      "status": "selected"
+    },
+    {
+      "activity_id": "68ae2391-4d3f-4e13-b639-3fb8766b23a2",
+      "status": "selected"
+    },
+    {
+      "activity_id": "68df5b32-59a5-49f7-af6c-8a691bf08f82",
+      "status": "selected"
+    },
+    {
+      "activity_id": "6d231704-c6a5-449a-8329-827e75ececa5",
+      "status": "selected"
+    },
+    {
+      "activity_id": "6d419856-ec4c-478e-ba20-3fc79d31cd6b",
+      "status": "selected"
+    },
+    {
+      "activity_id": "6f93eccb-7093-4af0-9dd7-c3eafbdce53a",
+      "status": "selected"
+    },
+    {
+      "activity_id": "702235b1-d42d-44cb-b436-ec9268b7c4d8",
+      "status": "selected"
+    },
+    {
+      "activity_id": "70309cdb-41a2-49ac-a213-44339dd7866a",
+      "status": "selected"
+    },
+    {
+      "activity_id": "72764fed-a219-468d-beaa-947ba323b445",
+      "status": "selection-download-failed",
+      "reason": "The chosen candidate could not be copied to activity storage; the Codex review was logged for retry without another vision review."
+    },
+    {
+      "activity_id": "741ba17c-b180-4ef2-9a78-e71fecc40a9c",
+      "status": "selected"
+    },
+    {
+      "activity_id": "74a001f3-e34c-4dd0-a7b2-5cb0f5cdd7d0",
+      "status": "no-high-confidence-candidate"
+    },
+    {
+      "activity_id": "756450d5-371e-4d0c-8e9b-2787f38c95a6",
+      "status": "selected"
+    },
+    {
+      "activity_id": "77fb6c91-da6c-4c5b-b39e-2a9653ff4c40",
+      "status": "selected"
+    },
+    {
+      "activity_id": "78e6c839-165f-41cd-8c90-ce05e557e127",
+      "status": "selected"
+    },
+    {
+      "activity_id": "7ad6202f-8b3d-4eb7-ae32-d3f38a4323cc",
+      "status": "selected"
+    },
+    {
+      "activity_id": "7b1f0b12-ff59-4e51-a457-be13e659b08d",
+      "status": "selected"
+    },
+    {
+      "activity_id": "7b81792c-c115-45da-a8ec-34afa4552a86",
+      "status": "selected"
+    },
+    {
+      "activity_id": "7cf3210b-53b7-43cd-8e00-0ab42920ea68",
+      "status": "selected"
+    },
+    {
+      "activity_id": "8530e6c8-ca63-4f7b-b84c-46d497b45152",
+      "status": "no-high-confidence-candidate"
+    },
+    {
+      "activity_id": "88068dd1-39bb-4deb-a1c1-5d5b0daf48be",
+      "status": "selected"
+    },
+    {
+      "activity_id": "98993f79-f796-4354-85e9-f6b019305c49",
+      "status": "selected"
+    },
+    {
+      "activity_id": "9b111b42-b95f-4ca1-8fe5-93358332e754",
+      "status": "selected"
+    },
+    {
+      "activity_id": "9ecb296d-6d76-4dc6-9dc8-3f9dd0266f6a",
+      "status": "selected"
+    },
+    {
+      "activity_id": "9f553c87-dd6f-4782-8451-5540c99c2e6f",
+      "status": "selected"
+    },
+    {
+      "activity_id": "a06175ba-3791-4196-ad1e-a8363355937e",
+      "status": "selected"
+    },
+    {
+      "activity_id": "a2e36f3f-2216-4e38-8e70-5a6147041567",
+      "status": "selected"
+    },
+    {
+      "activity_id": "ab150f98-c4f2-4d81-939f-b330c38c157a",
+      "status": "selected"
+    },
+    {
+      "activity_id": "b33c38d7-5fdc-476f-8024-c87b2f6c1435",
+      "status": "selected"
+    },
+    {
+      "activity_id": "b43b6bcf-2441-448e-ad39-aabcfffe0c80",
+      "status": "selected"
+    },
+    {
+      "activity_id": "bf14050b-732b-4a70-884f-0e1d7c0a4796",
+      "status": "selected"
+    },
+    {
+      "activity_id": "c2964e32-2371-4e9a-8593-04c31fb53302",
+      "status": "selected"
+    },
+    {
+      "activity_id": "c2ac298a-db33-4f35-811e-ab8a56f52459",
+      "status": "selected"
+    },
+    {
+      "activity_id": "c554a4e9-970a-47a3-883e-2379d9300ebe",
+      "status": "selected"
+    },
+    {
+      "activity_id": "cac16c62-a8cb-47b8-bb48-91e6bbce1959",
+      "status": "selected"
+    },
+    {
+      "activity_id": "d1a11e86-a670-466d-8f8e-084a71cbe20d",
+      "status": "selected"
+    },
+    {
+      "activity_id": "d248f4da-0e02-40a0-a9cf-fb2fd5d79743",
+      "status": "selected"
+    },
+    {
+      "activity_id": "d3822b9f-b888-4f31-affb-80ed72d82918",
+      "status": "selected"
+    },
+    {
+      "activity_id": "d8e6edd5-abe6-44d0-9322-21d7d6fe7cf5",
+      "status": "selected"
+    },
+    {
+      "activity_id": "d9e2a635-c4da-434d-b4b2-f0d2334f7457",
+      "status": "selected"
+    },
+    {
+      "activity_id": "db929881-3a95-4573-addd-2aa2e0fbd448",
+      "status": "selected"
+    },
+    {
+      "activity_id": "ed375343-a5b1-463f-9ff0-84e7179a24aa",
+      "status": "selected"
+    },
+    {
+      "activity_id": "ed823d5e-ad61-4e50-89d4-4d608bb4f582",
+      "status": "selected"
+    },
+    {
+      "activity_id": "ee744ebc-cae8-4bba-bbdb-54c4e34331fa",
+      "status": "selected"
+    },
+    {
+      "activity_id": "ef15fe81-e8df-40f2-ab2b-0a2cd39659b5",
+      "status": "selected"
+    },
+    {
+      "activity_id": "f2f907a3-50dc-406e-9eb6-19f8c1d1e147",
+      "status": "selected"
+    },
+    {
+      "activity_id": "f409af26-789d-4553-9d4c-16e959e07247",
+      "status": "selected"
+    },
+    {
+      "activity_id": "f7598b22-2665-406c-abbe-9e115ecfd780",
+      "status": "selected"
+    },
+    {
+      "activity_id": "f789bcb4-378b-4f60-8f15-55292be8bff2",
+      "status": "selected"
+    },
+    {
+      "activity_id": "f9406054-1fea-40fd-8d89-43a7d351029d",
+      "status": "selected"
+    },
+    {
+      "activity_id": "f9edffd8-c02a-453b-a64f-ad570a18947f",
+      "status": "selected"
+    },
+    {
+      "activity_id": "fc4876f8-85f3-49f6-ac50-db10204989e0",
+      "status": "selected"
+    },
+    {
+      "activity_id": "fe099f33-f32e-4c7b-9acf-41e215883f94",
+      "status": "selected"
+    },
+    {
+      "activity_id": "fee3094d-e87d-465c-9155-b9b8f84af735",
+      "status": "no-high-confidence-candidate"
+    }
+  ],
+  "summary": {
+    "selected": 68,
+    "rejected": 21,
+    "failed": 0,
+    "pending": 0
+  },
+  "rows": [
+    {
+      "activity_id": "23d84f22-b520-4028-96ea-a497b214e245",
+      "activity_name": "Breastfeeding Peer Support Session Park Lane Drop in",
+      "candidates_fetched_at": "2026-09-12 21:22:34.949+00",
+      "status": "rejected",
+      "reason": "SerpAPI discovery completed but returned no image candidates.",
+      "candidate_count": 0
+    },
+    {
+      "activity_id": "40155e2f-e86d-4739-841d-de183faf5d02",
+      "activity_name": "Building potty toilet confidence workshop",
+      "candidates_fetched_at": "2026-09-12 21:23:25.895+00",
+      "status": "rejected",
+      "reason": "SerpAPI discovery completed but returned no image candidates.",
+      "candidate_count": 0
+    },
+    {
+      "activity_id": "40e715f3-ebc5-4f22-9164-4af14c3036d8",
+      "activity_name": "Bring Your Own Baby Comedy Crystal Palace daytime comedy club for parents",
+      "candidates_fetched_at": "2026-09-12 21:23:20.902+00",
+      "status": "rejected",
+      "reason": "SerpAPI discovery completed but returned no image candidates.",
+      "candidate_count": 0
+    },
+    {
+      "activity_id": "44d2e0e8-816b-494e-9bf0-2b640aa6b335",
+      "activity_name": "Starting Solids Workshop at Best Start Family Hub Queens Road",
+      "candidates_fetched_at": "2026-09-12 21:23:25.907+00",
+      "status": "rejected",
+      "reason": "SerpAPI discovery completed but returned no image candidates.",
+      "candidate_count": 0
+    },
+    {
+      "activity_id": "48396729-7daa-4035-ba82-d1f89db3e528",
+      "activity_name": "Building potty toilet confidence workshop at Best Start Family Hub Walthamstow",
+      "candidates_fetched_at": "2026-09-12 21:23:27.719+00",
+      "status": "rejected",
+      "reason": "SerpAPI discovery completed but returned no image candidates.",
+      "candidate_count": 0
+    },
+    {
+      "activity_id": "7577efa3-1594-4755-90fc-ea5a703c826e",
+      "activity_name": "Supa Dupa Fly Family Rave UNDR W10",
+      "candidates_fetched_at": "2026-09-12 21:24:35.091+00",
+      "status": "rejected",
+      "reason": "SerpAPI discovery completed but returned no image candidates.",
+      "candidate_count": 0
+    },
+    {
+      "activity_id": "980d194e-6ec2-4915-9408-bcfcf48b08e7",
+      "activity_name": "Breastfeeding Peer Support Session Welbourne Drop in",
+      "candidates_fetched_at": "2026-09-12 21:25:15.194+00",
+      "status": "rejected",
+      "reason": "SerpAPI discovery completed but returned no image candidates.",
+      "candidate_count": 0
+    },
+    {
+      "activity_id": "9fa2c12c-95f4-4b08-8f86-771cb3cb3f7e",
+      "activity_name": "Story and Rhyme Time Hale End Library",
+      "candidates_fetched_at": "2026-09-12 21:25:41.821+00",
+      "status": "rejected",
+      "reason": "SerpAPI discovery completed but returned no image candidates.",
+      "candidate_count": 0
+    },
+    {
+      "activity_id": "af6685f8-1cdb-4c6f-8982-b3faa32bb81c",
+      "activity_name": "Bring Your Own Baby Comedy West Norwood daytime comedy club for parents",
+      "candidates_fetched_at": "2026-09-12 21:25:56.594+00",
+      "status": "rejected",
+      "reason": "SerpAPI discovery completed but returned no image candidates.",
+      "candidate_count": 0
+    },
+    {
+      "activity_id": "b874096c-b984-4eae-abb8-4f2dd86abcac",
+      "activity_name": "Breastfeeding Peer Support Session Wood Green Drop in",
+      "candidates_fetched_at": "2026-09-12 21:26:03.789+00",
+      "status": "rejected",
+      "reason": "SerpAPI discovery completed but returned no image candidates.",
+      "candidate_count": 0
+    },
+    {
+      "activity_id": "decd0f6a-0bdb-471f-9717-fe88e0e9fdd9",
+      "activity_name": "Haringey Infant Feeding Peer Support Muswell Hill Wednesdays 1 50 pm",
+      "candidates_fetched_at": "2026-09-12 21:27:12.598+00",
+      "status": "rejected",
+      "reason": "SerpAPI discovery completed but returned no image candidates.",
+      "candidate_count": 0
+    },
+    {
+      "activity_id": "e4f1d113-d80f-4b6a-9bb2-c8bffa2d8b76",
+      "activity_name": "Flotsam",
+      "candidates_fetched_at": "2026-09-12 21:27:20.567+00",
+      "status": "rejected",
+      "reason": "SerpAPI discovery completed but returned no image candidates.",
+      "candidate_count": 0
+    },
+    {
+      "activity_id": "e6d111ca-00c4-4f58-8f18-0617ce4dfccf",
+      "activity_name": "Free Stay and Play Time Hale End Library",
+      "candidates_fetched_at": "2026-09-12 21:27:13.86+00",
+      "status": "rejected",
+      "reason": "SerpAPI discovery completed but returned no image candidates.",
+      "candidate_count": 0
+    },
+    {
+      "activity_id": "e9efce00-efce-44b4-b336-b30ac20990dc",
+      "activity_name": "East Dulwich Bach to Baby Half Term Family Concert",
+      "candidates_fetched_at": "2026-09-12 21:27:14.374+00",
+      "status": "rejected",
+      "reason": "SerpAPI discovery completed but returned no image candidates.",
+      "candidate_count": 0
+    },
+    {
+      "activity_id": "eb24ed07-f02c-4db1-98eb-8e34edc58c6d",
+      "activity_name": "Homerton Vaccination Clinic Drop in at Best Start Family Hub Queens Road",
+      "candidates_fetched_at": "2026-09-12 21:27:37.604+00",
+      "status": "rejected",
+      "reason": "SerpAPI discovery completed but returned no image candidates.",
+      "candidate_count": 0
+    },
+    {
+      "activity_id": "2419943f-a748-4e07-9272-a40849957d29",
+      "activity_name": "Infant feeding group session at Best Start Family Hub Walthamstow",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, useful card framing, best learned google images source.",
+      "confidence": 0.7701
+    },
+    {
+      "activity_id": "25887570-5aed-4b91-bd99-90c950e3c64e",
+      "activity_name": "Starting Solids Workshop at Leytonstone Library",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, useful card framing, best learned google images source.",
+      "confidence": 0.6651
+    },
+    {
+      "activity_id": "269342be-46d0-4775-ab11-5480c323f6e2",
+      "activity_name": "Greenwich Bach to Baby Christmas Family Concert",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.8143
+    },
+    {
+      "activity_id": "27233d42-baf6-4065-9011-59e366786e42",
+      "activity_name": "Exploring foods at Best Start Family Hub Chingford",
+      "status": "selected",
+      "candidate_index": 3,
+      "reason": "Learned from 413 ground-truth listings; best learned google images source.",
+      "confidence": 0.7862
+    },
+    {
+      "activity_id": "2c68e4a3-da04-42a0-ba57-32b92e3d2223",
+      "activity_name": "Victoria and Pimlico Bach to Baby Christmas Family Concert",
+      "status": "selected",
+      "candidate_index": 1,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.7979
+    },
+    {
+      "activity_id": "2f711320-1440-474a-ad48-c8e5a1cfac81",
+      "activity_name": "Rhyme Time Leyton Library",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; strong name match, useful card framing, best learned google images source.",
+      "confidence": 0.7767
+    },
+    {
+      "activity_id": "37e7c567-7a2f-41cd-8ea0-1b5df7168fe9",
+      "activity_name": "Stay and Play Leyton Library",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; strong name match, useful card framing, best learned google images source.",
+      "confidence": 0.6838
+    },
+    {
+      "activity_id": "38df8014-d8f4-4a9a-823f-72ce130fa800",
+      "activity_name": "Initial Sleep Consultation at Best Start Family Hub Walthamstow",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, useful card framing, best learned google images source.",
+      "confidence": 0.8064
+    },
+    {
+      "activity_id": "3913918c-bc9e-4d33-9d9a-06d0acc640dd",
+      "activity_name": "Notting Hill Bach to Baby New Year s Family Concert",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.8154
+    },
+    {
+      "activity_id": "3dbd551c-31e6-42af-82f5-f8e41e1a34ef",
+      "activity_name": "Building potty toilet confidence workshop at Seddon Centre",
+      "status": "rejected",
+      "reason": "No stored candidate passed the logo, icon, Wikimedia, and minimum-resolution policy."
+    },
+    {
+      "activity_id": "3e63b70f-3b62-47a0-8832-73d5b61b4ab0",
+      "activity_name": "Raver Tots Halloween Party Milton Keynes",
+      "status": "selected",
+      "candidate_index": 1,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, location match, best learned google images source.",
+      "confidence": 0.6747
+    },
+    {
+      "activity_id": "4416246d-09d4-44ef-afd0-a4f05458b021",
+      "activity_name": "Dulwich Village Bach to Baby Half Term Family Concert",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.7929
+    },
+    {
+      "activity_id": "464949f7-fdfa-4310-8ecf-d9086e66e6e0",
+      "activity_name": "Raver Tots Barnstaple",
+      "status": "selected",
+      "candidate_index": 1,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.6747
+    },
+    {
+      "activity_id": "4847f38a-e267-4d5f-a569-70645b6f2f09",
+      "activity_name": "West Hampstead Bach to Baby Family Concert",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; strong name match, best learned google images source.",
+      "confidence": 0.72
+    },
+    {
+      "activity_id": "4b878771-a268-4f66-a0be-86189a6c1c5d",
+      "activity_name": "Eating well at Best Start Family Hub Walthamstow",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, useful card framing, best learned google images source.",
+      "confidence": 0.8351
+    },
+    {
+      "activity_id": "4c5c6f79-f122-4648-85f4-450c974dccab",
+      "activity_name": "Infant Feeding Support Walk and Talk",
+      "status": "rejected",
+      "reason": "No stored candidate passed the logo, icon, Wikimedia, and minimum-resolution policy."
+    },
+    {
+      "activity_id": "4d997a19-9a84-4754-bb2f-68f6ac086814",
+      "activity_name": "BigFishLittleFish HACKNEY Halloween Spooktacular Family Rave 31st Oct 1 3pm",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, useful card framing, best learned google images source.",
+      "confidence": 0.7929
+    },
+    {
+      "activity_id": "53b88a8c-2093-47fe-bea3-0c427eb076d7",
+      "activity_name": "Clapham and Battersea Bach to Baby New Year s Family Concert",
+      "status": "selected",
+      "candidate_index": 1,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.7156
+    },
+    {
+      "activity_id": "55d11713-d3ea-4aaa-8d1e-d45b7bd012c0",
+      "activity_name": "Exploring foods at Seddon Centre",
+      "status": "rejected",
+      "reason": "No stored candidate passed the logo, icon, Wikimedia, and minimum-resolution policy."
+    },
+    {
+      "activity_id": "5dc1dcf1-937d-473e-8f8d-9d4ddb5dc6a7",
+      "activity_name": "Balham Bach to Baby New Year s Family Concert",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.8269
+    },
+    {
+      "activity_id": "6377444f-9495-4021-aaf7-10d3d38032f4",
+      "activity_name": "Room on the Broom",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; strong name match, useful card framing, best learned google images source.",
+      "confidence": 0.7807
+    },
+    {
+      "activity_id": "64218f8c-0fd9-4029-80b9-181948c3e701",
+      "activity_name": "Initial Sleep Consultation at Best Start Family Hub Leytonstone",
+      "status": "selected",
+      "candidate_index": 1,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, useful card framing, best learned google images source.",
+      "confidence": 0.6783
+    },
+    {
+      "activity_id": "68ae2391-4d3f-4e13-b639-3fb8766b23a2",
+      "activity_name": "HENRY Healthy Families Right from the Start Group Programme Queens Road",
+      "status": "selected",
+      "candidate_index": 18,
+      "reason": "Learned from 413 ground-truth listings; useful card framing, conflicting source metadata lowered confidence, best learned google images source.",
+      "confidence": 0.5345
+    },
+    {
+      "activity_id": "68df5b32-59a5-49f7-af6c-8a691bf08f82",
+      "activity_name": "Eating well at Best Start Family Hub Queens Road",
+      "status": "selected",
+      "candidate_index": 12,
+      "reason": "Learned from 413 ground-truth listings; conflicting source metadata lowered confidence, best learned google images source.",
+      "confidence": 0.5345
+    },
+    {
+      "activity_id": "6d231704-c6a5-449a-8329-827e75ececa5",
+      "activity_name": "Learning together Pre school at Best start Family Hub Walthamstow",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, useful card framing, best learned google images source.",
+      "confidence": 0.7638
+    },
+    {
+      "activity_id": "6d419856-ec4c-478e-ba20-3fc79d31cd6b",
+      "activity_name": "The Bear That Wasn t",
+      "status": "selected",
+      "candidate_index": 4,
+      "reason": "Learned from 413 ground-truth listings; best learned google images source.",
+      "confidence": 0.704
+    },
+    {
+      "activity_id": "6f93eccb-7093-4af0-9dd7-c3eafbdce53a",
+      "activity_name": "Walthamstow Bach to Baby New Year s Family Concert",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; strong name match, best learned google images source.",
+      "confidence": 0.7807
+    },
+    {
+      "activity_id": "702235b1-d42d-44cb-b436-ec9268b7c4d8",
+      "activity_name": "Early Stay and Play at Walthamstow Library",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; strong name match, useful card framing, best learned google images source.",
+      "confidence": 0.7929
+    },
+    {
+      "activity_id": "70309cdb-41a2-49ac-a213-44339dd7866a",
+      "activity_name": "Sydenham Bach to Baby Christmas Family Concert",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.8136
+    },
+    {
+      "activity_id": "72764fed-a219-468d-beaa-947ba323b445",
+      "activity_name": "Breastfeeding Peer Support Session Triangle Drop in",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.8357
+    },
+    {
+      "activity_id": "741ba17c-b180-4ef2-9a78-e71fecc40a9c",
+      "activity_name": "Islington Angel Bach to Baby New Year s Family Concert",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.8267
+    },
+    {
+      "activity_id": "74a001f3-e34c-4dd0-a7b2-5cb0f5cdd7d0",
+      "activity_name": "Waiting For Texto",
+      "status": "rejected",
+      "reason": "No stored candidate passed the logo, icon, Wikimedia, and minimum-resolution policy."
+    },
+    {
+      "activity_id": "756450d5-371e-4d0c-8e9b-2787f38c95a6",
+      "activity_name": "Blackheath Bach to Baby Christmas Family Concert",
+      "status": "selected",
+      "candidate_index": 1,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.7
+    },
+    {
+      "activity_id": "77fb6c91-da6c-4c5b-b39e-2a9653ff4c40",
+      "activity_name": "A Message to the Future",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, useful card framing, best learned google images source.",
+      "confidence": 0.7701
+    },
+    {
+      "activity_id": "78e6c839-165f-41cd-8c90-ce05e557e127",
+      "activity_name": "West Hampstead Bach to Baby Christmas Family Concert",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; strong name match, best learned google images source.",
+      "confidence": 0.7385
+    },
+    {
+      "activity_id": "7ad6202f-8b3d-4eb7-ae32-d3f38a4323cc",
+      "activity_name": "Dulwich Village Bach to Baby Family Concert",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.8139
+    },
+    {
+      "activity_id": "7b1f0b12-ff59-4e51-a457-be13e659b08d",
+      "activity_name": "Baby Massage at Best Start Family Hub Leytonstone",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, useful card framing, best learned google images source.",
+      "confidence": 0.7701
+    },
+    {
+      "activity_id": "7b81792c-c115-45da-a8ec-34afa4552a86",
+      "activity_name": "London Bridge and Borough Bach to Baby New Year s Family Concert",
+      "status": "selected",
+      "candidate_index": 1,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.7156
+    },
+    {
+      "activity_id": "7cf3210b-53b7-43cd-8e00-0ab42920ea68",
+      "activity_name": "Balham Bach to Baby Half Term Family Concert",
+      "status": "selected",
+      "candidate_index": 1,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.7149
+    },
+    {
+      "activity_id": "8530e6c8-ca63-4f7b-b84c-46d497b45152",
+      "activity_name": "Family Halloween Stories from the Enchanted Garden",
+      "status": "rejected",
+      "reason": "No stored candidate passed the logo, icon, Wikimedia, and minimum-resolution policy."
+    },
+    {
+      "activity_id": "88068dd1-39bb-4deb-a1c1-5d5b0daf48be",
+      "activity_name": "Play and learn for under 2s at Best Start Family Hub Leytonstone",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, useful card framing, best learned google images source.",
+      "confidence": 0.6688
+    },
+    {
+      "activity_id": "98993f79-f796-4354-85e9-f6b019305c49",
+      "activity_name": "Victoria and Pimlico Bach to Baby New Year s Family Concert",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.828
+    },
+    {
+      "activity_id": "9b111b42-b95f-4ca1-8fe5-93358332e754",
+      "activity_name": "Bring Your Own Baby Comedy Greenwich daytime comedy club for parents",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.7764
+    },
+    {
+      "activity_id": "9ecb296d-6d76-4dc6-9dc8-3f9dd0266f6a",
+      "activity_name": "SENDsory Group at Brookhill Children's Centre",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; strong name match, useful card framing, best learned google images source.",
+      "confidence": 0.7687
+    },
+    {
+      "activity_id": "9f553c87-dd6f-4782-8451-5540c99c2e6f",
+      "activity_name": "Breastfeeding Peer Support Session Woodlands Drop in",
+      "status": "selected",
+      "candidate_index": 17,
+      "reason": "Learned from 413 ground-truth listings; useful card framing, conflicting source metadata lowered confidence, best learned google images source.",
+      "confidence": 0.4038
+    },
+    {
+      "activity_id": "a06175ba-3791-4196-ad1e-a8363355937e",
+      "activity_name": "A Tale of Us",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, useful card framing, best learned google images source.",
+      "confidence": 0.7701
+    },
+    {
+      "activity_id": "a2e36f3f-2216-4e38-8e70-5a6147041567",
+      "activity_name": "Peppa Pig's Big Family Show",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; strong name match, useful card framing, best learned google images source.",
+      "confidence": 0.7674
+    },
+    {
+      "activity_id": "ab150f98-c4f2-4d81-939f-b330c38c157a",
+      "activity_name": "Infant Feeding Support Appointments at Wood Street Library",
+      "status": "selected",
+      "candidate_index": 1,
+      "reason": "Learned from 413 ground-truth listings; official listing source, useful card framing, best learned google images source.",
+      "confidence": 0.657
+    },
+    {
+      "activity_id": "b33c38d7-5fdc-476f-8024-c87b2f6c1435",
+      "activity_name": "Balham Bach to Baby Christmas Family Concert",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.8252
+    },
+    {
+      "activity_id": "b43b6bcf-2441-448e-ad39-aabcfffe0c80",
+      "activity_name": "Greenwich Bach to Baby Family Concert",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.8158
+    },
+    {
+      "activity_id": "bf14050b-732b-4a70-884f-0e1d7c0a4796",
+      "activity_name": "East Dulwich Bach to Baby Christmas Family Concert",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; strong name match, best learned google images source.",
+      "confidence": 0.7385
+    },
+    {
+      "activity_id": "c2964e32-2371-4e9a-8593-04c31fb53302",
+      "activity_name": "Eating Well at Best Start Family Hub Chingford",
+      "status": "selected",
+      "candidate_index": 1,
+      "reason": "Learned from 413 ground-truth listings; official listing source, useful card framing, best learned google images source.",
+      "confidence": 0.8177
+    },
+    {
+      "activity_id": "c2ac298a-db33-4f35-811e-ab8a56f52459",
+      "activity_name": "Islington Angel Bach to Baby Half Term Family Concert",
+      "status": "selected",
+      "candidate_index": 1,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.7022
+    },
+    {
+      "activity_id": "c554a4e9-970a-47a3-883e-2379d9300ebe",
+      "activity_name": "Raver Tots Croydon",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, location match, best learned google images source.",
+      "confidence": 0.8108
+    },
+    {
+      "activity_id": "cac16c62-a8cb-47b8-bb48-91e6bbce1959",
+      "activity_name": "Baby Massage at Best Start Family Hub Walthamstow",
+      "status": "selected",
+      "candidate_index": 18,
+      "reason": "Learned from 413 ground-truth listings; high reported resolution, useful card framing, conflicting source metadata lowered confidence, best learned google images source.",
+      "confidence": 0.5345
+    },
+    {
+      "activity_id": "d1a11e86-a670-466d-8f8e-084a71cbe20d",
+      "activity_name": "Raver Tots Halloween Party Birmingham",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.7701
+    },
+    {
+      "activity_id": "d248f4da-0e02-40a0-a9cf-fb2fd5d79743",
+      "activity_name": "Raver Tots Halloween Party Maidstone",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; strong name match, location match, best learned google images source.",
+      "confidence": 0.6684
+    },
+    {
+      "activity_id": "d3822b9f-b888-4f31-affb-80ed72d82918",
+      "activity_name": "Blackheath Bach to Baby Half Term Family Concert",
+      "status": "selected",
+      "candidate_index": 1,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.7049
+    },
+    {
+      "activity_id": "d8e6edd5-abe6-44d0-9322-21d7d6fe7cf5",
+      "activity_name": "Highgate Village Bach to Baby Christmas Family Concert",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.8128
+    },
+    {
+      "activity_id": "d9e2a635-c4da-434d-b4b2-f0d2334f7457",
+      "activity_name": "Highgate Wood Bach to Baby Christmas Family Concert",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.8143
+    },
+    {
+      "activity_id": "db929881-3a95-4573-addd-2aa2e0fbd448",
+      "activity_name": "Islington Angel Bach to Baby Christmas Family Concert",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.8249
+    },
+    {
+      "activity_id": "ed375343-a5b1-463f-9ff0-84e7179a24aa",
+      "activity_name": "Big Fish Little Fish Family Rave LEWISHAM DJ Mr Switch Sun 20 Sept 2 4pm",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.8061
+    },
+    {
+      "activity_id": "ed823d5e-ad61-4e50-89d4-4d608bb4f582",
+      "activity_name": "Ealing Bach to Baby Family Concert",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; strong name match, best learned google images source.",
+      "confidence": 0.7929
+    },
+    {
+      "activity_id": "ee744ebc-cae8-4bba-bbdb-54c4e34331fa",
+      "activity_name": "Baby feeding group at Walthamstow Library",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, useful card framing, best learned google images source.",
+      "confidence": 0.7701
+    },
+    {
+      "activity_id": "ef15fe81-e8df-40f2-ab2b-0a2cd39659b5",
+      "activity_name": "Dad s Stay and Play",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; strong name match, useful card framing, best learned google images source.",
+      "confidence": 0.6688
+    },
+    {
+      "activity_id": "f2f907a3-50dc-406e-9eb6-19f8c1d1e147",
+      "activity_name": "Raver Tots Halloween Party Camberley",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, location match, best learned google images source.",
+      "confidence": 0.7807
+    },
+    {
+      "activity_id": "f409af26-789d-4553-9d4c-16e959e07247",
+      "activity_name": "Islington Highbury Bach to Baby Christmas Family Concert",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.7929
+    },
+    {
+      "activity_id": "f7598b22-2665-406c-abbe-9e115ecfd780",
+      "activity_name": "Mat Leave Identity and What Comes Next",
+      "status": "selected",
+      "candidate_index": 15,
+      "reason": "Learned from 413 ground-truth listings; best learned google images source.",
+      "confidence": 0.6858
+    },
+    {
+      "activity_id": "f789bcb4-378b-4f60-8f15-55292be8bff2",
+      "activity_name": "Stories and Rhyme North Chingford Library",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; strong name match, useful card framing, best learned google images source.",
+      "confidence": 0.6688
+    },
+    {
+      "activity_id": "f9406054-1fea-40fd-8d89-43a7d351029d",
+      "activity_name": "Baby Massage at Seddon Centre",
+      "status": "selected",
+      "candidate_index": 14,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, useful card framing, best learned google images source.",
+      "confidence": 0.7929
+    },
+    {
+      "activity_id": "f9edffd8-c02a-453b-a64f-ad570a18947f",
+      "activity_name": "Walthamstow Bach to Baby Christmas Family Concert",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; strong name match, best learned google images source.",
+      "confidence": 0.7807
+    },
+    {
+      "activity_id": "fc4876f8-85f3-49f6-ac50-db10204989e0",
+      "activity_name": "Victoria Park Bach to Baby Christmas Family Concert",
+      "status": "selected",
+      "candidate_index": 1,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.7123
+    },
+    {
+      "activity_id": "fe099f33-f32e-4c7b-9acf-41e215883f94",
+      "activity_name": "Greenwich Bach to Baby New Year s Family Concert",
+      "status": "selected",
+      "candidate_index": 0,
+      "reason": "Learned from 413 ground-truth listings; official listing source, strong name match, best learned google images source.",
+      "confidence": 0.8063
+    },
+    {
+      "activity_id": "fee3094d-e87d-465c-9155-b9b8f84af735",
+      "activity_name": "Baby Massage at Best Start Family Hub Chingford",
+      "status": "rejected",
+      "reason": "No stored candidate passed the logo, icon, Wikimedia, and minimum-resolution policy."
+    }
+  ]
+}

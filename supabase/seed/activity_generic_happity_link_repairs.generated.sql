@@ -1,13 +1,34 @@
 with detail_links (activity_id, detail_url) as (
   values
-    ('8307371a-99b3-45a8-b0df-07f86d2d81f7'::uuid, 'https://www.happity.co.uk/schedules/mums-art-club-london-the-quaker-meeting-house-mums-art-club'::text),
     ('32fbc3d0-59ed-4860-baec-bd8a4c4f3289'::uuid, 'https://www.happity.co.uk/schedules/wee-movers-london-good-shepherd-studios-baby-dance-by-wee-movers'::text),
-    ('02c0e686-a0b5-402e-94d7-5fb6eed1e07d'::uuid, 'https://www.happity.co.uk/schedules/monkey-music-london-st-mary-s-church-rock-n-roll-wednesdays-11-30-12-00'::text),
-    ('0d8c0d48-f0d0-4f5d-971f-1f177c8d52da'::uuid, 'https://www.happity.co.uk/schedules/monkey-music-london-st-mary-s-church-rock-n-roll'::text),
+    ('ad17374a-9492-464d-ba3b-073f55862e14'::uuid, 'https://www.happity.co.uk/schedules/lisa-gilbert-academy-of-ballet-and-performing-arts-london-oxford-house-bethnal-green-pre-school-acro-gymnastics'::text),
     ('02b81d99-5488-42e3-a191-21498db9896f'::uuid, 'https://www.happity.co.uk/schedules/music-tree-london-music-tree-first-steps-in-music-18-36-thursdays-10-15-11-00'::text),
-    ('cc1cfc66-86cd-4066-9da0-ac1f602f5d4e'::uuid, 'https://www.happity.co.uk/schedules/singing-mamas-london-cornerstone-cafe-london-singing-mamas-newham'::text),
+    ('13e5721b-0be3-4d4b-a456-06d66f5a9942'::uuid, 'https://www.happity.co.uk/schedules/walthamstow-toy-library-and-play-centre-london-walthamstow-toy-library-sensory-room-session'::text),
+    ('452013e8-8a4b-4687-b05b-caf05779f8cc'::uuid, 'https://www.happity.co.uk/schedules/tumble-tots-wanstead-wanstead-house-community-association-2-3-year-olds'::text),
     ('65558959-03aa-4a9c-8328-cfd8ab335e59'::uuid, 'https://www.happity.co.uk/schedules/tta-london-n7-9dp-leaves-colours-nature-painting-workshop-tuesdays-10-00-11-00'::text),
-    ('452013e8-8a4b-4687-b05b-caf05779f8cc'::uuid, 'https://www.happity.co.uk/schedules/tumble-tots-wanstead-wanstead-house-community-association-2-3-year-olds'::text)
+    ('c27c9b2a-7940-4983-a59e-f10af63fb677'::uuid, 'https://www.happity.co.uk/schedules/mini-mozart-london-st-mary-s-church-mini-mozart-baby-class'::text),
+    ('d392d154-e4c4-44a0-b994-9c0b50d09fc1'::uuid, 'https://www.happity.co.uk/schedules/bongalong-highams-park-highams-park-baptist-church-bongalong-under-fives-trial-session'::text),
+    ('de8d2237-fb53-40ac-aa83-9e1f0262a09b'::uuid, 'https://www.happity.co.uk/schedules/little-movers-gym-london-gracepoint-little-movers-gym-wednesdays-09-30-10-30'::text),
+    ('dfb9f029-c89e-4900-929b-f62bda381651'::uuid, 'https://www.happity.co.uk/schedules/juniorstrikers-ltd-london-victoria-park-baby-strikers-football-18mths-2-5yrs-tuesdays-09-40-10-10-juniorstrikers-ltd-london-victoria-park-baby-strikers-football-18mths-2-5yrs-tuesdays-09-40-10-10-2-2'::text),
+    ('e7e6c03c-bd10-4818-8e9f-d0d6f40eb3c6'::uuid, 'https://www.happity.co.uk/schedules/kids-at-play-london-the-ramsay-scout-centre-sense-stories-by-kids-at-play'::text),
+    ('f3180475-3bc7-4956-8dc6-fcad8b6c34cb'::uuid, 'https://www.happity.co.uk/schedules/flying-sycamores-forest-school-london-good-shepherd-studios-forest-school-sessions-good-shepherd-studios'::text),
+    ('61a3f298-2bbc-4215-9fcd-91f4eb84c4cf'::uuid, 'https://www.happity.co.uk/schedules/little-boo-stories-london-christ-church-highbury-mini-boo-sensory-theatre'::text),
+    ('938a5260-c338-4ef7-bcb1-3f830404d2cb'::uuid, 'https://www.happity.co.uk/schedules/music-tree-london-music-tree-first-steps-in-music-0-36-wednesdays-11-00-11-45-music-tree-london-music-tree-first-steps-in-music-0-36-wednesdays-11-00-11-45-2-2'::text),
+    ('8acd47e9-b537-4370-9816-09b1fdf38164'::uuid, 'https://www.happity.co.uk/schedules/monkey-music-london-st-george-in-the-east-jiggety-jig'::text),
+    ('68ed68dd-1f24-45a6-b22b-84e27bb52276'::uuid, 'https://www.happity.co.uk/schedules/sing-and-sign-islington-st-mary-s-neighbourhood-centre-stage-1-baby-signing-music-class-6-14m-mondays-10-00-10-40'::text),
+    ('8307371a-99b3-45a8-b0df-07f86d2d81f7'::uuid, 'https://www.happity.co.uk/schedules/mums-art-club-london-the-quaker-meeting-house-mums-art-club'::text),
+    ('0d8c0d48-f0d0-4f5d-971f-1f177c8d52da'::uuid, 'https://www.happity.co.uk/schedules/monkey-music-london-st-mary-s-church-rock-n-roll'::text),
+    ('98f90426-165d-4ef5-a81f-7dcedb56fdef'::uuid, 'https://www.happity.co.uk/schedules/blossom-babies-london-poplar-union-blossom-toddler-very-active-crawlers-walkers-up-to-36-months'::text),
+    ('0c9d1cdf-c339-429b-bf3f-b0590f5036eb'::uuid, 'https://www.happity.co.uk/schedules/mother-more-london-bridgets-asl-and-chobham-manor-community-centre-baby-massage-baby-yoga-course-stage-2'::text),
+    ('7baaec93-0e58-462d-b7ff-cdb38c4d53e5'::uuid, 'https://www.happity.co.uk/schedules/tick-tock-music-london-st-stephen-s-canonbury-tick-tock-music-mondays-09-45-10-30-tick-tock-music-london-st-stephen-s-canonbury-tick-tock-music-mondays-09-45-10-30-3-3'::text),
+    ('aa673217-63f0-4a7b-a93b-66227a871b42'::uuid, 'https://www.happity.co.uk/schedules/kids-at-play-london-the-ramsay-scout-centre-0-6-months-sensory-class'::text),
+    ('84f478f6-3f88-45a4-82cb-d73e1f92261e'::uuid, 'https://www.happity.co.uk/schedules/little-movers-gym-london-gracepoint-little-movers-gym-mondays-09-30-10-30'::text),
+    ('0fe267ff-4435-4f2d-be0b-22b01d228da8'::uuid, 'https://www.happity.co.uk/schedules/thula-mama-london-yonder-studio-e17-thula-mama-singing-with-babies-wednesdays-10-00-11-00'::text),
+    ('f14cb658-364c-4eef-9c7f-be8d1d9fb8b6'::uuid, 'https://www.happity.co.uk/schedules/mother-more-leyton-pause-baby-massage-course-wednesdays-13-00-13-45-mother-more-leyton-pause-baby-massage-course-wednesdays-13-00-13-45-2-2'::text),
+    ('cc1cfc66-86cd-4066-9da0-ac1f602f5d4e'::uuid, 'https://www.happity.co.uk/schedules/singing-mamas-london-cornerstone-cafe-london-singing-mamas-newham'::text),
+    ('02c0e686-a0b5-402e-94d7-5fb6eed1e07d'::uuid, 'https://www.happity.co.uk/schedules/monkey-music-london-st-mary-s-church-rock-n-roll-wednesdays-11-30-12-00'::text),
+    ('6a958406-5d76-43a9-9992-c6b04b4da2a7'::uuid, 'https://www.happity.co.uk/schedules/the-castle-play-space-cic-london-the-castle-play-space-the-castle-stay-and-play-tuesdays-09-30-11-00-the-castle-play-space-cic-london-the-castle-play-space-the-castle-stay-and-play-tuesdays-09-30-11-00-2-2'::text),
+    ('684ff48b-09db-470f-af80-2ca967ca1962'::uuid, 'https://www.happity.co.uk/schedules/zip-zap-london-st-mary-s-church-stoke-newington-zip-zap-toddlers'::text)
 )
 update public.activities as activity
 set

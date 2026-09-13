@@ -1,19 +1,60 @@
 {
-  "generated_at": "2026-08-23T23:18:25.045Z",
-  "checked_records": 2919,
-  "archived_candidates": 1,
+  "generated_at": "2026-09-12T20:36:20.096Z",
+  "checked_records": 3185,
+  "archived_candidates": 5,
   "reasons": {
-    "Explicit greasy-spoon cafe is outside the family cafe directory": 1
+    "Antenatal classes are outside the baby and child outings directory": 1,
+    "Google Places listing is a restaurant or takeaway rather than a cafe": 4
   },
   "candidates": [
     {
-      "activity_id": "81242145-5c2a-4712-82ba-3feaf076043f",
-      "activity_name": "Workers Cafe",
-      "category": "Cafes & food",
-      "source_name": "Google Places API family cafe discovery",
-      "google_primary_type": "cafe",
+      "activity_id": "e2ac8641-91c8-4562-910e-bca537d87547",
+      "activity_name": "Antenatal Breastfeeding Support Group",
+      "category": "Movement & wellbeing",
+      "source_name": "London family hub official timetables",
+      "google_primary_type": "community_center",
       "reasons": [
-        "Explicit greasy-spoon cafe is outside the family cafe directory"
+        "Antenatal classes are outside the baby and child outings directory"
+      ]
+    },
+    {
+      "activity_id": "5f293d4f-8429-4145-b7aa-2a7d624f86fa",
+      "activity_name": "Bobo Social - Ealing Broadway",
+      "category": "Cafes & food",
+      "source_name": "Google Places baby and child friendly cafe importer",
+      "google_primary_type": "restaurant",
+      "reasons": [
+        "Google Places listing is a restaurant or takeaway rather than a cafe"
+      ]
+    },
+    {
+      "activity_id": "de343e1a-33fb-4e32-bb16-6cf79bd6645d",
+      "activity_name": "Cherry on",
+      "category": "Cafes & food",
+      "source_name": "Google Places baby and child friendly cafe importer",
+      "google_primary_type": "restaurant",
+      "reasons": [
+        "Google Places listing is a restaurant or takeaway rather than a cafe"
+      ]
+    },
+    {
+      "activity_id": "64f3fb42-aa3a-46d2-b49c-2dde5d6259fd",
+      "activity_name": "FORNO BRIXTON",
+      "category": "Cafes & food",
+      "source_name": "Google Places baby and child friendly cafe importer",
+      "google_primary_type": "pizza_restaurant",
+      "reasons": [
+        "Google Places listing is a restaurant or takeaway rather than a cafe"
+      ]
+    },
+    {
+      "activity_id": "a803ae60-bdda-4255-b98f-88c3389daa9f",
+      "activity_name": "Hotaru",
+      "category": "Cafes & food",
+      "source_name": "Google Places baby and child friendly cafe importer",
+      "google_primary_type": "japanese_restaurant",
+      "reasons": [
+        "Google Places listing is a restaurant or takeaway rather than a cafe"
       ]
     }
   ]

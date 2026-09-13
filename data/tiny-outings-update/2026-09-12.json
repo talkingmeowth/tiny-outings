@@ -1,0 +1,240 @@
+{
+  "job": "tiny-outings-update",
+  "run_date": "2026-09-12",
+  "generated_at": "2026-09-12T20:59:44.195Z",
+  "applied_to_database": false,
+  "google_places_validation": "required",
+  "manual_review": "new importer and user-submitted listings are queued as drafts for administrator review",
+  "archive_protection": "database trigger preserves archive=true and archived status",
+  "downloaded_website_images": "official website candidates are stored only after Codex vision rejects logos and low-quality images",
+  "image_candidate_review": "Each activity gets at most one claimed SerpAPI request; every returned image record and call metadata are cached, and all selectors rerun from stored candidates without another paid call",
+  "jobs": [
+    {
+      "name": "happity",
+      "status": "generated",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\supabase\\seed\\activities_happity_schedules.generated.sql",
+      "message": "Using latest generated SQL without re-importing.",
+      "applied": true
+    },
+    {
+      "name": "archive-excluded-happity-listings",
+      "status": "generated",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\supabase\\seed\\activity_happity_exclusion_archives.generated.sql",
+      "message": "Using latest generated SQL without re-importing."
+    },
+    {
+      "name": "better-start-for-life",
+      "status": "generated",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\supabase\\seed\\activities_waltham_forest_best_start_live.generated.sql",
+      "message": "Using latest generated SQL without re-importing.",
+      "applied": true
+    },
+    {
+      "name": "london-family-hubs",
+      "status": "generated",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\supabase\\seed\\activities_london_family_hub_timetables.generated.sql",
+      "message": "Using latest generated SQL without re-importing.",
+      "applied": true
+    },
+    {
+      "name": "eventbrite",
+      "status": "generated",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\supabase\\seed\\activities_eventbrite_london_baby_20260711.generated.sql",
+      "message": "Using latest generated SQL without re-importing.",
+      "applied": true
+    },
+    {
+      "name": "fever",
+      "status": "generated",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\supabase\\seed\\activities_fever_london_family_20260711.generated.sql",
+      "message": "Using latest generated SQL without re-importing.",
+      "applied": true
+    },
+    {
+      "name": "fever-availability",
+      "status": "generated",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\supabase\\seed\\fever_availability_updates.generated.sql",
+      "message": "Using latest generated SQL without re-importing.",
+      "applied": true
+    },
+    {
+      "name": "loopla",
+      "status": "generated",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\supabase\\seed\\activities_loopla_london.generated.sql",
+      "message": "Using latest generated SQL without re-importing.",
+      "applied": true
+    },
+    {
+      "name": "museums-london",
+      "status": "generated",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\supabase\\seed\\activities_museums_london.generated.sql",
+      "message": "Using latest generated SQL without re-importing.",
+      "applied": true
+    },
+    {
+      "name": "time-out-london-kids",
+      "status": "generated",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\supabase\\seed\\activities_timeout_london_kids.generated.sql",
+      "message": "Using latest generated SQL without re-importing.",
+      "applied": true
+    },
+    {
+      "name": "google-places-family",
+      "status": "generated",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\supabase\\seed\\activities_google_places_family.generated.sql",
+      "message": "Using latest generated SQL without re-importing.",
+      "applied": true
+    },
+    {
+      "name": "london-parks",
+      "status": "generated",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\supabase\\seed\\activities_london_parks_20260711.generated.sql",
+      "message": "Using latest generated SQL without re-importing.",
+      "applied": true
+    },
+    {
+      "name": "family-cafes-and-bakeries",
+      "status": "generated",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\supabase\\seed\\activities_high_rated_family_cafes_20260711.generated.sql",
+      "message": "Using latest generated SQL without re-importing.",
+      "applied": true
+    },
+    {
+      "name": "repair-generic-happity-links",
+      "status": "generated",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\supabase\\seed\\activity_generic_happity_link_repairs.generated.sql",
+      "message": "Using latest generated SQL without re-importing.",
+      "applied": true
+    },
+    {
+      "name": "verify-happity-listing-links",
+      "status": "generated",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\supabase\\seed\\activity_happity_website_link_repairs.generated.sql",
+      "message": "Using latest generated SQL without re-importing."
+    },
+    {
+      "name": "provider-websites",
+      "status": "generated",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\supabase\\seed\\activity_provider_link_updates.generated.sql",
+      "message": "Using latest generated SQL without re-importing.",
+      "applied": true
+    },
+    {
+      "name": "activity-images",
+      "status": "generated",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\supabase\\seed\\activity_image_updates.generated.sql",
+      "message": "Using latest generated SQL without re-importing.",
+      "applied": true
+    },
+    {
+      "name": "resolve-missing-locations",
+      "status": "generated",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\supabase\\seed\\activity_location_updates.generated.sql",
+      "message": "Using latest generated SQL without re-importing."
+    },
+    {
+      "name": "validate-google-places",
+      "status": "generated",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\supabase\\seed\\activity_google_places_validation.generated.sql",
+      "message": "Using latest generated SQL without re-importing.",
+      "applied": true
+    },
+    {
+      "name": "audit-websites",
+      "status": "generated",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\supabase\\seed\\activity_link_repairs.generated.sql",
+      "message": "Using latest generated SQL without re-importing.",
+      "applied": true
+    },
+    {
+      "name": "data-quality",
+      "status": "generated",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\supabase\\seed\\activity_import_quality_updates.generated.sql",
+      "message": "Using latest generated SQL without re-importing.",
+      "applied": true
+    },
+    {
+      "name": "category-audit",
+      "status": "generated",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\data\\activity_category_audit.generated.json",
+      "message": "Using latest generated SQL without re-importing."
+    },
+    {
+      "name": "family-suitability",
+      "status": "generated",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\supabase\\seed\\activity_suitability_archives.generated.sql",
+      "message": "Using latest generated SQL without re-importing.",
+      "applied": true
+    },
+    {
+      "name": "cross-source-deduplication",
+      "status": "generated",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\supabase\\seed\\activity_cross_source_duplicate_consolidation.generated.sql",
+      "message": "Using latest generated SQL without re-importing.",
+      "applied": true
+    },
+    {
+      "name": "archive-expired",
+      "status": "generated",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\supabase\\seed\\activity_expired_listing_archives.generated.sql",
+      "message": "Using latest generated SQL without re-importing.",
+      "applied": true
+    },
+    {
+      "name": "discover-website-image-candidates",
+      "status": "generated",
+      "started_at": "2026-09-12T20:45:45.288Z",
+      "finished_at": "2026-09-12T20:46:21.480Z",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\data\\activity_website_image_downloads.generated.json",
+      "message": "Website candidate batch 1: scanned 20 activities.\nWebsite candidate batch 2: scanned 20 activities.\nWebsite candidate batch 3: scanned 20 activities.\nWebsite candidate batch 4: scanned 20 activities.\nWebsite candidate batch 5: scanned 9 activities.\n{\n  \"candidates-stored\": 51,\n  \"no-candidates-found\": 38\n}\nWebsite candidate discovery audit: C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\data\\activity_website_image_downloads.generated.json"
+    },
+    {
+      "name": "prepare-codex-website-image-review-sheets",
+      "status": "generated",
+      "started_at": "2026-09-12T20:46:21.480Z",
+      "finished_at": "2026-09-12T20:48:17.764Z",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\data\\codex_website_image_shortlist.generated.json",
+      "message": "Codex website vision queue: loaded 20/51 candidate sets.\nCodex website vision queue: loaded 40/51 candidate sets.\nCodex website vision queue: loaded 51/51 candidate sets.\nShortlisted 1/51: Honeymoon Restaurant Croydon -- 1 raw, 1 finalists, 0 removed.\nShortlisted 2/51: Whitings Swimming Academy -- 10 raw, 0 finalists, 10 removed.\nShortlisted 3/51: Mah Cafe -- 27 raw, 5 finalists, 5 removed.\nShortlisted 4/51: Toddler Sense Bromley -- 10 raw, 2 finalists, 0 removed.\nShortlisted 5/51: Paddlers Swim School, Romford -- 17 raw, 3 finalists, 4 removed.\nShortlisted 6/51: Baby Sensory Croydon -- 11 raw, 2 finalists, 2 removed.\nShortlisted 7/51: Hartbeeps baby and toddler classes - Brook Green -- 8 raw, 1 finalists, 2 removed.\nShortlisted 8/51: Baby Sensory Winchmore Hill -- 11 raw, 2 finalists, 2 removed.\nShortlisted 9/51: Hartbeeps baby and toddler classes - Bayswater -- 8 raw, 1 finalists, 2 removed.\nShortlisted 10/51: The Lacy Nook -- 10 raw, 2 finalists, 6 removed.\nShortlisted 11/51: Aqua Hub -- 14 raw, 0 finalists, 12 removed.\nShortlisted 12/51: Tapri Junction (TJ) -- 12 raw, 0 finalists, 12 removed.\nShortlisted 13/51: Colfe's Leisure Centre -- 15 raw, 5 finalists, 0 removed.\nShortlisted 14/51: Toddler Sense Bexley -- 13 raw, 2 finalists, 0 removed.\nShortlisted 15/51: Angel Swim Clapham -- 22 raw, 5 finalists, 0 removed.\nShortlisted 16/51: Long Black Richmond -- 10 raw, 5 finalists, 0 removed.\nShortlisted 17/51: Happy Parents Happy Baby Antenatal Classes - Bethnal Green and Mile End -- 35 raw, 5 finalists, 1 removed.\nShortlisted 18/51: Easy swim -- 18 raw, 1 finalists, 0 removed.\nShortlisted 19/51: SEN Swim Services -- 2 raw, 0 finalists, 1 removed.\nShortlisted 20/51: The Homestead Cafe and Bar -- 15 raw, 5 finalists, 5 removed.\nShortlisted 21/51: Turner Swim - Open Water Swim Coaching -- 3 raw, 1 finalists, 2 removed.\nShortlisted 22/51: Sand Club -- 32 raw, 5 finalists, 0 removed.\nShortlisted 23/51: The Well Walk Theatre, Cafe and Bookshop -- 19 raw, 2 finalists, 10 removed.\nShortlisted 24/51: La mia Mamma Notting Hill -- 14 raw, 2 finalists, 8 removed.\nShortlisted 25/51: Baby Bonding With Sarah -- 6 raw, 5 finalists, 0 removed.\nShortlisted 26/51: Park's Kitchen Hammersmith -- 27 raw, 2 finalists, 3 removed.\nShortlisted 27/51: Croydon Workspace -- 6 raw, 2 finalists, 4 removed.\nShortlisted 28/51: Lampton Parkside Cafe -- 10 raw, 1 finalists, 3 removed.\nShortlisted 29/51: DMT Swimming Lessons In London -- 4 raw, 2 finalists, 1 removed.\nShortlisted 30/51: Megan's in the Village Restaurant (Wimbledon) -- 22 raw, 5 finalists, 1 removed.\nShortlisted 31/51: The Green Room, Cafe and Bistro -- 7 raw, 3 finalists, 1 removed.\nShortlisted 32/51: Zephyr Notting Hill -- 1 raw, 0 finalists, 0 removed.\nShortlisted 33/51: Smoky Boys Wandsworth -- 56 raw, 3 finalists, 5 removed.\nShortlisted 34/51: Cafe Jikoni -- 7 raw, 3 finalists, 0 removed.\nShortlisted 35/51: Samarkand -- 9 raw, 3 finalists, 0 removed.\nShortlisted 36/51: Third Coffee -- 57 raw, 5 finalists, 0 removed.\nShortlisted 37/51: Southgate Leisure Centre -- 12 raw, 5 finalists, 1 removed.\nShortlisted 38/51: Matte Coffee (Marna Coffee) -- 1 raw, 1 finalists, 0 removed.\nShortlisted 39/51: Bossa Nova Cafe -- 7 raw, 3 finalists, 2 removed.\nShortlisted 40/51: Bobbin Babes Swimming Classes -- 11 raw, 4 finalists, 0 removed.\nShortlisted 41/51: The Urban Chocolatier - Harrow -- 36 raw, 5 finalists, 4 removed.\nShortlisted 42/51: Happy Parents Happy Baby Antenatal Classes - Ealing -- 35 raw, 5 finalists, 1 removed.\nShortlisted 43/51: Happy Parents Happy Baby Antenatal Classes - Leyton -- 35 raw, 5 finalists, 1 removed.\nShortlisted 44/51: Heston Pools And Fitness -- 13 raw, 5 finalists, 0 removed.\nShortlisted 45/51: Mabelle's -- 1 raw, 0 finalists, 0 removed.\nShortlisted 46/51: Laz @Camden -- 25 raw, 5 finalists, 3 removed.\nShortlisted 47/51: Snowflake Gelato - Westfield, Stratford -- 6 raw, 3 finalists, 1 removed.\nShortlisted 48/51: NOUR -- 1 raw, 1 finalists, 0 removed.\nShortlisted 49/51: Ladybird Softplay and Cafe - North London's 1st Softplay Cafe -- 9 raw, 0 finalists, 8 removed.\nShortlisted 50/51: Baby College Lewisham -- 19 raw, 4 finalists, 1 removed.\nShortlisted 51/51: Cindy's Swim School, Herne Hill -- 16 raw, 3 finalists, 9 removed.\nPrepared 51 activities and 140 finalists on 6 compact Codex review sheets. Manifest: C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\data\\codex_website_image_shortlist.generated.json"
+    },
+    {
+      "name": "select-stored-website-images",
+      "status": "generated",
+      "started_at": "2026-09-12T20:48:17.764Z",
+      "finished_at": "2026-09-12T20:48:51.916Z",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\data\\website_image_candidate_selection.generated.json",
+      "message": "Website selector trained from 413 matched manual image choices.\nWebsite selector queue: loaded 51 listings.\nWebsite selections ready: 51.\nWebsite selection attempt 1: 20/51 processed.\nWebsite selection attempt 1: 40/51 processed.\nWebsite selection attempt 1: 51/51 processed.\nWebsite selection attempt 2: 17/17 processed.\nWebsite selection attempt 3: 12/12 processed.\n{\n  \"selected\": 36,\n  \"no-high-confidence-candidate\": 3,\n  \"selection-download-failed\": 12\n}\nWebsite selector audit: C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\data\\website_image_candidate_selection.generated.json"
+    },
+    {
+      "name": "serpapi-image-enrichment",
+      "status": "generated",
+      "started_at": "2026-09-12T20:48:51.916Z",
+      "finished_at": "2026-09-12T20:54:33.613Z",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\data\\activity_serpapi_image_refresh.generated.json",
+      "message": "Activity image batch 1: 12/20 candidate sets stored. Next cursor: 334ad2f9-e08d-438f-8040-0001b895b986\nActivity image batch 2: 11/20 candidate sets stored. Next cursor: 6a0a9eb1-e912-44d4-bc6e-a9306ad0245e\nActivity image batch 3: 15/20 candidate sets stored. Next cursor: 9e3f2ca4-0b0a-4254-b85e-763225d7ee73\nActivity image batch 4: 14/20 candidate sets stored. Next cursor: cf7773d1-92de-45ee-bdf3-04b1b29ce0b6\nActivity image batch 5: 4/9 candidate sets stored. Next cursor: complete\n{\n  \"candidates-stored\": 56,\n  \"failed\": 14,\n  \"no-candidates\": 19\n}"
+    },
+    {
+      "name": "prepare-codex-image-review-sheets",
+      "status": "generated",
+      "started_at": "2026-09-12T20:54:33.613Z",
+      "finished_at": "2026-09-12T20:56:25.543Z",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\data\\codex_image_shortlist.generated.json",
+      "message": "Codex serpapi vision queue: loaded 20/56 candidate sets.\nCodex serpapi vision queue: loaded 40/56 candidate sets.\nCodex serpapi vision queue: loaded 56/56 candidate sets.\nShortlisted 1/56: Honeymoon Restaurant Croydon -- 9 raw, 5 finalists, 0 removed.\nShortlisted 2/56: Whitings Swimming Academy -- 100 raw, 0 finalists, 90 removed.\nShortlisted 3/56: Mah Cafe -- 12 raw, 3 finalists, 2 removed.\nShortlisted 4/56: Chingford Village Green -- 100 raw, 5 finalists, 90 removed.\nShortlisted 5/56: Baby Sensory Winchmore Hill -- 12 raw, 2 finalists, 3 removed.\nShortlisted 6/56: Hartbeeps baby and toddler classes - Bayswater -- 100 raw, 0 finalists, 99 removed.\nShortlisted 7/56: The Lacy Nook -- 31 raw, 5 finalists, 21 removed.\nShortlisted 8/56: playground -- 3 raw, 3 finalists, 0 removed.\nShortlisted 9/56: Tapri Junction (TJ) -- 8 raw, 5 finalists, 1 removed.\nShortlisted 10/56: Colfe's Leisure Centre -- 100 raw, 3 finalists, 90 removed.\nShortlisted 11/56: Angel Swim Barnes -- 100 raw, 1 finalists, 99 removed.\nShortlisted 12/56: Jesse's kitchen -- 100 raw, 1 finalists, 91 removed.\nShortlisted 13/56: Angel Swim Clapham -- 100 raw, 2 finalists, 98 removed.\nShortlisted 14/56: Long Black Richmond -- 100 raw, 5 finalists, 90 removed.\nShortlisted 15/56: Victoria Park Old English Garden -- 100 raw, 5 finalists, 90 removed.\nShortlisted 16/56: SEN Swim Services -- 100 raw, 3 finalists, 90 removed.\nShortlisted 17/56: Swimming Nature - Charlton/Greenwich -- 99 raw, 3 finalists, 89 removed.\nShortlisted 18/56: The Homestead Cafe and Bar -- 100 raw, 4 finalists, 90 removed.\nShortlisted 19/56: Turner Swim - Open Water Swim Coaching -- 100 raw, 1 finalists, 99 removed.\nShortlisted 20/56: Sand Club -- 100 raw, 1 finalists, 90 removed.\nShortlisted 21/56: The Well Walk Theatre, Cafe and Bookshop -- 100 raw, 4 finalists, 90 removed.\nShortlisted 22/56: Acacia Road Playground -- 23 raw, 0 finalists, 23 removed.\nShortlisted 23/56: Mike's Cafe -- 100 raw, 5 finalists, 90 removed.\nShortlisted 24/56: Park's Kitchen Hammersmith -- 10 raw, 0 finalists, 3 removed.\nShortlisted 25/56: Ladysmith Cafe -- 100 raw, 5 finalists, 90 removed.\nShortlisted 26/56: Little Olive -- 100 raw, 5 finalists, 95 removed.\nShortlisted 27/56: The Light House Soft Play Cafe -- 7 raw, 5 finalists, 0 removed.\nShortlisted 28/56: cafe no 41 -- 100 raw, 5 finalists, 90 removed.\nShortlisted 29/56: DMT Swimming Lessons In London -- 100 raw, 3 finalists, 91 removed.\nShortlisted 30/56: Megan's in the Village Restaurant (Wimbledon) -- 100 raw, 3 finalists, 90 removed.\nShortlisted 31/56: The Green Room, Cafe and Bistro -- 100 raw, 5 finalists, 90 removed.\nShortlisted 32/56: Duck Feeding Ground -- 100 raw, 0 finalists, 99 removed.\nShortlisted 33/56: Zephyr Notting Hill -- 100 raw, 5 finalists, 90 removed.\nShortlisted 34/56: Caffecinos -- 4 raw, 3 finalists, 0 removed.\nShortlisted 35/56: Smoky Boys Wandsworth -- 14 raw, 3 finalists, 6 removed.\nShortlisted 36/56: Cafe Jikoni -- 4 raw, 3 finalists, 1 removed.\nShortlisted 37/56: Samarkand -- 75 raw, 0 finalists, 65 removed.\nShortlisted 38/56: Third Coffee -- 38 raw, 5 finalists, 28 removed.\nShortlisted 39/56: Southgate Leisure Centre -- 100 raw, 3 finalists, 90 removed.\nShortlisted 40/56: Ferny Hill Farm -- 75 raw, 1 finalists, 65 removed.\nShortlisted 41/56: Canonbury Gardens -- 20 raw, 3 finalists, 13 removed.\nShortlisted 42/56: Bossa Nova Cafe -- 12 raw, 5 finalists, 5 removed.\nShortlisted 43/56: Bobbin Babes Swimming Classes -- 10 raw, 0 finalists, 5 removed.\nShortlisted 44/56: Beddington Park -- 99 raw, 5 finalists, 89 removed.\nShortlisted 45/56: The Urban Chocolatier - Harrow -- 100 raw, 5 finalists, 90 removed.\nShortlisted 46/56: Happy Parents Happy Baby Antenatal Classes - Ealing -- 100 raw, 5 finalists, 90 removed.\nShortlisted 47/56: Rose Garden -- 30 raw, 3 finalists, 20 removed.\nShortlisted 48/56: Fabler Bakery Camden -- 100 raw, 5 finalists, 92 removed.\nShortlisted 49/56: Brothers Bakery -- 10 raw, 5 finalists, 3 removed.\nShortlisted 50/56: Wesley's Cafe -- 100 raw, 5 finalists, 90 removed.\nShortlisted 51/56: Heston Pools And Fitness -- 1 raw, 0 finalists, 1 removed.\nShortlisted 52/56: Laz @Camden -- 90 raw, 3 finalists, 80 removed.\nShortlisted 53/56: Coppetts Wood -- 100 raw, 3 finalists, 90 removed.\nShortlisted 54/56: Ladybird Softplay and Cafe - North London's 1st Softplay Cafe -- 1 raw, 0 finalists, 1 removed.\nShortlisted 55/56: Playground -- 100 raw, 5 finalists, 90 removed.\nShortlisted 56/56: Harrow Swimming -- 100 raw, 3 finalists, 90 removed.\nPrepared 56 activities and 175 finalists on 6 compact Codex review sheets. Manifest: C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\data\\codex_image_shortlist.generated.json"
+    },
+    {
+      "name": "select-stored-serpapi-images",
+      "status": "generated",
+      "started_at": "2026-09-12T20:56:25.543Z",
+      "finished_at": "2026-09-12T20:57:15.566Z",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\data\\serpapi_image_candidate_selection.generated.json",
+      "message": "Selecting 56 stored SerpAPI sets with the ranker trained from 413 manual choices. No SerpAPI calls will be made.\nSelected 49; rejected 26. No SerpAPI calls were made."
+    },
+    {
+      "name": "apply-repeatable-model-image-review",
+      "status": "failed",
+      "started_at": "2026-09-12T20:57:15.566Z",
+      "finished_at": "2026-09-12T20:59:44.194Z",
+      "output": "C:\\Users\\nasra\\Documents\\Codex\\2026-07-08\\i-want-to-make-an-app-b2-release\\data\\automated_image_review_report.generated.json",
+      "reason": "Error: new row for relation \"activity_image_automated_reviews\" violates check constraint \"activity_image_automated_reviews_candidate_index_check\"\n    at callFunction (file:///C:/Users/nasra/Documents/Codex/2026-07-08/i-want-to-make-an-app-b2-release/scripts/automate-tagged-image-review.js:96:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async storeProposals (file:///C:/Users/nasra/Documents/Codex/2026-07-08/i-want-to-make-an-app-b2-release/scripts/automate-tagged-image-review.js:344:21)\n    at async main (file:///C:/Users/nasra/Documents/Codex/2026-07-08/i-want-to-make-an-app-b2-release/scripts/automate-tagged-image-review.js:410:26)"
+    }
+  ]
+}

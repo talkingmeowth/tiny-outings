@@ -1,8 +1,7 @@
 {
-  "generated_at": "2026-08-10T11:18:55.721Z",
+  "generated_at": "2026-09-12T19:33:04.109Z",
   "landing_url": "https://www.timeout.com/london/kids",
   "guide_pages_scanned": [
-    "https://www.timeout.com/london/kids/the-best-things-for-kids-to-do-in-london-in-the-summer-holidays",
     "https://www.timeout.com/london/kids/101-things-to-do-in-london-with-kids",
     "https://www.timeout.com/london/theatre/childrens-theatre-in-london",
     "https://www.timeout.com/london/kids/activities/free-things-to-do-with-the-kids-in-london",
@@ -12,8 +11,8 @@
     "https://www.timeout.com/london/events/indoor-play-centres-in-london",
     "https://www.timeout.com/london/attractions/top-10-museums-in-london-for-kids"
   ],
-  "candidate_links": 147,
-  "imported": 98,
+  "candidate_links": 126,
+  "imported": 97,
   "audit": [
     {
       "url": "https://www.timeout.com/london/museums/young-v-a",
@@ -34,124 +33,10 @@
       "reason": null
     },
     {
-      "url": "https://www.timeout.com/london/news/crystal-palace-dinosaurs-victorian-restoration-071626",
-      "name": null,
-      "status": "skipped",
-      "reason": "Linked page is not a structured venue listing"
-    },
-    {
-      "url": "https://www.timeout.com/london/theatre/dog-man-the-musical",
-      "name": null,
-      "status": "skipped",
-      "reason": "Linked page is not a structured venue listing"
-    },
-    {
-      "url": "https://www.timeout.com/london/news/one-of-londons-most-famous-abandoned-tube-stations-will-start-family-tours-summer-052726",
-      "name": null,
-      "status": "skipped",
-      "reason": "Linked page is not a structured venue listing"
-    },
-    {
-      "url": "https://www.timeout.com/london/news/kids-week-2026-how-to-get-free-west-end-theatre-tickets-this-summer-061026",
-      "name": null,
-      "status": "skipped",
-      "reason": "Linked page is not a structured venue listing"
-    },
-    {
-      "url": "https://www.timeout.com/london/theatre/the-traitors-live-experience-1-review",
-      "name": null,
-      "status": "skipped",
-      "reason": "Linked page is not a structured venue listing"
-    },
-    {
-      "url": "https://www.timeout.com/london/theatre/harry-potter-and-the-cursed-child-review",
-      "name": null,
-      "status": "skipped",
-      "reason": "Linked page is not a structured venue listing"
-    },
-    {
       "url": "https://www.timeout.com/london/attractions/kew-gardens",
       "name": "Kew Gardens",
       "status": "ready",
       "reason": null
-    },
-    {
-      "url": "https://www.timeout.com/london/news/step-into-a-black-hole-as-the-science-museum-launches-a-spectacular-new-immersive-experience-060326",
-      "name": null,
-      "status": "skipped",
-      "reason": "Linked page is not a structured venue listing"
-    },
-    {
-      "url": "https://www.timeout.com/london/theatre/hercules",
-      "name": null,
-      "status": "skipped",
-      "reason": "Linked page is not a structured venue listing"
-    },
-    {
-      "url": "https://www.timeout.com/london/art/discover-childrens-story-centre",
-      "name": "Discover Children's Story Centre",
-      "status": "ready",
-      "reason": null
-    },
-    {
-      "url": "https://www.timeout.com/london/theatre/greenwich-fair-2",
-      "name": null,
-      "status": "skipped",
-      "reason": "Linked page is not a structured venue listing"
-    },
-    {
-      "url": "https://www.timeout.com/london/theatre/dinosaur-world-livereview",
-      "name": null,
-      "status": "skipped",
-      "reason": "Linked page is not a structured venue listing"
-    },
-    {
-      "url": "https://www.timeout.com/london/kids/inside-aardman-wallace-gromit-and-friends-review",
-      "name": null,
-      "status": "skipped",
-      "reason": "Linked page is not a structured venue listing"
-    },
-    {
-      "url": "https://www.timeout.com/london/things-to-do/timewalk",
-      "name": null,
-      "status": "skipped",
-      "reason": "Linked page is not a structured venue listing"
-    },
-    {
-      "url": "https://www.timeout.com/london/museums/quentin-blake-centre-for-illustration",
-      "name": "Quentin Blake Centre for Illustration",
-      "status": "ready",
-      "reason": null
-    },
-    {
-      "url": "https://www.timeout.com/london/things-to-do/mc-escher-the-exhibition",
-      "name": null,
-      "status": "skipped",
-      "reason": "Linked page is not a structured venue listing"
-    },
-    {
-      "url": "https://www.timeout.com/london/restaurants/park-corner-brassereie",
-      "name": "Park Corner Brasserie",
-      "status": "ready",
-      "reason": null
-    },
-    {
-      "url": "https://www.timeout.com/london/things-to-do/prehistoric-planet-discovering-dinosaurs-review",
-      "name": null,
-      "status": "skipped",
-      "reason": "Linked page is not a structured venue listing"
-    },
-    {
-      "url": "https://www.timeout.com/london/theatre/be-like-blippi",
-      "name": null,
-      "status": "skipped",
-      "reason": "Linked page is not a structured venue listing"
-    },
-    {
-      "url": "https://www.timeout.com/london/things-to-do/costa-del-croydon",
-      "name": null,
-      "status": "skipped",
-      "reason": "Linked page is not a structured venue listing"
     },
     {
       "url": "https://www.timeout.com/london/things-to-do/wonderlab-at-the-science-museum",
@@ -164,6 +49,12 @@
       "name": null,
       "status": "skipped",
       "reason": "Linked page is not a structured venue listing"
+    },
+    {
+      "url": "https://www.timeout.com/london/museums/quentin-blake-centre-for-illustration",
+      "name": "Quentin Blake Centre for Illustration",
+      "status": "ready",
+      "reason": null
     },
     {
       "url": "https://www.timeout.com/london/things-to-do/london-eye",
@@ -214,12 +105,6 @@
       "reason": null
     },
     {
-      "url": "https://www.timeout.com/london/theatre/my-neighbour-totoro-review",
-      "name": null,
-      "status": "skipped",
-      "reason": "Linked page is not a structured venue listing"
-    },
-    {
       "url": "https://www.timeout.com/london/attractions/legoland-windsor-resort-review",
       "name": "Legoland Windsor Resort",
       "status": "ready",
@@ -260,6 +145,12 @@
       "name": "The Ampersand Hotel",
       "status": "ready",
       "reason": null
+    },
+    {
+      "url": "https://www.timeout.com/london/theatre/harry-potter-and-the-cursed-child-review",
+      "name": null,
+      "status": "skipped",
+      "reason": "Linked page is not a structured venue listing"
     },
     {
       "url": "https://www.timeout.com/london/attractions/crystal-palace-park",
@@ -418,6 +309,12 @@
       "reason": null
     },
     {
+      "url": "https://www.timeout.com/london/things-to-do/bubble-planet-review",
+      "name": null,
+      "status": "skipped",
+      "reason": "Linked page is not a structured venue listing"
+    },
+    {
       "url": "https://www.timeout.com/london/things-to-do/101-things-to-do-in-london",
       "name": null,
       "status": "skipped",
@@ -454,61 +351,31 @@
       "reason": "Linked page is not a structured venue listing"
     },
     {
-      "url": "https://www.timeout.com/london/theatre/alice-in-wonderland-13",
+      "url": "https://www.timeout.com/london/theatre/pocket-money",
       "name": null,
       "status": "skipped",
       "reason": "Linked page is not a structured venue listing"
     },
     {
-      "url": "https://www.timeout.com/london/theatre/childrens-puppet-festival",
+      "url": "https://www.timeout.com/london/theatre/home-song",
       "name": null,
       "status": "skipped",
       "reason": "Linked page is not a structured venue listing"
     },
     {
-      "url": "https://www.timeout.com/london/kids/brainiac-live",
+      "url": "https://www.timeout.com/london/theatre/pip-and-posy-live-on-stage",
       "name": null,
       "status": "skipped",
       "reason": "Linked page is not a structured venue listing"
     },
     {
-      "url": "https://www.timeout.com/london/theatre/horrible-histories-barmy-britain-the-best-bits",
+      "url": "https://www.timeout.com/london/theatre/room-on-the-broom",
       "name": null,
       "status": "skipped",
       "reason": "Linked page is not a structured venue listing"
     },
     {
-      "url": "https://www.timeout.com/london/theatre/a-world-elsewhere-1",
-      "name": null,
-      "status": "skipped",
-      "reason": "Linked page is not a structured venue listing"
-    },
-    {
-      "url": "https://www.timeout.com/london/theatre/the-cat-in-the-hat-1",
-      "name": null,
-      "status": "skipped",
-      "reason": "Linked page is not a structured venue listing"
-    },
-    {
-      "url": "https://www.timeout.com/london/theatre/jack-and-the-beanstalk-31",
-      "name": null,
-      "status": "skipped",
-      "reason": "Linked page is not a structured venue listing"
-    },
-    {
-      "url": "https://www.timeout.com/london/theatre/the-tiger-who-came-to-tea-1",
-      "name": null,
-      "status": "skipped",
-      "reason": "Linked page is not a structured venue listing"
-    },
-    {
-      "url": "https://www.timeout.com/london/theatre/whatever-the-weather-1",
-      "name": null,
-      "status": "skipped",
-      "reason": "Linked page is not a structured venue listing"
-    },
-    {
-      "url": "https://www.timeout.com/london/theatre/the-wind-in-the-willows-8",
+      "url": "https://www.timeout.com/london/theatre/toto",
       "name": null,
       "status": "skipped",
       "reason": "Linked page is not a structured venue listing"
@@ -588,6 +455,12 @@
     {
       "url": "https://www.timeout.com/london/theatre/little-angel-theatre",
       "name": "Little Angel Theatre",
+      "status": "ready",
+      "reason": null
+    },
+    {
+      "url": "https://www.timeout.com/london/art/discover-childrens-story-centre",
+      "name": "Discover Children's Story Centre",
       "status": "ready",
       "reason": null
     },

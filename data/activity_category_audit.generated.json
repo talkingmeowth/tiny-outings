@@ -1,0 +1,31 @@
+{
+  "generated_at": "2026-09-12T20:36:20.068Z",
+  "checked_records": 3185,
+  "canonical_categories": [
+    "Cafes & food",
+    "Play cafes",
+    "Baby swim",
+    "Parks & outdoor play",
+    "Stay & play",
+    "Classes & clubs",
+    "Movement & wellbeing",
+    "Museums & culture",
+    "Bookshops",
+    "Family activities",
+    "Events"
+  ],
+  "by_category": {
+    "Cafes & food": 569,
+    "Play cafes": 72,
+    "Baby swim": 82,
+    "Parks & outdoor play": 824,
+    "Stay & play": 197,
+    "Classes & clubs": 593,
+    "Movement & wellbeing": 415,
+    "Museums & culture": 78,
+    "Bookshops": 93,
+    "Family activities": 189,
+    "Events": 73
+  },
+  "invalid_records": []
+}

@@ -1,0 +1,415 @@
+{
+  "generated_at": "2026-09-13T09:46:21.992Z",
+  "model": "Tiny Outings learned cross-source image ranker",
+  "model_version": "cross-source-ranker-v3-d76fcc31",
+  "workflow_version": "tagged-website-ranker-v1",
+  "training_review_count": 413,
+  "queued": 20,
+  "summary": {
+    "selection-download-failed": 16,
+    "selected": 3,
+    "no-high-confidence-candidate": 1
+  },
+  "results": [
+    {
+      "activity_id": "0da83b37-8040-45d5-8549-e31f21337d39",
+      "status": "selection-download-failed"
+    },
+    {
+      "activity_id": "15ed301b-249a-40ab-854d-f2a89579e333",
+      "status": "selection-download-failed"
+    },
+    {
+      "activity_id": "1b9382a5-9de1-4138-b017-cab43e7f288d",
+      "status": "selected",
+      "source_url": "https://cdn.hartbeeps.com/images/background-images/hb-home-bg.png",
+      "stored_url": "https://kgvqbokhuqaonghcukel.supabase.co/storage/v1/object/public/activity-images/downloaded/website/1b9382a5-9de1-4138-b017-cab43e7f288d-kk1fpb.png",
+      "source_kind": "website"
+    },
+    {
+      "activity_id": "23af69dc-fdbe-413a-84c3-a07f10d105fa",
+      "status": "selection-download-failed"
+    },
+    {
+      "activity_id": "2582c151-5edf-45e6-a1a0-f30b4a92abbe",
+      "status": "selected",
+      "source_url": "https://cdn.hartbeeps.com/images/background-images/hb-home-bg.png",
+      "stored_url": "https://kgvqbokhuqaonghcukel.supabase.co/storage/v1/object/public/activity-images/downloaded/website/2582c151-5edf-45e6-a1a0-f30b4a92abbe-kk1fpb.png",
+      "source_kind": "website"
+    },
+    {
+      "activity_id": "25ebbbe2-abe8-4cc6-8b65-ff0f43f2b123",
+      "status": "selection-download-failed"
+    },
+    {
+      "activity_id": "286a135a-26fd-42fd-bcf9-b69ec88de3cf",
+      "status": "selection-download-failed"
+    },
+    {
+      "activity_id": "334ad2f9-e08d-438f-8040-0001b895b986",
+      "status": "selection-download-failed"
+    },
+    {
+      "activity_id": "39cea56c-435f-490c-80db-076693735bcd",
+      "status": "selected",
+      "source_url": "https://easyswim.uk/wp-content/uploads/2024/01/ImageMehdi.jpg",
+      "stored_url": "https://kgvqbokhuqaonghcukel.supabase.co/storage/v1/object/public/activity-images/downloaded/website/39cea56c-435f-490c-80db-076693735bcd-6b7vu2.webp",
+      "source_kind": "website"
+    },
+    {
+      "activity_id": "3e63b70f-3b62-47a0-8832-73d5b61b4ab0",
+      "status": "selection-download-failed"
+    },
+    {
+      "activity_id": "464949f7-fdfa-4310-8ecf-d9086e66e6e0",
+      "status": "selection-download-failed"
+    },
+    {
+      "activity_id": "4c5c6f79-f122-4648-85f4-450c974dccab",
+      "status": "no-high-confidence-candidate"
+    },
+    {
+      "activity_id": "4e1aa9ad-f74b-43c6-b1cc-9a05c6df5821",
+      "status": "selection-download-failed"
+    },
+    {
+      "activity_id": "5b86bdf1-f67f-4eb3-b715-eee2b0e260d8",
+      "status": "selection-download-failed"
+    },
+    {
+      "activity_id": "6377444f-9495-4021-aaf7-10d3d38032f4",
+      "status": "selection-download-failed"
+    },
+    {
+      "activity_id": "7452ed1e-237d-4972-ac38-e9fda0bd73d7",
+      "status": "selection-download-failed"
+    },
+    {
+      "activity_id": "c554a4e9-970a-47a3-883e-2379d9300ebe",
+      "status": "selection-download-failed"
+    },
+    {
+      "activity_id": "d1a11e86-a670-466d-8f8e-084a71cbe20d",
+      "status": "selection-download-failed"
+    },
+    {
+      "activity_id": "d7c91686-4748-4987-9780-24ef818f9aa8",
+      "status": "selection-download-failed"
+    },
+    {
+      "activity_id": "f2f907a3-50dc-406e-9eb6-19f8c1d1e147",
+      "status": "selection-download-failed"
+    }
+  ],
+  "attempts": [
+    {
+      "activity_id": "0da83b37-8040-45d5-8549-e31f21337d39",
+      "status": "selection-download-failed",
+      "attempt": 1
+    },
+    {
+      "activity_id": "15ed301b-249a-40ab-854d-f2a89579e333",
+      "status": "selection-download-failed",
+      "attempt": 1
+    },
+    {
+      "activity_id": "1b9382a5-9de1-4138-b017-cab43e7f288d",
+      "status": "selection-download-failed",
+      "attempt": 1
+    },
+    {
+      "activity_id": "23af69dc-fdbe-413a-84c3-a07f10d105fa",
+      "status": "selection-download-failed",
+      "attempt": 1
+    },
+    {
+      "activity_id": "2582c151-5edf-45e6-a1a0-f30b4a92abbe",
+      "status": "selection-download-failed",
+      "attempt": 1
+    },
+    {
+      "activity_id": "25ebbbe2-abe8-4cc6-8b65-ff0f43f2b123",
+      "status": "selection-download-failed",
+      "attempt": 1
+    },
+    {
+      "activity_id": "286a135a-26fd-42fd-bcf9-b69ec88de3cf",
+      "status": "selection-download-failed",
+      "attempt": 1
+    },
+    {
+      "activity_id": "334ad2f9-e08d-438f-8040-0001b895b986",
+      "status": "selection-download-failed",
+      "attempt": 1
+    },
+    {
+      "activity_id": "39cea56c-435f-490c-80db-076693735bcd",
+      "status": "selection-download-failed",
+      "attempt": 1
+    },
+    {
+      "activity_id": "3e63b70f-3b62-47a0-8832-73d5b61b4ab0",
+      "status": "selection-download-failed",
+      "attempt": 1
+    },
+    {
+      "activity_id": "464949f7-fdfa-4310-8ecf-d9086e66e6e0",
+      "status": "selection-download-failed",
+      "attempt": 1
+    },
+    {
+      "activity_id": "4c5c6f79-f122-4648-85f4-450c974dccab",
+      "status": "selection-download-failed",
+      "attempt": 1
+    },
+    {
+      "activity_id": "4e1aa9ad-f74b-43c6-b1cc-9a05c6df5821",
+      "status": "selection-download-failed",
+      "attempt": 1
+    },
+    {
+      "activity_id": "5b86bdf1-f67f-4eb3-b715-eee2b0e260d8",
+      "status": "selection-download-failed",
+      "attempt": 1
+    },
+    {
+      "activity_id": "6377444f-9495-4021-aaf7-10d3d38032f4",
+      "status": "selection-download-failed",
+      "attempt": 1
+    },
+    {
+      "activity_id": "7452ed1e-237d-4972-ac38-e9fda0bd73d7",
+      "status": "selection-download-failed",
+      "attempt": 1
+    },
+    {
+      "activity_id": "c554a4e9-970a-47a3-883e-2379d9300ebe",
+      "status": "selection-download-failed",
+      "attempt": 1
+    },
+    {
+      "activity_id": "d1a11e86-a670-466d-8f8e-084a71cbe20d",
+      "status": "selection-download-failed",
+      "attempt": 1
+    },
+    {
+      "activity_id": "d7c91686-4748-4987-9780-24ef818f9aa8",
+      "status": "selection-download-failed",
+      "attempt": 1
+    },
+    {
+      "activity_id": "f2f907a3-50dc-406e-9eb6-19f8c1d1e147",
+      "status": "selection-download-failed",
+      "attempt": 1
+    },
+    {
+      "activity_id": "0da83b37-8040-45d5-8549-e31f21337d39",
+      "status": "selection-download-failed",
+      "attempt": 2
+    },
+    {
+      "activity_id": "15ed301b-249a-40ab-854d-f2a89579e333",
+      "status": "selection-download-failed",
+      "attempt": 2
+    },
+    {
+      "activity_id": "1b9382a5-9de1-4138-b017-cab43e7f288d",
+      "status": "selection-download-failed",
+      "attempt": 2
+    },
+    {
+      "activity_id": "23af69dc-fdbe-413a-84c3-a07f10d105fa",
+      "status": "selection-download-failed",
+      "attempt": 2
+    },
+    {
+      "activity_id": "2582c151-5edf-45e6-a1a0-f30b4a92abbe",
+      "status": "selection-download-failed",
+      "attempt": 2
+    },
+    {
+      "activity_id": "25ebbbe2-abe8-4cc6-8b65-ff0f43f2b123",
+      "status": "selection-download-failed",
+      "attempt": 2
+    },
+    {
+      "activity_id": "286a135a-26fd-42fd-bcf9-b69ec88de3cf",
+      "status": "selection-download-failed",
+      "attempt": 2
+    },
+    {
+      "activity_id": "334ad2f9-e08d-438f-8040-0001b895b986",
+      "status": "selection-download-failed",
+      "attempt": 2
+    },
+    {
+      "activity_id": "39cea56c-435f-490c-80db-076693735bcd",
+      "status": "selection-download-failed",
+      "attempt": 2
+    },
+    {
+      "activity_id": "3e63b70f-3b62-47a0-8832-73d5b61b4ab0",
+      "status": "selection-download-failed",
+      "attempt": 2
+    },
+    {
+      "activity_id": "464949f7-fdfa-4310-8ecf-d9086e66e6e0",
+      "status": "selection-download-failed",
+      "attempt": 2
+    },
+    {
+      "activity_id": "4c5c6f79-f122-4648-85f4-450c974dccab",
+      "status": "selection-download-failed",
+      "attempt": 2
+    },
+    {
+      "activity_id": "4e1aa9ad-f74b-43c6-b1cc-9a05c6df5821",
+      "status": "selection-download-failed",
+      "attempt": 2
+    },
+    {
+      "activity_id": "5b86bdf1-f67f-4eb3-b715-eee2b0e260d8",
+      "status": "selection-download-failed",
+      "attempt": 2
+    },
+    {
+      "activity_id": "6377444f-9495-4021-aaf7-10d3d38032f4",
+      "status": "selection-download-failed",
+      "attempt": 2
+    },
+    {
+      "activity_id": "7452ed1e-237d-4972-ac38-e9fda0bd73d7",
+      "status": "selection-download-failed",
+      "attempt": 2
+    },
+    {
+      "activity_id": "c554a4e9-970a-47a3-883e-2379d9300ebe",
+      "status": "selection-download-failed",
+      "attempt": 2
+    },
+    {
+      "activity_id": "d1a11e86-a670-466d-8f8e-084a71cbe20d",
+      "status": "selection-download-failed",
+      "attempt": 2
+    },
+    {
+      "activity_id": "d7c91686-4748-4987-9780-24ef818f9aa8",
+      "status": "selection-download-failed",
+      "attempt": 2
+    },
+    {
+      "activity_id": "f2f907a3-50dc-406e-9eb6-19f8c1d1e147",
+      "status": "selection-download-failed",
+      "attempt": 2
+    },
+    {
+      "activity_id": "0da83b37-8040-45d5-8549-e31f21337d39",
+      "status": "selection-download-failed",
+      "attempt": 3
+    },
+    {
+      "activity_id": "15ed301b-249a-40ab-854d-f2a89579e333",
+      "status": "selection-download-failed",
+      "attempt": 3
+    },
+    {
+      "activity_id": "1b9382a5-9de1-4138-b017-cab43e7f288d",
+      "status": "selected",
+      "source_url": "https://cdn.hartbeeps.com/images/background-images/hb-home-bg.png",
+      "stored_url": "https://kgvqbokhuqaonghcukel.supabase.co/storage/v1/object/public/activity-images/downloaded/website/1b9382a5-9de1-4138-b017-cab43e7f288d-kk1fpb.png",
+      "source_kind": "website",
+      "attempt": 3
+    },
+    {
+      "activity_id": "23af69dc-fdbe-413a-84c3-a07f10d105fa",
+      "status": "selection-download-failed",
+      "attempt": 3
+    },
+    {
+      "activity_id": "2582c151-5edf-45e6-a1a0-f30b4a92abbe",
+      "status": "selected",
+      "source_url": "https://cdn.hartbeeps.com/images/background-images/hb-home-bg.png",
+      "stored_url": "https://kgvqbokhuqaonghcukel.supabase.co/storage/v1/object/public/activity-images/downloaded/website/2582c151-5edf-45e6-a1a0-f30b4a92abbe-kk1fpb.png",
+      "source_kind": "website",
+      "attempt": 3
+    },
+    {
+      "activity_id": "25ebbbe2-abe8-4cc6-8b65-ff0f43f2b123",
+      "status": "selection-download-failed",
+      "attempt": 3
+    },
+    {
+      "activity_id": "286a135a-26fd-42fd-bcf9-b69ec88de3cf",
+      "status": "selection-download-failed",
+      "attempt": 3
+    },
+    {
+      "activity_id": "334ad2f9-e08d-438f-8040-0001b895b986",
+      "status": "selection-download-failed",
+      "attempt": 3
+    },
+    {
+      "activity_id": "39cea56c-435f-490c-80db-076693735bcd",
+      "status": "selected",
+      "source_url": "https://easyswim.uk/wp-content/uploads/2024/01/ImageMehdi.jpg",
+      "stored_url": "https://kgvqbokhuqaonghcukel.supabase.co/storage/v1/object/public/activity-images/downloaded/website/39cea56c-435f-490c-80db-076693735bcd-6b7vu2.webp",
+      "source_kind": "website",
+      "attempt": 3
+    },
+    {
+      "activity_id": "3e63b70f-3b62-47a0-8832-73d5b61b4ab0",
+      "status": "selection-download-failed",
+      "attempt": 3
+    },
+    {
+      "activity_id": "464949f7-fdfa-4310-8ecf-d9086e66e6e0",
+      "status": "selection-download-failed",
+      "attempt": 3
+    },
+    {
+      "activity_id": "4c5c6f79-f122-4648-85f4-450c974dccab",
+      "status": "no-high-confidence-candidate",
+      "attempt": 3
+    },
+    {
+      "activity_id": "4e1aa9ad-f74b-43c6-b1cc-9a05c6df5821",
+      "status": "selection-download-failed",
+      "attempt": 3
+    },
+    {
+      "activity_id": "5b86bdf1-f67f-4eb3-b715-eee2b0e260d8",
+      "status": "selection-download-failed",
+      "attempt": 3
+    },
+    {
+      "activity_id": "6377444f-9495-4021-aaf7-10d3d38032f4",
+      "status": "selection-download-failed",
+      "attempt": 3
+    },
+    {
+      "activity_id": "7452ed1e-237d-4972-ac38-e9fda0bd73d7",
+      "status": "selection-download-failed",
+      "attempt": 3
+    },
+    {
+      "activity_id": "c554a4e9-970a-47a3-883e-2379d9300ebe",
+      "status": "selection-download-failed",
+      "attempt": 3
+    },
+    {
+      "activity_id": "d1a11e86-a670-466d-8f8e-084a71cbe20d",
+      "status": "selection-download-failed",
+      "attempt": 3
+    },
+    {
+      "activity_id": "d7c91686-4748-4987-9780-24ef818f9aa8",
+      "status": "selection-download-failed",
+      "attempt": 3
+    },
+    {
+      "activity_id": "f2f907a3-50dc-406e-9eb6-19f8c1d1e147",
+      "status": "selection-download-failed",
+      "attempt": 3
+    }
+  ]
+}

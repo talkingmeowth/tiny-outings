@@ -1,22 +1,16 @@
 {
-  "generated_at": "2026-08-10T11:18:43.836Z",
+  "generated_at": "2026-09-12T19:32:59.036Z",
   "listing_url": "https://loopla.com/search?type=events-and-activities&location=London&geo-lat=51.5072178&geo-lng=-0.1275862&ages=0-6m%2C6-12m%2C1%2C2%2C3",
   "pages_scanned": 2,
-  "source_total": 38,
-  "activities_discovered": 38,
-  "activities_imported": 38,
+  "source_total": 35,
+  "activities_discovered": 35,
+  "activities_imported": 35,
   "audit": [
     {
       "name": "Paddington Afternoon Tea Tour",
       "url": "https://loopla.com/business/brigit-s-bakery/paddington-afternoon-tea-tour/31504",
       "status": "ready",
       "category": "Family activities"
-    },
-    {
-      "name": "Home Sweet Home: A Limited-Time Immersive Exhibition in London",
-      "url": "https://loopla.com/business/pencil-tree-cio/home-sweet-home-a-limited-time-immersive-exhibition-in-london/31601",
-      "status": "ready",
-      "category": "Museums & culture"
     },
     {
       "name": "Paw Patrol London Bus Tour",
@@ -31,14 +25,14 @@
       "category": "Family activities"
     },
     {
-      "name": "Kaspar: Prince of Cats",
-      "url": "https://loopla.com/business/st-pauls-church/kaspar-prince-of-cats/30715",
+      "name": "Peppa Pig's Big Family Show",
+      "url": "https://loopla.com/business/theatre-royal-haymarket/peppa-pig-s-big-family-show/30709",
       "status": "ready",
       "category": "Family activities"
     },
     {
-      "name": "The Gruffalo",
-      "url": "https://loopla.com/business/lyric-theatre/the-gruffalo/31125",
+      "name": "Room on the Broom",
+      "url": "https://loopla.com/business/lyric-theatre/room-on-the-broom/31125",
       "status": "ready",
       "category": "Family activities"
     },
@@ -47,12 +41,6 @@
       "url": "https://loopla.com/business/st-martin-s-theatre/the-smartest-giant-in-town/30854",
       "status": "ready",
       "category": "Family activities"
-    },
-    {
-      "name": "POP-KID Family Rave X Setlist",
-      "url": "https://loopla.com/business/fly-kid/pop-kid-family-rave-x-setlist-somerset-house/31311",
-      "status": "ready",
-      "category": "Music & singing"
     },
     {
       "name": "London: Peppa Pig Afternoon Tea Bus Tour",
@@ -85,22 +73,16 @@
       "category": "Family activities"
     },
     {
-      "name": "Family Sing & Play Mini-Festival Covent Garden",
-      "url": "https://loopla.com/business/baby-broadway/family-sing-and-play-mini-festival-covent-garden/31116",
-      "status": "ready",
-      "category": "Music & singing"
-    },
-    {
       "name": "Bach to Baby Family Concert, Pimlico",
       "url": "https://loopla.com/business/bach-to-baby/bach-to-baby-family-concert-pimlico/29616",
       "status": "ready",
       "category": "Music & singing"
     },
     {
-      "name": "Zog",
-      "url": "https://loopla.com/business/cadogan-hall/zog/30671",
+      "name": "Christmas Family Concert, Victoria & Pimlico",
+      "url": "https://loopla.com/business/bach-to-baby/christmas-family-concert-victoria-pimlico/29616",
       "status": "ready",
-      "category": "Family activities"
+      "category": "Music & singing"
     },
     {
       "name": "Frameless",
@@ -109,26 +91,32 @@
       "category": "Baby sensory"
     },
     {
-      "name": "Be Like Blippi",
-      "url": "https://loopla.com/business/the-arts-at-march-arch/be-like-blippi/31506",
-      "status": "ready",
-      "category": "Family activities"
-    },
-    {
       "name": "Paradox Museum London",
       "url": "https://loopla.com/business/paradox-museum/paradox-museum-london/31265",
       "status": "ready",
       "category": "Museums & culture"
     },
     {
-      "name": "Boppin' Bunnies Summer Music Fun, Bermondsey",
-      "url": "https://loopla.com/business/boppin-bunnies/boppin-bunnies-summer-bermondsey-music-fun/28823",
+      "name": "Bach to Baby Family Concert, London Bridge & Borough",
+      "url": "https://loopla.com/business/bach-to-baby/bach-to-baby-family-concert-london-bridge-and-borough/31652",
       "status": "ready",
       "category": "Music & singing"
     },
     {
-      "name": "The Chimney Lift at Battersea Power Station",
-      "url": "https://loopla.com/business/battersea-power-station/the-chimney-lift-at-battersea-power-station/30686",
+      "name": "Bach to Baby Half Term Family Concert, London Bridge & Borough",
+      "url": "https://loopla.com/business/bach-to-baby/bach-to-baby-half-term-family-concert-london-bridge-and-borough/31652",
+      "status": "ready",
+      "category": "Music & singing"
+    },
+    {
+      "name": "Bach to Baby Christmas Family Concert, London Bridge & Borough",
+      "url": "https://loopla.com/business/bach-to-baby/bach-to-baby-christmas-family-concert-london-bridge-and-borough/31652",
+      "status": "ready",
+      "category": "Music & singing"
+    },
+    {
+      "name": "Family Halloween Stories from the Enchanted Garden",
+      "url": "https://loopla.com/business/chelsea-physic-garden/family-halloween-stories-from-the-enchanted-garden/30963",
       "status": "ready",
       "category": "Family activities"
     },
@@ -139,16 +127,16 @@
       "category": "Family activities"
     },
     {
-      "name": "Disney's The Lion King Exhibition",
-      "url": "https://loopla.com/business/zsl/disney-s-the-lion-king-exhibition/30431",
+      "name": "Douce France The School of Magic French Holiday Camp, 3-4yrs",
+      "url": "https://loopla.com/business/douce-france-london/douce-france-french-holiday-camp/31696",
       "status": "ready",
-      "category": "Museums & culture"
+      "category": "Family activities"
     },
     {
-      "name": "Horrible Science at London Zoo",
-      "url": "https://loopla.com/business/zsl/horrible-science-at-london-zoo/30431",
+      "name": "Christmas Family Concert, Islington Angel",
+      "url": "https://loopla.com/business/bach-to-baby/christmas-family-concert-islington-angel/31164",
       "status": "ready",
-      "category": "Museums & culture"
+      "category": "Music & singing"
     },
     {
       "name": "Bach to Baby Family Concert, Islington Angel",
@@ -175,14 +163,26 @@
       "category": "Music & singing"
     },
     {
-      "name": "Bach to Baby Family Concert, Kensington",
-      "url": "https://loopla.com/business/bach-to-baby/bach-to-baby-family-concert-kensington/30598",
+      "name": "Christmas Family Concert, Kensington",
+      "url": "https://loopla.com/business/bach-to-baby/christmas-family-concert-kensington/30598",
       "status": "ready",
       "category": "Music & singing"
     },
     {
-      "name": "Junior Campers Summer Camp!",
-      "url": "https://loopla.com/business/happy-campers-club/summer-camp-junior-campers/30851",
+      "name": "A Tale of Us",
+      "url": "https://loopla.com/business/grand-junction/a-tale-of-us/31682",
+      "status": "ready",
+      "category": "Family activities"
+    },
+    {
+      "name": "A Message to the Future",
+      "url": "https://loopla.com/business/grand-junction/a-message-to-the-future/31682",
+      "status": "ready",
+      "category": "Family activities"
+    },
+    {
+      "name": "Flotsam",
+      "url": "https://loopla.com/business/grand-junction/flotsam/31682",
       "status": "ready",
       "category": "Family activities"
     },
@@ -193,38 +193,20 @@
       "category": "Music & singing"
     },
     {
+      "name": "Christmas Family Concert, Notting Hill",
+      "url": "https://loopla.com/business/bach-to-baby/christmas-family-concert-notting-hill/29601",
+      "status": "ready",
+      "category": "Music & singing"
+    },
+    {
       "name": "Bach to Baby Half Term Concert, Notting Hill",
       "url": "https://loopla.com/business/bach-to-baby/bach-to-baby-half-term-concert-notting-hill/29601",
       "status": "ready",
       "category": "Music & singing"
     },
     {
-      "name": "Summer Holiday Camp",
-      "url": "https://loopla.com/business/camp-fantastic/summer-holiday-camp/31548",
-      "status": "ready",
-      "category": "Family activities"
-    },
-    {
-      "name": "Baby Broadway Family Concert Islington",
-      "url": "https://loopla.com/business/baby-broadway/baby-broadway-family-concert-islington/31333",
-      "status": "ready",
-      "category": "Music & singing"
-    },
-    {
-      "name": "Baby Broadway Family Concert Clapham",
-      "url": "https://loopla.com/business/baby-broadway/baby-broadway-family-concert-clapham/31233",
-      "status": "ready",
-      "category": "Music & singing"
-    },
-    {
-      "name": "Baby Gospel Family Concert Clapham",
-      "url": "https://loopla.com/business/baby-gospel/baby-gospel-family-concert-clapham/31409",
-      "status": "ready",
-      "category": "Music & singing"
-    },
-    {
-      "name": "Bach to Baby Family Concert, East Dulwich",
-      "url": "https://loopla.com/business/bach-to-baby/bach-to-baby-family-concert-east-dulwich/31414",
+      "name": "Supa Dupa Fly Family Rave UNDR W10",
+      "url": "https://loopla.com/business/fly-kid/supa-dupa-fly-family-rave-undr-w10/31667",
       "status": "ready",
       "category": "Music & singing"
     },

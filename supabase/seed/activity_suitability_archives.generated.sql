@@ -3,7 +3,11 @@
 -- Other potentially relevant places remain available for editorial review.
 with unsuitable_listings (activity_id, archive_reason) as (
   values
-    ('81242145-5c2a-4712-82ba-3feaf076043f'::uuid, 'Explicit greasy-spoon cafe is outside the family cafe directory'::text)
+    ('e2ac8641-91c8-4562-910e-bca537d87547'::uuid, 'Antenatal classes are outside the baby and child outings directory'::text),
+    ('5f293d4f-8429-4145-b7aa-2a7d624f86fa'::uuid, 'Google Places listing is a restaurant or takeaway rather than a cafe'::text),
+    ('de343e1a-33fb-4e32-bb16-6cf79bd6645d'::uuid, 'Google Places listing is a restaurant or takeaway rather than a cafe'::text),
+    ('64f3fb42-aa3a-46d2-b49c-2dde5d6259fd'::uuid, 'Google Places listing is a restaurant or takeaway rather than a cafe'::text),
+    ('a803ae60-bdda-4255-b98f-88c3389daa9f'::uuid, 'Google Places listing is a restaurant or takeaway rather than a cafe'::text)
 )
 update public.activities as activity
 set archive = true,

@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-09-01T14:32:14.436Z",
-  "sessions": 223,
+  "generated_at": "2026-09-12T19:24:00.972Z",
+  "sessions": 219,
   "centres_covered": [
     "CR28HD",
     "CR41SD",
@@ -41,7 +41,7 @@
     "NW62JL": 9,
     "SE115BZ": 15,
     "SE137QZ": 6,
-    "SE186BD": 7,
+    "SE186BD": 8,
     "SE279UD": 10,
     "SE288EZ": 5,
     "SE39QX": 7,
@@ -51,9 +51,9 @@
     "SW22JE": 15,
     "SW48EG": 4,
     "SW99TG": 9,
-    "TW135AF": 12,
-    "TW34JG": 8,
-    "TW80BJ": 9
+    "TW135AF": 10,
+    "TW34JG": 6,
+    "TW80BJ": 8
   },
   "dynamic_sources": [
     {
@@ -61,29 +61,29 @@
       "url": "https://fsd.hounslow.gov.uk/SynergyWeb/Family_Hubs/Family_Hub_Central.aspx",
       "postcode": "TW34JG",
       "status": "ready",
-      "sessions": 8
+      "sessions": 6
     },
     {
       "provider": "Hounslow",
       "url": "https://fsd.hounslow.gov.uk/SynergyWeb/Family_Hubs/FamilyHubEast.aspx",
       "postcode": "TW80BJ",
       "status": "ready",
-      "sessions": 9
+      "sessions": 8
     },
     {
       "provider": "Hounslow",
       "url": "https://fsd.hounslow.gov.uk/SynergyWeb/Family_Hubs/FamilyHubWest.aspx",
       "postcode": "TW135AF",
       "status": "ready",
-      "sessions": 12
+      "sessions": 10
     },
     {
       "provider": "Royal Borough of Greenwich Community Directory",
       "url": "https://greenwichcommunitydirectory.org.uk/sitemap.xml",
       "status": "ready",
-      "sessions": 25,
+      "sessions": 26,
       "pages_discovered": 72,
-      "pages_failed": 5
+      "pages_failed": 3
     },
     {
       "provider": "Hammersmith and Fulham",
