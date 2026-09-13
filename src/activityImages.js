@@ -105,6 +105,12 @@ function familyCandidateImage(activity, image) {
 function isPreferredImage(candidate, current) {
   if (!current) return true;
   if (candidate.priority !== current.priority) return candidate.priority < current.priority;
+  if (candidate.field === 'model_selected_url' && current.field === 'model_selected_url') {
+    const candidateConfidence = Number(candidate.activity.model_selected_confidence);
+    const currentConfidence = Number(current.activity.model_selected_confidence);
+    if (Number.isFinite(candidateConfidence) && Number.isFinite(currentConfidence)
+      && candidateConfidence !== currentConfidence) return candidateConfidence > currentConfidence;
+  }
 
   const candidateUpdated = Date.parse(candidate.activity.updated_at || candidate.activity.created_at || 0) || 0;
   const currentUpdated = Date.parse(current.activity.updated_at || current.activity.created_at || 0) || 0;

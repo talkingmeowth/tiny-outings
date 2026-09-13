@@ -169,3 +169,16 @@ test('normalises road abbreviations when the same official activity name include
   assert.equal(activityImageFamilyKey(greatRussellStreet), 'provider:gailsbread.co.uk|gail bakery');
   assert.equal(activityImageFamilyKey(archway), 'provider:gailsbread.co.uk|gail bakery');
 });
+
+test('keeps Mini Mozart Baby and Toddler classes in separate provider families', () => {
+  const baby = activity({
+    activity_name: 'MINI MOZART BABY CLASS',
+    organiser_website: 'https://www.minimozart.com/',
+  });
+  const toddler = activity({
+    activity_name: 'MINI MOZART TODDLER CLASS',
+    organiser_website: 'https://minimozart.com/',
+  });
+  assert.equal(activityImageFamilyKey(baby), 'family:mini-mozart-baby');
+  assert.equal(activityImageFamilyKey(toddler), 'family:mini-mozart-toddler');
+});

@@ -81,3 +81,25 @@ test('does not group an unrelated directory activity with the official franchise
   ]);
   assert.equal(result.updates.length, 0);
 });
+
+test('uses the highest-confidence existing automatic image as the family donor', () => {
+  const result = buildFamilyImageInheritances([
+    activity({
+      activity_id: '00000000-0000-4000-8000-000000000001',
+      activity_name: 'Mini Mozart Baby Class',
+      address: 'Southwark, London SE1 1AA',
+      organiser_website: 'https://minimozart.com/',
+      model_selected_url: 'https://images.test/stronger.jpg',
+      model_selected_confidence: 0.9,
+    }),
+    activity({
+      activity_id: '00000000-0000-4000-8000-000000000002',
+      activity_name: 'Mini Mozart Baby Class',
+      address: 'Dulwich, London SE21 7LD',
+      organiser_website: 'https://minimozart.com/',
+      model_selected_url: 'https://images.test/weaker.jpg',
+      model_selected_confidence: 0.7,
+    }),
+  ]);
+  assert.equal(result.updates[0].image_url, 'https://images.test/stronger.jpg');
+});

@@ -13,6 +13,16 @@ const crossLocationImageFamilyRules = [
     name: /\btoddler sense\b/,
     provider: /(^|\.)(?:toddlersense|babysensory)\./,
   },
+  {
+    key: 'mini-mozart-baby',
+    name: /\bmini mozart\b.*\bbaby\b/,
+    provider: /(^|\.)minimozart\./,
+  },
+  {
+    key: 'mini-mozart-toddler',
+    name: /\bmini mozart\b.*\btoddler\b/,
+    provider: /(^|\.)minimozart\./,
+  },
 ];
 
 const nonProviderImageHosts = [
