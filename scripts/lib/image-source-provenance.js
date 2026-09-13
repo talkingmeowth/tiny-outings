@@ -14,6 +14,7 @@ const nonLondonPlaces = [
 const directoryDomains = /(tripadvisor|wheree|yelp|foursquare|restaurantguru|wanderlog|corner\.inc|google|bing)/i;
 const sharedHostDomains = /(facebook|instagram|pinterest|tiktok|wikipedia|wikimedia|gov\.uk|org\.uk|wordpress|wixsite|squarespace)/i;
 const hostNoiseTerms = new Set(['cdn', 'co', 'com', 'images', 'media', 'net', 'org', 'static', 'uk', 'www']);
+const conflictingImageMetadata = /\b(?:apartment|flat|bedroom|hotel|spa|massage|treatment room|clinic|office|residential|estate agent|real estate|housing)\b/i;
 
 function clean(value) {
   return String(value || '').replace(/\s+/g, ' ').trim();
@@ -91,7 +92,10 @@ export function imageSourceConflict(activity, candidate) {
   const official = officialDomains(activity).has(candidateHost);
   const nameTokens = tokens(activity?.activity_name, genericIdentityTerms);
   const candidateTokens = tokens(text);
+  const descriptionTokens = tokens([activity?.description, activity?.google_summary, activity?.google_primary_type].filter(Boolean).join(' '), genericIdentityTerms);
+  const contextTokens = new Set([...nameTokens, ...descriptionTokens]);
   const nameOverlap = tokenOverlap(nameTokens, candidateTokens);
+  const contextOverlap = tokenOverlap(contextTokens, candidateTokens);
   const activityLocationText = [activity?.address, activity?.borough, activity?.postcode].filter(Boolean).join(' ');
   const locationTokens = tokens(activityLocationText, genericIdentityTerms);
   const locationOverlap = tokenOverlap(locationTokens, candidateTokens);
@@ -117,6 +121,8 @@ export function imageSourceConflict(activity, candidate) {
     && nameTokens.size > 0
     && nameOverlap < 0.25
     && brandOverlap === 0);
+  const metadataContextConflict = conflictingImageMetadata.test(text)
+    && !conflictingImageMetadata.test(`${activity?.activity_name || ''} ${activity?.description || ''} ${activity?.google_summary || ''}`);
 
   let score = 0;
   const reasons = [];
@@ -132,6 +138,10 @@ export function imageSourceConflict(activity, candidate) {
     score = Math.max(score, 0.68);
     reasons.push(`candidate appears to belong to ${candidateHost}, which does not match the activity identity`);
   }
+  if (metadataContextConflict) {
+    score = Math.max(score, 0.86);
+    reasons.push('image metadata describes a conflicting property or room rather than the activity');
+  }
   if (official && !postcodeConflict && !locationConflict) score = 0;
 
   return {
@@ -139,12 +149,13 @@ export function imageSourceConflict(activity, candidate) {
     clear: score >= 0.8,
     official,
     name_overlap: Number(nameOverlap.toFixed(4)),
+    context_overlap: Number(contextOverlap.toFixed(4)),
     location_overlap: Number(locationOverlap.toFixed(4)),
     postcode_conflict: postcodeConflict,
     location_conflict: locationConflict,
     brand_conflict: brandConflict,
+    metadata_context_conflict: metadataContextConflict,
     candidate_domain: candidateHost || null,
     reasons,
   };
 }
-

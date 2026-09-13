@@ -49,11 +49,14 @@ export const FEATURE_NAMES = [
   'landscape',
   'title_name_overlap',
   'title_location_overlap',
+  'activity_context_overlap',
+  'description_overlap',
   'source_identity_support',
   'source_conflict',
   'source_postcode_conflict',
   'source_location_conflict',
   'source_brand_conflict',
+  'metadata_context_conflict',
   'scene_terms',
   'cafe_scene_terms',
   'park_scene_terms',
@@ -342,6 +345,7 @@ function candidateEligible(activity, candidate) {
   const combined = [candidate.image_url, candidate.thumbnail_url, candidate.source_page_url, candidate.title].filter(Boolean).join(' ');
   if (blockedAssetTerms.test(combined)) return false;
   if (candidate.visual_status === 'rejected') return false;
+  if (imageSourceConflict(activity, candidate).metadata_context_conflict) return false;
   if (!allowsWikimedia(activity) && isWikimedia(candidate)) return false;
   if (candidate.width && candidate.height) {
     if (Math.min(candidate.width, candidate.height) < 300) return false;
@@ -406,6 +410,7 @@ function featureObject(activity, candidate, index, stats) {
   const nameTokens = tokens(activity?.activity_name);
   const locationTokens = tokens([activity?.address, activity?.borough, activity?.postcode].filter(Boolean).join(' '));
   const titleTokens = tokens(title);
+  const descriptionTokens = tokens([activity?.description, activity?.google_summary, activity?.google_primary_type].filter(Boolean).join(' '));
   const official = officialDomains(activity);
   const sourceConflict = imageSourceConflict(activity, candidate);
   const visual = candidate.visual_assessment?.visual || {};
@@ -422,11 +427,14 @@ function featureObject(activity, candidate, index, stats) {
     landscape: aspect >= 1.05 ? 1 : 0,
     title_name_overlap: overlap(titleTokens, nameTokens),
     title_location_overlap: overlap(titleTokens, locationTokens),
+    activity_context_overlap: sourceConflict.context_overlap,
+    description_overlap: overlap(titleTokens, descriptionTokens),
     source_identity_support: Math.max(sourceConflict.name_overlap, sourceConflict.location_overlap, sourceConflict.official ? 1 : 0),
     source_conflict: sourceConflict.score,
     source_postcode_conflict: sourceConflict.postcode_conflict ? 1 : 0,
     source_location_conflict: sourceConflict.location_conflict ? 1 : 0,
     source_brand_conflict: sourceConflict.brand_conflict ? 1 : 0,
+    metadata_context_conflict: sourceConflict.metadata_context_conflict ? 1 : 0,
     scene_terms: generalSceneTerms.test(title) ? 1 : 0,
     cafe_scene_terms: /(?:cafe|food|play cafe)/.test(category) && cafeSceneTerms.test(title) ? 1 : 0,
     park_scene_terms: /(?:park|outdoor)/.test(category) && parkSceneTerms.test(title) ? 1 : 0,

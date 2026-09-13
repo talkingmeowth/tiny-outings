@@ -226,3 +226,24 @@ test('caps confidence when an otherwise plausible image clearly belongs to anoth
   assert.ok(recommendation.featureSnapshot.source_conflict >= 0.8);
   assert.ok(recommendation.confidence <= 0.54);
 });
+
+test('uses the activity description and rejects conflicting property metadata', () => {
+  const model = trainTaggedImageRanker(Array.from({ length: 30 }, (_, index) => review(index)));
+  const result = rankCrossSourceCandidates({
+    activity_id: 'feeding-session',
+    activity_name: 'Baby Feeding Session',
+    description: "A practical infant feeding session for parents and babies.",
+    google_summary: 'Community family support session',
+    category: 'Movement & wellbeing',
+    codex_image_candidates: [
+      { image_url: 'https://images.test/flat.jpg', source_page_url: 'https://directory.test/page', title: 'Bright London apartment bedroom', width: 1600, height: 1000 },
+      { image_url: 'https://images.test/session.jpg', source_page_url: 'https://provider.test/page', title: 'Baby feeding session for parents and babies', width: 1600, height: 1000 },
+    ],
+  }, model, {
+    visualAssessments: new Map([
+      ['https://images.test/flat.jpg', { visual_status: 'approved', visual_confidence: 0.9 }],
+      ['https://images.test/session.jpg', { visual_status: 'approved', visual_confidence: 0.9 }],
+    ]),
+  });
+  assert.equal(result.candidate.image_url, 'https://images.test/session.jpg');
+});
