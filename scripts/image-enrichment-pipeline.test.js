@@ -48,6 +48,14 @@ test('the importer pipeline reruns every selector from stored candidates', () =>
   assert.match(read('supabase/functions/activity-image-auto-review/index.ts'), /model_selected_model\.neq\.activity-family-inheritance/);
 });
 
+test('Codex review queues expose activity and Google Places context to the LLM', () => {
+  const migration = read('supabase/migrations/20260913180000_add_google_context_to_codex_image_queues.sql');
+  for (const field of ['description', 'google_summary', 'google_primary_type', 'google_place_id', 'google_place_uri', 'google_link']) {
+    assert.match(migration, new RegExp(`a\\.${field}`));
+  }
+  assert.match(read('scripts/codex-image-review.js'), /Google Places summary\/type/);
+});
+
 test('website and organiser discovery stores every unique eligible candidate before model inference', () => {
   const downloader = read('supabase/functions/activity-website-image-downloader/index.ts');
   const runner = read('scripts/download-activity-website-images.js');

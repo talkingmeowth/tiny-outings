@@ -75,6 +75,10 @@ export const FEATURE_NAMES = [
   'visual_category_match',
   'visual_rejection_risk',
   'visual_preference_rank',
+  'llm_assessed',
+  'llm_approved',
+  'llm_rejected',
+  'llm_confidence',
   'audit_approved',
   'image_url_quality',
   'descriptive_title',
@@ -196,17 +200,31 @@ function storedFieldVisualEvidence(activity, field, imageUrl) {
 }
 
 function arrayCandidateVisualEvidence(activity, candidateSource, index) {
+  const llmField = candidateSource === 'google_images' ? 'serpapi_image_vision' : 'website_image_vision';
+  const llmStatus = clean(activity?.[`${llmField}_status`]).toLowerCase();
+  const llmIndex = Number(activity?.[`${llmField}_candidate_index`]);
+  const llmReason = clean(activity?.[`${llmField}_reason`]);
+  if (Number.isInteger(llmIndex) && llmIndex === index && ['selected', 'approved', 'rejected'].includes(llmStatus)) {
+    return {
+      visual_status: llmStatus === 'rejected' ? 'rejected' : 'approved',
+      visual_reason: llmReason || `Codex LLM vision assessment: ${llmStatus}`,
+      visual_confidence: null,
+      llm_status: llmStatus,
+      llm_reason: llmReason,
+      llm_confidence: null,
+    };
+  }
   if (candidateSource === 'google_images'
     && clean(activity?.serpapi_image_vision_status) === 'selected'
     && Number(activity?.serpapi_image_vision_candidate_index) === index) {
-    return { visual_status: 'approved', visual_reason: clean(activity?.serpapi_image_vision_reason) || 'Selected by the Google Images vision review.' };
+    return { visual_status: 'approved', visual_reason: clean(activity?.serpapi_image_vision_reason) || 'Selected by the Google Images vision review.', llm_status: 'selected', llm_reason: clean(activity?.serpapi_image_vision_reason) || null, llm_confidence: null };
   }
   if (candidateSource === 'official_website_candidate'
     && clean(activity?.website_image_vision_status) === 'selected'
     && Number(activity?.website_image_vision_candidate_index) === index) {
-    return { visual_status: 'approved', visual_reason: clean(activity?.website_image_vision_reason) || 'Selected by the website-image vision review.' };
+    return { visual_status: 'approved', visual_reason: clean(activity?.website_image_vision_reason) || 'Selected by the website-image vision review.', llm_status: 'selected', llm_reason: clean(activity?.website_image_vision_reason) || null, llm_confidence: null };
   }
-  return { visual_status: 'unreviewed', visual_reason: null };
+  return { visual_status: 'unreviewed', visual_reason: null, llm_status: 'unreviewed', llm_reason: null, llm_confidence: null };
 }
 
 export function normalizeStoredCandidate(value, index = 0, defaults = {}) {
@@ -240,6 +258,10 @@ export function normalizeStoredCandidate(value, index = 0, defaults = {}) {
     visual_reason: clean(value.visual_reason || defaults.visualReason) || null,
     visual_confidence: Number.isFinite(Number(value.visual_confidence ?? defaults.visualConfidence))
       ? Number(value.visual_confidence ?? defaults.visualConfidence) : null,
+    llm_status: clean(value.llm_status || defaults.llmStatus) || 'unreviewed',
+    llm_reason: clean(value.llm_reason || defaults.llmReason) || null,
+    llm_confidence: Number.isFinite(Number(value.llm_confidence ?? defaults.llmConfidence))
+      ? Number(value.llm_confidence ?? defaults.llmConfidence) : null,
     audit_approved: value.audit_approved === true || defaults.auditApproved === true,
   };
 }
@@ -284,6 +306,9 @@ function storedFieldCandidate(activity, field) {
     sourceField: field,
     visualStatus: visual.visual_status,
     visualReason: visual.visual_reason,
+    llmStatus: visual.llm_status,
+    llmReason: visual.llm_reason,
+    llmConfidence: visual.llm_confidence,
     auditApproved: visual.audit_approved,
   });
 }
@@ -303,6 +328,10 @@ function mergeCandidate(existing, candidate) {
     visual_status: approved ? 'approved' : (preferred.visual_status === 'rejected' && other.visual_status === 'rejected' ? 'rejected' : 'unreviewed'),
     visual_reason: approved?.visual_reason || preferred.visual_reason || other.visual_reason || null,
     visual_confidence: approved?.visual_confidence || preferred.visual_confidence || other.visual_confidence || null,
+    llm_status: preferred.llm_status === 'rejected' || other.llm_status === 'rejected'
+      ? 'rejected' : (preferred.llm_status === 'selected' || other.llm_status === 'selected' ? 'selected' : 'unreviewed'),
+    llm_reason: preferred.llm_reason || other.llm_reason || null,
+    llm_confidence: preferred.llm_confidence || other.llm_confidence || null,
     audit_approved: preferred.audit_approved || other.audit_approved || false,
   };
 }
@@ -317,8 +346,11 @@ export function crossSourceCandidateSet(activity, maximumCandidates = Number.POS
     return normalizeStoredCandidate(candidate, index, {
       candidateSource: 'google_images',
       sourcePosition: index,
-      visualStatus: visual.visual_status,
-      visualReason: visual.visual_reason,
+    visualStatus: visual.visual_status,
+    visualReason: visual.visual_reason,
+      llmStatus: visual.llm_status,
+      llmReason: visual.llm_reason,
+      llmConfidence: visual.llm_confidence,
     });
   }).filter(Boolean);
   const website = (Array.isArray(activity?.website_image_candidates) ? activity.website_image_candidates : [])
@@ -329,6 +361,9 @@ export function crossSourceCandidateSet(activity, maximumCandidates = Number.POS
         sourcePosition: index,
         visualStatus: visual.visual_status,
         visualReason: visual.visual_reason,
+        llmStatus: visual.llm_status,
+        llmReason: visual.llm_reason,
+        llmConfidence: visual.llm_confidence,
       });
     }).filter(Boolean);
   const deduplicated = new Map();
@@ -344,7 +379,7 @@ export function crossSourceCandidateSet(activity, maximumCandidates = Number.POS
 function candidateEligible(activity, candidate) {
   const combined = [candidate.image_url, candidate.thumbnail_url, candidate.source_page_url, candidate.title].filter(Boolean).join(' ');
   if (blockedAssetTerms.test(combined)) return false;
-  if (candidate.visual_status === 'rejected') return false;
+  if (candidate.visual_status === 'rejected' || candidate.llm_status === 'rejected') return false;
   if (imageSourceConflict(activity, candidate).metadata_context_conflict) return false;
   if (!allowsWikimedia(activity) && isWikimedia(candidate)) return false;
   if (candidate.width && candidate.height) {
@@ -453,6 +488,10 @@ function featureObject(activity, candidate, index, stats) {
     visual_category_match: Number(visual.accepted) || 0,
     visual_rejection_risk: Number(visual.rejected) || 0,
     visual_preference_rank: Number(visual.preference_rank) ? clamp(Number(visual.preference_rank) / 3, 0, 1) : 0,
+    llm_assessed: ['selected', 'approved', 'rejected'].includes(candidate.llm_status) ? 1 : 0,
+    llm_approved: ['selected', 'approved'].includes(candidate.llm_status) ? 1 : 0,
+    llm_rejected: candidate.llm_status === 'rejected' ? 1 : 0,
+    llm_confidence: Number(candidate.llm_confidence) || 0,
     audit_approved: candidate.audit_approved ? 1 : 0,
     image_url_quality: weakImageTerms.test(imageUrl) ? -1 : 1,
     descriptive_title: clamp(titleTokens.size / 9, 0, 1),
@@ -618,7 +657,8 @@ function ranked(group, weights, stats) {
         ? (0.45 * row.features.visual_confidence) + (0.25 * row.features.visual_preference_rank)
         : 0;
       const conflictPenalty = 3.2 * row.features.source_conflict;
-      return { ...row, learnedScore, score: learnedScore + visualBoost - conflictPenalty };
+      const llmBoost = row.features.llm_approved ? 1.4 + (0.8 * row.features.llm_confidence) : 0;
+      return { ...row, learnedScore, score: learnedScore + visualBoost + llmBoost - conflictPenalty };
     })
     .sort((left, right) => right.score - left.score || left.index - right.index);
 }
@@ -673,6 +713,7 @@ export function trainTaggedImageRanker(rows) {
 function recommendationReason(activity, choice, model) {
   const evidence = [];
   if (choice.candidate.visual_status === 'approved') evidence.push('visual assessment passed');
+  if (choice.features.llm_approved) evidence.push('Codex LLM vision assessment passed');
   if (choice.candidate.audit_approved) evidence.push('exact image audit passed');
   if (choice.features.official_source) evidence.push('official listing source');
   if (choice.features.title_name_overlap >= 0.4) evidence.push('strong name match');
