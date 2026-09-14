@@ -6,6 +6,13 @@ const styles = readFileSync(new URL('./styles.css', import.meta.url), 'utf8');
 const app = readFileSync(new URL('./App.jsx', import.meta.url), 'utf8');
 const activityLinkAutofill = readFileSync(new URL('../supabase/functions/activity-link-autofill/index.ts', import.meta.url), 'utf8');
 
+test('age filtering starts at Any age instead of restoring a narrow saved age', () => {
+  assert.match(app, /ageRange: 'all'/);
+  const initializer = app.slice(app.indexOf('const [filters, setFilters]'), app.indexOf('const [calendarMonth'));
+  assert.match(initializer, /ageRange: defaults.ageRange/);
+  assert.doesNotMatch(initializer, /stored\.ageRange/);
+});
+
 test('duplicate activity photo is constrained inside its preview card', () => {
   const rule = styles.match(/\.duplicate-activity-photo\s*\{([^}]+)\}/)?.[1] || '';
   assert.match(rule, /position:\s*relative/);

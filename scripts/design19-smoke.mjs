@@ -95,6 +95,12 @@ try {
   await page.getByRole('button', { name: 'Let’s explore' }).click();
   assert.equal(await page.evaluate(() => localStorage.getItem('tiny-outings:welcome-design19-v1')), 'true');
   await page.locator('.start-summary').waitFor();
+  const ageButtons = page.getByRole('group', { name: 'Child age filter' });
+  assert.match(await ageButtons.getByRole('button', { name: 'Any age', exact: true }).getAttribute('class'), /is-on/);
+  await ageButtons.getByRole('button', { name: 'Baby', exact: true }).click();
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem('tiny-outings:filters')).ageRange === 'baby');
+  assert.match(await ageButtons.getByRole('button', { name: 'Baby', exact: true }).getAttribute('class'), /is-on/);
+  checks.push('Fresh launch defaults to Any age; choosing Baby still works');
   await screenshot(page, '03-plan');
   await noOverflow(page, 'Plan');
   const canvas = () => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--canvas').trim());
@@ -137,6 +143,9 @@ try {
   await page.getByRole('button', { name: 'Continue as guest' }).click();
   await nav('Plan').waitFor();
   assert.equal(await page.locator('.design19-welcome').count(), 0);
+  assert.match(await ageButtons.getByRole('button', { name: 'Any age', exact: true }).getAttribute('class'), /is-on/);
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem('tiny-outings:filters')).ageRange === 'all');
+  checks.push('Relaunch with a persisted Baby filter resets age to Any age');
   checks.push('First welcome completion persists; guest and all six tabs work');
   await context.close();
   const { page: adminPage, context: adminContext } = await contextFor(320, 740, true);

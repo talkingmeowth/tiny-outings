@@ -39,3 +39,7 @@ The test uses isolated browser contexts and local fixtures. All external HTTP re
 Screenshots and `results.json` are generated locally in `output/design19-qa` (git-ignored).
 
 Validated: 212 existing tests passing; production Vite build and changed JSX lint clean; 20 browser smoke checks per theme (40 total), including live theme changes, legacy-user welcome migration, persistence and replay, with no runtime errors, overflow or sampled contrast failures. Android APK builds with `npm run android:apk`.
+
+## 2.92 age-default correction
+
+Android 2.92 (build 106) starts each new app session at **Any age**, instead of restoring a previously saved narrow age filter. Age choices still work for the current browsing session; saved plans and other preferences are untouched. The change is isolated to the filter initializer and does not alter either theme. Regression checks cover a fresh launch, choosing Baby, and relaunching with Baby persisted. The suite now has 213 Node tests and 22 browser checks per theme.

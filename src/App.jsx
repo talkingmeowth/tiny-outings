@@ -1234,9 +1234,9 @@ export default function App() {
         : stored.source && stored.source !== 'all'
           ? [stored.source]
           : defaults.source,
-      ageRange: ageFilterOptions.some((option) => option.value === stored.ageRange)
-        ? stored.ageRange
-        : defaults.ageRange,
+      // Start broad on every launch, including devices with a saved Baby filter.
+      // Age choices still apply while browsing within the current session.
+      ageRange: defaults.ageRange,
       activitySearch: typeof stored.activitySearch === 'string' ? stored.activitySearch : defaults.activitySearch,
     };
   });
