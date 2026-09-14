@@ -2837,8 +2837,8 @@ export default function App() {
     return true;
   }
 
-  async function reviewSubmittedActivity(activity, status, values = {}) {
-    if (!supabase || !isAdmin) return;
+  async function reviewSubmittedActivity(activity, status, values = null) {
+    if (!supabase || !isAdmin || adminSaving) return;
     const label = status === 'published' ? 'approve' : 'archive';
     if (!window.confirm(`${label[0].toUpperCase()}${label.slice(1)} ${activity.activity_name}?`)) return;
 
@@ -2860,12 +2860,14 @@ export default function App() {
     }
 
     setAdminSaving(true);
-    const updates = adminActivityUpdates(activity, values);
-    let coordinates = activityCoordinates(updates);
+    // Quick approval has no edited form: preserve every existing listing field.
+    const updates = values ? adminActivityUpdates(activity, values) : {};
+    const locationActivity = { ...activity, ...updates };
+    let coordinates = activityCoordinates(locationActivity);
 
     if (!coordinates) {
       try {
-        coordinates = await resolveActivityCoordinates(updates);
+        coordinates = await resolveActivityCoordinates(locationActivity);
       } catch {
         coordinates = null;
       }
@@ -2904,7 +2906,9 @@ export default function App() {
           ? current.map((item) => (String(item.activity_id) === String(updatedActivity.activity_id) ? updatedActivity : item))
           : [...current, updatedActivity]
       ));
-      setSelectedActivity(updatedActivity);
+      setSelectedActivity((current) => (
+        String(current?.activity_id) === String(updatedActivity.activity_id) ? updatedActivity : current
+      ));
       setNotice('Listing approved and live.');
     } else {
       setNotice('Listing archived.');
@@ -3293,6 +3297,7 @@ export default function App() {
             reviewQueueError={reviewQueueError}
             adminSaving={adminSaving}
             onOpenReview={openDraftForReview}
+            onQuickApprove={(activity) => reviewSubmittedActivity(activity, 'published')}
             missingImageActivities={activitiesMissingImages}
             onRefresh={() => {
               setReviewQueueRefresh((current) => current + 1);
@@ -4601,6 +4606,7 @@ function ReviewScreen({
   reviewQueueError,
   adminSaving,
   onOpenReview,
+  onQuickApprove,
   missingImageActivities,
   onRefresh,
 }) {
@@ -4673,9 +4679,14 @@ function ReviewScreen({
                         </div>
                         <div className="review-actions">
                           {activity && (
-                            <button type="button" onClick={() => onOpenReview(activity)} disabled={adminSaving}>
-                              Review draft
-                            </button>
+                            <>
+                              <button type="button" onClick={() => onOpenReview(activity)} disabled={adminSaving}>
+                                Review draft
+                              </button>
+                              <button className="quick-approve-button" type="button" onClick={() => onQuickApprove(activity)} disabled={adminSaving}>
+                                Quick approve
+                              </button>
+                            </>
                           )}
                         </div>
                       </article>

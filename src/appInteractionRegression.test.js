@@ -13,6 +13,17 @@ test('age filtering starts at Any age instead of restoring a narrow saved age', 
   assert.doesNotMatch(initializer, /stored\.ageRange/);
 });
 
+test('quick approval reuses protected publishing without rewriting unedited listing fields', () => {
+  assert.match(app, /onQuickApprove=\{\(activity\) => reviewSubmittedActivity\(activity, 'published'\)\}/);
+  const handler = app.slice(app.indexOf('async function reviewSubmittedActivity'), app.indexOf('async function uploadActivityPhotos'));
+  assert.match(handler, /!supabase \|\| !isAdmin \|\| adminSaving/);
+  assert.match(handler, /values = null/);
+  assert.match(handler, /values \? adminActivityUpdates\(activity, values\) : \{\}/);
+  assert.match(handler, /resolveActivityCoordinates\(locationActivity\)/);
+  assert.match(handler, /window.confirm/);
+  assert.match(handler, /public_listing_status: status/);
+});
+
 test('duplicate activity photo is constrained inside its preview card', () => {
   const rule = styles.match(/\.duplicate-activity-photo\s*\{([^}]+)\}/)?.[1] || '';
   assert.match(rule, /position:\s*relative/);

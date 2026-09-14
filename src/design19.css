@@ -105,6 +105,7 @@ h1, h2, h3 { color: var(--ink); font-family: 'Fraunces', Georgia, serif; letter-
 .phone-app :is(.primary-action, .welcome-google, .week-export-card button) { background: var(--lavender); color: var(--canvas); }
 .phone-app :is(.archive-listing-button, .review-actions button:last-child, .swipe-button.no, .hide-activity-button, .search-result-hide) { background: #503b48; color: #f0c0c7; }
 .phone-app :is(.swipe-button.yes, .search-result-view) { background: var(--sage, #b4c8ae); color: var(--canvas); }
+.phone-app .review-actions button.quick-approve-button:last-child { background: var(--sage, #b4c8ae); color: #292330; }
 .phone-app .swipe-button.info { background: var(--surface-raised); color: var(--lavender); }
 .phone-app :is(.week-calendar-day, .calendar-month-button) { background: transparent; color: var(--ink); box-shadow: none; }
 .phone-app .week-calendar-day.is-outside-month { color: #96869f; }

@@ -43,3 +43,9 @@ Validated: 212 existing tests passing; production Vite build and changed JSX lin
 ## 2.92 age-default correction
 
 Android 2.92 (build 106) starts each new app session at **Any age**, instead of restoring a previously saved narrow age filter. Age choices still work for the current browsing session; saved plans and other preferences are untouched. The change is isolated to the filter initializer and does not alter either theme. Regression checks cover a fresh launch, choosing Baby, and relaunching with Baby persisted. The suite now has 213 Node tests and 22 browser checks per theme.
+
+## 2.93 quick draft approval
+
+Android 2.93 (build 107) adds **Quick approve** beside **Review draft** in the admin mobile queue. It reuses the existing confirmation, admin permissions and coordinate validation, but without an edit form only changes publication/archive status and validated coordinates. It never clears descriptions, dates, links or images. Successful approval removes the draft and updates the count without leaving the queue; failures remain available to retry. Both actions are disabled while saving. Full review/edit remains available.
+
+Validation: 214 Node tests and 23 browser checks per theme, including cancellation, simulated permission failure/retry, pending-state disabling, exact status-only request payload, queue count updates and side-by-side layout at 320px. Browser writes use mocked responses, not live listings.

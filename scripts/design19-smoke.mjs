@@ -158,6 +158,47 @@ try {
   assert.equal(await adminPage.locator('.bottom-nav button').count(), 7);
   await noOverflow(adminPage, 'Admin review 320px');
   await screenshot(adminPage, '08-admin-review');
+  const quickApprove = adminPage.getByRole('button', { name: 'Quick approve', exact: true });
+  const reviewDraft = adminPage.getByRole('button', { name: 'Review draft', exact: true });
+  const quickBox = await quickApprove.boundingBox();
+  const reviewBox = await reviewDraft.boundingBox();
+  assert.ok(Math.abs(quickBox.y - reviewBox.y) < 2 && quickBox.x > reviewBox.x, 'Approval sits beside review even at 320px');
+  const publishRequests = [];
+  let failPublish = true;
+  let releasePublish;
+  const pendingPublish = new Promise((resolve) => { releasePublish = resolve; });
+  await adminPage.route('**/rest/v1/activities?**', async (route) => {
+    if (route.request().method() !== 'PATCH') return route.fallback();
+    assert.equal(new URL(route.request().url()).searchParams.get('activity_id'), `eq.${fixture[0].activity_id}`);
+    const changes = route.request().postDataJSON();
+    publishRequests.push(changes);
+    if (failPublish) return route.fulfill({ status: 403, json: { message: 'Test approval denied' } });
+    await pendingPublish;
+    return route.fulfill({ status: 200, json: { ...fixture[0], ...changes } });
+  });
+  adminPage.once('dialog', (dialog) => dialog.dismiss());
+  await quickApprove.click();
+  assert.equal(publishRequests.length, 0, 'Cancelling never publishes');
+  adminPage.once('dialog', (dialog) => dialog.accept());
+  await quickApprove.click();
+  await adminPage.getByText('Listing could not be approved: Test approval denied', { exact: true }).waitFor();
+  assert.equal(await quickApprove.count(), 1, 'Failed approval remains in queue');
+  assert.equal(await quickApprove.isEnabled(), true, 'Failed approval can be retried');
+  failPublish = false;
+  adminPage.once('dialog', (dialog) => dialog.accept());
+  await quickApprove.click();
+  await adminPage.waitForFunction(() => document.querySelector('.quick-approve-button')?.disabled === true);
+  assert.equal(await reviewDraft.isDisabled(), true);
+  releasePublish();
+  await adminPage.getByText('Listing approved and live.', { exact: true }).waitFor();
+  assert.equal(await quickApprove.count(), 0);
+  await adminPage.getByRole('heading', { name: '0 draft listings to check', exact: true }).waitFor();
+  assert.equal(await adminPage.locator('.activity-detail-screen').count(), 0, 'Quick approval keeps the queue open');
+  assert.equal(publishRequests.length, 2);
+  for (const changes of publishRequests) {
+    assert.deepEqual(changes, { lat: fixture[0].lat, long: fixture[0].long, public_listing_status: 'published', archive: false }, 'Never overwrite descriptions, dates, URLs or images');
+  }
+  checks.push('Quick approve: side-by-side, cancel, failure/retry, pending lock, status-only publish and queue count update');
   await adminPage.getByRole('navigation').getByRole('button', { name: 'Profile', exact: true }).click();
   await adminPage.getByText('Local design tester', { exact: true }).waitFor();
   await noOverflow(adminPage, 'Signed-in profile 320px');
