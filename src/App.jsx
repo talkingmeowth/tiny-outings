@@ -19,6 +19,8 @@ import { activityCoordinates, resolveActivityCoordinates } from './activityLocat
 import { profileQrUrl, profileShareData } from './profileSharing';
 import { buildAdminDraftReviewQueue, isActiveDraftActivity } from './reviewQueue';
 import { Design19Brand, Design19Welcome, LondonLandmarks, OutlineIcon } from './Design19';
+import { CommunityReviews, ReviewRatingLink } from './ActivityReviews';
+import { useActivityReviews } from './useActivityReviews';
 
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
@@ -1253,7 +1255,13 @@ export default function App() {
   const [planningSyncedUserId, setPlanningSyncedUserId] = useState(null);
   const [linkForm, setLinkForm] = useState(emptyLinkForm);
   const [reviewForm, setReviewForm] = useState(emptyReviewForm);
+  const [reviewsOpen, setReviewsOpen] = useState(false);
+  const [reviewsRefresh, setReviewsRefresh] = useState(0);
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const reviewSubmitLock = useRef(false);
   const [selectedActivity, setSelectedActivity] = useState(null);
+  const reviewActivityRef = useRef(null);
+  useEffect(() => { reviewActivityRef.current = selectedActivity?.activity_id; }, [selectedActivity?.activity_id]);
   const sharedActivityId = sharedActivityIdFromLocation();
   const [openedSharedActivity, setOpenedSharedActivity] = useState(false);
   const [shareSheetActivity, setShareSheetActivity] = useState(null);
@@ -1776,6 +1784,7 @@ export default function App() {
       return;
     }
     if (activeScreen === 'activity') {
+      if (reviewsOpen) { setReviewsOpen(false); window.scrollTo(0, 0); return; }
       closeActivity();
       return;
     }
@@ -2405,6 +2414,7 @@ export default function App() {
 
   function navigate(screen) {
     if (screen === 'review' && !isAdmin) return;
+    setReviewsOpen(false);
     if (screen !== 'activity') {
       setSelectedActivity(null);
     }
@@ -2412,18 +2422,22 @@ export default function App() {
   }
 
   function openActivity(activity) {
+    setReviewsOpen(false);
+    setReviewForm(emptyReviewForm);
     setReturnScreen(activeScreen === 'activity' ? returnScreen : activeScreen);
     setSelectedActivity(activity);
     setActiveScreen('activity');
   }
 
   function openDraftForReview(activity) {
+    setReviewsOpen(false);
     setReturnScreen('review');
     setSelectedActivity(activity);
     setActiveScreen('activity');
   }
 
   function closeActivity() {
+    setReviewsOpen(false);
     setSelectedActivity(null);
     setActiveScreen(returnScreen);
   }
@@ -2733,7 +2747,7 @@ export default function App() {
     const { error } = await supabase.from('activity_bug_reports').insert({
       activity_id: reportSheetActivity.activity_id,
       reported_by_user_id: session?.user?.id || null,
-      report_text: reportText.trim(),
+      report_text: `${reportSheetActivity.reportedReviewId ? `Review ${reportSheetActivity.reportedReviewId}: ` : ''}${reportText.trim()}`,
       source_url: activityShareUrl(reportSheetActivity),
     });
     setReportSubmitting(false);
@@ -3091,15 +3105,23 @@ export default function App() {
 
   async function submitReview(event) {
     event.preventDefault();
-    if (!selectedActivity) return;
+    if (!selectedActivity || reviewSubmitLock.current) return false;
     if (!session?.user) {
       setNotice('Sign in to leave a rating or comment.');
-      return;
+      return false;
     }
     if (!supabase) {
       setNotice('Reviews are not ready in this build yet.');
-      return;
+      return false;
     }
+
+    if (!Number.isInteger(Number(reviewForm.rating)) || Number(reviewForm.rating) < 1 || Number(reviewForm.rating) > 5) {
+      setNotice('Choose a rating from 1 to 5.');
+      return false;
+    }
+    reviewSubmitLock.current = true;
+    setReviewSubmitting(true);
+    try {
 
     const tasks = [];
     if (reviewForm.rating) {
@@ -3132,9 +3154,10 @@ export default function App() {
       return;
     }
 
-    setReviewForm(emptyReviewForm);
+    const stillViewingActivity = reviewActivityRef.current === selectedActivity.activity_id;
+    if (stillViewingActivity) setReviewForm(emptyReviewForm);
     if (uploadedPhotos.length) {
-      setActivityPhotos((current) => [...uploadedPhotos, ...current]);
+      if (stillViewingActivity) setActivityPhotos((current) => [...uploadedPhotos, ...current]);
       const userUploadedImageUrl = uploadedPhotos[0].photo_url;
       setActivities((current) => current.map((activity) => (
         String(activity.activity_id) === String(selectedActivity.activity_id)
@@ -3146,6 +3169,15 @@ export default function App() {
         : current);
     }
     setNotice(uploadedPhotos.length ? 'Review and photo saved.' : 'Review saved.');
+    setReviewsRefresh((n) => n + 1);
+    return true;
+    } catch (error) {
+      setNotice(`Review could not be saved: ${error.message}`);
+      return false;
+    } finally {
+      reviewSubmitLock.current = false;
+      setReviewSubmitting(false);
+    }
   }
 
   return (
@@ -3308,7 +3340,13 @@ export default function App() {
 
         {activeScreen === 'activity' && selectedActivity && (
           <ActivityDetail
+            key={selectedActivity.activity_id}
             activity={selectedActivity}
+            reviewsOpen={reviewsOpen}
+            setReviewsOpen={setReviewsOpen}
+            reviewsRefresh={reviewsRefresh}
+            reviewSubmitting={reviewSubmitting}
+            reviewUserId={session?.user?.id}
             userPhotos={activityPhotos}
             userPhotosLoading={activityPhotosLoading}
             reviewForm={reviewForm}
@@ -4807,6 +4845,11 @@ function ActivityMapScreen({ activities }) {
 
 function ActivityDetail({
   activity,
+  reviewsOpen,
+  setReviewsOpen,
+  reviewsRefresh,
+  reviewSubmitting,
+  reviewUserId,
   userPhotos,
   userPhotosLoading,
   reviewForm,
@@ -4833,13 +4876,24 @@ function ActivityDetail({
   const cost = activityCost(activity);
   const flexible = isFlexibleActivity(activity);
   const isDraft = activity.public_listing_status === 'draft';
+  const reviewState = useActivityReviews(supabase, activity.activity_id, reviewsRefresh);
+  const [writingReview, setWritingReview] = useState(false);
+  const openReviews = () => { setWritingReview(false); setReviewsOpen(true); };
+  const writeReview = (existing) => {
+    setReviewForm({ rating: existing?.rating || 5, comments: existing?.review_text || '', photos: [] });
+    setWritingReview(true);
+  };
 
   return (
     <section className="app-screen activity-detail-screen">
-      <button className="sheet-close detail-back-button" type="button" onClick={onClose}>
+      <button className="sheet-close detail-back-button" type="button" onClick={() => {
+        if (reviewsOpen) { setReviewsOpen(false); setWritingReview(false); window.scrollTo(0, 0); }
+        else onClose();
+      }}>
         Back
       </button>
 
+      {!reviewsOpen && <>
       <div className="detail-hero">
         <div className="detail-gallery" aria-label={`${activity.activity_name} photos`}>
           <ActivityPhoto activity={activity} className="detail-photo is-main" priority />
@@ -4862,6 +4916,7 @@ function ActivityDetail({
         )}
         <p className="eyebrow">{activityPlanLabel(activity)}</p>
         <h1>{activity.activity_name}</h1>
+        {!isDraft && <ReviewRatingLink state={reviewState} onOpen={openReviews} />}
         <p className="detail-description">
           {activity.description || 'Description coming soon. Check the links for the latest details.'}
         </p>
@@ -4938,16 +4993,24 @@ function ActivityDetail({
           onPublishDraft={isDraft ? (values) => onReviewDraft(activity, 'published', values) : null}
         />
       )}
+      </>}
 
+      {!isDraft && <CommunityReviews activity={activity} state={reviewState} full={reviewsOpen} onOpen={openReviews}
+        onWrite={writeReview} writing={writingReview} onCancelWrite={() => setWritingReview(false)}
+        userId={reviewUserId} onReport={(review) => onReport({ ...activity, reportedReviewId: review.review_id })}>
       {!isDraft && signedIn ? (
-        <form className="review-card" onSubmit={submitReview}>
-          <h3>Quick review</h3>
+        <form className="review-card" onSubmit={async (event) => { if (await submitReview(event)) setWritingReview(false); }}>
+          <h3>{reviewState.rows.some((review) => review.user_id === reviewUserId) ? 'Edit your review' : 'Write a review'}</h3>
+          <fieldset disabled={reviewSubmitting} style={{ border: 0, padding: 0, margin: 0, display: 'grid', gap: 14, minWidth: 0 }}>
           <label>
             <span>Rating</span>
             <input
               type="number"
               min="1"
               max="5"
+              required
+              step="1"
+              aria-label="Rating"
               value={reviewForm.rating}
               onChange={(event) => setReviewForm((current) => ({ ...current, rating: event.target.value }))}
             />
@@ -4956,6 +5019,7 @@ function ActivityDetail({
             <span>Comment</span>
             <textarea
               value={reviewForm.comments}
+              aria-label="Comment"
               onChange={(event) => setReviewForm((current) => ({ ...current, comments: event.target.value }))}
               placeholder="Buggy access, baby change, vibe..."
             />
@@ -4973,7 +5037,8 @@ function ActivityDetail({
             />
             <small>{reviewForm.photos.length ? `${reviewForm.photos.length} ready to upload` : 'Up to 5 images'}</small>
           </label>
-          <button className="primary-action" type="submit">Save</button>
+          <button className="primary-action" type="submit">{reviewSubmitting ? 'Saving…' : 'Save review'}</button>
+          </fieldset>
         </form>
       ) : !isDraft ? (
         <section className="review-card review-signin-card">
@@ -4981,6 +5046,7 @@ function ActivityDetail({
           <button className="primary-action" type="button" onClick={onSignIn}>Sign in to review</button>
         </section>
       ) : null}
+      </CommunityReviews>}
     </section>
   );
 }
@@ -5024,7 +5090,7 @@ function ReportSheet({ activity, value, submitting, onChange, onClose, onSubmit 
     <div className="share-sheet-backdrop" role="presentation" onClick={onClose}>
       <form className="report-sheet" onSubmit={onSubmit} onClick={(event) => event.stopPropagation()}>
         <div className="sheet-handle" />
-        <div className="share-sheet-heading"><span>Report a listing</span><button type="button" onClick={onClose} aria-label="Close report form">x</button></div>
+        <div className="share-sheet-heading"><span>{activity.reportedReviewId ? 'Report a review' : 'Report a listing'}</span><button type="button" onClick={onClose} aria-label="Close report form">x</button></div>
         <p>Tell us what needs fixing for <strong>{activity.activity_name}</strong>.</p>
         <textarea value={value} onChange={(event) => onChange(event.target.value)} placeholder="Wrong details, broken link, unsuitable listing..." required />
         <button className="primary-action wide" type="submit" disabled={submitting}>{submitting ? 'Sending...' : 'Send report'}</button>

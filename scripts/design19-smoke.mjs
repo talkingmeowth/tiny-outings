@@ -26,6 +26,10 @@ const fixture = ['Little London Explorers', 'Saturday Story Club', 'Garden Playt
   website: 'https://example.test/activity',
 }));
 async function contextFor(width, height, admin = false) {
+  const reviews = [
+    { review_id: '00000000-0000-4000-8000-000000000081', user_id: adminUser.id, rating: 5, review_text: 'Lovely live music, with space for the pram.', created_at: '2026-09-13T10:00:00Z', author: { display_name: 'Amira' } },
+    { review_id: '00000000-0000-4000-8000-000000000082', user_id: 'other-user', rating: 4, review_text: 'Great for our toddler. Arrive early for buggy parking.', created_at: '2026-09-12T10:00:00Z', author: { display_name: 'Ben' } },
+  ];
   const context = await browser.newContext({ viewport: { width, height }, colorScheme, deviceScaleFactor: 1, reducedMotion: 'reduce' });
   await context.routeWebSocket('**/*', (socket) => socket.close());
   if (admin) {
@@ -43,6 +47,14 @@ async function contextFor(width, height, admin = false) {
     if (url.pathname.startsWith('/rest/v1/')) {
       supabaseHost = url.hostname;
       let data = url.pathname === '/rest/v1/activities' ? fixture : [];
+      if (url.pathname === '/rest/v1/activity_reviews') {
+        if (route.request().method() === 'POST') {
+          const saved = route.request().postDataJSON();
+          assert.equal(saved.user_id, adminUser.id);
+          Object.assign(reviews[0], saved);
+        }
+        data = reviews;
+      }
       if (url.searchParams.get('public_listing_status') === 'eq.draft') data = [{ ...fixture[0], public_listing_status: 'draft' }];
       if (url.pathname === '/rest/v1/user_table') data = { user_id: adminUser.id, display_name: 'Local design tester', user_name: 'design19tester' };
       return route.fulfill({ status: 200, json: data, headers: { 'content-range': `0-${Math.max(data.length - 1, 0)}/${data.length}` } });
@@ -118,8 +130,26 @@ try {
   const title = await page.locator('.swipe-card h2').innerText();
   await page.getByRole('button', { name: 'Details', exact: true }).click();
   await page.locator('.activity-detail-screen').waitFor();
+  await page.getByRole('button', { name: /2 reviews/ }).first().waitFor();
   await screenshot(page, '05-detail');
   await noOverflow(page, 'Details');
+  await page.locator('.community-rating-link').click();
+  await page.getByRole('heading', { name: 'Parents & carers say', exact: true }).waitFor();
+  assert.equal(await page.locator('.community-average').innerText(), '4.5');
+  assert.equal(await page.locator('.community-review').count(), 2);
+  await screenshot(page, '10-community-reviews');
+  await noOverflow(page, 'Community reviews');
+  await page.getByLabel('Sort reviews').selectOption('lowest');
+  assert.match(await page.locator('.community-review').first().innerText(), /Ben/);
+  await page.getByRole('button', { name: 'Report review by Ben', exact: true }).click();
+  await page.getByText('Report a review', { exact: true }).waitFor();
+  await page.getByRole('button', { name: 'Close report form' }).click();
+  await page.getByRole('button', { name: 'Write a review', exact: true }).click();
+  await page.getByRole('button', { name: 'Sign in to review', exact: true }).waitFor();
+  await page.getByRole('button', { name: 'Back to reviews', exact: true }).click();
+  await page.getByRole('button', { name: 'Back', exact: true }).click();
+  await page.locator('.detail-hero').waitFor();
+  checks.push('Real community summary, comments, sorting, reporting, guest sign-in and back-to-details');
   await page.getByRole('button', { name: /Back/ }).first().click();
   assert.equal(await page.locator('.swipe-card h2').innerText(), title);
   await page.getByRole('button', { name: 'Save', exact: true }).click();
@@ -199,6 +229,27 @@ try {
     assert.deepEqual(changes, { lat: fixture[0].lat, long: fixture[0].long, public_listing_status: 'published', archive: false }, 'Never overwrite descriptions, dates, URLs or images');
   }
   checks.push('Quick approve: side-by-side, cancel, failure/retry, pending lock, status-only publish and queue count update');
+  await adminPage.getByRole('navigation').getByRole('button', { name: 'Swipe', exact: true }).click();
+  await adminPage.getByRole('button', { name: 'Details', exact: true }).click();
+  await adminPage.locator('.community-rating-link').click();
+  await adminPage.getByRole('button', { name: 'Edit your review', exact: true }).click();
+  await screenshot(adminPage, '11-review-editor');
+  await adminPage.getByLabel('Comment', { exact: true }).fill('Updated after another lovely visit.');
+  await adminPage.getByLabel('Rating', { exact: true }).fill('3');
+  let rejectReview = true;
+  await adminPage.route('**/rest/v1/activity_reviews?**', async (route) => {
+    if (route.request().method() === 'POST' && rejectReview) return route.fulfill({ status: 403, json: { message: 'Review test denied' } });
+    return route.fallback();
+  });
+  await adminPage.getByRole('button', { name: 'Save review', exact: true }).click();
+  await adminPage.getByText('Review could not be saved: Review test denied', { exact: true }).waitFor();
+  assert.equal(await adminPage.getByLabel('Comment', { exact: true }).inputValue(), 'Updated after another lovely visit.');
+  rejectReview = false;
+  await adminPage.getByRole('button', { name: 'Save review', exact: true }).click();
+  await adminPage.locator('.community-review-body').getByText('Updated after another lovely visit.', { exact: true }).waitFor();
+  assert.equal(await adminPage.locator('.community-average').innerText(), '3.5');
+  assert.equal(await adminPage.locator('.community-review').count(), 2);
+  checks.push('Signed-in review editing retains text on failure and refreshes comments and average after save without duplicating');
   await adminPage.getByRole('navigation').getByRole('button', { name: 'Profile', exact: true }).click();
   await adminPage.getByText('Local design tester', { exact: true }).waitFor();
   await noOverflow(adminPage, 'Signed-in profile 320px');
@@ -208,6 +259,27 @@ try {
   assert.equal(await adminPage.locator('.design19-welcome').count(), 0);
   checks.push('Signed-in upgrade welcome is shown only once');
   await adminContext.close();
+  const { page: emptyPage, context: emptyContext } = await contextFor(390, 844);
+  let failReviews = true;
+  await emptyPage.route('**/rest/v1/activity_reviews?**', (route) => route.fulfill(failReviews
+    ? { status: 503, json: { message: 'Temporary test outage' } }
+    : { status: 200, json: [] }));
+  await emptyPage.goto(base);
+  await emptyPage.getByRole('button', { name: 'Continue as guest' }).click();
+  await emptyPage.getByRole('button', { name: 'Let’s explore' }).click();
+  await emptyPage.getByRole('navigation').getByRole('button', { name: 'Swipe', exact: true }).click();
+  await emptyPage.getByRole('button', { name: 'Details', exact: true }).click();
+  await emptyPage.getByRole('button', { name: 'Reviews unavailable · Try again', exact: true }).click();
+  await emptyPage.getByText('Could not load reviews.', { exact: true }).waitFor();
+  assert.equal(await emptyPage.locator('.community-average').count(), 0);
+  failReviews = false;
+  await emptyPage.getByRole('button', { name: 'Try again', exact: true }).click();
+  await emptyPage.getByText('No reviews yet. Been here? Share what it was like.', { exact: true }).waitFor();
+  assert.equal(await emptyPage.locator('.community-stars').count(), 0);
+  await noOverflow(emptyPage, 'Empty reviews');
+  await screenshot(emptyPage, '12-empty-reviews');
+  checks.push('Review read failure supports retry; empty reviews never fabricate ratings');
+  await emptyContext.close();
   for (const [width, height] of [[320, 568], [768, 1024]]) {
     const { page: sized, context: sizedContext } = await contextFor(width, height);
     await sized.goto(base);
