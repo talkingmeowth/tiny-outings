@@ -1,0 +1,5 @@
+<resources>
+    <color name="design19_canvas">#292330</color>
+    <color name="design19_splash_mark">#CEB1E2</color>
+    <bool name="design19_light_system_bars">false</bool>
+</resources>

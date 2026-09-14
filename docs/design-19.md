@@ -4,16 +4,16 @@ Implemented on `codex/design-19`, based on `ced274f` in the `i-want-to-make-an-a
 
 ## Scope
 
-- Aubergine canvas, lavender brand/primary controls, butter-yellow selection states and sage save controls.
+- Device-following light and dark modes: a soft lilac light canvas or aubergine dark canvas, with lavender, butter-yellow and sage accents. Changes to the system preference apply without resetting the current screen.
 - Code-native parent/child logo, Big Ben, London Eye, bus, bridge and pram; no generated raster UI artwork or new runtime dependency.
 - Design 19's first-use welcome and inclusive copy for babies through older children, parents/carers and parental leave.
-- Existing first-use completion flag retained. Returning users are not forced through onboarding again.
+- The new welcome uses `welcome-design19-v1`, independently of the legacy tour flag. Existing installations see it once after updating; subsequent launches skip it. Profile's **Show welcome screen** replays it without deleting preferences or saved plans.
 - Plan, Swipe, Week, Where, Add, Profile and admin Review retain their existing data, navigation and action handlers. SVG icons supplement—not replace—the tab labels.
-- Dark styling for forms, activity details, sharing/report sheets, profiles, admin queues and map chrome. Activity photos and map tiles retain their original colours.
+- Both themes cover forms, activity details, sharing/report sheets, profiles, admin queues and map chrome. Activity photos and map tiles retain their original colours.
 - New web/PWA icon variants, metadata and a versioned app-shell cache. Old icon files remain available for rollback.
-- Matching Android adaptive/legacy launcher icons and plum launch/system-bar colours. Old native icon assets remain untouched.
+- Matching Android adaptive/legacy launcher icons and day/night launch/system-bar colours. MainActivity refreshes native chrome on uiMode changes without resetting navigation. The launcher icon retains a consistent dark background.
 
-No image-selection/import pipeline, database schema, desktop review app or native authentication changes. The UI release is packaged as Android 2.90 (build 104) for the existing Render download page.
+No image-selection/import pipeline, database schema, desktop review app or native authentication changes. The corrected UI release is packaged as Android 2.91 (build 105) for the existing Render download page.
 
 ## Files and rollback
 
@@ -32,10 +32,10 @@ npm run dev -- --host 127.0.0.1 --port 5189
 node scripts/design19-smoke.mjs
 ```
 
-The browser check requires Playwright and installed Chrome. Set `PLAYWRIGHT_MODULE` to a bundled Playwright ESM entry if it is not installed in the checkout. `DESIGN19_TEST_URL` accepts localhost only. `DESIGN19_TEST_OUTPUT` controls the output folder (default `output/design19-qa`). No new package is installed by the script.
+The browser check requires Playwright and installed Chrome. Set `PLAYWRIGHT_MODULE` to a bundled Playwright ESM entry if it is not installed in the checkout. `DESIGN19_TEST_URL` accepts localhost only. Run with `DESIGN19_TEST_SCHEME=light` and again with `DESIGN19_TEST_SCHEME=dark`. `DESIGN19_TEST_OUTPUT` controls the output folder (default `output/design19-qa/<scheme>`). No new package is installed by the script.
 
 The test uses isolated browser contexts and local fixtures. All external HTTP requests are intercepted and WebSockets are closed; it never publishes a listing or writes to the live database. It exercises guest entry, the one-time welcome, save/skip, detail/back, all six tabs, a mocked admin session with seven tabs and the draft queue, at mobile and tablet widths. It also checks runtime errors, horizontal overflow and text contrast on the sampled screens. Photos, map tiles and disabled controls are excluded from the text-contrast check. This is a regression smoke test, not a certification of native Google authentication, live maps or a real Android device.
 
 Screenshots and `results.json` are generated locally in `output/design19-qa` (git-ignored).
 
-Validated: 212 existing tests passing; production Vite build and changed JSX lint clean; 16 browser smoke checks with no runtime errors, overflow or sampled contrast failures. Android resources compile with `android/gradlew.bat :app:processDebugResources`.
+Validated: 212 existing tests passing; production Vite build and changed JSX lint clean; 20 browser smoke checks per theme (40 total), including live theme changes, legacy-user welcome migration, persistence and replay, with no runtime errors, overflow or sampled contrast failures. Android APK builds with `npm run android:apk`.

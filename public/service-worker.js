@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tiny-outings-design19-v1';
+const CACHE_NAME = 'tiny-outings-design19-v2';
 const APP_SHELL = [
   '/',
   '/manifest.webmanifest',

@@ -33,7 +33,8 @@ const defaultProfileAvatar = '/images/profile-placeholder.svg';
 const NativeGoogleSignIn = registerPlugin('TinyOutingsGoogle');
 // Reset outdated swipe/filter state without touching planned calendar entries.
 const planningStorageVersion = '2026-08-17-family-activities-filter';
-const onboardingStorageKey = 'onboarding-complete';
+// Version independently of the old tour so existing installations see Design 19 once.
+const onboardingStorageKey = 'welcome-design19-v1';
 const statusOptions = ['booked', 'tentative'];
 const statusLabels = {
   booked: 'Booked',
@@ -3264,6 +3265,7 @@ export default function App() {
             onSaveProfile={saveProfile}
             onSignIn={signInWithGoogle}
             onShareProfile={shareProfile}
+            onShowWelcome={() => { setHasCompletedOnboarding(false); window.scrollTo(0, 0); }}
             onSearchProfiles={searchProfilesByUsername}
             onFollowProfile={followProfile}
             onSelectFollowingProfile={(person) => setSelectedFollowingUserId(person?.user_id || null)}
@@ -4226,6 +4228,7 @@ function UserScreen({
   onSaveProfile,
   onSignIn,
   onShareProfile,
+  onShowWelcome,
   onSearchProfiles,
   onFollowProfile,
   onSelectFollowingProfile,
@@ -4301,6 +4304,8 @@ function UserScreen({
           <button type="button" className="profile-edit-button" onClick={onSignIn}>Sign in</button>
         )}
       </section>
+
+      <button className="secondary-button welcome-replay" type="button" onClick={onShowWelcome}>Show welcome screen</button>
 
       {signedIn && editingProfile && (
         <form className="profile-editor" onSubmit={(event) => { event.preventDefault(); onSaveProfile(form); }}>

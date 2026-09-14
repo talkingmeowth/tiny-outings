@@ -16,15 +16,15 @@
         <item name="android:windowBackground">@color/design19_canvas</item>
         <item name="android:statusBarColor">@color/design19_canvas</item>
         <item name="android:navigationBarColor">@color/design19_canvas</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:windowLightStatusBar">@bool/design19_light_system_bars</item>
+        <item name="android:windowLightNavigationBar">@bool/design19_light_system_bars</item>
     </style>
 
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@color/design19_canvas</item>
         <item name="windowSplashScreenBackground">@color/design19_canvas</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/design19_foreground</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/design19_splash_mark</item>
         <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>
 </resources>

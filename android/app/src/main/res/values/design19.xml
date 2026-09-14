@@ -1,3 +1,6 @@
 <resources>
-    <color name="design19_canvas">#292330</color>
+    <color name="design19_canvas">#F3EDF5</color>
+    <color name="design19_launcher_background">#292330</color>
+    <color name="design19_splash_mark">#715281</color>
+    <bool name="design19_light_system_bars">true</bool>
 </resources>

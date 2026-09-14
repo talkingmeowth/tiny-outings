@@ -185,3 +185,43 @@ h1, h2, h3 { color: var(--ink); font-family: 'Fraunces', Georgia, serif; letter-
 @media (min-width: 700px) {
   .phone-app { border-inline: 1px solid var(--line-soft); }
 }
+
+/* Follow the device setting, including changes while the app is open.
+   Keep accent fills separate from foreground colours on the light canvas. */
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+    --canvas: #f3edf5;
+    --surface: #fbf7fa;
+    --surface-raised: #e8e0ed;
+    --ink: #403148;
+    --muted: #62536c;
+    --line: #b5a4bf;
+    --line-soft: #dbcedf;
+    --green-dark: #426246;
+    --coral-dark: #864858;
+    --lavender: #715281;
+    --shadow: 0 4px 18px #45324f0d;
+  }
+  .phone-app :is(.eyebrow, .welcome-kicker) { color: #75571f; }
+  .phone-app :is(.term-time-badge, .status-pill, .hero-badges span) { color: #665323; background: #efe5c6; }
+  .phone-app :is(.filter-chip.is-on, .secondary-button.is-on, .segment.is-on, .date-pill.is-on, .window-pill.is-on, .distance-toggle button.is-on) { color: var(--ink); }
+  .phone-app :is(.primary-action, .welcome-google, .week-export-card button, .design19-explore) { color: var(--ink); background: #d6c1e4; }
+  .phone-app :is(.swipe-button.yes, .search-result-view, .share-actions button:first-child, .follow-button.is-following) { color: var(--ink); }
+  .phone-app :is(.archive-listing-button, .review-actions button:last-child, .swipe-button.no, .hide-activity-button, .search-result-hide, .queue-error) { background: #ecd9df; color: #733847; }
+  .phone-app button:disabled { background: #e1d9e5 !important; color: #796b83 !important; }
+  .phone-app :is(button, a, input, select, textarea, summary):focus-visible { outline-color: #715281; }
+  .phone-app .week-calendar-day.is-outside-month { color: #74627f; }
+  .phone-app .week-calendar-day.is-selected-week { background: #ddd0e6; color: #4a3656; }
+  .phone-app .week-calendar-day.is-today::after { background: #715281; }
+  .phone-app :is(input, textarea)::placeholder { color: var(--muted); }
+  .phone-app :is(input, select, textarea) { accent-color: #715281; }
+  .phone-app .toast { background: #e6d8ee; }
+  .phone-app .bottom-nav { background: var(--surface); box-shadow: 0 0 0 1px var(--line-soft), 0 4px 20px #45324f18; }
+  .phone-app .bottom-nav button.is-on { background: #ddd0e6; color: #4a3656; }
+  .phone-app :is(.share-option i, .share-tools i, .share-launcher > span:first-child) { color: var(--ink); }
+  .phone-app .week-share-card button span { color: var(--ink); }
+  .phone-app .decision-stamp.yes { color: var(--green-dark); }
+  .tour-icon { background: #d6c1e4; color: var(--ink); }
+  .landmark-clock-hand { stroke: var(--ink); }
+}

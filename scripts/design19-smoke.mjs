@@ -6,7 +6,9 @@ import { resolve } from 'node:path';
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const base = process.env.DESIGN19_TEST_URL || 'http://127.0.0.1:5189';
 assert.ok(['localhost', '127.0.0.1'].includes(new URL(base).hostname), 'Test only against local app');
-const output = resolve(process.env.DESIGN19_TEST_OUTPUT || 'output/design19-qa');
+const colorScheme = process.env.DESIGN19_TEST_SCHEME || 'dark';
+assert.ok(['light', 'dark'].includes(colorScheme));
+const output = resolve(process.env.DESIGN19_TEST_OUTPUT || `output/design19-qa/${colorScheme}`);
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 const failures = [];
@@ -24,7 +26,7 @@ const fixture = ['Little London Explorers', 'Saturday Story Club', 'Garden Playt
   website: 'https://example.test/activity',
 }));
 async function contextFor(width, height, admin = false) {
-  const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1, reducedMotion: 'reduce' });
+  const context = await browser.newContext({ viewport: { width, height }, colorScheme, deviceScaleFactor: 1, reducedMotion: 'reduce' });
   await context.routeWebSocket('**/*', (socket) => socket.close());
   if (admin) {
     assert.ok(supabaseHost, 'Configured Supabase client reached the local request mock');
@@ -91,10 +93,16 @@ try {
   await noOverflow(page, 'Welcome');
   await screenshot(page, '02-welcome');
   await page.getByRole('button', { name: 'Let’s explore' }).click();
-  assert.equal(await page.evaluate(() => localStorage.getItem('tiny-outings:onboarding-complete')), 'true');
+  assert.equal(await page.evaluate(() => localStorage.getItem('tiny-outings:welcome-design19-v1')), 'true');
   await page.locator('.start-summary').waitFor();
   await screenshot(page, '03-plan');
   await noOverflow(page, 'Plan');
+  const canvas = () => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--canvas').trim());
+  assert.equal(await canvas(), colorScheme === 'dark' ? '#292330' : '#f3edf5');
+  await page.emulateMedia({ colorScheme: colorScheme === 'dark' ? 'light' : 'dark' });
+  assert.equal(await canvas(), colorScheme === 'dark' ? '#f3edf5' : '#292330');
+  await page.emulateMedia({ colorScheme });
+  checks.push('Theme follows device preference and changes without reloading');
   assert.equal(await page.locator('.bottom-nav button').count(), 6);
   const nav = (label) => page.getByRole('navigation', { name: 'App navigation' }).getByRole('button', { name: label, exact: true });
   await nav('Swipe').click();
@@ -118,6 +126,13 @@ try {
     await noOverflow(page, label);
     await screenshot(page, `06-${label.toLowerCase()}`);
   }
+  const beforeReplay = await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort()));
+  await page.getByRole('button', { name: 'Show welcome screen' }).click();
+  await page.getByRole('heading', { name: 'Welcome to your London.' }).waitFor();
+  await page.getByRole('button', { name: 'Let’s explore' }).click();
+  await page.locator('.user-screen').waitFor();
+  assert.equal(await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort())), beforeReplay);
+  checks.push('Profile reopens welcome and returns without resetting saved plans');
   await page.reload();
   await page.getByRole('button', { name: 'Continue as guest' }).click();
   await nav('Plan').waitFor();
@@ -126,6 +141,9 @@ try {
   await context.close();
   const { page: adminPage, context: adminContext } = await contextFor(320, 740, true);
   await adminPage.goto(base);
+  await adminPage.getByRole('heading', { name: 'Welcome to your London.' }).waitFor();
+  await adminPage.getByRole('button', { name: 'Let’s explore' }).click();
+  checks.push('Existing signed-in user with legacy onboarding flag sees the new welcome');
   await adminPage.getByRole('navigation').getByRole('button', { name: 'Review', exact: true }).click();
   await adminPage.locator('.review-item').first().waitFor();
   assert.equal(await adminPage.locator('.bottom-nav button').count(), 7);
@@ -135,6 +153,10 @@ try {
   await adminPage.getByText('Local design tester', { exact: true }).waitFor();
   await noOverflow(adminPage, 'Signed-in profile 320px');
   await screenshot(adminPage, '09-admin-profile');
+  await adminPage.reload();
+  await adminPage.getByRole('navigation').waitFor();
+  assert.equal(await adminPage.locator('.design19-welcome').count(), 0);
+  checks.push('Signed-in upgrade welcome is shown only once');
   await adminContext.close();
   for (const [width, height] of [[320, 568], [768, 1024]]) {
     const { page: sized, context: sizedContext } = await contextFor(width, height);
