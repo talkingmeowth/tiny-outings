@@ -1,4 +1,4 @@
-const CACHE_NAME = 'little-week-v1';
+const CACHE_NAME = 'tiny-outings-design19-v1';
 const APP_SHELL = [
   '/',
   '/manifest.webmanifest',
@@ -7,6 +7,10 @@ const APP_SHELL = [
   '/icons/maskable-icon-512.png',
   '/icons/apple-touch-icon.png',
   '/icons/icon.svg',
+  '/icons/design19.svg',
+  '/icons/design19-180.png',
+  '/icons/design19-192.png',
+  '/icons/design19-512.png',
 ];
 
 self.addEventListener('install', (event) => {

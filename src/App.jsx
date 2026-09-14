@@ -18,6 +18,7 @@ import { activityFallbackImage, activityImageUrls, hasActivityImage, securePhoto
 import { activityCoordinates, resolveActivityCoordinates } from './activityLocation';
 import { profileQrUrl, profileShareData } from './profileSharing';
 import { buildAdminDraftReviewQueue, isActiveDraftActivity } from './reviewQueue';
+import { Design19Brand, Design19Welcome, LondonLandmarks, OutlineIcon } from './Design19';
 
 const dayWindows = ['morning', 'afternoon', 'evening'];
 const storagePrefix = 'tiny-outings';
@@ -3145,7 +3146,7 @@ export default function App() {
   return (
     <div className="phone-app">
       {!hasCompletedOnboarding && (session || entryChoice) ? (
-        <OnboardingScreen onComplete={completeOnboarding} />
+        <Design19Welcome onComplete={completeOnboarding} />
       ) : !session && !entryChoice ? (
         <WelcomeScreen
           authLoading={authLoading}
@@ -3156,8 +3157,7 @@ export default function App() {
         <>
       <header className="app-topbar">
         <button className="brand-lockup" type="button" onClick={() => navigate('start')}>
-          <span>Tiny</span>
-          <strong>Outings</strong>
+          <Design19Brand />
         </button>
         <div className="topbar-actions account-actions">
           {session ? (
@@ -3366,11 +3366,11 @@ export default function App() {
 function WelcomeScreen({ authLoading, onSignIn, onContinueAsGuest }) {
   return (
     <main className="welcome-screen">
-      <div className="welcome-sun" aria-hidden="true" />
-      <div className="welcome-mark" aria-hidden="true"><span /><span /><span /></div>
-      <p className="welcome-kicker">Tiny Outings - London family planner</p>
-      <h1>Small plans.<br />Big days.</h1>
-      <p className="welcome-copy">Discover family-friendly London outings, then build your week one outing at a time.</p>
+      <Design19Brand />
+      <p className="welcome-kicker">Small outings. Your London.</p>
+      <h1>London, at<br />your pace.</h1>
+      <p className="welcome-copy">Activities for babies to older children.<br />All parents &amp; carers. Parental leave &amp; beyond.</p>
+      <LondonLandmarks />
       <div className="welcome-actions">
         <button className="welcome-google" type="button" onClick={onSignIn} disabled={authLoading}>
           <span className="google-g" aria-hidden="true">G</span>
@@ -3379,43 +3379,6 @@ function WelcomeScreen({ authLoading, onSignIn, onContinueAsGuest }) {
         <button className="welcome-guest" type="button" onClick={onContinueAsGuest}>Continue as guest</button>
       </div>
       <p className="welcome-note">Guest plans stay on this device.</p>
-    </main>
-  );
-}
-
-function OnboardingScreen({ onComplete }) {
-  return (
-    <main className="onboarding-screen" aria-labelledby="onboarding-title">
-      <div className="onboarding-doodle onboarding-doodle-sun" aria-hidden="true" />
-      <div className="onboarding-doodle onboarding-doodle-scribble" aria-hidden="true" />
-      <p className="onboarding-kicker">A quick tour</p>
-      <h1 id="onboarding-title">Your week, made easier.</h1>
-      <p className="onboarding-intro">Tiny Outings helps London families turn a blank week into small, good plans.</p>
-
-      <ol className="onboarding-steps">
-        <li>
-          <span className="onboarding-step-number">1</span>
-          <div><strong>Plan your week</strong><p>Choose a week, your distance and the kinds of outing you fancy.</p></div>
-        </li>
-        <li>
-          <span className="onboarding-step-number">2</span>
-          <div><strong>Swipe through ideas</strong><p>Swipe right to save an idea for morning, afternoon or evening. Swipe left to pass.</p></div>
-        </li>
-        <li>
-          <span className="onboarding-step-number">3</span>
-          <div><strong>Pick your favourites</strong><p>Choose from your saved shortlist and see the finished plan in Week.</p></div>
-        </li>
-        <li>
-          <span className="onboarding-step-number">4</span>
-          <div><strong>Explore and share</strong><p>Use Where to spot nearby activity hubs, then share a plan when it is ready.</p></div>
-        </li>
-      </ol>
-
-      <div className="onboarding-actions">
-        <button className="onboarding-start" type="button" onClick={onComplete}>Let's plan</button>
-        <button className="onboarding-skip" type="button" onClick={onComplete}>Skip for now</button>
-      </div>
-      <p className="onboarding-note">You can sign in whenever you want to follow parents, review places and save your profile.</p>
     </main>
   );
 }
@@ -3546,17 +3509,17 @@ function StartScreen({
   return (
     <section className="app-screen start-screen">
       <div className="screen-title hero-title has-london-doodle">
-        <span className="eyebrow">Family day planner</span>
-        <h1>Little plans, sorted.</h1>
+        <span className="eyebrow">Small outings. Your London.</span>
+        <h1>London, at your pace.</h1>
         <p>
-          Pick a week. Set your range. Swipe your day into shape.
+          A little adventure, whatever their age.
         </p>
         <div className="hero-badges" aria-label="Planning windows">
           <span>Morning</span>
           <span>Afternoon</span>
           <span>Evening</span>
         </div>
-        <LondonTitleDoodle variant="planner" />
+        <LondonLandmarks />
       </div>
 
       <div className="filter-card location-card">
@@ -5331,7 +5294,8 @@ function BottomNav({ activeScreen, setActiveScreen, isAdmin }) {
           aria-current={activeScreen === screen ? 'page' : undefined}
           onClick={() => setActiveScreen(screen)}
         >
-          {label}
+          <OutlineIcon name={screen} />
+          <span>{label}</span>
         </button>
       ))}
     </nav>

@@ -1,41 +1,41 @@
 {
   "name": "Tiny Outings",
   "short_name": "Tiny Outings",
-  "description": "Plan parent and baby activities across morning, afternoon, and evening windows.",
+  "description": "London activities for babies to older children. For all parents and carers, on parental leave and beyond.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "theme_color": "#1f7a65",
-  "background_color": "#fffaf0",
+  "theme_color": "#292330",
+  "background_color": "#292330",
   "categories": ["lifestyle", "parenting", "productivity"],
   "icons": [
     {
-      "src": "/icons/icon-192.png",
+      "src": "/icons/design19-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "/icons/design19-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/maskable-icon-512.png",
+      "src": "/icons/design19-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/icons/icon.svg",
+      "src": "/icons/design19.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/icons/maskable-icon.svg",
+      "src": "/icons/design19.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "maskable"

@@ -1,0 +1,12 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <!-- Same parent/child mark as Design19.jsx, within the adaptive-icon safe zone. -->
+    <group android:translateX="24" android:translateY="29" android:scaleX="0.6" android:scaleY="0.6">
+        <path android:fillColor="#CEB1E2" android:pathData="M34,4a8,8 0,1 0,0 16a8,8 0,1 0,0 -16" />
+        <path android:fillColor="#E4D19A" android:pathData="M76,22a7,7 0,1 0,0 14a7,7 0,1 0,0 -14" />
+        <path android:fillColor="@android:color/transparent" android:strokeColor="#CEB1E2"
+            android:strokeWidth="9" android:strokeLineCap="round"
+            android:pathData="M12,72C-2,28 59,12 57,72M55,72C53,40 96,37 92,72" />
+    </group>
+</vector>
