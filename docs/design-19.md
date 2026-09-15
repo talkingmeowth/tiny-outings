@@ -49,3 +49,18 @@ Android 2.92 (build 106) starts each new app session at **Any age**, instead of 
 Android 2.93 (build 107) adds **Quick approve** beside **Review draft** in the admin mobile queue. It reuses the existing confirmation, admin permissions and coordinate validation, but without an edit form only changes publication/archive status and validated coordinates. It never clears descriptions, dates, links or images. Successful approval removes the draft and updates the count without leaving the queue; failures remain available to retry. Both actions are disabled while saving. Full review/edit remains available.
 
 Validation: 214 Node tests and 23 browser checks per theme, including cancellation, simulated permission failure/retry, pending-state disabling, exact status-only request payload, queue count updates and side-by-side layout at 320px. Browser writes use mocked responses, not live listings.
+
+## 2.95 Plan and Swipe refinement
+
+Plan and Swipe now follow the original **19 — London, at Your Pace** reference (`exec-44d5a9c3-5702-4aca-bb68-efc8fb0c1aff.png`) more closely, in both system themes. Changes are scoped in `src/design19-browse.css` plus small presentation components in `src/Design19.jsx`.
+
+- Compact Plan hero with an enlarged code-native London Eye, soft butter filter panels and a sage Start swiping action.
+- Native expandable controls retain the full month/week calendar, every activity category, source checkboxes, age options, location controls, all three distance modes and sliders. Search and Reset swipes remain available. An explicit All activities action restores the existing broad category state.
+- Shared day/time controls show numbered dates, all seven days in the horizontal strip, and morning/afternoon/evening icons. Plan and Swipe use the same existing selected day and time state.
+- Swipe cards are photo-led with compact metadata, location, time/price and travel information; titles/content can grow naturally rather than being clipped by a fixed-height card. Circular Skip/Details/Save controls retain their handlers. Report, hide, Start over, drag gestures, shortlist and week planning are unchanged. Unavailable travel values display a dash with the full explanation in the title attribute.
+- No changes to importers, image selection, database, auth or desktop review. The ratings/comments feature remains in place.
+- Swipe card content uses the near-white app surface in light mode, as requested, and the corresponding dark surface in dark mode; yellow is reserved for selected controls and Plan filter panels.
+
+Validation: 218 Node tests and 30 browser smoke checks per theme (60 total), including all expanded Plan filters, geolocation/all areas, month/week navigation, seven-day selection, time windows, Start over, physical mouse-drag save/skip, shortlist-to-week, and existing account/review/navigation checks. Visual checks cover mobile widths, overflow and contrast. The browser fixtures do not write live data. Real-device touch/native authentication remain outside this smoke test.
+
+Rollback: revert the isolated 2.95 commit and rebuild with a higher Android version code. No stored plans, reviews or images require rollback.

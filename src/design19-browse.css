@@ -1,0 +1,96 @@
+/* Design 19 Plan/Swipe refinement. Presentation only; scoped for easy rollback. */
+.phone-app .start-screen, .phone-app .swipe-screen { gap: 12px; }
+.phone-app .start-screen .hero-title { padding: 18px 0 0; gap: 5px; overflow: hidden; border-radius: 0; }
+.phone-app .start-screen .hero-title h1 { font-size: clamp(1.75rem, 7.4vw, 2.25rem); margin: 0; max-width: 90%; color: var(--ink); }
+.start-screen .hero-title p { margin: 0; font-size: .93rem; color: var(--ink); }
+.start-screen .hero-title > small { max-width: 73%; font-size: .74rem; line-height: 1.4; color: var(--muted); }
+.start-screen .hero-title .plan-london-eye { position: absolute; right: -25px; top: 38px; width: 128px; height: 148px; color: var(--lavender); opacity: .55; z-index: 0; }
+.phone-app .start-screen .hero-title .london-landmarks { width: 78%; height: 50px; margin-top: 8px; color: var(--ink); }
+.phone-app .start-screen .location-card { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.location-card > .plan-picker, .location-card > .source-filter { min-width: 0; }
+.location-card > .plan-location { order: 1; grid-column: 1 / -1; }
+.location-card > .planner-strip { order: 2; grid-column: 1 / -1; }
+.location-card > .plan-week { order: 3; grid-column: 1 / -1; }
+.location-card > .plan-age { order: 4; }
+.location-card > .plan-range { order: 5; }
+.location-card > .source-filter { order: 6; grid-column: 1 / -1; padding: 0; }
+.location-card > .plan-categories { order: 7; grid-column: 1 / -1; }
+.location-card > .plan-age[open], .location-card > .plan-range[open] { grid-column: 1 / -1; }
+.plan-picker, .start-screen .source-picker { background: #403747; border-radius: 16px; box-shadow: none; }
+.plan-picker > summary, .start-screen .source-picker > summary { display: flex; align-items: center; gap: 9px; padding: 8px 12px; min-height: 52px; list-style: none; cursor: pointer; border-radius: 16px; color: var(--ink); background: transparent; }
+.plan-picker > summary::-webkit-details-marker, .start-screen .source-picker > summary::-webkit-details-marker { display: none; }
+.start-screen .source-picker > summary::after { display: none; }
+.plan-picker > summary > span:not(.picker-chevron), .start-screen .source-picker > summary > span:not(.picker-chevron) { flex: 1; min-width: 0; }
+.plan-picker summary small, .start-screen .source-picker summary small { display: block; font-size: .7rem; font-weight: 500; line-height: 1.35; }
+.plan-picker summary strong, .start-screen .source-picker summary strong { display: block; font-size: .85rem; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
+.plan-picker summary .outline-icon { width: 20px; height: 20px; }
+.plan-picker .picker-chevron, .source-picker .picker-chevron { margin-left: auto; flex: 0 0 auto; }
+.plan-picker[open] .picker-chevron, .source-picker[open] .picker-chevron { transform: rotate(180deg); }
+.plan-picker-content { padding: 0 12px 14px; }
+.phone-app .start-screen .plan-picker .field-group { padding: 8px 0; gap: 8px; background: transparent; border: 0; }
+.phone-app .start-screen .plan-picker .field-group > p { font-size: .8rem; margin: 0; }
+.phone-app .start-screen .plan-picker .field-group > strong { font-size: 1.25rem; }
+.phone-app .start-screen .plan-picker .range-card { padding: 10px; }
+.phone-app .start-screen .plan-picker .filter-chip { padding: 10px; min-height: 42px; font-size: .8rem; }
+.phone-app .start-screen .plan-week > summary { min-height: 42px; padding-block: 7px; }
+.start-screen .plan-week summary > span:not(.picker-chevron) { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.phone-app :is(.start-screen, .swipe-screen) .planner-strip { padding: 0; margin: 0; display: grid; gap: 9px; border-radius: 0; }
+.phone-app :is(.start-screen, .swipe-screen) .date-strip { display: flex; gap: 8px; padding: 0 0 3px; margin: 0; scrollbar-width: thin; }
+.phone-app :is(.start-screen, .swipe-screen) .date-pill { flex: 0 0 calc((100% - 32px) / 5); min-height: 58px; padding: 7px 3px; border-radius: 13px; text-align: center; gap: 1px; box-shadow: none; }
+.phone-app :is(.start-screen, .swipe-screen) .date-pill span { font: 500 .72rem/1.2 'Nunito', sans-serif; text-transform: none; }
+.phone-app :is(.start-screen, .swipe-screen) .date-pill strong { font: 600 1.3rem/1.1 'Fraunces', Georgia, serif; }
+.phone-app :is(.start-screen, .swipe-screen) .window-switcher { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 0; margin: 0; gap: 7px; }
+.phone-app :is(.start-screen, .swipe-screen) .window-pill { display: flex; align-items: center; justify-content: center; gap: 5px; padding: 9px 3px; min-height: 42px; border-radius: 12px; font-size: .76rem; font-weight: 600; }
+.window-pill .outline-icon { width: 19px; height: 19px; }
+.phone-app .start-screen .start-summary { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); align-items: center; background: transparent; padding: 6px 0; box-shadow: none; gap: 12px; }
+.phone-app .start-screen .start-summary strong { font: 600 1.6rem/1.1 'Fraunces', Georgia, serif; }
+.phone-app .start-screen .start-summary small { font-size: .7rem; }
+.phone-app .start-screen .start-actions { display: grid; grid-template-columns: minmax(0, 1fr); gap: 3px; }
+.phone-app .start-screen .start-actions .primary-action { display: flex; align-items: center; justify-content: center; gap: 9px; border-radius: 999px; background: #536c53; color: #fffaf1; padding: 12px; min-height: 50px; font: 600 1rem/1.1 'Fraunces', Georgia, serif; }
+.start-actions .primary-action .outline-icon { width: 19px; }
+.phone-app .start-screen .start-actions .secondary-button { min-height: 34px; padding: 5px; background: transparent; font-size: .75rem; text-decoration: underline; }
+.phone-app .start-screen .search-dock { margin: 0; padding: 8px 0; background: transparent; border-radius: 0; box-shadow: none; }
+.start-screen .search-dock-copy small { font-size: .72rem; }
+.phone-app .swipe-screen .swipe-status-bar { padding: 0; gap: 6px; border-radius: 0; align-items: center; }
+.swipe-screen .swipe-status-bar > div { gap: 2px; }
+.swipe-screen .swipe-status-bar span { font-size: .68rem; font-weight: 500; }
+.swipe-screen .swipe-status-bar strong { font: 600 1rem/1.2 'Fraunces', Georgia, serif; }
+.phone-app .swipe-screen .swipe-status-bar button { display: flex; align-items: center; gap: 5px; padding: 6px; min-height: 42px; background: transparent; font-size: .76rem; }
+.swipe-status-bar button .outline-icon { width: 17px; height: 17px; }
+.phone-app .swipe-screen .tinder-stage { height: auto; min-height: 0; }
+.phone-app .swipe-screen .swipe-card { position: relative; inset: auto; display: grid; grid-template-rows: auto auto; border-radius: 23px; overflow: hidden; box-shadow: var(--shadow); }
+.phone-app .swipe-screen .card-photo { height: clamp(180px, 24dvh, 250px); min-height: 0; padding: 0; }
+.phone-app .swipe-screen .card-content { display: flex; flex-direction: column; gap: 6px; padding: 13px 15px; overflow: visible; background: var(--surface); border-radius: 0 0 23px 23px; }
+.phone-app .swipe-screen .card-content h2 { font-size: clamp(1.35rem, 5.8vw, 1.65rem); line-height: 1.1; margin: 0; padding: 0; }
+.phone-app .swipe-screen .card-content .card-description { font-size: .79rem; line-height: 1.35; min-height: 0; -webkit-line-clamp: 2; }
+.phone-app .swipe-screen .card-content .swipe-card-location { display: flex; align-items: center; gap: 5px; color: var(--ink); font-size: .8rem; line-height: 1.3; }
+.swipe-card-location .outline-icon { width: 15px; height: 15px; }
+.swipe-screen .card-kicker { gap: 3px; grid-template-areas: 'primary report' 'source report'; }
+.swipe-screen .card-primary-tags { font-size: .56rem; line-height: 1.3; }
+.swipe-screen .card-primary-tags > span { font-size: .59rem; }
+.phone-app .swipe-screen .card-report-button { background: transparent; font-size: .65rem; min-height: 36px; padding: 4px; }
+.swipe-screen .card-source-row .status-pill { font-size: .58rem; padding: 2px 6px; min-height: 0; line-height: 1.35; border-radius: 6px; }
+.phone-app .swipe-screen .card-summary, .phone-app .swipe-screen .card-travel { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; }
+.phone-app .swipe-screen .card-summary > span, .phone-app .swipe-screen .card-travel > span { display: flex; gap: 4px; align-items: baseline; padding: 0; border-radius: 0; background: transparent; min-width: 0; }
+.swipe-screen .card-summary strong, .swipe-screen .card-travel strong { font-size: .68rem; }
+.swipe-screen .card-summary small, .swipe-screen .card-travel small { font-size: .75rem; }
+.swipe-screen .card-travel { padding-top: 4px !important; border-top: 1px solid var(--line-soft); }
+.phone-app .swipe-screen .swipe-controls { gap: 10px; margin: 0; }
+.phone-app .swipe-screen button.swipe-button { display: flex; flex-direction: column; align-items: center; gap: 5px; min-height: 77px; padding: 0; background: transparent; box-shadow: none; color: var(--ink); font-size: .76rem; font-weight: 500; }
+.swipe-control-disc { display: grid; place-items: center; width: 51px; height: 51px; border: 1.5px solid var(--lavender); border-radius: 50%; background: var(--surface); color: var(--ink); }
+.swipe-control-disc .outline-icon { width: 27px; height: 27px; }
+.swipe-button.yes .swipe-control-disc { background: #536c53; border-color: #536c53; color: #fffaf1; }
+.swipe-button.yes .outline-icon { fill: currentColor; }
+.phone-app .swipe-screen > button.hide-activity-button { padding: 5px; min-height: 38px; background: transparent; font-size: .76rem; }
+.phone-app .swipe-screen .empty-deck { min-height: 350px; }
+@media (prefers-color-scheme: light) {
+  .plan-picker, .start-screen .source-picker { background: #fff4cf; }
+  .phone-app :is(.start-screen, .swipe-screen) .date-pill.is-on, .phone-app :is(.start-screen, .swipe-screen) .window-pill.is-on { background: #ffe8a3; color: #403148; }
+}
+@media (max-width: 360px) {
+  .phone-app :is(.start-screen, .swipe-screen) .window-pill { gap: 3px; font-size: .69rem; }
+  .window-pill .outline-icon { width: 16px; height: 16px; }
+  .plan-picker > summary { padding-inline: 9px; gap: 5px; }
+  .plan-picker summary strong { font-size: .78rem; }
+  .phone-app .start-screen .start-actions .primary-action { font-size: .88rem; }
+}

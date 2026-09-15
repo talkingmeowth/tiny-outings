@@ -4,6 +4,7 @@ import App from './App.jsx';
 import './styles.css';
 import './design19.css';
 import './activityReviews.css';
+import './design19-browse.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>

@@ -18,7 +18,7 @@ import { activityFallbackImage, activityImageUrls, hasActivityImage, securePhoto
 import { activityCoordinates, resolveActivityCoordinates } from './activityLocation';
 import { profileQrUrl, profileShareData } from './profileSharing';
 import { buildAdminDraftReviewQueue, isActiveDraftActivity } from './reviewQueue';
-import { Design19Brand, Design19Welcome, LondonLandmarks, OutlineIcon } from './Design19';
+import { Design19Brand, Design19Welcome, LondonLandmarks, OutlineIcon, PlanFilter, LondonEyeAccent } from './Design19';
 import { CommunityReviews, ReviewRatingLink } from './ActivityReviews';
 import { useActivityReviews } from './useActivityReviews';
 
@@ -3221,6 +3221,9 @@ export default function App() {
             setCalendarMonth={setCalendarMonth}
             calendarDays={calendarDays}
             setSelectedDate={setSelectedDate}
+            selectedDate={selectedDate}
+            selectedWindow={selectedWindow}
+            setSelectedWindow={setSelectedWindow}
             totalActivityCount={weekMatchedActivities.length}
             activitiesLoaded={activitiesLoadedRef.current}
             activitiesLoading={directoryLoading}
@@ -3501,6 +3504,9 @@ function StartScreen({
   setCalendarMonth,
   calendarDays,
   setSelectedDate,
+  selectedDate,
+  selectedWindow,
+  setSelectedWindow,
   totalActivityCount,
   activitiesLoaded,
   activitiesLoading,
@@ -3554,20 +3560,17 @@ function StartScreen({
   return (
     <section className="app-screen start-screen">
       <div className="screen-title hero-title has-london-doodle">
-        <span className="eyebrow">Small outings. Your London.</span>
         <h1>London, at your pace.</h1>
-        <p>
-          A little adventure, whatever their age.
-        </p>
-        <div className="hero-badges" aria-label="Planning windows">
-          <span>Morning</span>
-          <span>Afternoon</span>
-          <span>Evening</span>
-        </div>
+        <p>Days on leave. Days together.</p>
+        <small>For parents &amp; carers. Babies to big kids.</small>
+        <LondonEyeAccent />
         <LondonLandmarks />
       </div>
 
       <div className="filter-card location-card">
+        <DayWindowPicker weekDays={weekDays} selectedDate={selectedDate} setSelectedDate={setSelectedDate}
+          selectedWindow={selectedWindow} setSelectedWindow={setSelectedWindow} />
+        <PlanFilter className="plan-week" label="Planning week" value={relativeWeekLabel(filters.weekStart)} icon="calendar">
         <div className="field-group">
           <span>Week</span>
           <p>Choose any day to plan its week.</p>
@@ -3639,16 +3642,22 @@ function StartScreen({
             ))}
           </div>
         </div>
+        </PlanFilter>
 
+        <PlanFilter className="plan-categories" label="Activities" value={chosenInterests.length === activityInterestOptions.length ? 'All activities' : `${chosenInterests.length} selected`} icon="list">
         <div className="field-group">
           <span>Plan</span>
           <p>Pick a few, or browse everything.</p>
           <div className="chip-grid interest-grid">
+            <button type="button" className={classNames('filter-chip', chosenInterests.length === activityInterestOptions.length && 'is-on')}
+              aria-pressed={chosenInterests.length === activityInterestOptions.length}
+              onClick={() => setFilters((current) => ({ ...current, interests: [...activityInterestOptions] }))}>All activities</button>
             {activityInterestOptions.map((interest) => (
               <button
                 key={interest}
                 type="button"
-                className={classNames('filter-chip', chosenInterests.includes(interest) && 'is-on')}
+                className={classNames('filter-chip', chosenInterests.length !== activityInterestOptions.length && chosenInterests.includes(interest) && 'is-on')}
+                aria-pressed={chosenInterests.length !== activityInterestOptions.length && chosenInterests.includes(interest)}
                 onClick={() => toggleInterest(interest)}
               >
                 {interest}
@@ -3656,12 +3665,13 @@ function StartScreen({
             ))}
           </div>
         </div>
+        </PlanFilter>
 
         <div className="field-group source-filter">
-          <span>Source</span>
           <details className="source-picker">
             <summary>
-              {filters.source.length === 0 ? 'All sources' : `${filters.source.length} selected`}
+              <OutlineIcon name="list" /><span><small>Sources</small><strong>{filters.source.length === 0 ? 'All sources' : `${filters.source.length} selected`}</strong></span>
+              <span className="picker-chevron" aria-hidden="true">⌄</span>
             </summary>
             <div className="source-options" role="group" aria-label="Activity sources">
               {sourceOptions.map((source) => (
@@ -3678,6 +3688,7 @@ function StartScreen({
           </details>
         </div>
 
+        <PlanFilter className="plan-age" label="Age" value={ageFilterByValue.get(filters.ageRange)?.label || 'Any age'} icon="user">
         <div className="field-group">
           <span>Child's age</span>
           <p>Show activities that suit their stage.</p>
@@ -3687,6 +3698,7 @@ function StartScreen({
                 key={option.value}
                 type="button"
                 className={classNames('filter-chip', filters.ageRange === option.value && 'is-on')}
+                aria-pressed={filters.ageRange === option.value}
                 onClick={() => setFilters((current) => ({ ...current, ageRange: option.value }))}
               >
                 {option.label}
@@ -3694,7 +3706,9 @@ function StartScreen({
             ))}
           </div>
         </div>
+        </PlanFilter>
 
+        <PlanFilter className="plan-location" label="Location" value={locationStatus === 'requesting' ? 'Finding you…' : userLocation ? 'Near me' : 'All London'} icon="pin">
         <div className="field-group">
           <span>Start point</span>
           <strong>
@@ -3721,7 +3735,9 @@ function StartScreen({
             )}
           </div>
         </div>
+        </PlanFilter>
 
+        <PlanFilter className="plan-range" label="Within" value={isWalkMode ? `${filters.walkMinutes} min walk` : isDriveMode ? `${filters.driveMinutes} min drive` : `${filters.radiusMiles} miles`} icon="pin">
         <div className="field-group">
           <span>Range</span>
           <div className="distance-toggle" role="group" aria-label="Distance filter mode">
@@ -3783,6 +3799,7 @@ function StartScreen({
             </label>
           )}
         </div>
+        </PlanFilter>
       </div>
 
       <div className="start-summary">
@@ -3795,7 +3812,7 @@ function StartScreen({
         </div>
         <div className="start-actions">
           <button className="primary-action" type="button" onClick={onStart}>
-            Start swiping
+            Start swiping <OutlineIcon name="arrow" />
           </button>
           <button className="secondary-button" type="button" onClick={onResetBrowsing}>
             Reset swipes
@@ -3882,6 +3899,25 @@ function SearchResultsScreen({ query, activities, weekDays, loading, onBack, onO
   );
 }
 
+function DayWindowPicker({ weekDays, selectedDate, setSelectedDate, selectedWindow, setSelectedWindow }) {
+  return <div className="planner-strip">
+    <div className="date-strip" aria-label="Choose day">
+      {weekDays.map((day) => <button key={day} type="button"
+        className={classNames('date-pill', selectedDate === day && 'is-on')}
+        onClick={() => setSelectedDate(day)} aria-label={formatDay(day, 'long')} aria-pressed={selectedDate === day}>
+        <span>{weekdayName(day).slice(0, 3)}</span><strong>{Number(day.slice(-2))}</strong>
+      </button>)}
+    </div>
+    <div className="window-switcher" aria-label="Choose day window">
+      {dayWindows.map((windowName) => <button key={windowName} type="button"
+        className={classNames('window-pill', selectedWindow === windowName && 'is-on')}
+        onClick={() => setSelectedWindow(windowName)} aria-pressed={selectedWindow === windowName}>
+        <OutlineIcon name={windowName === 'evening' ? 'moon' : 'sun'} /><span>{windowName}</span>
+      </button>)}
+    </div>
+  </div>;
+}
+
 function SwipeScreen({
   isAdmin,
   weekDays,
@@ -3912,41 +3948,15 @@ function SwipeScreen({
 
   return (
     <section className="app-screen swipe-screen">
-      <div className="planner-strip">
-        <div className="date-strip" aria-label="Choose day">
-          {weekDays.map((day) => (
-            <button
-              key={day}
-              type="button"
-              className={classNames('date-pill', selectedDate === day && 'is-on')}
-              onClick={() => setSelectedDate(day)}
-              aria-label={formatDay(day, 'long')}
-            >
-              <span>{formatDay(day).split(',')[0]}</span>
-            </button>
-          ))}
-        </div>
-
-        <div className="window-switcher" aria-label="Choose day window">
-          {dayWindows.map((windowName) => (
-            <button
-              key={windowName}
-              type="button"
-              className={classNames('window-pill', selectedWindow === windowName && 'is-on')}
-              onClick={() => setSelectedWindow(windowName)}
-            >
-              {windowName}
-            </button>
-          ))}
-        </div>
-      </div>
+      <DayWindowPicker weekDays={weekDays} selectedDate={selectedDate} setSelectedDate={setSelectedDate}
+        selectedWindow={selectedWindow} setSelectedWindow={setSelectedWindow} />
 
       <div className="swipe-status-bar">
         <div>
           <span>{formatDay(selectedDate, 'long')} - {selectedWindow}</span>
           <strong>{deckActivities.length} left - {shortlist.length} saved</strong>
         </div>
-        <button type="button" onClick={onResetSlot}>Start over</button>
+        <button type="button" onClick={onResetSlot}><OutlineIcon name="reset" />Start over</button>
       </div>
 
       <div className="tinder-stage" aria-live="polite">
@@ -4000,7 +4010,7 @@ function SwipeScreen({
           disabled={!topActivity}
           onClick={() => onSwipe(topActivity, 'no')}
         >
-          Skip
+          <span className="swipe-control-disc"><OutlineIcon name="close" /></span><span>Skip</span>
         </button>
         <button
           className="swipe-button info"
@@ -4008,7 +4018,7 @@ function SwipeScreen({
           disabled={!topActivity}
           onClick={() => onOpenActivity(topActivity)}
         >
-          Details
+          <span className="swipe-control-disc"><OutlineIcon name="info" /></span><span>Details</span>
         </button>
         <button
           className="swipe-button yes"
@@ -4016,7 +4026,7 @@ function SwipeScreen({
           disabled={!topActivity}
           onClick={() => onSwipe(topActivity, 'yes')}
         >
-          Save
+          <span className="swipe-control-disc"><OutlineIcon name="heart" /></span><span>Save</span>
         </button>
       </div>
       <button
@@ -4113,6 +4123,7 @@ function ActivityCard({
           </button>
         </div>
         <h2>{activity.activity_name}</h2>
+        <p className="swipe-card-location"><OutlineIcon name="pin" />{activity.borough || activity.address || 'London'}</p>
         <p className="card-description">
           {activity.card_summary || activity.description || 'Tap for the latest details.'}
         </p>
@@ -4135,9 +4146,9 @@ function ActivityCard({
         </div>
 
         <div className="card-travel" aria-label="Travel information">
-          <span><strong>Walk</strong><small>{searchResultTravelTime(activity, 'Walk')}</small></span>
-          <span><strong>Drive</strong><small>{searchResultTravelTime(activity, 'Drive')}</small></span>
-          <span><strong>Distance</strong><small>{searchResultDistance(activity)}</small></span>
+          <span><strong>Walk</strong><small title={searchResultTravelTime(activity, 'Walk')}>{searchResultTravelTime(activity, 'Walk').replace('Walk time unavailable', '—')}</small></span>
+          <span><strong>Drive</strong><small title={searchResultTravelTime(activity, 'Drive')}>{searchResultTravelTime(activity, 'Drive').replace('Drive time unavailable', '—')}</small></span>
+          <span><strong>Distance</strong><small title={searchResultDistance(activity)}>{searchResultDistance(activity).replace('Distance unavailable', '—')}</small></span>
         </div>
       </div>
     </article>

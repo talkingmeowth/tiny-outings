@@ -23,8 +23,31 @@ export function OutlineIcon({ name }) {
     search: <><circle cx="10" cy="10" r="7" /><path d="m15 15 6 6" /></>,
     heart: <path d="M12 20 4 12C-3 4 8 0 12 7c4-7 15-3 8 5Z" />,
     arrow: <path d="M4 12h16m-6-6 6 6-6 6" />,
+    sun: <><circle cx="12" cy="12" r="4" /><path d="M12 1v3m0 16v3M1 12h3m16 0h3M4 4l2 2m12 12 2 2M4 20l2-2M18 6l2-2" /></>,
+    moon: <path d="M20 15A9 9 0 0 1 9 3a9 9 0 1 0 11 12Z" />,
+    pin: <><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z" /><circle cx="12" cy="10" r="2" /></>,
+    list: <><path d="M8 6h13M8 12h13M8 18h13" /><circle cx="3" cy="6" r="1" /><circle cx="3" cy="12" r="1" /><circle cx="3" cy="18" r="1" /></>,
+    close: <path d="m5 5 14 14M5 19 19 5" />,
+    info: <><circle cx="12" cy="12" r="9" /><path d="M12 11v6m0-10v1" /></>,
+    reset: <><path d="M3 10a9 9 0 1 1 1 8M3 3v7h7" /></>,
   };
   return <svg className="outline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name] || paths.start}</svg>;
+}
+
+export function PlanFilter({ label, value, icon, className = '', children }) {
+  return <details className={`plan-picker ${className}`}>
+    <summary><OutlineIcon name={icon} /><span><small>{label}</small><strong>{value}</strong></span><span className="picker-chevron" aria-hidden="true">⌄</span></summary>
+    <div className="plan-picker-content">{children}</div>
+  </details>;
+}
+
+export function LondonEyeAccent() {
+  return <svg className="plan-london-eye" viewBox="0 0 140 160" fill="none" aria-hidden="true">
+    <g stroke="currentColor" strokeWidth="2"><circle cx="70" cy="65" r="52" /><circle cx="70" cy="65" r="57" />
+      <path d="M70 13v104M18 65h104M33 28l74 74m0-74L33 102M70 65l-23 91m23-91 23 91M39 156h62" />
+      {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((angle) => <circle key={angle} cx="70" cy="6" r="4" fill="currentColor" transform={`rotate(${angle} 70 65)`} />)}
+    </g><circle cx="70" cy="65" r="7" className="landmark-clock" />
+  </svg>;
 }
 
 export function LondonLandmarks() {
