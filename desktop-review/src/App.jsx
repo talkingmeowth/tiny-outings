@@ -1200,6 +1200,7 @@ function App() {
           <div className="view-switcher" aria-label="Review layout">
             <button className={viewMode === 'detail' ? 'active' : ''} type="button" onClick={() => setViewMode('detail')}>Full review</button>
             <button className={viewMode === 'quick' ? 'active' : ''} type="button" onClick={() => setViewMode('quick')}>Quick review</button>
+            <a className="training-entry" href={`${import.meta.env.BASE_URL}?view=training`}>Improve image model</a>
           </div>
           {preloadLabel ? <span className={`preload-pill ${preloadStatus.status}`}>{preloadLabel}</span> : null}
           <button className="secondary-button" type="button" onClick={refreshActivities} disabled={loading}>Refresh data</button>
