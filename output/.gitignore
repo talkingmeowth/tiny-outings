@@ -1,0 +1,7 @@
+# Generated review exports contain administrative feedback, not source code.
+image-training-2026-09/
+image-training-feedback/
+astra-image-selection/
+chat-image-evaluation/
+chat-image-selection/
+image-chat-db/

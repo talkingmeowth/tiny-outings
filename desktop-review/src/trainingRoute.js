@@ -7,7 +7,7 @@ export function restoreTrainingRoute(win) {
     if (!returning || !stored) return;
     const target = new URL(stored, url.origin);
     win.sessionStorage.removeItem(TRAINING_RETURN_KEY);
-    if (target.origin !== url.origin || target.pathname !== url.pathname || target.searchParams.get('view') !== 'training') return;
+    if (target.origin !== url.origin || target.pathname !== url.pathname || !['training', 'missing'].includes(target.searchParams.get('view'))) return;
     for (const key of ['view', 'batch', 'case']) if (target.searchParams.has(key)) url.searchParams.set(key, target.searchParams.get(key));
     win.history.replaceState(null, '', url.href);
   } catch { /* Restricted storage must not break sign-in. */ }

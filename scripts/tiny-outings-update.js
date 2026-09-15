@@ -83,39 +83,12 @@ const jobs = [
 // must run after generated SQL has been applied to the linked project.
 const postApplyJobs = [
   {
-    name: 'inherit-verified-activity-family-images',
-    // Reuse an established cover for the same verified provider activity at a
-    // new location before doing any website or paid image discovery.
-    script: 'inherit-activity-family-images.js',
-    args: ['--linked-database', '--created-after', runStartedAt],
-    output: 'supabase/seed/activity_family_image_inheritance.generated.sql',
-    optional: 'images',
-    applySql: true,
-  },
-  {
     name: 'discover-website-image-candidates',
     // Collect every unique non-utility image exposed by each new activity,
     // listing, and organiser page. Nothing is applied before vision review.
     script: 'download-activity-website-images.js',
     args: ['--linked-database', '--created-after', runStartedAt],
     output: 'data/activity_website_image_downloads.generated.json',
-    optional: 'images',
-  },
-  {
-    name: 'prepare-codex-website-image-review-sheets',
-    // All eligible website images are downloaded and measured. Only sharp,
-    // adequately sized, non-logo finalists reach the compact Codex sheet.
-    script: 'codex-image-review.js',
-    args: ['--source', 'website', '--activity-ids-file', 'data/activity_website_image_downloads.generated.json'],
-    output: 'data/codex_website_image_shortlist.generated.json',
-    optional: 'images',
-  },
-  {
-    name: 'select-stored-website-images',
-    // The tagged model can be retrained and rerun against the stored website
-    // candidate collection without downloading the source pages again.
-    script: 'select-website-image-candidates.js',
-    output: 'data/website_image_candidate_selection.generated.json',
     optional: 'images',
   },
   {
@@ -128,31 +101,13 @@ const postApplyJobs = [
     optional: 'images',
   },
   {
-    name: 'prepare-codex-image-review-sheets',
-    // Cheap deterministic scoring, image checks, and perceptual deduplication
-    // reduce each candidate set to 3-5 finalists. Ten labelled activity strips
-    // are then combined into one compact input for Codex multimodal review.
-    script: 'codex-image-review.js',
-    args: ['--activity-ids-file', 'data/activity_serpapi_image_refresh.generated.json'],
-    output: 'data/codex_image_shortlist.generated.json',
-    optional: 'images',
-  },
-  {
-    name: 'select-stored-serpapi-images',
-    // Selection uses the complete cached result set. It never calls SerpAPI.
-    script: 'select-serpapi-image-candidates.js',
-    args: ['--tagged-ranker', '--linked-database', '--activity-ids-file', 'data/activity_serpapi_image_refresh.generated.json'],
-    output: 'data/serpapi_image_candidate_selection.generated.json',
-    optional: 'images',
-  },
-  {
-    name: 'apply-repeatable-model-image-review',
-    // Let every stored automatic source compete. Manual-choice learning ranks
-    // the candidates and a local pixel-level vision gate rejects logos,
-    // low-quality and inaccurate finalists. No paid search flag is supplied.
-    script: 'automate-tagged-image-review.js',
-    args: ['--scope', 'all-unreviewed', '--created-after', runStartedAt, '--visual-assessment', '--visual-finalists', '6', '--apply'],
-    output: 'data/automated_image_review_report.generated.json',
+    name: 'prepare-single-chat-image-selection',
+    // Every readable source competes in ONE chat review. No ranking stage
+    // applies an image first, no LLM API and no separate Codex model process.
+    // Chat must inspect sheets + full-size winner before the guarded apply.
+    script: 'prepare-chat-image-selection.js',
+    args: ['--created-after', runStartedAt, '--limit', '1000'],
+    output: 'data/chat_image_selection_queue.generated.json',
     optional: 'images',
   },
   {
@@ -172,8 +127,8 @@ same shared quality contract to all results:
   - source and organiser website discovery, authoritative event/Happity date-and-time refresh, and stale-link archiving
   - complete website and organiser image candidate extraction, local quality checks,
     and compact contact sheets for Codex vision before any website image is stored
-  - verified same-provider activity families inherit their established cover first,
-    avoiding unnecessary website and SerpAPI discovery for new locations
+  - human choices stay protected; all automatic candidates await one Codex CHAT
+    review (no LLM API or separate model runner); category art until completion
   - one SerpAPI candidate discovery for each new record followed by the same compact,
     cached contact-sheet review without another paid search call
   - missing-coordinate resolution followed by rolling Google Places identity, Maps location, canonical link, and permanent-closure validation
@@ -342,7 +297,8 @@ writeFileSync(auditPath, JSON.stringify({
   archive_protection: 'database trigger preserves archive=true and archived status',
   downloaded_website_images: 'official website candidates are stored only after Codex vision rejects logos and low-quality images',
   image_candidate_review: 'Each activity gets at most one claimed SerpAPI request; every returned image record and call metadata are cached, and all selectors rerun from stored candidates without another paid call',
-  activity_family_images: 'Verified same-provider activities at different locations inherit one established cover before image discovery; category artwork is never used as a donor',
+  image_selection_status: skipImages ? 'skipped' : 'awaiting_codex_chat_review',
+  image_selection_policy: 'Human selections/uploads first; one cross-source chat vision decision next; category art if no suitable photo. Import completion is NOT LLM-review completion.',
   jobs: results,
 }, null, 2) + '\n');
 

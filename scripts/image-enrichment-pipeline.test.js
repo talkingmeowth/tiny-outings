@@ -26,23 +26,17 @@ test('desktop review reuses canonical candidates and only limits the displayed g
   assert.doesNotMatch(admin, /body\.images_results\) \? body\.images_results\.slice\(0, 20\)/);
 });
 
-test('the importer pipeline reruns every selector from stored candidates', () => {
+test('the importer prepares one chat review across sources without competing selectors', () => {
   const pipeline = read('scripts/tiny-outings-update.js');
   for (const job of [
-    'inherit-verified-activity-family-images',
     'discover-website-image-candidates',
-    'select-stored-website-images',
     'serpapi-image-enrichment',
-    'select-stored-serpapi-images',
-    'apply-repeatable-model-image-review',
+    'prepare-single-chat-image-selection',
   ]) assert.match(pipeline, new RegExp(`name: '${job}'`));
-  assert.match(pipeline, /'--scope', 'all-unreviewed', '--created-after', runStartedAt, '--visual-assessment', '--visual-finalists', '6', '--apply'/);
+  assert.match(pipeline, /image_selection_status: skipImages \? 'skipped' : 'awaiting_codex_chat_review'/);
   assert.doesNotMatch(pipeline, /'--search-missing'/);
-  assert.ok(
-    pipeline.indexOf("name: 'inherit-verified-activity-family-images'")
-      < pipeline.indexOf("name: 'discover-website-image-candidates'"),
-  );
-  assert.match(pipeline, /applySql: true/);
+  assert.ok(pipeline.indexOf("name: 'serpapi-image-enrichment'") < pipeline.indexOf("name: 'prepare-single-chat-image-selection'"));
+  assert.doesNotMatch(pipeline, /script: '(automate-tagged-image-review|select-stored-serpapi-images|select-website-image-candidates)\.js'/);
   assert.match(read('scripts/download-activity-website-images.js'), /model_selected_model !== 'activity-family-inheritance'/);
   assert.match(read('supabase/functions/cafe-image-importer/index.ts'), /model_selected_model\.neq\.activity-family-inheritance/);
   assert.match(read('supabase/functions/activity-image-auto-review/index.ts'), /model_selected_model\.neq\.activity-family-inheritance/);

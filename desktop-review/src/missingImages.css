@@ -1,0 +1,16 @@
+.missing-app .training-main { max-width: 1450px; }
+.missing-heading { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+.missing-heading h1 { margin-bottom: 4px; }
+.missing-upload { display: grid; gap: 8px; background: #e1eade; border: 1px solid #9ab49e; padding: 15px; border-radius: 12px; }
+.missing-upload input { max-width: 260px; }
+.missing-app .training-gallery { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.missing-app .training-photo-info { padding-bottom: 14px; }
+.missing-actions { position: fixed; z-index: 5; bottom: 0; left: 0; right: 0; display: flex; justify-content: center; gap: 20px; padding: 16px 20px max(16px, env(safe-area-inset-bottom)); background: #fcfaf4f5; border-top: 1px solid #c7d1c9; }
+.missing-actions .missing-save { background: #285e46; color: #fff; min-width: 220px; }
+.missing-error { padding: 15px; background: #f7dfd5; border: 1px solid #bb7662; border-radius: 10px; }
+.missing-preview { display: flex; align-items: center; gap: 15px; margin-top: 20px; }
+.missing-preview img { max-width: 400px; max-height: 260px; object-fit: contain; border: 3px solid #498969; border-radius: 12px; }
+.missing-more { margin-top: 20px; }.missing-art { margin-top: 25px; padding: 15px; background: #eaece3; border-radius: 12px; }
+.missing-art img { width: 160px; margin-top: 15px; }.missing-art summary { cursor: pointer; }
+@media(max-width: 1000px) { .missing-app .training-gallery { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media(max-width: 600px) { .missing-heading { display: block; }.missing-upload { margin-bottom: 18px; }.missing-app .training-gallery { grid-template-columns: minmax(0,1fr); }.missing-actions { gap: 10px; }.missing-actions .missing-save { min-width: 0; flex: 1; }.missing-preview { display: block; }.missing-preview img { max-width: 100%; }.missing-app .training-header { flex-wrap: wrap; } }

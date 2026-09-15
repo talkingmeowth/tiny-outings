@@ -6,8 +6,9 @@ import { restoreTrainingRoute } from './trainingRoute.js';
 
 restoreTrainingRoute(window);
 const training = new URLSearchParams(window.location.search).get('view') === 'training';
-document.documentElement.classList.toggle('training-route', training);
-const App = lazy(() => training ? import('./TrainingApp.jsx') : import('./App.jsx'));
+const missing = new URLSearchParams(window.location.search).get('view') === 'missing';
+document.documentElement.classList.toggle('training-route', training || missing);
+const App = lazy(() => missing ? import('./MissingImagesApp.jsx') : training ? import('./TrainingApp.jsx') : import('./App.jsx'));
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
