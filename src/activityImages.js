@@ -5,15 +5,14 @@ import {
 } from './activityDuplicates.js';
 import { allowsWikimediaImages, isWikimediaUrl } from './wikimediaImagePolicy.js';
 
-// Only explicit human choices and the learned cross-source winner are display
-// fields. All scraper, website, audit and listing fields remain candidate data;
-// they never win merely because they happen to sit earlier in a fixed list.
+// Shadow model proposals and automatic source fields never appear on live cards.
+// Admin covers and admin-provided URLs precede desktop-reviewed photos, then
+// community uploads. The category illustration remains the final fallback.
 export const activityImageFields = [
   'admin_cover_image_url',
-  'reviewed_image_url',
   'user_image_url',
+  'reviewed_image_url',
   'user_uploaded_image_url',
-  'model_selected_url',
 ];
 
 // The selector has already passed download, resolution, logo, provenance and

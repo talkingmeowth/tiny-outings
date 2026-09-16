@@ -15,6 +15,6 @@ node scripts/upload-shadow-image-proposals.js
 
 The third command finalizes the alternatives and run totals; the fourth prepares SQL files only. After the model batch is complete and the isolated review-table migration has been applied, `node scripts/upload-shadow-image-proposals.js --apply` uploads only to `activity_image_model_proposals`. Neither inference nor review decisions update `activities` or change a live card image. Re-running an upload preserves existing decisions. The app uses the admin-only `image-model-review` Edge Function. A separate explicit promotion workflow would be required to put approved choices into `reviewed_image_url`.
 
-The requested main-app display hierarchy is admin cover, admin-provided URL, manually reviewed image, then user upload, followed by category artwork. Automatic model and scraper fields are not in the display hierarchy. The hierarchy implementation is separate from the review batch and must be deployed only if live-display changes are authorised.
+The main-app display hierarchy is admin cover, admin-provided URL, manually reviewed image, then user upload, followed by category artwork. Automatic model and scraper fields are not in the display hierarchy. This was authorised for deployment in Android 2.96; review proposals remain non-live until a separate promotion step.
 
 The old multi-queue desktop app source was removed from the working tree; Git history retains it for rollback. This replacement does not offer its old publishing, archiving, or upload controls.

@@ -33,10 +33,10 @@ test('uses one admin cover image across the same listing at different times', ()
 });
 
 test('does not share an image between similarly named activities at different venues', () => {
-  const first = activity({ model_selected_url: 'https://images.example.test/first.jpg' });
+  const first = activity({ reviewed_image_url: 'https://images.example.test/first.jpg' });
   const second = activity({
     address: '2 Pool Road, London E8 1AA',
-    model_selected_url: 'https://images.example.test/second.jpg',
+    reviewed_image_url: 'https://images.example.test/second.jpg',
   });
 
   const [sharedFirst, sharedSecond] = shareListingImages([first, second]);
@@ -136,8 +136,8 @@ test('skips an exact scraped image rejected or superseded by the audit', () => {
       scraped_image_url: 'https://storage.example/activity-images/rejected.jpg',
       model_selected_url: 'https://images.example.test/model.jpg',
     });
-    assert.deepEqual(activityImageUrls(item), ['https://images.example.test/model.jpg']);
-    assert.equal(shareListingImages([item])[0].shared_card_image_source, 'model_selected_url');
+    assert.deepEqual(activityImageUrls(item), []);
+    assert.equal(shareListingImages([item])[0].shared_card_image_source, undefined);
   }
 });
 
@@ -150,13 +150,12 @@ test('does not promote an unaudited scraped image when the audit covered a diffe
   })), []);
 });
 
-test('uses human choices and the learned winner instead of a fixed automatic-source hierarchy', () => {
+test('displays only admin, manually reviewed, and user-uploaded images', () => {
   assert.deepEqual(activityImageFields, [
     'admin_cover_image_url',
-    'reviewed_image_url',
     'user_image_url',
+    'reviewed_image_url',
     'user_uploaded_image_url',
-    'model_selected_url',
   ]);
   const item = activity({
     category: 'Family activities',
@@ -176,17 +175,16 @@ test('uses human choices and the learned winner instead of a fixed automatic-sou
   });
   assert.deepEqual(activityImageUrls(item), [
     'https://images.example.test/admin.jpg',
-    'https://images.example.test/reviewed.jpg',
     'https://images.example.test/admin-url.jpg',
+    'https://images.example.test/reviewed.jpg',
     'https://images.example.test/community.jpg',
-    'https://images.example.test/model.jpg',
   ]);
 
   const [shared] = shareListingImages([item]);
   assert.equal(shared.shared_card_image_source, 'admin_cover_image_url');
 });
 
-test('uses a desktop-reviewed image below an admin cover and above other sources', () => {
+test('uses a desktop-reviewed image below admin URLs and above user uploads', () => {
   const reviewed = activity({
     reviewed_image_url: 'https://images.example.test/reviewed.jpg',
     user_image_url: 'https://images.example.test/admin-url.jpg',
@@ -194,24 +192,23 @@ test('uses a desktop-reviewed image below an admin cover and above other sources
     audit_image_url: 'https://images.example.test/audited.jpg',
   });
   assert.deepEqual(activityImageUrls(reviewed), [
-    'https://images.example.test/reviewed.jpg',
     'https://images.example.test/admin-url.jpg',
+    'https://images.example.test/reviewed.jpg',
   ]);
-  assert.equal(shareListingImages([reviewed])[0].shared_card_image_source, 'reviewed_image_url');
+  assert.equal(shareListingImages([reviewed])[0].shared_card_image_source, 'user_image_url');
   assert.equal(shareListingImages([{ ...reviewed, admin_cover_image_url: 'https://images.example.test/admin.jpg' }])[0].shared_card_image_source, 'admin_cover_image_url');
 });
 
-test('keeps model selections below manual and user images', () => {
+test('never shows model selections before explicit human review', () => {
   const modelSelected = activity({
     model_selected_url: 'https://images.example.test/model.jpg',
     user_image_url: 'https://images.example.test/admin-url.jpg',
   });
   assert.deepEqual(activityImageUrls(modelSelected), [
     'https://images.example.test/admin-url.jpg',
-    'https://images.example.test/model.jpg',
   ]);
   assert.equal(shareListingImages([modelSelected])[0].shared_card_image_source, 'user_image_url');
-  assert.equal(shareListingImages([{ ...modelSelected, reviewed_image_url: 'https://images.example.test/manual.jpg' }])[0].shared_card_image_source, 'reviewed_image_url');
+  assert.equal(shareListingImages([{ ...modelSelected, reviewed_image_url: 'https://images.example.test/manual.jpg' }])[0].shared_card_image_source, 'user_image_url');
 });
 
 test('does not let an unselected original source bypass the learned selector', () => {
@@ -235,18 +232,18 @@ test('keeps validated audit replacements in the candidate pool until a learned w
   assert.equal(shareListingImages([replacement])[0].shared_card_image_source, undefined);
 });
 
-test('uses coverage-safe model-selected images while preserving low-confidence cases for review', () => {
+test('keeps all model outputs in the non-live review pool', () => {
   const modelUrl = 'https://images.example.test/model.jpg';
   assert.deepEqual(activityImageUrls(activity({ model_selected_url: modelUrl, model_selected_confidence: 0.42 })), []);
   assert.deepEqual(activityImageUrls(activity({ model_selected_url: modelUrl, model_selected_confidence: 0.49 })), []);
   assert.deepEqual(activityImageUrls(activity({ model_selected_url: modelUrl, model_selected_confidence: null })), []);
-  assert.deepEqual(activityImageUrls(activity({ model_selected_url: modelUrl, model_selected_confidence: 0.50 })), [modelUrl]);
+  assert.deepEqual(activityImageUrls(activity({ model_selected_url: modelUrl, model_selected_confidence: 0.50 })), []);
   assert.deepEqual(activityImageUrls(activity({
     model_selected_url: modelUrl,
     model_selected_confidence: 0.42,
     image_review_approved_source_field: 'model_selected_url',
     image_review_approved_url: modelUrl,
-  })), [modelUrl]);
+  })), []);
 });
 
 test('uses an explicitly selected category illustration at the reviewed-image priority', () => {
@@ -258,11 +255,10 @@ test('uses an explicitly selected category illustration at the reviewed-image pr
     model_selected_url: 'https://images.example.test/model.jpg',
   });
   assert.deepEqual(activityImageUrls(categoryChoice), [
-    '/images/family-cafe-placeholder.svg',
     'https://images.example.test/admin-url.jpg',
-    'https://images.example.test/model.jpg',
+    '/images/family-cafe-placeholder.svg',
   ]);
-  assert.equal(shareListingImages([categoryChoice])[0].shared_card_image_source, 'category_placeholder');
+  assert.equal(shareListingImages([categoryChoice])[0].shared_card_image_source, 'user_image_url');
   assert.equal(shareListingImages([{ ...categoryChoice, admin_cover_image_url: 'https://images.example.test/admin.jpg' }])[0].shared_card_image_source, 'admin_cover_image_url');
 });
 
