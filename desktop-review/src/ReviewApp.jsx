@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from './supabase.js';
 import { edgeFunctionErrorMessage } from './functionErrors.js';
 
@@ -29,6 +29,8 @@ export default function ReviewApp() {
   const [chosenUrl, setChosenUrl] = useState(''); const [alternativesOpen, setAlternativesOpen] = useState(false);
   const [filter, setFilter] = useState('all'); const [reviewFilter, setReviewFilter] = useState('pending');
   const [search, setSearch] = useState(''); const [shown, setShown] = useState(100);
+  const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
+  const queueScrollPosition = useRef(0);
   const [busy, setBusy] = useState(false); const [error, setError] = useState(''); const [notice, setNotice] = useState('');
   const isAdmin = admins.has(session?.user?.email?.toLowerCase());
   useEffect(() => {
@@ -77,6 +79,11 @@ export default function ReviewApp() {
       .catch((e) => { if (active) setError(e.message); });
     return () => { active = false; };
   }, [batchId, selectedId]);
+  useEffect(() => {
+    if (!window.matchMedia('(max-width: 900px)').matches) return;
+    const frame = window.requestAnimationFrame(() => window.scrollTo(0, mobileDetailOpen ? 0 : queueScrollPosition.current));
+    return () => window.cancelAnimationFrame(frame);
+  }, [mobileDetailOpen, selectedId]);
   async function decide(decision) {
     if (!detail || busy) return;
     setBusy(true); setError(''); setNotice('');
@@ -100,25 +107,26 @@ export default function ReviewApp() {
   const chosen = options.find((image) => image.image_url === chosenUrl) || detail?.selected_image;
   const nextPending = filtered.find((row) => row.activity_id !== selectedId && row.decision === 'pending');
   const counts = Object.fromEntries(['all', 'published', 'draft'].map((key) => [key, rows.filter((row) => key === 'all' || row.activity_snapshot?.public_listing_status === key).length]));
-  return <div className="review-app"><header className="topbar"><div><small>TINY OUTINGS · INTERNAL</small><h1>Image review</h1></div><div className="topright"><span>Proposals only · not live</span>{session && <button onClick={() => supabase.auth.signOut()}>Sign out</button>}</div></header>
+  return <div className={`review-app ${mobileDetailOpen ? 'mobile-detail-open' : ''}`}><header className="topbar"><div><small>TINY OUTINGS · INTERNAL</small><h1>Image review</h1></div><div className="topright"><span>Proposals only · not live</span>{session && <button onClick={() => supabase.auth.signOut()}>Sign out</button>}</div></header>
     {error && <div className="alert" role="alert">{error}<button onClick={() => setError('')}>Dismiss</button></div>}
     {notice && <div className="notice" role="status">{notice}</div>}
     {!authReady ? <main className="empty">Checking sign-in…</main> : !session ? <main className="empty"><h2>Admin sign-in</h2><p>Review model choices without changing live images.</p><button className="primary" onClick={signIn}>Sign in with Google</button></main> : !isAdmin ? <main className="empty">Administrator access is required.</main> : <>
-      <nav className="filters" aria-label="Publication filter">{[['all', 'All'], ['published', 'Published'], ['draft', 'Drafts']].map(([key, label]) => <button key={key} className={filter === key ? 'active' : ''} onClick={() => { setFilter(key); setShown(100); }}>{label} <strong>{counts[key]}</strong></button>)}
+      <nav className="filters" aria-label="Publication filter">{[['all', 'All'], ['published', 'Published'], ['draft', 'Drafts']].map(([key, label]) => <button key={key} className={filter === key ? 'active' : ''} onClick={() => { queueScrollPosition.current = 0; setFilter(key); setShown(100); setMobileDetailOpen(false); }}>{label} <strong>{counts[key]}</strong></button>)}
         <label>Review state <select value={reviewFilter} onChange={(e) => setReviewFilter(e.target.value)}><option value="pending">Pending</option><option value="all">All</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="unsure">Unsure</option></select></label>
         <label>Find activity <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Name, address, category" /></label></nav>
       {!batch && loaded ? <main className="empty"><h2>No model batch yet</h2><p>Proposals will appear after inference finishes.</p></main> : <main className="workspace"><aside className="queue"><div className="queue-title"><strong>{filtered.length} matching</strong><small>{loaded ? `Batch ${batch?.batch_id || 'loading'}` : `Loading ${rows.length}…`}</small></div>
-        {filtered.slice(0, shown).map((row) => <button key={row.activity_id} className={`queue-row ${selectedId === row.activity_id ? 'selected' : ''}`} onClick={() => setSelectedId(row.activity_id)}>
+        {filtered.slice(0, shown).map((row) => <button key={row.activity_id} className={`queue-row ${selectedId === row.activity_id ? 'selected' : ''}`} onClick={() => { queueScrollPosition.current = window.scrollY; setSelectedId(row.activity_id); setMobileDetailOpen(true); }}>
           <img src={row.chosen_image?.image_url || row.selected_image?.image_url || '/images/family-outing-placeholder.svg'} alt="" loading="lazy" /><span><strong>{row.activity_snapshot?.activity_name}</strong><small>{row.activity_snapshot?.public_listing_status} · {row.activity_snapshot?.category}</small><em>{row.decision === 'pending' ? row.status.replaceAll('_', ' ') : row.decision}</em></span></button>)}
         {shown < filtered.length && <button className="load-more" onClick={() => setShown((n) => n + 100)}>Show 100 more</button>}</aside>
-        <section className="case-panel">{!detail ? <div className="empty"><h2>{selectedId ? 'Loading proposal…' : 'Choose an activity'}</h2><p>Approve, reject, or mark the proposed photo unsure.</p></div> : <>
-          <div className="case-heading"><div><small>{activity.public_listing_status?.toUpperCase()} · {activity.category}</small><h2>{activity.activity_name}</h2><p>{activity.address || activity.borough}</p><p>{activity.description}</p>{activity.age_suitability && <p>Age: {activity.age_suitability}</p>}{activity.google_summary && <p>Google Places: {activity.google_summary}</p>}</div><div className="links"><External href={activity.source_url || activity.website || activity.google_link || activity.google_place_uri}>Open activity page</External><External href={activity.website}>Provider website</External><External href={activity.google_place_uri || activity.google_link}>Google Places</External></div></div>
+        <section className="case-panel"><div className="mobile-case-nav"><button onClick={() => setMobileDetailOpen(false)}>← Queue</button><span>{activity.activity_name || 'Image review'}</span><button disabled={!nextPending} onClick={() => setSelectedId(nextPending.activity_id)}>Next →</button></div>{!detail ? <div className="empty"><h2>{selectedId ? 'Loading proposal…' : 'Choose an activity'}</h2><p>Approve, reject, or mark the proposed photo unsure.</p></div> : <>
+          <div className="case-heading"><div><small>{activity.public_listing_status?.toUpperCase()} · {activity.category}</small><h2>{activity.activity_name}</h2><p>{activity.address || activity.borough}</p><div className="desktop-activity-details"><p>{activity.description}</p>{activity.age_suitability && <p>Age: {activity.age_suitability}</p>}{activity.google_summary && <p>Google Places: {activity.google_summary}</p>}</div><details className="mobile-activity-details"><summary>Activity context</summary><p>{activity.description}</p>{activity.age_suitability && <p>Age: {activity.age_suitability}</p>}{activity.google_summary && <p>Google Places: {activity.google_summary}</p>}</details></div><div className="links"><External href={activity.source_url || activity.website || activity.google_link || activity.google_place_uri}>Open activity page</External><External href={activity.website}>Provider website</External><External href={activity.google_place_uri || activity.google_link}>Google Places</External></div></div>
           <div className="proposal-layout"><div className="preview"><img src={chosen?.image_url || '/images/family-outing-placeholder.svg'} alt={chosen?.title || `Suggested cover for ${activity.activity_name}`} /><small>{chosen ? chosenUrl === detail.selected_image?.image_url ? 'MODEL CHOICE' : 'ALTERNATIVE SELECTED' : 'NO PHOTO PROPOSED'}</small></div>
             <div className="proposal-info"><h3>{chosen ? 'Selected image' : 'No suitable photo proposed'}</h3><p>{detail.assessed_count} assessed / {detail.candidate_count} stored candidates · {detail.model_version}</p>{detail.source_gaps?.length > 0 && <p className="warning">Incomplete sources: {detail.source_gaps.join(', ')}</p>}
-              <Metadata image={chosen} /><div className="actions"><button className="approve" disabled={busy || !chosen} onClick={() => decide('approved')}>Approve photo</button><button className="reject" disabled={busy} onClick={() => decide('rejected')}>Reject</button><button className="unsure" disabled={busy} onClick={() => { setAlternativesOpen(true); decide('unsure'); }}>Unsure</button><button className="unsure" disabled={!nextPending || busy} onClick={() => setSelectedId(nextPending.activity_id)}>Next pending →</button></div>
               <button className="alternatives-toggle" onClick={() => setAlternativesOpen((value) => !value)}>{alternativesOpen ? 'Hide alternatives' : `Compare alternatives (${options.length - (detail.selected_image ? 1 : 0)})`}</button>
+              <Metadata image={chosen} /><div className="actions"><button className="approve" disabled={busy || !chosen} onClick={() => decide('approved')}>Approve photo</button><button className="reject" disabled={busy} onClick={() => decide('rejected')}>Reject</button><button className="unsure" disabled={busy} onClick={() => { setAlternativesOpen(true); decide('unsure'); }}>Unsure</button><button className="unsure" disabled={!nextPending || busy} onClick={() => setSelectedId(nextPending.activity_id)}>Next pending →</button></div>
               <p className="safety">Decisions are saved for review only. They never update the live activity image.</p></div></div>
           {alternativesOpen && <section className="alternatives"><h3>Alternative images</h3><p>All saved non-human image options are shown. Only model-ranked photos are marked as such. Approving one records your choice without changing the live card.</p><div className="alternative-grid">{options.map((image, index) => <button key={`${image.image_url}-${index}`} className={chosenUrl === image.image_url ? 'selected' : ''} onClick={() => setChosenUrl(image.image_url)}><img src={image.image_url} alt={image.title || `Alternative ${index + 1}`} loading="lazy" /><strong>{index === 0 && detail.selected_image ? 'Model choice' : image.model_assessed ? `Model alternative ${index}` : `Other option ${index}`}</strong><small>{image.source_field || image.candidate_source} · {image.source_domain}</small>{image.quality_gate_reasons?.length > 0 && <small>⚠ {image.quality_gate_reasons.join(', ')}</small>}</button>)}</div></section>}
+          <div className="mobile-actions" aria-label="Review actions"><button className="approve" disabled={busy || !chosen} onClick={() => decide('approved')}>Approve</button><button className="reject" disabled={busy} onClick={() => decide('rejected')}>Reject</button><button className="unsure" disabled={busy} onClick={() => { setAlternativesOpen(true); decide('unsure'); }}>Unsure</button></div>
         </>}</section></main>}
     </>}
   </div>;
