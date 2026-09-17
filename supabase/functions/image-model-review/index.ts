@@ -47,6 +47,24 @@ Deno.serve(async (request) => {
     if (body.action !== 'decide') return reply({ error: 'Unknown action.' }, 400)
     if (body.proposal_hash !== proposal.proposal_hash) return reply({ error: 'The proposal changed. Refresh it first.' }, 409)
     const chosen = reviewedChoice(proposal, body.decision, body.image_url)
+    if (body.decision === 'approved') {
+      const { data: updates, error: approvalError } = await db.rpc('approve_model_image_across_sessions', {
+        p_batch_id: body.batch_id,
+        p_activity_id: body.activity_id,
+        p_proposal_hash: body.proposal_hash,
+        p_chosen_image: chosen,
+        p_reviewer: auth.user.id,
+      })
+      if (approvalError) throw approvalError
+      if (!updates?.some((item: { updated_activity_id: string }) => item.updated_activity_id === body.activity_id)) {
+        throw Error('The approval was not saved. Refresh this proposal.')
+      }
+      return reply({ saved: true, review: { decision: 'approved', chosen_image: chosen },
+        updated_proposals: updates.map((item: { updated_activity_id: string; approved_image: unknown }) => ({
+          activity_id: item.updated_activity_id, decision: 'approved', chosen_image: item.approved_image,
+        })),
+        propagated_count: updates.length - 1, live_image_unchanged: true })
+    }
     const { data: saved, error: saveError } = await table.update({
       decision: body.decision, chosen_image: chosen || null,
       reviewed_by: auth.user.id, reviewed_at: new Date().toISOString(),

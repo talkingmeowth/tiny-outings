@@ -16,6 +16,12 @@ test('unsure and rejected decisions never choose or publish an image', () => {
   assert.throws(() => reviewedChoice(proposal, 'other', null));
 });
 
+test('an already approved sibling can retain its propagated human-approved image', () => {
+  const image = { image_url: 'https://example.test/session.jpg', propagated_from_activity_id: 'original' };
+  assert.equal(reviewedChoice({ ...proposal, decision: 'approved', chosen_image: image }, 'approved', image.image_url), image);
+  assert.throws(() => reviewedChoice({ ...proposal, decision: 'pending', chosen_image: image }, 'approved', image.image_url));
+});
+
 test('review queue follows current listing status and excludes archived activities', () => {
   const proposals = ['one', 'two', 'three'].map((activity_id) => ({ activity_id, activity_snapshot: { activity_name: activity_id, public_listing_status: 'draft' } }));
   const activities = [
