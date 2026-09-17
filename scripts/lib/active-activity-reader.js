@@ -79,12 +79,13 @@ async function restRows({ supabaseUrl, supabaseKey, columns }) {
   }
 }
 
-export async function loadActiveActivities({ root, supabaseUrl, supabaseAnonKey, supabaseServiceRoleKey, columns }) {
+export async function loadActiveActivities({ root, supabaseUrl, supabaseAnonKey, supabaseServiceRoleKey, columns, requireComplete = false }) {
   if (supabaseServiceRoleKey) {
     return restRows({ supabaseUrl, supabaseKey: supabaseServiceRoleKey, columns });
   }
   const linkedRows = linkedDatabaseRows(root, columns);
   if (linkedRows) return linkedRows;
+  if (requireComplete) throw new Error('Complete activity audit requires a working linked database or service-role key.');
   console.warn('Linked database/service key unavailable; public REST fallback may omit draft activities because of RLS.');
   return restRows({ supabaseUrl, supabaseKey: supabaseAnonKey, columns });
 }

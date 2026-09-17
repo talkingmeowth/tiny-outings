@@ -75,13 +75,20 @@ const jobs = [
   { name: 'data-quality', script: 'apply-activity-data-quality.js', output: 'supabase/seed/activity_import_quality_updates.generated.sql' },
   { name: 'category-audit', script: 'audit-activity-categories.js', output: 'data/activity_category_audit.generated.json' },
   { name: 'family-suitability', script: 'audit-activity-suitability.js', output: 'supabase/seed/activity_suitability_archives.generated.sql' },
-  { name: 'cross-source-deduplication', script: 'audit-cross-source-duplicates.js', output: 'supabase/seed/activity_cross_source_duplicate_consolidation.generated.sql' },
   { name: 'archive-expired', script: 'archive-expired-activities.js', output: 'supabase/seed/activity_expired_listing_archives.generated.sql' },
 ];
 
 // This job writes image files through a service-role Edge Function, so it
 // must run after generated SQL has been applied to the linked project.
 const postApplyJobs = [
+  {
+    // Audit the final imported rows, not the pre-apply snapshot. Guarded SQL
+    // archives only exact duplicate sessions with no human or user history.
+    name: 'deduplicate-active-listings',
+    script: 'audit-cross-source-duplicates.js',
+    output: 'supabase/seed/activity_cross_source_duplicate_consolidation.generated.sql',
+    applySql: true,
+  },
   {
     name: 'discover-website-image-candidates',
     // Collect every unique non-utility image exposed by each new activity,

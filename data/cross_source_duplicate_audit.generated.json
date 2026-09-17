@@ -1,46 +1,257 @@
-[
-  {
-    "keeper": {
-      "activity_id": "31d09e5c-c485-4d41-9d5a-ce8740a53e70",
-      "activity_name": "Abbey Leisure Centre",
-      "address": "Bobby Moore Way, Barking IG11 7HW",
-      "source": "google_places"
-    },
-    "duplicates": [
-      {
-        "activity_id": "17b2076c-5f43-4f54-b195-2e457a18890f",
-        "activity_name": "The Idol at Abbey Leisure Centre",
-        "address": "Axe Street, Barking, IG11 7LX",
-        "source": "time_out"
-      }
-    ]
-  },
-  {
-    "keeper": {
-      "activity_id": "5ff9af1e-b65a-4b49-bb47-9fd477366eb0",
-      "activity_name": "Bach to Baby Christmas Family Concert, London Bridge and Borough",
-      "address": "St Mary Magdalen, 193 Bermondsey Street, Borough, SE1 3UW",
-      "source": "loopla"
-    },
-    "duplicates": [
-      {
-        "activity_id": "985716f1-90d6-4687-84d5-9734840eaa46",
-        "activity_name": "Bach to Baby Family Concert, London Bridge and Borough",
-        "address": "St Mary Magdalen, 193 Bermondsey Street, Borough, SE1 3UW",
-        "source": "loopla"
+{
+  "audited_at": "2026-09-17T20:27:02.678Z",
+  "active_listings": 3331,
+  "groups": [
+    {
+      "keeper": {
+        "activity_id": "0ee8b728-c788-4fca-a0ab-333d849b86f6",
+        "activity_name": "ZIP ZAP TODDLERS",
+        "address": "Stoke Newington Church St, London N16 9ES",
+        "status": "published",
+        "source_url": "https://www.happity.co.uk/schedules/zip-zap-london-st-mary-s-church-stoke-newington-zip-zap-toddlers"
       },
-      {
-        "activity_id": "c089404c-ae62-47a0-943a-2bbebe2af6cc",
-        "activity_name": "London Bridge and Borough Bach to Baby Family Concert",
-        "address": "St. Mary Magdalen, 193 Bermondsey St, London SE1 3UW",
-        "source": "eventbrite"
+      "duplicates": [
+        {
+          "activity_id": "684ff48b-09db-470f-af80-2ca967ca1962",
+          "activity_name": "Zip Zap Toddlers",
+          "address": "Stoke Newington Church St, London N16 9ES",
+          "status": "published",
+          "source_url": "https://www.happity.co.uk/hackney/baby-toddler-classes#zip-zap-toddlers-st-marys-stoke-newington-mon-1000"
+        }
+      ]
+    },
+    {
+      "keeper": {
+        "activity_id": "28e64fe9-8d1d-420e-9097-d8528b4a5cc9",
+        "activity_name": "BRIGHT STAR PERFORMING ARTS SCHOOL",
+        "address": "Magpie Cl, London E7 9DE",
+        "status": "published",
+        "source_url": "https://www.happity.co.uk/schedules/bright-star-performing-arts-school-london-forest-lane-lodge-bright-star-performing-arts-school-mondays-16-15-17-15"
       },
-      {
-        "activity_id": "dc451af3-f4f0-47d6-b8d4-ce52d40f6fa9",
-        "activity_name": "London Bridge and Borough Bach to Baby Christmas Family Concert",
-        "address": "St. Mary Magdalen, 193 Bermondsey St, London SE1 3UW",
-        "source": "eventbrite"
-      }
-    ]
-  }
-]
+      "duplicates": [
+        {
+          "activity_id": "305fa7dc-47cd-40b8-a193-55fe8edb3f5b",
+          "activity_name": "BRIGHT STAR PERFORMING ARTS SCHOOL",
+          "address": "Magpie Cl, London E7 9DE",
+          "status": "published",
+          "source_url": "https://www.happity.co.uk/schedules/bright-star-performing-arts-school-london-forest-lane-lodge-bright-star-performing-arts-school"
+        }
+      ]
+    },
+    {
+      "keeper": {
+        "activity_id": "32fbc3d0-59ed-4860-baec-bd8a4c4f3289",
+        "activity_name": "Baby Dance by Wee Movers",
+        "address": "Good Shepherd Studios, 15A Davies Ln, Bushwood, London E11 3DR",
+        "status": "published",
+        "source_url": "https://www.happity.co.uk/newham/baby-toddler-classes#baby-dance-wee-movers-good-shepherd-tue-1040"
+      },
+      "duplicates": [
+        {
+          "activity_id": "8c8ad1a1-587b-497f-b633-49898b90df67",
+          "activity_name": "BABY DANCE BY WEE MOVERS",
+          "address": "Good Shepherd Studios, 15A Davies Ln, Bushwood, London E11 3DR",
+          "status": "published",
+          "source_url": "https://www.happity.co.uk/schedules/wee-movers-london-good-shepherd-studios-baby-dance-by-wee-movers"
+        }
+      ]
+    },
+    {
+      "keeper": {
+        "activity_id": "865afb81-d1fb-45c7-bca5-de97921a930f",
+        "activity_name": "MATHS and ENGLISH TUITION KUMON ISLINGTON BOOK NOW WHATAPP 07888 544 144",
+        "address": "Winton Primary School Islington, 62-68 Killick St, London N1 9AZ",
+        "status": "published",
+        "source_url": "https://www.happity.co.uk/schedules/kumon-london-kumon-islington-winton-primary-school-maths-english-tuition-kumon-islington-book-now-whatapp-07888-544-144-tuesdays-15-30-18-00"
+      },
+      "duplicates": [
+        {
+          "activity_id": "3881a2d3-5ff2-4985-8bd3-8f595a6d62cb",
+          "activity_name": "MATHS and ENGLISH TUITION KUMON ISLINGTON BOOK NOW WHATAPP 07888 544 144",
+          "address": "Winton Primary School Islington, 62-68 Killick St, London N1 9AZ",
+          "status": "published",
+          "source_url": "https://www.happity.co.uk/schedules/kumon-london-kumon-islington-winton-primary-school-maths-english-tuition-kumon-islington-book-now-whatapp-07888-544-144"
+        }
+      ]
+    },
+    {
+      "keeper": {
+        "activity_id": "3df3226a-dbc0-4aba-868d-3fcb4ed80e27",
+        "activity_name": "WOMEN S HEATH STAMFORD HILL CIC WOMEN S TAI CHI CLASS",
+        "address": "Springfield, London",
+        "status": "published",
+        "source_url": "https://www.happity.co.uk/schedules/women-s-heath-stamford-hill-cic-london-the-glass-house-women-s-tai-chi-class-thursdays-09-30-10-25"
+      },
+      "duplicates": [
+        {
+          "activity_id": "f9d44f5a-a2ea-43a4-b28b-b6f9cef4c685",
+          "activity_name": "WOMEN S HEATH STAMFORD HILL CIC WOMEN S TAI CHI CLASS",
+          "address": "Springfield, London",
+          "status": "published",
+          "source_url": "https://www.happity.co.uk/schedules/women-s-heath-stamford-hill-cic-london-the-glass-house-women-s-tai-chi-class"
+        }
+      ]
+    },
+    {
+      "keeper": {
+        "activity_id": "67e51f71-8e06-4bfb-a2aa-f7197f1f2749",
+        "activity_name": "SING17EENIES BABY MUSIC CLASS",
+        "address": "4 Greenleaf Rd, London E17 6QQ",
+        "status": "published",
+        "source_url": "https://www.happity.co.uk/schedules/sing17eenies-baby-music-class-waltham-forest-greenleaf-road-baptist-church-sing17eenies-baby-music-class-mondays-14-00-14-45"
+      },
+      "duplicates": [
+        {
+          "activity_id": "580ee1fb-b041-453a-8948-2b67bf8a755d",
+          "activity_name": "SING17EENIES BABY MUSIC CLASS",
+          "address": "4 Greenleaf Rd, London E17 6QQ",
+          "status": "published",
+          "source_url": "https://www.happity.co.uk/schedules/sing17eenies-baby-music-class-waltham-forest-greenleaf-road-baptist-church-sing17eenies-baby-music-class"
+        }
+      ]
+    },
+    {
+      "keeper": {
+        "activity_id": "90b6fb58-3457-4f5b-b74e-13317ed77762",
+        "activity_name": "STAY AND PLAY SESSION 0 4",
+        "address": "The Drive, London",
+        "status": "published",
+        "source_url": "https://www.happity.co.uk/schedules/stay-and-play-session-0-4-london-emmanuel-community-school-walthamstow-stay-and-play-session-0-4-fridays-09-00-10-30"
+      },
+      "duplicates": [
+        {
+          "activity_id": "5a9dfc36-c860-4177-ac1f-4cea6dee7c31",
+          "activity_name": "STAY AND PLAY SESSION 0 4",
+          "address": "The Drive, London",
+          "status": "published",
+          "source_url": "https://www.happity.co.uk/schedules/stay-and-play-session-0-4-london-emmanuel-community-school-walthamstow-stay-and-play-session-0-4"
+        }
+      ]
+    },
+    {
+      "keeper": {
+        "activity_id": "66646f1f-cee5-4971-8d6d-1d76bc23c5da",
+        "activity_name": "SING AND PLAY WITH ALEX IN SPANISH JUEGA and CANTA CON ALEX",
+        "address": "3 Eastfields Ave, London SW18 1GN",
+        "status": "published",
+        "source_url": "https://www.happity.co.uk/schedules/sing-and-play-with-alex-in-spanish-london-salaspark-juega-canta-con-alex-fridays-10-30-11-15"
+      },
+      "duplicates": [
+        {
+          "activity_id": "a3866ece-91ea-497a-871c-d4f0f3f6dfb9",
+          "activity_name": "SING AND PLAY WITH ALEX IN SPANISH JUEGA and CANTA CON ALEX",
+          "address": "3 Eastfields Ave, London SW18 1GN",
+          "status": "published",
+          "source_url": "https://www.happity.co.uk/schedules/sing-and-play-with-alex-in-spanish-london-salaspark-juega-canta-con-alex-fridays-10-30-11-15-sing-and-play-with-alex-in-spanish-london-salaspark-juega-canta-con-alex-fridays-10-30-11-15-2-2"
+        }
+      ]
+    },
+    {
+      "keeper": {
+        "activity_id": "ca790bfe-05f5-4491-9b89-0de28c7316a9",
+        "activity_name": "THE TOY PROJECT PRE SCHOOL STORIES THROUGH ART",
+        "address": "93 Junction Rd, Archway, London N19 5QX",
+        "status": "published",
+        "source_url": "https://www.happity.co.uk/schedules/the-toy-project-london-the-playroom-the-toy-project-pre-school-stories-through-art-wednesdays-11-15-12-00"
+      },
+      "duplicates": [
+        {
+          "activity_id": "68eb13eb-e428-4ce1-82eb-bb332dbb9fbf",
+          "activity_name": "THE TOY PROJECT PRE SCHOOL STORIES THROUGH ART",
+          "address": "93 Junction Rd, Archway, London N19 5QX",
+          "status": "published",
+          "source_url": "https://www.happity.co.uk/schedules/the-toy-project-london-the-playroom-the-toy-project-pre-school-stories-through-art"
+        }
+      ]
+    },
+    {
+      "keeper": {
+        "activity_id": "cc1cfc66-86cd-4066-9da0-ac1f602f5d4e",
+        "activity_name": "Singing Mamas Newham",
+        "address": "408 Barking Rd, London E13 8HJ",
+        "status": "published",
+        "source_url": "https://www.happity.co.uk/newham/baby-toddler-classes#singing-mamas-newham-cornerstone-cafe-tue-1000"
+      },
+      "duplicates": [
+        {
+          "activity_id": "7ee2072f-6f9b-49ad-92db-3f78843b7ece",
+          "activity_name": "SINGING MAMAS NEWHAM",
+          "address": "408 Barking Rd, London E13 8HJ",
+          "status": "published",
+          "source_url": "https://www.happity.co.uk/schedules/singing-mamas-london-cornerstone-cafe-london-singing-mamas-newham"
+        }
+      ]
+    },
+    {
+      "keeper": {
+        "activity_id": "8748f27e-9ebe-4757-8643-169a0beb00c9",
+        "activity_name": "MINI MOZART BABY CLASS",
+        "address": "Upper St, London",
+        "status": "published",
+        "source_url": "https://www.happity.co.uk/schedules/mini-mozart-london-st-mary-s-church-mini-mozart-baby-class"
+      },
+      "duplicates": [
+        {
+          "activity_id": "c27c9b2a-7940-4983-a59e-f10af63fb677",
+          "activity_name": "Mini Mozart Baby Class",
+          "address": "Upper St, London",
+          "status": "published",
+          "source_url": "https://www.happity.co.uk/islington/baby-toddler-classes#mini-mozart-baby-class-st-marys-wed-1025"
+        }
+      ]
+    },
+    {
+      "keeper": {
+        "activity_id": "9bb2aba3-f43b-480d-8473-bf67d80d9662",
+        "activity_name": "THE BODY PEOPLE HACKNEY PRE and POST NATAL FITNESS",
+        "address": "9 Copper St, London E20 3AW",
+        "status": "published",
+        "source_url": "https://www.happity.co.uk/schedules/the-body-people-hackney-london-the-body-people-fitness-aerial-dance-studio-pre-post-natal-fitness-fridays-13-00-13-45"
+      },
+      "duplicates": [
+        {
+          "activity_id": "caed0e86-0b86-4840-9011-653493290da6",
+          "activity_name": "THE BODY PEOPLE HACKNEY PRE and POST NATAL FITNESS",
+          "address": "9 Copper St, London E20 3AW",
+          "status": "published",
+          "source_url": "https://www.happity.co.uk/schedules/the-body-people-hackney-london-the-body-people-fitness-aerial-dance-studio-pre-post-natal-fitness"
+        }
+      ]
+    },
+    {
+      "keeper": {
+        "activity_id": "f077a621-7fcc-41da-9190-2a7fd32dc4b8",
+        "activity_name": "SING AND SIGN BABES",
+        "address": "Oxford House Bethnal Green, Derbyshire St, London E2 6HG",
+        "status": "published",
+        "source_url": "https://www.happity.co.uk/schedules/sing-and-sign-london-oxford-house-bethnal-green-sing-and-sign-babes-tuesdays-12-00-12-40"
+      },
+      "duplicates": [
+        {
+          "activity_id": "e7da8492-6889-4031-803a-9be3b63163ce",
+          "activity_name": "SING AND SIGN BABES",
+          "address": "Oxford House Bethnal Green, Derbyshire St, London E2 6HG",
+          "status": "published",
+          "source_url": "https://www.happity.co.uk/schedules/sing-and-sign-london-oxford-house-bethnal-green-sing-and-sign-babes"
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "reason": "conflicting source or place identity",
+      "members": [
+        {
+          "activity_id": "1d2f1499-cc59-469c-9d73-deca3b1839da",
+          "activity_name": "Starbucks Coffee",
+          "address": "Montfichet Rd, London E20 1EJ"
+        },
+        {
+          "activity_id": "efe063a2-dd57-42a0-9665-a71985ff66cd",
+          "activity_name": "Starbucks Coffee",
+          "address": "Montfichet Rd, London E20 1EJ"
+        }
+      ]
+    }
+  ]
+}
