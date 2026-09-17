@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from './supabase.js';
 import { edgeFunctionErrorMessage } from './functionErrors.js';
+import { mergeProposalPage } from './proposalQueue.js';
 
 const admins = new Set(['talkingmeowth06@gmail.com', 'talkingmeowtho6@gmail.com', 'benfielden@gmail.com']);
 const safeUrl = (value) => { try { const url = new URL(value); return ['http:', 'https:'].includes(url.protocol) ? url.href : ''; } catch { return ''; } };
@@ -48,11 +49,11 @@ export default function ReviewApp() {
       const { batch: latest } = await api({ action: 'batch' });
       if (!latest) return { latest, proposals: [] };
       if (active) setBatch(latest);
-      const proposals = [];
+      let proposals = [];
       for (let offset = 0; ;) {
         const page = await api({ action: 'list', batch_id: latest.batch_id, offset });
-        proposals.push(...page.proposals);
-        if (active) setRows([...proposals]);
+        proposals = mergeProposalPage(proposals, page.proposals);
+        if (active) setRows(proposals);
         if (page.next === null) break;
         offset = page.next;
       }
