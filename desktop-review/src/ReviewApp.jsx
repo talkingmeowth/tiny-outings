@@ -69,8 +69,9 @@ export default function ReviewApp() {
   }), [rows, filter, reviewFilter, search]);
   const batchId = batch?.batch_id;
   useEffect(() => {
-    if (batchId && !selectedId && rows.length) setSelectedId((rows.find((row) => row.decision === 'pending') || rows[0]).activity_id);
-  }, [batchId, rows, selectedId]);
+    if (!batchId || !rows.length || (selectedId && filtered.some((row) => row.activity_id === selectedId))) return;
+    setSelectedId((filtered.find((row) => row.decision === 'pending') || filtered[0])?.activity_id || '');
+  }, [batchId, rows, filtered, selectedId]);
   useEffect(() => {
     if (!selectedId || !batchId) { setDetail(null); return; }
     let active = true; setDetail(null); setAlternativesOpen(false);
@@ -98,6 +99,22 @@ export default function ReviewApp() {
       if (reviewFilter === 'pending' && decision !== 'unsure' && next) setSelectedId(next.activity_id);
     } catch (e) { setError(e.message); } finally { setBusy(false); }
   }
+  async function archiveActivity() {
+    if (!detail || busy) return;
+    const targetId = detail.activity_id;
+    const name = detail.activity_snapshot?.activity_name || 'this activity';
+    if (!window.confirm(`Archive ${name}? It will disappear from the public app and this review queue.`)) return;
+    setBusy(true); setError(''); setNotice('');
+    try {
+      const { error: archiveError } = await supabase.rpc('archive_tiny_outings_activity', { target_activity_id: targetId });
+      if (archiveError) throw archiveError;
+      setRows((current) => current.filter((row) => row.activity_id !== targetId));
+      setSelectedId((current) => current === targetId ? '' : current);
+      setDetail(null);
+      setMobileDetailOpen(false);
+      setNotice(`${name} archived. It is no longer in the public app or review queue.`);
+    } catch (e) { setError(`Could not archive activity: ${e.message}`); } finally { setBusy(false); }
+  }
   async function signIn() {
     setError(''); const result = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${location.origin}${import.meta.env.BASE_URL}` } });
     if (result.error) setError(result.error.message);
@@ -119,7 +136,7 @@ export default function ReviewApp() {
           <img src={row.chosen_image?.image_url || row.selected_image?.image_url || '/images/family-outing-placeholder.svg'} alt="" loading="lazy" /><span><strong>{row.activity_snapshot?.activity_name}</strong><small>{row.activity_snapshot?.public_listing_status} · {row.activity_snapshot?.category}</small><em>{row.decision === 'pending' ? row.status.replaceAll('_', ' ') : row.decision}</em></span></button>)}
         {shown < filtered.length && <button className="load-more" onClick={() => setShown((n) => n + 100)}>Show 100 more</button>}</aside>
         <section className="case-panel"><div className="mobile-case-nav"><button onClick={() => setMobileDetailOpen(false)}>← Queue</button><span>{activity.activity_name || 'Image review'}</span><button disabled={!nextPending} onClick={() => setSelectedId(nextPending.activity_id)}>Next →</button></div>{!detail ? <div className="empty"><h2>{selectedId ? 'Loading proposal…' : 'Choose an activity'}</h2><p>Approve, reject, or mark the proposed photo unsure.</p></div> : <>
-          <div className="case-heading"><div><small>{activity.public_listing_status?.toUpperCase()} · {activity.category}</small><h2>{activity.activity_name}</h2><p>{activity.address || activity.borough}</p><div className="desktop-activity-details"><p>{activity.description}</p>{activity.age_suitability && <p>Age: {activity.age_suitability}</p>}{activity.google_summary && <p>Google Places: {activity.google_summary}</p>}</div><details className="mobile-activity-details"><summary>Activity context</summary><p>{activity.description}</p>{activity.age_suitability && <p>Age: {activity.age_suitability}</p>}{activity.google_summary && <p>Google Places: {activity.google_summary}</p>}</details></div><div className="links"><External href={activity.source_url || activity.website || activity.google_link || activity.google_place_uri}>Open activity page</External><External href={activity.website}>Provider website</External><External href={activity.google_place_uri || activity.google_link}>Google Places</External></div></div>
+          <div className="case-heading"><div><small>{activity.public_listing_status?.toUpperCase()} · {activity.category}</small><h2>{activity.activity_name}</h2><p>{activity.address || activity.borough}</p><div className="desktop-activity-details"><p>{activity.description}</p>{activity.age_suitability && <p>Age: {activity.age_suitability}</p>}{activity.google_summary && <p>Google Places: {activity.google_summary}</p>}</div><details className="mobile-activity-details"><summary>Activity context</summary><p>{activity.description}</p>{activity.age_suitability && <p>Age: {activity.age_suitability}</p>}{activity.google_summary && <p>Google Places: {activity.google_summary}</p>}</details></div><div className="case-links"><div className="links"><External href={activity.source_url || activity.website || activity.google_link || activity.google_place_uri}>Open activity page</External><External href={activity.website}>Provider website</External><External href={activity.google_place_uri || activity.google_link}>Google Places</External></div><button className="archive-activity" disabled={busy} onClick={archiveActivity}>Archive activity</button></div></div>
           <div className="proposal-layout"><div className="preview"><img src={chosen?.image_url || '/images/family-outing-placeholder.svg'} alt={chosen?.title || `Suggested cover for ${activity.activity_name}`} /><small>{chosen ? chosenUrl === detail.selected_image?.image_url ? 'MODEL CHOICE' : 'ALTERNATIVE SELECTED' : 'NO PHOTO PROPOSED'}</small></div>
             <div className="proposal-info"><h3>{chosen ? 'Selected image' : 'No suitable photo proposed'}</h3><p>{detail.assessed_count} assessed / {detail.candidate_count} stored candidates · {detail.model_version}</p>{detail.source_gaps?.length > 0 && <p className="warning">Incomplete sources: {detail.source_gaps.join(', ')}</p>}
               <button className="alternatives-toggle" onClick={() => setAlternativesOpen((value) => !value)}>{alternativesOpen ? 'Hide alternatives' : `Compare alternatives (${options.length - (detail.selected_image ? 1 : 0)})`}</button>

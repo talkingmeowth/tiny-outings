@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { reviewedChoice } from './policy.js';
+import { currentActiveProposals, reviewedChoice } from './policy.js';
 
 const proposal = { selected_image: { image_url: 'https://example.test/model.jpg', source_field: 'serpapi_image_candidates' },
   alternatives: [{ image_url: 'https://example.test/website.jpg', source_field: 'website_image_candidates' }] };
@@ -14,4 +14,15 @@ test('unsure and rejected decisions never choose or publish an image', () => {
   assert.equal(reviewedChoice(proposal, 'unsure', null), null);
   assert.equal(reviewedChoice(proposal, 'rejected', 'https://example.test/model.jpg'), null);
   assert.throws(() => reviewedChoice(proposal, 'other', null));
+});
+
+test('review queue follows current listing status and excludes archived activities', () => {
+  const proposals = ['one', 'two', 'three'].map((activity_id) => ({ activity_id, activity_snapshot: { activity_name: activity_id, public_listing_status: 'draft' } }));
+  const activities = [
+    { activity_id: 'one', archive: false, public_listing_status: 'published' },
+    { activity_id: 'two', archive: true, public_listing_status: 'published' },
+  ];
+  assert.deepEqual(currentActiveProposals(proposals, activities), [{
+    activity_id: 'one', activity_snapshot: { activity_name: 'one', public_listing_status: 'published' },
+  }]);
 });

@@ -12,3 +12,15 @@ export function reviewedChoice(proposal, decision, imageUrl) {
   if (!chosen) throw Error('Approve only an image from this proposal.');
   return chosen;
 }
+
+export function currentActiveProposals(proposals, activities) {
+  const current = new Map(activities.map((activity) => [activity.activity_id, activity]));
+  return proposals.flatMap((proposal) => {
+    const activity = current.get(proposal.activity_id);
+    if (!activity || activity.archive || !['draft', 'published'].includes(activity.public_listing_status)) return [];
+    return [{ ...proposal, activity_snapshot: {
+      ...proposal.activity_snapshot,
+      public_listing_status: activity.public_listing_status,
+    } }];
+  });
+}

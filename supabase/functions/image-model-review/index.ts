@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { reviewedChoice } from './policy.js'
+import { currentActiveProposals, reviewedChoice } from './policy.js'
 
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type', 'Access-Control-Allow-Methods': 'POST, OPTIONS' }
 const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } })
@@ -31,7 +31,13 @@ Deno.serve(async (request) => {
         .select('batch_id,activity_id,activity_snapshot,status,selected_image,candidate_count,decision,chosen_image,proposal_hash', { count: 'exact' })
         .eq('batch_id', body.batch_id).order('activity_id').range(offset, offset + 199)
       if (error) throw error
-      return reply({ proposals: data || [], total: count || 0, next: offset + (data?.length || 0) < (count || 0) ? offset + 200 : null })
+      const ids = (data || []).map((proposal) => proposal.activity_id)
+      const { data: activities, error: activityError } = ids.length
+        ? await db.from('activities').select('activity_id,archive,public_listing_status').in('activity_id', ids)
+        : { data: [], error: null }
+      if (activityError) throw activityError
+      const proposals = currentActiveProposals(data || [], activities || [])
+      return reply({ proposals, total: count || 0, next: offset + (data?.length || 0) < (count || 0) ? offset + 200 : null })
     }
     if (!validId(body.activity_id)) return reply({ error: 'Invalid activity.' }, 400)
     const { data: proposal, error } = await table.select('*').eq('batch_id', body.batch_id).eq('activity_id', body.activity_id).maybeSingle()
