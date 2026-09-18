@@ -30,6 +30,7 @@ export const ACTIVITY_SELECT_COLUMNS = [
   'cost',
   'admin_cover_image_url',
   'reviewed_image_url',
+  'desktop_approved_image_url',
   'use_category_image',
   'reviewed_image_source_url',
   'reviewed_image_original_url',

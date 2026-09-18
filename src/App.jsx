@@ -325,6 +325,7 @@ function normalizeActivity(activity) {
     cost,
     admin_cover_image_url: activity.admin_cover_image_url || null,
     reviewed_image_url: activity.reviewed_image_url || null,
+    desktop_approved_image_url: activity.desktop_approved_image_url || null,
     use_category_image: Boolean(activity.use_category_image),
     model_selected_url: activity.model_selected_url || null,
     model_selected_confidence: Number.isFinite(Number(activity.model_selected_confidence))

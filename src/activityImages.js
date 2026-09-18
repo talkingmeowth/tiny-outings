@@ -5,13 +5,13 @@ import {
 } from './activityDuplicates.js';
 import { allowsWikimediaImages, isWikimediaUrl } from './wikimediaImagePolicy.js';
 
-// Shadow model proposals and automatic source fields never appear on live cards.
-// Admin covers and admin-provided URLs precede desktop-reviewed photos, then
-// community uploads. The category illustration remains the final fallback.
+// Only human-approved desktop proposals become live; Pending, Rejected and
+// Unsure model outputs remain shadow data. Older manual reviews take priority.
 export const activityImageFields = [
   'admin_cover_image_url',
   'user_image_url',
   'reviewed_image_url',
+  'desktop_approved_image_url',
   'user_uploaded_image_url',
 ];
 
@@ -90,7 +90,7 @@ function imageCandidates(activity) {
     const field = activityImageFields[priority];
     if (field === 'reviewed_image_url' && activity?.use_category_image) {
       candidates.push({ field: 'category_placeholder', priority, url: activityFallbackImage(activity) });
-      continue;
+      break;
     }
     const url = securePhotoUrl(activity?.[field]);
     if (!isQualityApprovedImageField(activity, field, url)) continue;

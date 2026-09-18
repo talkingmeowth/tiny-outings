@@ -150,11 +150,12 @@ test('does not promote an unaudited scraped image when the audit covered a diffe
   })), []);
 });
 
-test('displays only admin, manually reviewed, and user-uploaded images', () => {
+test('displays admin, manual, desktop-approved, and user-uploaded images in order', () => {
   assert.deepEqual(activityImageFields, [
     'admin_cover_image_url',
     'user_image_url',
     'reviewed_image_url',
+    'desktop_approved_image_url',
     'user_uploaded_image_url',
   ]);
   const item = activity({
@@ -162,6 +163,7 @@ test('displays only admin, manually reviewed, and user-uploaded images', () => {
     audit_image_status: 'replaced',
     admin_cover_image_url: 'https://images.example.test/admin.jpg',
     reviewed_image_url: 'https://images.example.test/reviewed.jpg',
+    desktop_approved_image_url: 'https://images.example.test/desktop-approved.jpg',
     model_selected_url: 'https://images.example.test/model.jpg',
     user_image_url: 'https://images.example.test/admin-url.jpg',
     audit_image_url: 'https://images.example.test/audited.jpg',
@@ -177,6 +179,7 @@ test('displays only admin, manually reviewed, and user-uploaded images', () => {
     'https://images.example.test/admin.jpg',
     'https://images.example.test/admin-url.jpg',
     'https://images.example.test/reviewed.jpg',
+    'https://images.example.test/desktop-approved.jpg',
     'https://images.example.test/community.jpg',
   ]);
 
@@ -221,6 +224,21 @@ test('does not let an unselected original source bypass the learned selector', (
   assert.equal(shareListingImages([rejected])[0].shared_card_image_source, undefined);
 });
 
+test('a desktop-approved choice is live, but cannot override an older manual review', () => {
+  const item = activity({
+    model_selected_url: 'https://images.example.test/unreviewed-model.jpg',
+    desktop_approved_image_url: 'https://images.example.test/approved-alternative.jpg',
+    user_uploaded_image_url: 'https://images.example.test/user-upload.jpg',
+  });
+  assert.deepEqual(activityImageUrls(item), [
+    'https://images.example.test/approved-alternative.jpg',
+    'https://images.example.test/user-upload.jpg',
+  ]);
+  assert.equal(shareListingImages([item])[0].shared_card_image_source, 'desktop_approved_image_url');
+  assert.equal(shareListingImages([{ ...item, reviewed_image_url: 'https://images.example.test/manual.jpg' }])[0].shared_card_image_source, 'reviewed_image_url');
+  assert.equal(shareListingImages([{ ...item, admin_cover_image_url: 'https://images.example.test/admin.jpg' }])[0].shared_card_image_source, 'admin_cover_image_url');
+});
+
 test('keeps validated audit replacements in the candidate pool until a learned winner is stored', () => {
   const replacement = activity({
     audit_image_status: 'replaced',
@@ -251,6 +269,7 @@ test('uses an explicitly selected category illustration at the reviewed-image pr
     category: 'Cafes & food',
     use_category_image: true,
     reviewed_image_url: 'https://images.example.test/old-reviewed.jpg',
+    desktop_approved_image_url: 'https://images.example.test/desktop-approved.jpg',
     user_image_url: 'https://images.example.test/admin-url.jpg',
     model_selected_url: 'https://images.example.test/model.jpg',
   });

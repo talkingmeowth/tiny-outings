@@ -63,7 +63,7 @@ Deno.serve(async (request) => {
         updated_proposals: updates.map((item: { updated_activity_id: string; approved_image: unknown }) => ({
           activity_id: item.updated_activity_id, decision: 'approved', chosen_image: item.approved_image,
         })),
-        propagated_count: updates.length - 1, live_image_unchanged: true })
+        propagated_count: updates.length - 1, live_image_unchanged: false })
     }
     const { data: saved, error: saveError } = await table.update({
       decision: body.decision, chosen_image: chosen || null,
@@ -72,7 +72,7 @@ Deno.serve(async (request) => {
       .select('decision,chosen_image,reviewed_at').maybeSingle()
     if (saveError) throw saveError
     if (!saved) return reply({ error: 'The proposal changed. Refresh it first.' }, 409)
-    return reply({ saved: true, review: saved, live_image_unchanged: true })
+    return reply({ saved: true, review: saved })
   } catch (error) {
     return reply({ error: error instanceof Error ? error.message : 'Could not complete image review.' }, 400)
   }
