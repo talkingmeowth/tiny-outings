@@ -229,6 +229,12 @@ async function main() {
       const description = museumDescription(content);
       if (!name || unsuitableVenuePattern.test(`${name} ${description}`)) return { museumUrl, name, status: 'excluded' };
       const { address, postcode } = museumAddress(content, name);
+      // The publisher still lists Pollock's former Scala Street address.
+      // The museum confirms that it has left that site; do not re-import the
+      // closed venue as a live family outing.
+      if (name === "Pollock's Toy Museum" && /scala\s+(?:street|st)\b/i.test(address)) {
+        return { museumUrl, name, status: 'excluded-stale-address' };
+      }
       const hours = openHours(content);
       const coordinates = await geocode(postcode);
       return {

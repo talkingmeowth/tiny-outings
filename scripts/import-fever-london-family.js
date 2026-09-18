@@ -211,7 +211,12 @@ function rowFor(product, url, html) {
   const price = Number(offer?.price);
   const name = cleanText(product.name);
   const location = cleanText(place.name || 'London');
-  const locality = cleanText(place.address?.addressLocality || 'London');
+  // Fever sometimes omits addressLocality for venues outside London. Do not
+  // append "London" to a town already named in the event and venue.
+  const namedTown = ['Camberley', 'Maidstone'].find((town) =>
+    new RegExp(`\\b${town}\\b`, 'i').test(name)
+    && new RegExp(`\\b${town}\\b`, 'i').test(location));
+  const locality = cleanText(place.address?.addressLocality || namedTown || 'London');
   const address = location.toLowerCase().includes('london') ? location : `${location}, ${locality}`;
   const description = cleanText(product.description);
   return {
