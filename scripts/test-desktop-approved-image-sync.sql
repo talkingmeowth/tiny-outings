@@ -30,6 +30,15 @@ begin
   end if;
 
   update public.activity_image_model_proposals
+  set decision = 'pending', chosen_image = null, reviewed_at = null
+  where batch_id = sample.batch_id and activity_id = sample.activity_id;
+  select desktop_approved_image_url into mirrored
+  from public.activities where activity_id = sample.activity_id;
+  if mirrored is not null then
+    raise exception 'Pending proposal leaked a live desktop image.';
+  end if;
+
+  update public.activity_image_model_proposals
   set decision = 'approved', chosen_image = sample.chosen_image, reviewed_at = now()
   where batch_id = sample.batch_id and activity_id = sample.activity_id;
   select desktop_approved_image_url into mirrored
