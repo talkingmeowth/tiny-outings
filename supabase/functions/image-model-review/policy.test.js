@@ -16,6 +16,14 @@ test('unsure and rejected decisions never choose or publish an image', () => {
   assert.throws(() => reviewedChoice(proposal, 'other', null));
 });
 
+test('an admin-submitted URL can be approved only after it is saved as an alternative', () => {
+  const submitted = { image_url: 'https://example.test/stored-photo.jpg',
+    submitted_original_url: 'https://photos.example.org/photo.jpg', source_field: 'admin_submitted_url' };
+  assert.throws(() => reviewedChoice(proposal, 'approved', submitted.image_url));
+  assert.equal(reviewedChoice({ ...proposal, alternatives: [...proposal.alternatives, submitted] },
+    'approved', submitted.image_url), submitted);
+});
+
 test('an already approved sibling can retain its propagated human-approved image', () => {
   const image = { image_url: 'https://example.test/session.jpg', propagated_from_activity_id: 'original' };
   assert.equal(reviewedChoice({ ...proposal, decision: 'approved', chosen_image: image }, 'approved', image.image_url), image);

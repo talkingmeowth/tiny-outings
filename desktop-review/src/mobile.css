@@ -1,3 +1,38 @@
+.url-submission {
+  display: grid;
+  gap: 9px;
+  margin: 18px 0;
+  padding: 16px;
+  border: 1px solid #c8dcd2;
+  border-radius: 12px;
+  background: #f4faf6;
+}
+
+.url-submission label { font-weight: 800; }
+.url-submission > div { display: flex; gap: 8px; }
+.url-submission input {
+  min-width: 0;
+  flex: 1;
+  padding: 11px 12px;
+  border: 1px solid #b9c8c0;
+  border-radius: 8px;
+  background: white;
+}
+.url-submission button {
+  padding: 11px 14px;
+  border: 0;
+  border-radius: 8px;
+  background: #287458;
+  color: white;
+  font-weight: 800;
+}
+.url-submission small { color: #536b5d; }
+
+@media (max-width: 560px) {
+  .url-submission > div { flex-direction: column; }
+  .url-submission button { min-height: 46px; }
+}
+
 .mobile-case-nav,
 .mobile-actions,
 .mobile-activity-details {

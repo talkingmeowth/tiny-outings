@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { currentActiveProposals, reviewedChoice } from './policy.js'
+import { downloadSubmittedImage, publicImageUrl } from './remoteImage.js'
 
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type', 'Access-Control-Allow-Methods': 'POST, OPTIONS' }
 const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } })
@@ -44,6 +45,59 @@ Deno.serve(async (request) => {
     if (error) throw error
     if (!proposal) return reply({ error: 'Proposal not found.' }, 404)
     if (body.action === 'detail') return reply({ proposal })
+    if (body.action === 'submit_url') {
+      if (body.proposal_hash !== proposal.proposal_hash) return reply({ error: 'The proposal changed. Refresh it first.' }, 409)
+      const originalUrl = publicImageUrl(body.image_url).href
+      const existing = [proposal.selected_image, ...(proposal.alternatives || [])].find(
+        (candidate) => candidate?.submitted_original_url === originalUrl,
+      )
+      if (existing) return reply({ proposal, candidate: existing })
+      const { data: activity, error: activityError } = await db.from('activities')
+        .select('activity_id').eq('activity_id', body.activity_id).eq('archive', false)
+        .in('public_listing_status', ['draft', 'published']).maybeSingle()
+      if (activityError) throw activityError
+      if (!activity) return reply({ error: 'This listing is no longer active.' }, 409)
+      const photo = await downloadSubmittedImage(originalUrl)
+      const path = `reviewed/submitted/${body.activity_id}/${crypto.randomUUID()}.${photo.extension}`
+      const { error: uploadError } = await db.storage.from('activity-images').upload(path, photo.bytes, {
+        contentType: photo.mime, cacheControl: '31536000', upsert: false,
+      })
+      if (uploadError) throw uploadError
+      const storedUrl = db.storage.from('activity-images').getPublicUrl(path).data.publicUrl
+      const candidate = {
+        image_url: storedUrl,
+        submitted_original_url: originalUrl,
+        source_page_url: originalUrl,
+        source_domain: new URL(originalUrl).hostname,
+        source_field: 'admin_submitted_url',
+        candidate_source: 'admin_submitted_url',
+        source_kind: 'admin_submitted',
+        title: 'Admin-submitted photo URL',
+        width: photo.width, height: photo.height,
+        mime_type: photo.mime,
+        model_assessed: false,
+        submitted_by: auth.user.id,
+        submitted_at: new Date().toISOString(),
+      }
+      try {
+        const { data: saved, error: appendError } = await db.rpc('append_model_review_url_candidate', {
+          p_batch_id: body.batch_id,
+          p_activity_id: body.activity_id,
+          p_proposal_hash: body.proposal_hash,
+          p_candidate: candidate,
+        })
+        if (appendError) throw appendError
+        const savedCandidate = (saved?.alternatives || []).find(
+          (item: { submitted_original_url?: string }) => item.submitted_original_url === originalUrl,
+        )
+        if (!savedCandidate) throw Error('The submitted URL was not saved. Refresh and try again.')
+        if (savedCandidate.image_url !== storedUrl) await db.storage.from('activity-images').remove([path])
+        return reply({ proposal: saved, candidate: savedCandidate })
+      } catch (submissionError) {
+        await db.storage.from('activity-images').remove([path])
+        throw submissionError
+      }
+    }
     if (body.action !== 'decide') return reply({ error: 'Unknown action.' }, 400)
     if (body.proposal_hash !== proposal.proposal_hash) return reply({ error: 'The proposal changed. Refresh it first.' }, 409)
     const chosen = reviewedChoice(proposal, body.decision, body.image_url)
