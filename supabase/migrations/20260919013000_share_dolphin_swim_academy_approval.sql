@@ -75,6 +75,8 @@ begin
     or public.image_review_approved_programme_family(target_activity) <> 'dolphin_swim_academy_baby_swim'
     or target_activity.admin_cover_image_url is not null
     or target_activity.reviewed_image_url is not null
+    or target_activity.user_image_url is not null
+    or target_activity.use_category_image is true
     or target_activity.desktop_approved_image_url is not null then
     return new;
   end if;
