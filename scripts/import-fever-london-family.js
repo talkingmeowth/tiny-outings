@@ -3,6 +3,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isUsableActivityImageUrl, normaliseFeverImageUrl } from './lib/activity-image-policy.js';
+import { isWithinGreaterLondon } from './lib/london-service-area.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const listingUrl = 'https://feverup.com/en/london/family';
@@ -324,8 +325,11 @@ async function main() {
       if (!hasCoordinates) {
         item.status = 'skipped';
         item.reason = 'No verified venue coordinate';
+      } else if (!isWithinGreaterLondon(row.lat, row.long)) {
+        item.status = 'skipped';
+        item.reason = 'Venue outside Greater London';
       }
-      return hasCoordinates;
+      return hasCoordinates && item.status === 'ready';
     })
     .map(({ row }) => row);
   mkdirSync(dirname(outputSql), { recursive: true });
