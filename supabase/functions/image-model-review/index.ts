@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { currentActiveProposals, reviewedChoice } from './policy.js'
+import { currentActiveProposals } from './policy.js'
 import { downloadSubmittedImage, publicImageUrl } from './remoteImage.js'
 
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type', 'Access-Control-Allow-Methods': 'POST, OPTIONS' }
@@ -41,11 +41,16 @@ Deno.serve(async (request) => {
       return reply({ proposals, total: count || 0, next: offset + (data?.length || 0) < (count || 0) ? offset + 200 : null })
     }
     if (!validId(body.activity_id)) return reply({ error: 'Invalid activity.' }, 400)
-    const { data: proposal, error } = await table.select('*').eq('batch_id', body.batch_id).eq('activity_id', body.activity_id).maybeSingle()
-    if (error) throw error
-    if (!proposal) return reply({ error: 'Proposal not found.' }, 404)
-    if (body.action === 'detail') return reply({ proposal })
+    if (body.action === 'detail') {
+      const { data: proposal, error } = await table.select('*').eq('batch_id', body.batch_id).eq('activity_id', body.activity_id).maybeSingle()
+      if (error) throw error
+      if (!proposal) return reply({ error: 'Proposal not found.' }, 404)
+      return reply({ proposal })
+    }
     if (body.action === 'submit_url') {
+      const { data: proposal, error } = await table.select('*').eq('batch_id', body.batch_id).eq('activity_id', body.activity_id).maybeSingle()
+      if (error) throw error
+      if (!proposal) return reply({ error: 'Proposal not found.' }, 404)
       if (body.proposal_hash !== proposal.proposal_hash) return reply({ error: 'The proposal changed. Refresh it first.' }, 409)
       const originalUrl = publicImageUrl(body.image_url).href
       const existing = [proposal.selected_image, ...(proposal.alternatives || [])].find(
@@ -99,30 +104,40 @@ Deno.serve(async (request) => {
       }
     }
     if (body.action !== 'decide') return reply({ error: 'Unknown action.' }, 400)
-    if (body.proposal_hash !== proposal.proposal_hash) return reply({ error: 'The proposal changed. Refresh it first.' }, 409)
-    const chosen = reviewedChoice(proposal, body.decision, body.image_url)
+    if (!['approved', 'rejected', 'unsure'].includes(body.decision)) return reply({ error: 'Choose approve, reject, or unsure.' }, 400)
     if (body.decision === 'approved') {
-      const { data: updates, error: approvalError } = await db.rpc('approve_model_image_across_sessions', {
+      let imageUrl = ''
+      try {
+        const parsed = new URL(body.image_url)
+        if (!['http:', 'https:'].includes(parsed.protocol)) throw Error()
+        imageUrl = body.image_url
+      } catch {
+        return reply({ error: 'Approve only an image from this proposal.' }, 400)
+      }
+      const { data: updates, error: approvalError } = await db.rpc('approve_model_image_url_across_sessions', {
         p_batch_id: body.batch_id,
         p_activity_id: body.activity_id,
         p_proposal_hash: body.proposal_hash,
-        p_chosen_image: chosen,
+        p_image_url: imageUrl,
         p_reviewer: auth.user.id,
       })
       if (approvalError) throw approvalError
-      if (!updates?.some((item: { updated_activity_id: string }) => item.updated_activity_id === body.activity_id)) {
+      const savedUpdates = updates || []
+      if (!savedUpdates.some((item: { updated_activity_id: string }) => item.updated_activity_id === body.activity_id)) {
         throw Error('The approval was not saved. Refresh this proposal.')
       }
-      return reply({ saved: true, review: { decision: 'approved', chosen_image: chosen },
-        updated_proposals: updates.map((item: { updated_activity_id: string; approved_image: unknown }) => ({
+      const sourceUpdate = savedUpdates.find((item: { updated_activity_id: string }) => item.updated_activity_id === body.activity_id)
+      return reply({ saved: true, review: { decision: 'approved', chosen_image: sourceUpdate!.approved_image },
+        updated_proposals: savedUpdates.map((item: { updated_activity_id: string; approved_image: unknown }) => ({
           activity_id: item.updated_activity_id, decision: 'approved', chosen_image: item.approved_image,
         })),
-        propagated_count: updates.length - 1, live_image_unchanged: false })
+        propagated_count: savedUpdates.length - 1, live_image_unchanged: false })
     }
     const { data: saved, error: saveError } = await table.update({
-      decision: body.decision, chosen_image: chosen || null,
+      decision: body.decision, chosen_image: null,
       reviewed_by: auth.user.id, reviewed_at: new Date().toISOString(),
-    }).eq('batch_id', body.batch_id).eq('activity_id', body.activity_id).eq('proposal_hash', body.proposal_hash)
+    }).eq('batch_id', body.batch_id).eq('activity_id', body.activity_id)
+      .eq('proposal_hash', body.proposal_hash)
       .select('decision,chosen_image,reviewed_at').maybeSingle()
     if (saveError) throw saveError
     if (!saved) return reply({ error: 'The proposal changed. Refresh it first.' }, 409)
