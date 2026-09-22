@@ -3,19 +3,31 @@ const mimeExtensions = new Map([
 ]);
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 
-export function publicImageUrl(value) {
+function sniffImageMime(bytes) {
+  if (bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return 'image/png';
+  if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return 'image/jpeg';
+  if (bytes.length >= 12 && String.fromCharCode(...bytes.slice(0, 4)) === 'RIFF'
+    && String.fromCharCode(...bytes.slice(8, 12)) === 'WEBP') return 'image/webp';
+  if (bytes.length >= 12 && String.fromCharCode(...bytes.slice(4, 8)) === 'ftyp'
+    && /avi[fx]|mif1/.test(String.fromCharCode(...bytes.slice(8, 12)))) return 'image/avif';
+  return '';
+}
+
+export function publicImageUrl(value, options = {}) {
   if (typeof value !== 'string' || value.length > 2048) throw Error('Paste a direct HTTPS image URL.');
   let url;
   try { url = new URL(value.trim()); } catch { throw Error('Paste a valid HTTPS image URL.'); }
   const host = url.hostname.toLowerCase();
-  if (url.protocol !== 'https:' || url.username || url.password || url.port
+  if ((!options.allowHttp && url.protocol !== 'https:')
+    || (options.allowHttp && !['https:', 'http:'].includes(url.protocol))
+    || url.username || url.password || url.port
     || !host.includes('.') || host.startsWith('[') || /^[0-9.]+$/.test(host)
     || /(?:^|\.)(?:nip|sslip)\.io$/.test(host)
     || /(?:^|\.)(?:localhost|local|internal|test|invalid|example|onion)$/.test(host)
     || /(?:^|[./_-])(?:localhost|metadata|127\.0\.0\.1)(?:$|[./_-])/.test(host)) {
     throw Error('Use a public HTTPS image URL, not a local or private address.');
   }
-  if (/(?:^|[-_/.])(?:logo|icon|favicon|sprite)(?:[-_/.]|$)/i.test(url.pathname)) {
+  if (!options.allowAssetTerms && /(?:^|[-_/.])(?:logo|icon|favicon|sprite)(?:[-_/.]|$)/i.test(url.pathname)) {
     throw Error('Choose a photo rather than a logo or icon.');
   }
   url.hash = '';
@@ -69,8 +81,12 @@ export function imageDimensions(bytes, mime) {
   return null;
 }
 
-export async function downloadSubmittedImage(rawUrl, fetcher = fetch) {
-  let url = publicImageUrl(rawUrl);
+export async function downloadSubmittedImage(rawUrl, fetcher = fetch, options = {}) {
+  let url = publicImageUrl(rawUrl, options);
+  const maxBytes = Number(options.maxBytes) || MAX_IMAGE_BYTES;
+  const minimumSide = Number(options.minimumSide) || 300;
+  const minimumPixels = Number(options.minimumPixels) || 180000;
+  const minimumBytes = Number(options.minimumBytes) || 5 * 1024;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 12000);
   try {
@@ -82,12 +98,13 @@ export async function downloadSubmittedImage(rawUrl, fetcher = fetch) {
       if ([301, 302, 303, 307, 308].includes(response.status)) {
         const location = response.headers.get('location');
         if (!location) throw Error('Image redirect was incomplete.');
-        url = publicImageUrl(new URL(location, url).href);
+        url = publicImageUrl(new URL(location, url).href, options);
         continue;
       }
-      const mime = (response.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
-      if (!response.ok || !mimeExtensions.has(mime)) throw Error('The URL did not return a supported photo (JPEG, PNG, WebP or AVIF).');
-      if (Number(response.headers.get('content-length') || 0) > MAX_IMAGE_BYTES) throw Error('Image exceeds 8 MB.');
+      let mime = (response.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+      if (!response.ok) throw Error('The URL did not return a supported photo (JPEG, PNG, WebP or AVIF).');
+      if (!mimeExtensions.has(mime) && !options.allowSniffedMime) throw Error('The URL did not return a supported photo (JPEG, PNG, WebP or AVIF).');
+      if (Number(response.headers.get('content-length') || 0) > maxBytes) throw Error(`Image exceeds ${Math.round(maxBytes / 1024 / 1024)} MB.`);
       if (!response.body) throw Error('The image response was empty.');
       const chunks = [];
       let size = 0;
@@ -97,18 +114,20 @@ export async function downloadSubmittedImage(rawUrl, fetcher = fetch) {
           const { done, value } = await reader.read();
           if (done) break;
           size += value.byteLength;
-          if (size > MAX_IMAGE_BYTES) throw Error('Image exceeds 8 MB.');
+          if (size > maxBytes) throw Error(`Image exceeds ${Math.round(maxBytes / 1024 / 1024)} MB.`);
           chunks.push(value);
         }
       } finally { reader.releaseLock(); }
-      if (size < 5 * 1024) throw Error('Image file is too small to use.');
+      if (size < minimumBytes) throw Error('Image file is too small to use.');
       const bytes = new Uint8Array(size);
       let offset = 0;
       for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+      if (!mimeExtensions.has(mime) && options.allowSniffedMime) mime = sniffImageMime(bytes);
+      if (!mimeExtensions.has(mime)) throw Error('The URL did not return a supported photo (JPEG, PNG, WebP or AVIF).');
       const dimensions = imageDimensions(bytes, mime);
-      if (!dimensions || Math.min(dimensions.width, dimensions.height) < 300
-        || dimensions.width * dimensions.height < 180000 || dimensions.width * dimensions.height > 40000000) {
-        throw Error('Use a clear photo of at least 300px on each side.');
+      if (!dimensions || Math.min(dimensions.width, dimensions.height) < minimumSide
+        || dimensions.width * dimensions.height < minimumPixels || dimensions.width * dimensions.height > 40000000) {
+        throw Error(`Use a clear photo of at least ${minimumSide}px on each side.`);
       }
       return { bytes, mime, extension: mimeExtensions.get(mime), ...dimensions, sourceUrl: url.href };
     }

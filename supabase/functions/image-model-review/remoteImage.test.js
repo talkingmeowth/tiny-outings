@@ -38,6 +38,29 @@ test('downloads a plausible image and records dimensions', async () => {
   assert.equal(image.bytes.length, 6000);
 });
 
+test('durability downloads may preserve a manually approved photo whose URL contains an asset term', async () => {
+  const bytes = png();
+  const image = await downloadSubmittedImage('https://photos.example.org/class-logo-wall.png', async () =>
+    new Response(bytes, { headers: { 'content-type': 'image/png' } }), { allowAssetTerms: true });
+  assert.equal(image.width, 600);
+});
+
+test('only the durability path may retrieve a legacy approved HTTP photo', async () => {
+  const bytes = png();
+  await assert.rejects(downloadSubmittedImage('http://photos.example.org/class.png', async () =>
+    new Response(bytes, { headers: { 'content-type': 'image/png' } })), /public HTTPS/);
+  const image = await downloadSubmittedImage('http://photos.example.org/class.png', async () =>
+    new Response(bytes, { headers: { 'content-type': 'image/png' } }), { allowHttp: true });
+  assert.equal(image.height, 500);
+});
+
+test('durability downloads can identify an approved image with a generic content type', async () => {
+  const bytes = png();
+  const image = await downloadSubmittedImage('https://photos.example.org/file/123', async () =>
+    new Response(bytes, { headers: { 'content-type': 'application/octet-stream' } }), { allowSniffedMime: true });
+  assert.equal(image.mime, 'image/png');
+});
+
 test('rejects tiny, non-image and oversized responses', async () => {
   await assert.rejects(downloadSubmittedImage('https://photos.example.org/tiny.png', async () =>
     new Response(png(200, 500), { headers: { 'content-type': 'image/png' } })), /300px/);
