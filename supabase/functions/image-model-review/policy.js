@@ -25,3 +25,14 @@ export function currentActiveProposals(proposals, activities) {
     } }];
   });
 }
+
+export function proposalAlternativePage(proposal, offset = 0, limit = 24) {
+  const alternatives = Array.isArray(proposal?.alternatives) ? proposal.alternatives : [];
+  const safeOffset = Math.max(0, Math.floor(Number(offset) || 0));
+  const safeLimit = Math.max(1, Math.min(48, Math.floor(Number(limit) || 24)));
+  return {
+    alternatives: alternatives.slice(safeOffset, safeOffset + safeLimit),
+    total: alternatives.length,
+    next: safeOffset + safeLimit < alternatives.length ? safeOffset + safeLimit : null,
+  };
+}

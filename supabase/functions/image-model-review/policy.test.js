@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { currentActiveProposals, reviewedChoice } from './policy.js';
+import { currentActiveProposals, proposalAlternativePage, reviewedChoice } from './policy.js';
 
 const proposal = { selected_image: { image_url: 'https://example.test/model.jpg', source_field: 'serpapi_image_candidates' },
   alternatives: [{ image_url: 'https://example.test/website.jpg', source_field: 'website_image_candidates' }] };
@@ -39,4 +39,14 @@ test('review queue follows current listing status and excludes archived activiti
   assert.deepEqual(currentActiveProposals(proposals, activities), [{
     activity_id: 'one', activity_snapshot: { activity_name: 'one', public_listing_status: 'published' },
   }]);
+});
+
+test('alternative images are paged without changing their order', () => {
+  const alternatives = Array.from({ length: 55 }, (_, index) => ({ image_url: `https://example.test/${index}.jpg` }));
+  assert.deepEqual(proposalAlternativePage({ alternatives }, 24, 24), {
+    alternatives: alternatives.slice(24, 48), total: 55, next: 48,
+  });
+  assert.deepEqual(proposalAlternativePage({ alternatives }, 48, 99), {
+    alternatives: alternatives.slice(48), total: 55, next: null,
+  });
 });

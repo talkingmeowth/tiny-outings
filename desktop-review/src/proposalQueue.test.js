@@ -13,6 +13,6 @@ test('overlapping queue pages show one row per activity with its newest decision
 });
 
 test('remaining queue pages can be loaded concurrently after the first page', () => {
-  assert.deepEqual(remainingProposalPageOffsets(1366, 200), [200, 400, 600, 800, 1000, 1200]);
+  assert.deepEqual(remainingProposalPageOffsets(3333, 200, 800), [200, 1000, 1800, 2600]);
   assert.deepEqual(remainingProposalPageOffsets(200, null), []);
 });

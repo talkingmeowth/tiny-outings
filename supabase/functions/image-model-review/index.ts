@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { currentActiveProposals } from './policy.js'
+import { proposalAlternativePage } from './policy.js'
 import { downloadSubmittedImage, imageDimensions, publicImageUrl } from './remoteImage.js'
 
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-tiny-outings-image-job-token', 'Access-Control-Allow-Methods': 'POST, OPTIONS' }
@@ -21,11 +21,24 @@ async function persistApprovedPhoto(db: ReturnType<typeof createClient>, origina
     const url = new URL(originalUrl)
     return { storedUrl: originalUrl, storagePath: decodeURIComponent(url.pathname.split('/activity-images/')[1] || ''), width: null, height: null, mime: null }
   }
+  const { data: cached, error: cacheError } = await db.from('activity_image_review_asset_cache')
+    .select('stored_url,storage_path,width,height,mime_type').eq('original_url', originalUrl).maybeSingle()
+  if (cacheError) throw cacheError
+  if (cached && isDurableActivityImageUrl(cached.stored_url)) {
+    return { storedUrl: cached.stored_url, storagePath: cached.storage_path,
+      width: cached.width, height: cached.height, mime: cached.mime_type }
+  }
   const photo = await downloadSubmittedImage(originalUrl, fetch, {
     allowAssetTerms: true, allowHttp: true, allowSniffedMime: true,
     maxBytes: 20 * 1024 * 1024, minimumSide: 100, minimumPixels: 10000, minimumBytes: 1024,
   })
-  return storeApprovedBytes(db, photo.bytes, photo.mime, photo.width, photo.height)
+  const stored = await storeApprovedBytes(db, photo.bytes, photo.mime, photo.width, photo.height)
+  const { error: saveCacheError } = await db.from('activity_image_review_asset_cache').upsert({
+    original_url: originalUrl, stored_url: stored.storedUrl, storage_path: stored.storagePath,
+    width: stored.width, height: stored.height, mime_type: stored.mime, stored_at: new Date().toISOString(),
+  }, { onConflict: 'original_url' })
+  if (saveCacheError) throw saveCacheError
+  return stored
 }
 
 async function storeApprovedBytes(
@@ -50,6 +63,38 @@ async function storeApprovedBytes(
     storedUrl: db.storage.from('activity-images').getPublicUrl(storagePath).data.publicUrl,
     storagePath, width, height, mime,
   }
+}
+
+const queueFields = 'batch_id,activity_id,activity_snapshot,status,selected_image,candidate_count,decision,chosen_image,proposal_hash'
+const detailFields = 'batch_id,activity_id,activity_snapshot,model_version,status,selected_image,candidate_count,assessed_count,source_gaps,failure_reason,proposal_hash,decision,chosen_image,reviewed_by,reviewed_at,created_at'
+
+function proposalSummary(proposal: Record<string, unknown>) {
+  const { alternatives: _alternatives, ...summary } = proposal
+  return summary
+}
+
+async function latestBatch(db: ReturnType<typeof createClient>) {
+  const { data, error } = await db.from('activity_image_model_proposals')
+    .select('batch_id,created_at').order('created_at', { ascending: false }).limit(1).maybeSingle()
+  if (error) throw error
+  return data || null
+}
+
+async function loadQueuePage(db: ReturnType<typeof createClient>, batchId: string,
+  offset = 0, limit = 200, includeTotal = true) {
+  const safeOffset = Math.max(0, Math.min(100000, Math.floor(Number(offset) || 0)))
+  const safeLimit = Math.max(1, Math.min(1000, Math.floor(Number(limit) || 200)))
+  const query = db.from('activity_image_model_proposal_queue')
+    .select(queueFields, includeTotal ? { count: 'exact' } : undefined)
+    .eq('batch_id', batchId).order('activity_id')
+    .range(safeOffset, safeOffset + safeLimit - 1)
+  const { data, error, count } = await query
+  if (error) throw error
+  const total = includeTotal ? count || 0 : null
+  const next = includeTotal
+    ? safeOffset + (data?.length || 0) < (total || 0) ? safeOffset + safeLimit : null
+    : (data?.length || 0) === safeLimit ? safeOffset + safeLimit : null
+  return { proposals: data || [], total, next }
 }
 
 Deno.serve(async (request) => {
@@ -113,31 +158,55 @@ Deno.serve(async (request) => {
     if (!body || typeof body !== 'object') return reply({ error: 'Invalid request.' }, 400)
     const table = db.from('activity_image_model_proposals')
     if (body.action === 'batch') {
-      const { data, error } = await table.select('batch_id,created_at').order('created_at', { ascending: false }).limit(1).maybeSingle()
-      if (error) throw error
-      return reply({ batch: data || null })
+      return reply({ batch: await latestBatch(db) })
+    }
+    if (body.action === 'bootstrap') {
+      const batch = await latestBatch(db)
+      if (!batch) return reply({ batch: null, proposals: [], total: 0, next: null })
+      return reply({ batch, ...(await loadQueuePage(db, batch.batch_id, 0, 200, true)) })
     }
     if (typeof body.batch_id !== 'string' || !/^[a-z0-9-]{1,80}$/.test(body.batch_id)) return reply({ error: 'Invalid batch.' }, 400)
     if (body.action === 'list') {
-      const offset = Math.max(0, Math.min(100000, Math.floor(Number(body.offset) || 0)))
-      const { data, error, count } = await db.from('activity_image_model_proposal_queue')
-        .select('batch_id,activity_id,activity_snapshot,status,selected_image,candidate_count,decision,chosen_image,proposal_hash', { count: 'exact' })
-        .eq('batch_id', body.batch_id).order('activity_id').range(offset, offset + 199)
+      return reply(await loadQueuePage(db, body.batch_id, body.offset, body.limit, body.include_total !== false))
+    }
+    if (body.action === 'prepare') {
+      const ids = Array.isArray(body.activity_ids)
+        ? [...new Set(body.activity_ids.filter(validId))].slice(0, 4)
+        : []
+      if (!ids.length) return reply({ prepared: [] })
+      const { data: proposals, error } = await table.select('activity_id,selected_image')
+        .eq('batch_id', body.batch_id).eq('decision', 'pending').in('activity_id', ids)
       if (error) throw error
-      const ids = (data || []).map((proposal) => proposal.activity_id)
-      const { data: activities, error: activityError } = ids.length
-        ? await db.from('activities').select('activity_id,archive,public_listing_status').in('activity_id', ids)
-        : { data: [], error: null }
-      if (activityError) throw activityError
-      const proposals = currentActiveProposals(data || [], activities || [])
-      return reply({ proposals, total: count || 0, next: offset + (data?.length || 0) < (count || 0) ? offset + 200 : null })
+      const prepared = await Promise.all((proposals || []).map(async (proposal) => {
+        const originalUrl = String(proposal.selected_image?.image_url || '')
+        if (!originalUrl) return { activity_id: proposal.activity_id, status: 'no_image' }
+        try {
+          const stored = await persistApprovedPhoto(db, originalUrl)
+          return { activity_id: proposal.activity_id, original_url: originalUrl,
+            stored_url: stored.storedUrl, status: 'ready' }
+        } catch (error) {
+          return { activity_id: proposal.activity_id, original_url: originalUrl, status: 'failed',
+            error: error instanceof Error ? error.message : 'Could not prepare image.' }
+        }
+      }))
+      return reply({ prepared })
     }
     if (!validId(body.activity_id)) return reply({ error: 'Invalid activity.' }, 400)
     if (body.action === 'detail') {
-      const { data: proposal, error } = await table.select('*').eq('batch_id', body.batch_id).eq('activity_id', body.activity_id).maybeSingle()
+      const { data: proposal, error } = await table.select(detailFields).eq('batch_id', body.batch_id).eq('activity_id', body.activity_id).maybeSingle()
       if (error) throw error
       if (!proposal) return reply({ error: 'Proposal not found.' }, 404)
       return reply({ proposal })
+    }
+    if (body.action === 'alternatives') {
+      const { data: proposal, error } = await table.select('proposal_hash,alternatives')
+        .eq('batch_id', body.batch_id).eq('activity_id', body.activity_id).maybeSingle()
+      if (error) throw error
+      if (!proposal) return reply({ error: 'Proposal not found.' }, 404)
+      if (body.proposal_hash && body.proposal_hash !== proposal.proposal_hash) {
+        return reply({ error: 'The proposal changed. Refresh it first.' }, 409)
+      }
+      return reply(proposalAlternativePage(proposal, body.offset, body.limit))
     }
     if (body.action === 'submit_url') {
       const { data: proposal, error } = await table.select('*').eq('batch_id', body.batch_id).eq('activity_id', body.activity_id).maybeSingle()
@@ -148,7 +217,7 @@ Deno.serve(async (request) => {
       const existing = [proposal.selected_image, ...(proposal.alternatives || [])].find(
         (candidate) => candidate?.submitted_original_url === originalUrl,
       )
-      if (existing) return reply({ proposal, candidate: existing })
+      if (existing) return reply({ proposal: proposalSummary(proposal), candidate: existing })
       const { data: activity, error: activityError } = await db.from('activities')
         .select('activity_id').eq('activity_id', body.activity_id).eq('archive', false)
         .in('public_listing_status', ['draft', 'published']).maybeSingle()
@@ -189,7 +258,7 @@ Deno.serve(async (request) => {
         )
         if (!savedCandidate) throw Error('The submitted URL was not saved. Refresh and try again.')
         if (savedCandidate.image_url !== storedUrl) await db.storage.from('activity-images').remove([path])
-        return reply({ proposal: saved, candidate: savedCandidate })
+        return reply({ proposal: proposalSummary(saved), candidate: savedCandidate })
       } catch (submissionError) {
         await db.storage.from('activity-images').remove([path])
         throw submissionError
