@@ -26,13 +26,29 @@ export function currentActiveProposals(proposals, activities) {
   });
 }
 
-export function proposalAlternativePage(proposal, offset = 0, limit = 24) {
-  const alternatives = Array.isArray(proposal?.alternatives) ? proposal.alternatives : [];
+export function candidateSourceGroup(candidate) {
+  const text = [candidate?.source_domain, candidate?.source_page_url, candidate?.image_url]
+    .filter(Boolean).join(' ').toLowerCase();
+  const source = String(candidate?.source_field || candidate?.candidate_source || '').toLowerCase();
+  if (/(instagram|facebook|fbcdn|fbsbx|cdninstagram|scontent|tiktok|pinterest)/.test(text)) return 'social';
+  if (/(website|organiser)/.test(source)) return 'website';
+  if (/(serpapi|codex_image|google_images|google image)/.test(source)) return 'search';
+  return 'other';
+}
+
+export function proposalAlternativePage(proposal, offset = 0, limit = 24, sourceFilter = 'all') {
+  const all = Array.isArray(proposal?.alternatives) ? proposal.alternatives : [];
+  const groups = { social: 0, search: 0, website: 0, other: 0 };
+  all.forEach((candidate) => { groups[candidateSourceGroup(candidate)] += 1; });
+  const normalizedFilter = ['social', 'search', 'website', 'other'].includes(sourceFilter) ? sourceFilter : 'all';
+  const alternatives = normalizedFilter === 'all' ? all : all.filter((candidate) => candidateSourceGroup(candidate) === normalizedFilter);
   const safeOffset = Math.max(0, Math.floor(Number(offset) || 0));
   const safeLimit = Math.max(1, Math.min(48, Math.floor(Number(limit) || 24)));
   return {
     alternatives: alternatives.slice(safeOffset, safeOffset + safeLimit),
     total: alternatives.length,
     next: safeOffset + safeLimit < alternatives.length ? safeOffset + safeLimit : null,
+    source_counts: { all: all.length, ...groups },
+    source_filter: normalizedFilter,
   };
 }

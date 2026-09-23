@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { currentActiveProposals, proposalAlternativePage, reviewedChoice } from './policy.js';
+import { candidateSourceGroup, currentActiveProposals, proposalAlternativePage, reviewedChoice } from './policy.js';
 
 const proposal = { selected_image: { image_url: 'https://example.test/model.jpg', source_field: 'serpapi_image_candidates' },
   alternatives: [{ image_url: 'https://example.test/website.jpg', source_field: 'website_image_candidates' }] };
@@ -45,8 +45,24 @@ test('alternative images are paged without changing their order', () => {
   const alternatives = Array.from({ length: 55 }, (_, index) => ({ image_url: `https://example.test/${index}.jpg` }));
   assert.deepEqual(proposalAlternativePage({ alternatives }, 24, 24), {
     alternatives: alternatives.slice(24, 48), total: 55, next: 48,
+    source_counts: { all: 55, social: 0, search: 0, website: 0, other: 55 }, source_filter: 'all',
   });
   assert.deepEqual(proposalAlternativePage({ alternatives }, 48, 99), {
     alternatives: alternatives.slice(48), total: 55, next: null,
+    source_counts: { all: 55, social: 0, search: 0, website: 0, other: 55 }, source_filter: 'all',
+  });
+});
+
+test('social candidates can be requested directly even when they occur late in the full gallery', () => {
+  const alternatives = [
+    { image_url: 'https://venue.test/room.jpg', source_field: 'website_image_candidates' },
+    { image_url: 'https://lookaside.instagram.com/crawler/1', source_page_url: 'https://instagram.com/p/one' },
+    { image_url: 'https://lookaside.fbsbx.com/crawler/2', source_domain: 'facebook.com' },
+    { image_url: 'https://images.test/search.jpg', source_field: 'serpapi_image_candidates' },
+  ];
+  assert.equal(candidateSourceGroup(alternatives[1]), 'social');
+  assert.deepEqual(proposalAlternativePage({ alternatives }, 0, 24, 'social'), {
+    alternatives: alternatives.slice(1, 3), total: 2, next: null,
+    source_counts: { all: 4, social: 2, search: 1, website: 1, other: 0 }, source_filter: 'social',
   });
 });

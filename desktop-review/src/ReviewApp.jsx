@@ -5,6 +5,22 @@ import { mergeProposalPage, remainingProposalPageOffsets } from './proposalQueue
 
 const admins = new Set(['talkingmeowth06@gmail.com', 'talkingmeowtho6@gmail.com', 'benfielden@gmail.com']);
 const safeUrl = (value) => { try { const url = new URL(value); return ['http:', 'https:'].includes(url.protocol) ? url.href : ''; } catch { return ''; } };
+const candidateSourceGroup = (image) => {
+  const text = [image?.source_domain, image?.source_page_url, image?.image_url].filter(Boolean).join(' ').toLowerCase();
+  const source = String(image?.source_field || image?.candidate_source || '').toLowerCase();
+  if (/(instagram|facebook|fbcdn|fbsbx|cdninstagram|scontent|tiktok|pinterest)/.test(text)) return 'social';
+  if (/(website|organiser)/.test(source)) return 'website';
+  if (/(serpapi|codex_image|google_images|google image)/.test(source)) return 'search';
+  return 'other';
+};
+const sourceLabel = (image) => {
+  const text = [image?.source_domain, image?.source_page_url, image?.image_url].filter(Boolean).join(' ').toLowerCase();
+  if (text.includes('instagram')) return 'Instagram';
+  if (/(facebook|fbcdn|fbsbx)/.test(text)) return 'Facebook';
+  if (text.includes('tiktok')) return 'TikTok';
+  if (text.includes('pinterest')) return 'Pinterest';
+  return image?.source_field || image?.candidate_source || 'Other source';
+};
 async function api(body) {
   const response = await supabase.functions.invoke('image-model-review', { body });
   if (response.error || response.data?.error) throw Error(await edgeFunctionErrorMessage(response, 'Review service unavailable.'));
@@ -30,6 +46,8 @@ export default function ReviewApp() {
   const [chosenUrl, setChosenUrl] = useState(''); const [alternativesOpen, setAlternativesOpen] = useState(false);
   const [alternatives, setAlternatives] = useState([]); const [alternativeTotal, setAlternativeTotal] = useState(null);
   const [alternativesBusy, setAlternativesBusy] = useState(false);
+  const [alternativeSource, setAlternativeSource] = useState('all');
+  const [sourceCounts, setSourceCounts] = useState({});
   const [preparedAssets, setPreparedAssets] = useState(() => new Map());
   const [submittedUrl, setSubmittedUrl] = useState('');
   const [filter, setFilter] = useState('all'); const [reviewFilter, setReviewFilter] = useState('pending');
@@ -89,8 +107,9 @@ export default function ReviewApp() {
     const cacheKey = `${batchId}:${selectedId}`;
     const requestId = ++detailRequest.current;
     const cached = detailCache.current.get(cacheKey);
-    const cachedAlternatives = alternativesCache.current.get(cacheKey);
+    const cachedAlternatives = alternativesCache.current.get(`${cacheKey}:all`);
     setDetail(cached || null); setAlternativesOpen(false); setSubmittedUrl('');
+    setAlternativeSource('all'); setSourceCounts(cachedAlternatives?.sourceCounts || {});
     setAlternatives(cachedAlternatives?.items || []); setAlternativeTotal(cachedAlternatives?.total ?? null);
     if (cached) {
       setChosenUrl(cached.chosen_image?.image_url || cached.selected_image?.image_url || '');
@@ -183,24 +202,36 @@ export default function ReviewApp() {
       setError(e.message);
     } finally { setBusy(false); }
   }
-  async function loadAlternatives() {
-    if (!detail || alternativesBusy || alternatives.length >= (alternativeTotal ?? Infinity)) return;
+  async function loadAlternatives(source = alternativeSource, replace = false) {
+    const current = replace ? [] : alternatives;
+    if (!detail || alternativesBusy || current.length >= (replace ? Infinity : (alternativeTotal ?? Infinity))) return;
     setAlternativesBusy(true);
     try {
       const page = await api({ action: 'alternatives', batch_id: detail.batch_id,
         activity_id: detail.activity_id, proposal_hash: detail.proposal_hash,
-        offset: alternatives.length, limit: 24 });
-      const byUrl = new Map(alternatives.map((image) => [image.image_url, image]));
+        offset: current.length, limit: 24, source_filter: source });
+      const byUrl = new Map(current.map((image) => [image.image_url, image]));
       page.alternatives.forEach((image) => byUrl.set(image.image_url, image));
       const items = [...byUrl.values()];
-      setAlternatives(items); setAlternativeTotal(page.total);
-      alternativesCache.current.set(`${detail.batch_id}:${detail.activity_id}`, { items, total: page.total });
+      setAlternatives(items); setAlternativeTotal(page.total); setSourceCounts(page.source_counts || {});
+      alternativesCache.current.set(`${detail.batch_id}:${detail.activity_id}:${source}`,
+        { items, total: page.total, sourceCounts: page.source_counts || {} });
     } catch (e) { setError(e.message); } finally { setAlternativesBusy(false); }
   }
   function toggleAlternatives() {
     const opening = !alternativesOpen;
     setAlternativesOpen(opening);
     if (opening && alternatives.length === 0 && alternativeTotal !== 0) loadAlternatives();
+  }
+  function selectAlternativeSource(source) {
+    setAlternativeSource(source); setAlternativesOpen(true);
+    const key = `${detail.batch_id}:${detail.activity_id}:${source}`;
+    const cached = alternativesCache.current.get(key);
+    if (cached) {
+      setAlternatives(cached.items); setAlternativeTotal(cached.total); setSourceCounts(cached.sourceCounts || {});
+    } else {
+      setAlternatives([]); setAlternativeTotal(null); loadAlternatives(source, true);
+    }
   }
   async function submitImageUrl(event) {
     event.preventDefault();
@@ -213,11 +244,12 @@ export default function ReviewApp() {
       setDetail(result.proposal);
       detailCache.current.set(`${result.proposal.batch_id}:${result.proposal.activity_id}`, result.proposal);
       setChosenUrl(result.candidate.image_url);
+      setAlternativeSource('all');
       setAlternatives((current) => {
         const items = current.some((image) => image.image_url === result.candidate.image_url)
           ? current : [...current, result.candidate];
         const total = Math.max(alternativeTotal || 0, items.length);
-        alternativesCache.current.set(`${result.proposal.batch_id}:${result.proposal.activity_id}`, { items, total });
+        alternativesCache.current.set(`${result.proposal.batch_id}:${result.proposal.activity_id}:all`, { items, total, sourceCounts });
         setAlternativeTotal(total);
         return items;
       });
@@ -248,10 +280,15 @@ export default function ReviewApp() {
     if (result.error) setError(result.error.message);
   }
   const activity = detail?.activity_snapshot || {};
-  const options = detail ? [detail.selected_image, ...alternatives].filter(Boolean) : [];
+  const selectedForFilter = detail?.selected_image
+    && (alternativeSource === 'all' || candidateSourceGroup(detail.selected_image) === alternativeSource)
+    ? detail.selected_image : null;
+  const options = detail ? [selectedForFilter, ...alternatives].filter(Boolean) : [];
   const chosen = options.find((image) => image.image_url === chosenUrl)
     || (detail?.chosen_image?.image_url === chosenUrl ? detail.chosen_image : detail?.selected_image);
-  const imageSrc = (image) => preparedAssets.get(image?.image_url) || image?.image_url || '';
+  const imageSrc = (image) => preparedAssets.get(image?.image_url)
+    || (candidateSourceGroup(image) === 'social' ? image?.thumbnail_url : null)
+    || image?.image_url || '';
   const nextPending = filtered.find((row) => row.activity_id !== selectedId && row.decision === 'pending');
   const counts = Object.fromEntries(['all', 'published', 'draft'].map((key) => [key, rows.filter((row) => key === 'all' || row.activity_snapshot?.public_listing_status === key).length]));
   return <div className={`review-app ${mobileDetailOpen ? 'mobile-detail-open' : ''}`}><header className="topbar"><div><small>TINY OUTINGS · INTERNAL</small><h1>Image review</h1></div><div className="topright"><span>{busy ? 'Saving previous review…' : 'Approved photos go live'}</span>{session && <button onClick={() => supabase.auth.signOut()}>Sign out</button>}</div></header>
@@ -273,7 +310,7 @@ export default function ReviewApp() {
               <form className="url-submission" onSubmit={submitImageUrl}><label htmlFor="review-image-url">Have a better photo? Paste its direct image URL</label><div><input id="review-image-url" type="url" inputMode="url" placeholder="https://example.com/photo.jpg" value={submittedUrl} onChange={(event) => setSubmittedUrl(event.target.value)} disabled={busy} required /><button type="submit" disabled={busy || !submittedUrl.trim()}>Add image URL</button></div><small>JPEG, PNG, WebP or AVIF · at least 300px per side · added for review, not live until approved.</small></form>
               <Metadata image={chosen} /><div className="actions"><button className="approve" disabled={busy || !chosen} onClick={() => decide('approved')}>Approve photo</button><button className="reject" disabled={busy} onClick={() => decide('rejected')}>Reject</button><button className="unsure" disabled={busy} onClick={() => { setAlternativesOpen(true); loadAlternatives(); decide('unsure'); }}>Unsure</button><button className="unsure" disabled={!nextPending || busy} onClick={() => setSelectedId(nextPending.activity_id)}>Next pending →</button></div>
               <p className="safety">Approved photos appear in the live app below existing admin and manual images. Pending, rejected and unsure choices do not.</p></div></div>
-          {alternativesOpen && <section className="alternatives"><h3>Alternative images</h3><p>All saved non-human image options are available. Images load in small groups to keep review fast. Only model-ranked photos are marked as such.</p>{alternativesBusy && alternatives.length === 0 && <p>Loading alternatives…</p>}<div className="alternative-grid">{options.map((image, index) => <button key={`${image.image_url}-${index}`} className={chosenUrl === image.image_url ? 'selected' : ''} onClick={() => setChosenUrl(image.image_url)}><img src={imageSrc(image)} alt={image.title || `Alternative ${index + 1}`} loading="lazy" decoding="async" fetchPriority="low" /><strong>{index === 0 && detail.selected_image ? 'Model choice' : image.model_assessed ? `Model alternative ${index}` : `Other option ${index}`}</strong><small>{image.source_field || image.candidate_source} · {image.source_domain}</small>{image.quality_gate_reasons?.length > 0 && <small>⚠ {image.quality_gate_reasons.join(', ')}</small>}</button>)}</div>{alternatives.length < (alternativeTotal ?? alternatives.length) && <button className="load-more" disabled={alternativesBusy} onClick={loadAlternatives}>{alternativesBusy ? 'Loading…' : 'Show 24 more images'}</button>}</section>}
+          {alternativesOpen && <section className="alternatives"><h3>Alternative images</h3><p>All saved non-human image options are available. Images load in small groups to keep review fast. Only model-ranked photos are marked as such.</p><div className="alternative-sources">{[['all','All'],['social','Instagram & social'],['search','Google / SerpAPI'],['website','Websites'],['other','Other']].map(([key,label]) => <button key={key} className={alternativeSource === key ? 'active' : ''} onClick={() => selectAlternativeSource(key)}>{label}{sourceCounts[key] != null ? ` (${sourceCounts[key]})` : ''}</button>)}</div>{alternativesBusy && alternatives.length === 0 && <p>Loading alternatives…</p>}<div className="alternative-grid">{options.map((image, index) => <button key={`${image.image_url}-${index}`} className={chosenUrl === image.image_url ? 'selected' : ''} onClick={() => setChosenUrl(image.image_url)}><img src={imageSrc(image)} alt={image.title || `Alternative ${index + 1}`} loading="lazy" decoding="async" fetchPriority="low" /><strong><span className={`source-badge ${candidateSourceGroup(image)}`}>{sourceLabel(image)}</span>{index === 0 && detail.selected_image ? ' Model choice' : image.model_assessed ? ` Model alternative ${index}` : ` Other option ${index}`}</strong><small>{image.source_field || image.candidate_source} · {image.source_domain}</small>{image.quality_gate_reasons?.length > 0 && <small>⚠ {image.quality_gate_reasons.join(', ')}</small>}</button>)}</div>{alternatives.length < (alternativeTotal ?? alternatives.length) && <button className="load-more" disabled={alternativesBusy} onClick={() => loadAlternatives()}>{alternativesBusy ? 'Loading…' : 'Show 24 more images'}</button>}</section>}
           <div className="mobile-actions" aria-label="Review actions"><button className="approve" disabled={busy || !chosen} onClick={() => decide('approved')}>Approve</button><button className="reject" disabled={busy} onClick={() => decide('rejected')}>Reject</button><button className="unsure" disabled={busy} onClick={() => { setAlternativesOpen(true); loadAlternatives(); decide('unsure'); }}>Unsure</button></div>
         </>}</section></main>}
     </>}

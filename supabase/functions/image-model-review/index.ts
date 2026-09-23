@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { proposalAlternativePage } from './policy.js'
+import { candidateSourceGroup, proposalAlternativePage, reviewedChoice } from './policy.js'
 import { downloadSubmittedImage, imageDimensions, publicImageUrl } from './remoteImage.js'
 
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-tiny-outings-image-job-token', 'Access-Control-Allow-Methods': 'POST, OPTIONS' }
@@ -16,7 +16,17 @@ function isDurableActivityImageUrl(value: unknown) {
   } catch { return false }
 }
 
-async function persistApprovedPhoto(db: ReturnType<typeof createClient>, originalUrl: string) {
+async function rememberAsset(db: ReturnType<typeof createClient>, originalUrl: string, stored: {
+  storedUrl: string; storagePath: string; width: number | null; height: number | null; mime: string | null
+}) {
+  const { error } = await db.from('activity_image_review_asset_cache').upsert({
+    original_url: originalUrl, stored_url: stored.storedUrl, storage_path: stored.storagePath,
+    width: stored.width, height: stored.height, mime_type: stored.mime, stored_at: new Date().toISOString(),
+  }, { onConflict: 'original_url' })
+  if (error) throw error
+}
+
+async function persistApprovedPhoto(db: ReturnType<typeof createClient>, originalUrl: string, fallbackUrls: string[] = []) {
   if (isDurableActivityImageUrl(originalUrl)) {
     const url = new URL(originalUrl)
     return { storedUrl: originalUrl, storagePath: decodeURIComponent(url.pathname.split('/activity-images/')[1] || ''), width: null, height: null, mime: null }
@@ -28,17 +38,27 @@ async function persistApprovedPhoto(db: ReturnType<typeof createClient>, origina
     return { storedUrl: cached.stored_url, storagePath: cached.storage_path,
       width: cached.width, height: cached.height, mime: cached.mime_type }
   }
-  const photo = await downloadSubmittedImage(originalUrl, fetch, {
-    allowAssetTerms: true, allowHttp: true, allowSniffedMime: true,
-    maxBytes: 20 * 1024 * 1024, minimumSide: 100, minimumPixels: 10000, minimumBytes: 1024,
-  })
-  const stored = await storeApprovedBytes(db, photo.bytes, photo.mime, photo.width, photo.height)
-  const { error: saveCacheError } = await db.from('activity_image_review_asset_cache').upsert({
-    original_url: originalUrl, stored_url: stored.storedUrl, storage_path: stored.storagePath,
-    width: stored.width, height: stored.height, mime_type: stored.mime, stored_at: new Date().toISOString(),
-  }, { onConflict: 'original_url' })
-  if (saveCacheError) throw saveCacheError
-  return stored
+  let lastError: unknown = null
+  for (const sourceUrl of [...new Set([originalUrl, ...fallbackUrls].filter(Boolean))]) {
+    try {
+      if (isDurableActivityImageUrl(sourceUrl)) {
+        const url = new URL(sourceUrl)
+        const stored = { storedUrl: sourceUrl,
+          storagePath: decodeURIComponent(url.pathname.split('/activity-images/')[1] || ''),
+          width: null, height: null, mime: null }
+        await rememberAsset(db, originalUrl, stored)
+        return stored
+      }
+      const photo = await downloadSubmittedImage(sourceUrl, fetch, {
+        allowAssetTerms: true, allowHttp: true, allowSniffedMime: true,
+        maxBytes: 20 * 1024 * 1024, minimumSide: 100, minimumPixels: 10000, minimumBytes: 1024,
+      })
+      const stored = await storeApprovedBytes(db, photo.bytes, photo.mime, photo.width, photo.height)
+      await rememberAsset(db, originalUrl, stored)
+      return stored
+    } catch (error) { lastError = error }
+  }
+  throw lastError || Error('Could not store the approved image.')
 }
 
 async function storeApprovedBytes(
@@ -71,6 +91,72 @@ const detailFields = 'batch_id,activity_id,activity_snapshot,model_version,statu
 function proposalSummary(proposal: Record<string, unknown>) {
   const { alternatives: _alternatives, ...summary } = proposal
   return summary
+}
+
+const candidateArrayFields = ['codex_image_candidates', 'serpapi_image_candidates', 'website_image_candidates']
+
+function hydrateCandidate(candidate: Record<string, unknown>, activity: Record<string, unknown> | null) {
+  if (!candidate || !activity) return candidate
+  let record: Record<string, unknown> | null = null
+  for (const ref of Array.isArray(candidate.source_refs) ? candidate.source_refs as Array<{ field?: string; index?: number }> : []) {
+    if (!candidateArrayFields.includes(String(ref?.field)) || !Number.isInteger(Number(ref?.index))) continue
+    const values = activity[String(ref.field)]
+    const item = Array.isArray(values) ? values[Number(ref.index)] : null
+    if (item && typeof item === 'object') { record = item as Record<string, unknown>; break }
+  }
+  if (!record) {
+    const target = String(candidate.image_url || '')
+    for (const field of candidateArrayFields) {
+      const found = (Array.isArray(activity[field]) ? activity[field] as Array<Record<string, unknown>> : [])
+        .find((item) => String(item?.image_url || item?.original || '') === target)
+      if (found) { record = found; break }
+    }
+  }
+  if (!record) return candidate
+  return {
+    ...candidate,
+    thumbnail_url: candidate.thumbnail_url || record.thumbnail_url || record.thumbnail || null,
+    source_page_url: candidate.source_page_url || record.source_page_url || record.link || null,
+  }
+}
+
+async function hydrateCandidates(db: ReturnType<typeof createClient>, activityId: string,
+  candidates: Array<Record<string, unknown>>) {
+  if (!candidates.some((candidate) => !candidate.thumbnail_url)) return candidates
+  const { data: activity, error } = await db.from('activities')
+    .select(candidateArrayFields.join(',')).eq('activity_id', activityId).maybeSingle()
+  if (error) throw error
+  return candidates.map((candidate) => hydrateCandidate(candidate, activity))
+}
+
+function decodeHtmlAttribute(value: string) {
+  return value.replaceAll('&amp;', '&').replaceAll('&quot;', '"').replaceAll('&#39;', "'")
+}
+
+async function socialOpenGraphImage(candidate: Record<string, unknown>) {
+  if (candidateSourceGroup(candidate) !== 'social') return ''
+  const pageValue = String(candidate.source_page_url || '')
+  let page: URL
+  try {
+    page = new URL(pageValue)
+    const host = page.hostname.toLowerCase()
+    if (page.protocol !== 'https:' || !/(^|\.)(instagram\.com|facebook\.com)$/.test(host)) return ''
+  } catch { return '' }
+  try {
+    const response = await fetch(page, { redirect: 'follow', signal: AbortSignal.timeout(8000),
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; TinyOutingsImageReview/1.0)' } })
+    if (!response.ok || !String(response.headers.get('content-type') || '').toLowerCase().includes('text/html')) return ''
+    const html = (await response.text()).slice(0, 2_000_000)
+    const match = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+      || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
+    return match ? publicImageUrl(decodeHtmlAttribute(match[1])).href : ''
+  } catch { return '' }
+}
+
+async function persistCandidatePhoto(db: ReturnType<typeof createClient>, candidate: Record<string, unknown>) {
+  const socialImage = await socialOpenGraphImage(candidate)
+  return persistApprovedPhoto(db, String(candidate.image_url || ''),
+    [socialImage, String(candidate.thumbnail_url || '')].filter(Boolean))
 }
 
 async function latestBatch(db: ReturnType<typeof createClient>) {
@@ -181,7 +267,8 @@ Deno.serve(async (request) => {
         const originalUrl = String(proposal.selected_image?.image_url || '')
         if (!originalUrl) return { activity_id: proposal.activity_id, status: 'no_image' }
         try {
-          const stored = await persistApprovedPhoto(db, originalUrl)
+          const [candidate] = await hydrateCandidates(db, proposal.activity_id, [proposal.selected_image])
+          const stored = await persistCandidatePhoto(db, candidate)
           return { activity_id: proposal.activity_id, original_url: originalUrl,
             stored_url: stored.storedUrl, status: 'ready' }
         } catch (error) {
@@ -206,7 +293,8 @@ Deno.serve(async (request) => {
       if (body.proposal_hash && body.proposal_hash !== proposal.proposal_hash) {
         return reply({ error: 'The proposal changed. Refresh it first.' }, 409)
       }
-      return reply(proposalAlternativePage(proposal, body.offset, body.limit))
+      const page = proposalAlternativePage(proposal, body.offset, body.limit, body.source_filter)
+      return reply({ ...page, alternatives: await hydrateCandidates(db, body.activity_id, page.alternatives) })
     }
     if (body.action === 'submit_url') {
       const { data: proposal, error } = await table.select('*').eq('batch_id', body.batch_id).eq('activity_id', body.activity_id).maybeSingle()
@@ -275,7 +363,15 @@ Deno.serve(async (request) => {
       } catch {
         return reply({ error: 'Approve only an image from this proposal.' }, 400)
       }
-      const stored = await persistApprovedPhoto(db, imageUrl)
+      const { data: candidateProposal, error: candidateError } = await table
+        .select('selected_image,alternatives,chosen_image,decision')
+        .eq('batch_id', body.batch_id).eq('activity_id', body.activity_id)
+        .eq('proposal_hash', body.proposal_hash).maybeSingle()
+      if (candidateError) throw candidateError
+      if (!candidateProposal) return reply({ error: 'The proposal changed. Refresh it first.' }, 409)
+      const candidate = reviewedChoice(candidateProposal, 'approved', imageUrl)
+      const [hydrated] = await hydrateCandidates(db, body.activity_id, [candidate])
+      const stored = await persistCandidatePhoto(db, hydrated)
       const approvalRpc = isDurableActivityImageUrl(imageUrl)
         ? db.rpc('approve_model_image_url_across_sessions', {
           p_batch_id: body.batch_id,
